@@ -37,7 +37,7 @@ cc_library_shared {
     header_libs: [
         "gfxstream_opengl_headers",
         "libgfxstream_guest_graphics_headers",
-        "libgfxstream_guest_iostream",
+        "mesa_gfxstream_guest_iostream",
     ],
     export_header_lib_headers: [
         "gfxstream_opengl_headers",
@@ -74,6 +74,7 @@ cc_library_shared {
     ],
     export_include_dirs: [
         "include",
+        ".",
     ],
 }
 
@@ -87,7 +88,7 @@ cc_library_static {
     header_libs: [
         "gfxstream_opengl_headers",
         "libgfxstream_guest_graphics_headers",
-        "libgfxstream_guest_iostream",
+        "mesa_gfxstream_guest_iostream",
     ],
     export_header_lib_headers: [
         "gfxstream_opengl_headers",

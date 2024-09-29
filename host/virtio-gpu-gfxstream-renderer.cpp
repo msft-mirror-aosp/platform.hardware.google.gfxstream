@@ -42,6 +42,7 @@
 #include "host-common/android_pipe_device.h"
 #include "host-common/feature_control.h"
 #include "host-common/globals.h"
+#include "host-common/logging.h"
 #include "host-common/opengles-pipe.h"
 #include "host-common/opengles.h"
 #include "host-common/refcount-pipe.h"
@@ -72,63 +73,159 @@ struct iovec {
 #endif  // _WIN32
 
 #define MAX_DEBUG_BUFFER_SIZE 512
+#define ELLIPSIS "...\0"
+#define ELLIPSIS_LEN 4
+
+// Define the typedef for emulogger
+typedef void (*emulogger)(char severity, const char* file, unsigned int line,
+                          int64_t timestamp_us, const char* message);
+
+// Template to enable the method call if gfxstream_logger_t equals emulogger
+template<typename T>
+typename std::enable_if<std::is_same<T, emulogger>::value, bool>::type
+call_logger_if_valid(T logger, char severity, const char* file, unsigned int line, int64_t timestamp_us, const char* message) {
+    // Call the logger and return true if the type matches
+    if (!logger) { return false; }
+    logger(severity, file, line, timestamp_us, message);
+    return true;
+}
+
+// Template for invalid logger types (returns false if types don't match)
+template<typename T>
+typename std::enable_if<!std::is_same<T, emulogger>::value, bool>::type
+call_logger_if_valid(T, char, const char*, unsigned int, int64_t, const char*) {
+    // Return false if the type doesn't match
+    return false;
+}
+
 
 void* globalUserData = nullptr;
 stream_renderer_debug_callback globalDebugCallback = nullptr;
 
-void stream_renderer_log(uint32_t type, const char* format, ...) {
-    char buf[MAX_DEBUG_BUFFER_SIZE];
+static void append_truncation_marker(char* buf, int remaining_size) {
+    // Safely append truncation marker "..." if buffer has enough space
+    if (remaining_size >= ELLIPSIS_LEN) {
+        strncpy(buf + remaining_size - ELLIPSIS_LEN, ELLIPSIS, ELLIPSIS_LEN);
+    } else if (remaining_size >= 1) {
+        buf[remaining_size - 1] = '\0';
+    } else {
+        // Oh oh.. In theory this shouldn't happen.
+        assert(false);
+    }
+}
+
+static void log_with_prefix(char*& buf, int& remaining_size, const char* file, int line,
+                            const char* pretty_function) {
+    // Add logging prefix if necessary
+    int formatted_len = snprintf(buf, remaining_size, "[%s(%d)] %s ", file, line, pretty_function);
+
+    // Handle potential truncation
+    if (formatted_len >= remaining_size) {
+        append_truncation_marker(buf, remaining_size);
+        remaining_size = 0;
+    } else {
+        buf += formatted_len;             // Adjust buf
+        remaining_size -= formatted_len;  // Reduce remaining buffer size
+    }
+}
+
+static char translate_severity(uint32_t type) {
+    switch (type) {
+        case STREAM_RENDERER_DEBUG_ERROR:
+            return 'E';
+        case STREAM_RENDERER_DEBUG_WARN:
+            return 'W';
+        case STREAM_RENDERER_DEBUG_INFO:
+            return 'I';
+        case STREAM_RENDERER_DEBUG_DEBUG:
+            return 'D';
+        default:
+            return 'D';
+    }
+}
+
+void stream_renderer_log(uint32_t type, const char* file, int line, const char* pretty_function,
+                         const char* format, ...) {
+
+    char printbuf[MAX_DEBUG_BUFFER_SIZE];
+    char* buf = printbuf;
+    int remaining_size = MAX_DEBUG_BUFFER_SIZE;
+    static_assert(MAX_DEBUG_BUFFER_SIZE > 4);
+
+    // Add the logging prefix if needed
+#ifdef CONFIG_AEMU
+    static gfxstream_logger_t gfx_logger = get_gfx_stream_logger();
+    if (!gfx_logger) {
+        log_with_prefix(buf, remaining_size, file, line, pretty_function);
+    }
+#else
+    log_with_prefix(buf, remaining_size, file, line, pretty_function);
+#endif
+
+    // Format the message with variable arguments
     va_list args;
     va_start(args, format);
-    vsnprintf(buf, MAX_DEBUG_BUFFER_SIZE, format, args);
+    int formatted_len = vsnprintf(buf, remaining_size, format, args);
     va_end(args);
 
+    // Handle potential truncation
+    if (formatted_len >= remaining_size) {
+        append_truncation_marker(buf, remaining_size);
+    }
+
+#ifdef CONFIG_AEMU
+    // Forward to emulator?
+    if (call_logger_if_valid(gfx_logger, translate_severity(type), file, line, 0, printbuf)) {
+        return;
+    }
+#endif
+
+    // To a gfxstream debugger?
     if (globalUserData && globalDebugCallback) {
         struct stream_renderer_debug debug = {0};
         debug.debug_type = type;
-        debug.message = &buf[0];
-
+        debug.message = &printbuf[0];
         globalDebugCallback(globalUserData, &debug);
     } else {
-        fprintf(stderr, "%s\n", buf);
+        fprintf(stderr, "%s\n", printbuf);
     }
 }
 
 #if STREAM_RENDERER_LOG_LEVEL >= STREAM_RENDERER_DEBUG_ERROR
-#define stream_renderer_error(format, ...)                                                \
-    do {                                                                                  \
-        stream_renderer_log(STREAM_RENDERER_DEBUG_ERROR, "[%s(%d)] %s " format, __FILE__, \
-                            __LINE__, __PRETTY_FUNCTION__, ##__VA_ARGS__);                \
+#define stream_renderer_error(format, ...)                                                        \
+    do {                                                                                          \
+        stream_renderer_log(STREAM_RENDERER_DEBUG_ERROR, __FILE__, __LINE__, __PRETTY_FUNCTION__, \
+                            format, ##__VA_ARGS__);                                               \
     } while (0)
 #else
 #define stream_renderer_error(format, ...)
 #endif
 
 #if STREAM_RENDERER_LOG_LEVEL >= STREAM_RENDERER_DEBUG_WARN
-#define stream_renderer_warn(format, ...)                                                          \
-    do {                                                                                           \
-        stream_renderer_log(STREAM_RENDERER_DEBUG_WARN, "[%s(%d)] %s " format, __FILE__, __LINE__, \
-                            __PRETTY_FUNCTION__, ##__VA_ARGS__);                                   \
+#define stream_renderer_warn(format, ...)                                                        \
+    do {                                                                                         \
+        stream_renderer_log(STREAM_RENDERER_DEBUG_WARN, __FILE__, __LINE__, __PRETTY_FUNCTION__, \
+                            format, ##__VA_ARGS__);                                              \
     } while (0)
 #else
 #define stream_renderer_warn(format, ...)
 #endif
 
 #if STREAM_RENDERER_LOG_LEVEL >= STREAM_RENDERER_DEBUG_INFO
-#define stream_renderer_info(format, ...)                                                          \
-    do {                                                                                           \
-        stream_renderer_log(STREAM_RENDERER_DEBUG_INFO, "[%s(%d)] %s " format, __FILE__, __LINE__, \
-                            __FUNCTION__, ##__VA_ARGS__);                                          \
+#define stream_renderer_info(format, ...)                                                         \
+    do {                                                                                          \
+        stream_renderer_log(STREAM_RENDERER_DEBUG_INFO, __FILE__, __LINE__, __FUNCTION__, format, \
+                            ##__VA_ARGS__);                                                       \
     } while (0)
 #else
 #define stream_renderer_info(format, ...)
 #endif
 
 #if STREAM_RENDERER_LOG_LEVEL >= STREAM_RENDERER_DEBUG_DEBUG
-#define stream_renderer_debug(format, ...)                                                \
-    do {                                                                                  \
-        stream_renderer_log(STREAM_RENDERER_DEBUG_DEBUG, "[%s(%d)] %s " format, __FILE__, \
-                            __LINE__, __PRETTY_FUNCTION__, ##__VA_ARGS__);                \
+#define stream_renderer_debug(format, ...)                                                        \
+    do {                                                                                          \
+        stream_renderer_log(STREAM_RENDERER_DEBUG_DEBUG, __FILE__, __LINE__, __PRETTY_FUNCTION__, \
+                            format, ##__VA_ARGS__);                                               \
     } while (0)
 #else
 #define stream_renderer_debug(format, ...)
