@@ -26,7 +26,7 @@ cc_library_shared {
     ],
     header_libs: [
         "libgfxstream_guest_graphics_headers",
-        "libgfxstream_guest_iostream",
+        "mesa_gfxstream_guest_iostream",
     ],
     static_libs: [
         "libgfxstream_androidemu_static",
