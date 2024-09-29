@@ -338,7 +338,20 @@ bool FrameBuffer::initialize(int width, int height, gfxstream::host::FeatureSet 
             .flushColorBufferFromBytes =
                 [fb = fb.get()](uint32_t colorBufferHandle, const void* bytes, size_t bytesSize) {
                     fb->flushColorBufferFromVkBytes(colorBufferHandle, bytes, bytesSize);
-                }};
+                },
+            .scheduleAsyncWork =
+                [fb = fb.get()](std::function<void()> work, std::string description) {
+                    auto promise = std::make_shared<AutoCancelingPromise>();
+                    auto future = promise->GetFuture();
+                    SyncThread::get()->triggerGeneral(
+                        [promise = std::move(promise), work = std::move(work)]() mutable {
+                            work();
+                            promise->MarkComplete();
+                        },
+                        description);
+                    return future;
+                },
+        };
         vkEmu = vk::createGlobalVkEmulation(vkDispatch, callbacks, fb->m_features);
         if (!vkEmu) {
             ERR("Failed to initialize global Vulkan emulation. Disable the Vulkan support.");
