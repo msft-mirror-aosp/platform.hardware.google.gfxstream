@@ -339,6 +339,7 @@ struct VkEmulation {
 
         VkImage image = VK_NULL_HANDLE;
         VkImageView imageView = VK_NULL_HANDLE;
+        VkSamplerYcbcrConversion ycbcrConversion = VK_NULL_HANDLE;
         VkImageCreateInfo imageCreateInfoShallow = {};
         VkMemoryRequirements memReqs;
 
