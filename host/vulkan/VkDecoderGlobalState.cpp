@@ -6006,8 +6006,10 @@ class VkDecoderGlobalState::Impl {
             if (fenceInfo) {
                 // Also update the latestUse waitable for this fence, to ensure
                 // it is not asynchronously destroyed before all the waitables
-                // referencing it
-                fenceInfo->latestUse = colorBufferLatestUse;
+                // referencing it.
+                // It needs to use something from deviceOpTracker, so that the
+                // guest can probably sync up with deviceOpTracker before destroying.
+                fenceInfo->latestUse = queueCompletedWaitable;
             }
         }
         if (releasedColorBuffers.empty()) {
