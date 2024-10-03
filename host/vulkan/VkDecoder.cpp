@@ -1724,7 +1724,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *(VkDeviceMemory*)&memory =
                     (VkDeviceMemory)(VkDeviceMemory)((VkDeviceMemory)(*&cgen_var_1));
                 boxed_memory_preserve = memory;
-                memory = unbox_VkDeviceMemory(memory);
+                memory = try_unbox_VkDeviceMemory(memory);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
                 android::base::Stream::fromBe64((uint8_t*)&pAllocator);
@@ -2683,7 +2683,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += 1 * 8;
                 *(VkFence*)&fence = (VkFence)(VkFence)((VkFence)(*&cgen_var_1));
                 boxed_fence_preserve = fence;
-                fence = unbox_VkFence(fence);
+                fence = try_unbox_VkFence(fence);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
                 android::base::Stream::fromBe64((uint8_t*)&pAllocator);
@@ -2971,7 +2971,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += 1 * 8;
                 *(VkSemaphore*)&semaphore = (VkSemaphore)(VkSemaphore)((VkSemaphore)(*&cgen_var_1));
                 boxed_semaphore_preserve = semaphore;
-                semaphore = unbox_VkSemaphore(semaphore);
+                semaphore = try_unbox_VkSemaphore(semaphore);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
                 android::base::Stream::fromBe64((uint8_t*)&pAllocator);
@@ -3106,7 +3106,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += 1 * 8;
                 *(VkEvent*)&event = (VkEvent)(VkEvent)((VkEvent)(*&cgen_var_1));
                 boxed_event_preserve = event;
-                event = unbox_VkEvent(event);
+                event = try_unbox_VkEvent(event);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
                 android::base::Stream::fromBe64((uint8_t*)&pAllocator);
@@ -3368,7 +3368,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += 1 * 8;
                 *(VkQueryPool*)&queryPool = (VkQueryPool)(VkQueryPool)((VkQueryPool)(*&cgen_var_1));
                 boxed_queryPool_preserve = queryPool;
-                queryPool = unbox_VkQueryPool(queryPool);
+                queryPool = try_unbox_VkQueryPool(queryPool);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
                 android::base::Stream::fromBe64((uint8_t*)&pAllocator);
@@ -3573,7 +3573,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += 1 * 8;
                 *(VkBuffer*)&buffer = (VkBuffer)(VkBuffer)((VkBuffer)(*&cgen_var_1));
                 boxed_buffer_preserve = buffer;
-                buffer = unbox_VkBuffer(buffer);
+                buffer = try_unbox_VkBuffer(buffer);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
                 android::base::Stream::fromBe64((uint8_t*)&pAllocator);
@@ -3713,7 +3713,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *(VkBufferView*)&bufferView =
                     (VkBufferView)(VkBufferView)((VkBufferView)(*&cgen_var_1));
                 boxed_bufferView_preserve = bufferView;
-                bufferView = unbox_VkBufferView(bufferView);
+                bufferView = try_unbox_VkBufferView(bufferView);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
                 android::base::Stream::fromBe64((uint8_t*)&pAllocator);
@@ -3842,7 +3842,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += 1 * 8;
                 *(VkImage*)&image = (VkImage)(VkImage)((VkImage)(*&cgen_var_1));
                 boxed_image_preserve = image;
-                image = unbox_VkImage(image);
+                image = try_unbox_VkImage(image);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
                 android::base::Stream::fromBe64((uint8_t*)&pAllocator);
@@ -4039,7 +4039,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += 1 * 8;
                 *(VkImageView*)&imageView = (VkImageView)(VkImageView)((VkImageView)(*&cgen_var_1));
                 boxed_imageView_preserve = imageView;
-                imageView = unbox_VkImageView(imageView);
+                imageView = try_unbox_VkImageView(imageView);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
                 android::base::Stream::fromBe64((uint8_t*)&pAllocator);
@@ -4178,7 +4178,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *(VkShaderModule*)&shaderModule =
                     (VkShaderModule)(VkShaderModule)((VkShaderModule)(*&cgen_var_1));
                 boxed_shaderModule_preserve = shaderModule;
-                shaderModule = unbox_VkShaderModule(shaderModule);
+                shaderModule = try_unbox_VkShaderModule(shaderModule);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
                 android::base::Stream::fromBe64((uint8_t*)&pAllocator);
@@ -4315,7 +4315,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *(VkPipelineCache*)&pipelineCache =
                     (VkPipelineCache)(VkPipelineCache)((VkPipelineCache)(*&cgen_var_1));
                 boxed_pipelineCache_preserve = pipelineCache;
-                pipelineCache = unbox_VkPipelineCache(pipelineCache);
+                pipelineCache = try_unbox_VkPipelineCache(pipelineCache);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
                 android::base::Stream::fromBe64((uint8_t*)&pAllocator);
@@ -4741,7 +4741,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += 1 * 8;
                 *(VkPipeline*)&pipeline = (VkPipeline)(VkPipeline)((VkPipeline)(*&cgen_var_1));
                 boxed_pipeline_preserve = pipeline;
-                pipeline = unbox_VkPipeline(pipeline);
+                pipeline = try_unbox_VkPipeline(pipeline);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
                 android::base::Stream::fromBe64((uint8_t*)&pAllocator);
@@ -4887,7 +4887,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *(VkPipelineLayout*)&pipelineLayout =
                     (VkPipelineLayout)(VkPipelineLayout)((VkPipelineLayout)(*&cgen_var_1));
                 boxed_pipelineLayout_preserve = pipelineLayout;
-                pipelineLayout = unbox_VkPipelineLayout(pipelineLayout);
+                pipelineLayout = try_unbox_VkPipelineLayout(pipelineLayout);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
                 android::base::Stream::fromBe64((uint8_t*)&pAllocator);
@@ -5026,7 +5026,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *readStreamPtrPtr += 1 * 8;
                 *(VkSampler*)&sampler = (VkSampler)(VkSampler)((VkSampler)(*&cgen_var_1));
                 boxed_sampler_preserve = sampler;
-                sampler = unbox_VkSampler(sampler);
+                sampler = try_unbox_VkSampler(sampler);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
                 android::base::Stream::fromBe64((uint8_t*)&pAllocator);
@@ -5169,7 +5169,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     (VkDescriptorSetLayout)(VkDescriptorSetLayout)((
                         VkDescriptorSetLayout)(*&cgen_var_1));
                 boxed_descriptorSetLayout_preserve = descriptorSetLayout;
-                descriptorSetLayout = unbox_VkDescriptorSetLayout(descriptorSetLayout);
+                descriptorSetLayout = try_unbox_VkDescriptorSetLayout(descriptorSetLayout);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
                 android::base::Stream::fromBe64((uint8_t*)&pAllocator);
@@ -5309,7 +5309,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *(VkDescriptorPool*)&descriptorPool =
                     (VkDescriptorPool)(VkDescriptorPool)((VkDescriptorPool)(*&cgen_var_1));
                 boxed_descriptorPool_preserve = descriptorPool;
-                descriptorPool = unbox_VkDescriptorPool(descriptorPool);
+                descriptorPool = try_unbox_VkDescriptorPool(descriptorPool);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
                 android::base::Stream::fromBe64((uint8_t*)&pAllocator);
@@ -5518,7 +5518,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 for (uint32_t i = 0; i < ((descriptorSetCount)); ++i) {
                     boxed_pDescriptorSets_preserve[i] = pDescriptorSets[i];
                     ((VkDescriptorSet*)(pDescriptorSets))[i] =
-                        unbox_VkDescriptorSet(pDescriptorSets[i]);
+                        try_unbox_VkDescriptorSet(pDescriptorSets[i]);
                 }
                 if (m_logCalls) {
                     fprintf(stderr,
@@ -5723,7 +5723,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *(VkFramebuffer*)&framebuffer =
                     (VkFramebuffer)(VkFramebuffer)((VkFramebuffer)(*&cgen_var_1));
                 boxed_framebuffer_preserve = framebuffer;
-                framebuffer = unbox_VkFramebuffer(framebuffer);
+                framebuffer = try_unbox_VkFramebuffer(framebuffer);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
                 android::base::Stream::fromBe64((uint8_t*)&pAllocator);
@@ -5858,7 +5858,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *(VkRenderPass*)&renderPass =
                     (VkRenderPass)(VkRenderPass)((VkRenderPass)(*&cgen_var_1));
                 boxed_renderPass_preserve = renderPass;
-                renderPass = unbox_VkRenderPass(renderPass);
+                renderPass = try_unbox_VkRenderPass(renderPass);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
                 android::base::Stream::fromBe64((uint8_t*)&pAllocator);
@@ -6048,7 +6048,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *(VkCommandPool*)&commandPool =
                     (VkCommandPool)(VkCommandPool)((VkCommandPool)(*&cgen_var_1));
                 boxed_commandPool_preserve = commandPool;
-                commandPool = unbox_VkCommandPool(commandPool);
+                commandPool = try_unbox_VkCommandPool(commandPool);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
                 android::base::Stream::fromBe64((uint8_t*)&pAllocator);
@@ -6251,7 +6251,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 for (uint32_t i = 0; i < ((commandBufferCount)); ++i) {
                     boxed_pCommandBuffers_preserve[i] = pCommandBuffers[i];
                     ((VkCommandBuffer*)(pCommandBuffers))[i] =
-                        unbox_VkCommandBuffer(pCommandBuffers[i]);
+                        try_unbox_VkCommandBuffer(pCommandBuffers[i]);
                 }
                 if (m_logCalls) {
                     fprintf(stderr,
@@ -10101,7 +10101,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     (VkSamplerYcbcrConversion)(VkSamplerYcbcrConversion)((
                         VkSamplerYcbcrConversion)(*&cgen_var_1));
                 boxed_ycbcrConversion_preserve = ycbcrConversion;
-                ycbcrConversion = unbox_VkSamplerYcbcrConversion(ycbcrConversion);
+                ycbcrConversion = try_unbox_VkSamplerYcbcrConversion(ycbcrConversion);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
                 android::base::Stream::fromBe64((uint8_t*)&pAllocator);
@@ -10252,7 +10252,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         VkDescriptorUpdateTemplate)(*&cgen_var_1));
                 boxed_descriptorUpdateTemplate_preserve = descriptorUpdateTemplate;
                 descriptorUpdateTemplate =
-                    unbox_VkDescriptorUpdateTemplate(descriptorUpdateTemplate);
+                    try_unbox_VkDescriptorUpdateTemplate(descriptorUpdateTemplate);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
                 android::base::Stream::fromBe64((uint8_t*)&pAllocator);
@@ -13266,7 +13266,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *(VkSwapchainKHR*)&swapchain =
                     (VkSwapchainKHR)(VkSwapchainKHR)((VkSwapchainKHR)(*&cgen_var_1));
                 boxed_swapchain_preserve = swapchain;
-                swapchain = unbox_VkSwapchainKHR(swapchain);
+                swapchain = try_unbox_VkSwapchainKHR(swapchain);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
                 android::base::Stream::fromBe64((uint8_t*)&pAllocator);
@@ -14801,7 +14801,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         VkDescriptorUpdateTemplate)(*&cgen_var_1));
                 boxed_descriptorUpdateTemplate_preserve = descriptorUpdateTemplate;
                 descriptorUpdateTemplate =
-                    unbox_VkDescriptorUpdateTemplate(descriptorUpdateTemplate);
+                    try_unbox_VkDescriptorUpdateTemplate(descriptorUpdateTemplate);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
                 android::base::Stream::fromBe64((uint8_t*)&pAllocator);
@@ -15651,7 +15651,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     (VkSamplerYcbcrConversion)(VkSamplerYcbcrConversion)((
                         VkSamplerYcbcrConversion)(*&cgen_var_1));
                 boxed_ycbcrConversion_preserve = ycbcrConversion;
-                ycbcrConversion = unbox_VkSamplerYcbcrConversion(ycbcrConversion);
+                ycbcrConversion = try_unbox_VkSamplerYcbcrConversion(ycbcrConversion);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
                 android::base::Stream::fromBe64((uint8_t*)&pAllocator);
@@ -17946,7 +17946,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     (VkDebugReportCallbackEXT)(VkDebugReportCallbackEXT)((
                         VkDebugReportCallbackEXT)(*&cgen_var_1));
                 boxed_callback_preserve = callback;
-                callback = unbox_VkDebugReportCallbackEXT(callback);
+                callback = try_unbox_VkDebugReportCallbackEXT(callback);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
                 android::base::Stream::fromBe64((uint8_t*)&pAllocator);
@@ -18876,7 +18876,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     (VkDebugUtilsMessengerEXT)(VkDebugUtilsMessengerEXT)((
                         VkDebugUtilsMessengerEXT)(*&cgen_var_1));
                 boxed_messenger_preserve = messenger;
-                messenger = unbox_VkDebugUtilsMessengerEXT(messenger);
+                messenger = try_unbox_VkDebugUtilsMessengerEXT(messenger);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
                 android::base::Stream::fromBe64((uint8_t*)&pAllocator);
@@ -21312,7 +21312,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *(VkDeviceMemory*)&memory =
                     (VkDeviceMemory)(VkDeviceMemory)((VkDeviceMemory)(*&cgen_var_1));
                 boxed_memory_preserve = memory;
-                memory = unbox_VkDeviceMemory(memory);
+                memory = try_unbox_VkDeviceMemory(memory);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
                 android::base::Stream::fromBe64((uint8_t*)&pAllocator);
