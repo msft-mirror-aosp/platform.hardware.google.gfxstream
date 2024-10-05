@@ -11523,7 +11523,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 *(VkPrivateDataSlot*)&privateDataSlot =
                     (VkPrivateDataSlot)(VkPrivateDataSlot)((VkPrivateDataSlot)(*&cgen_var_1));
                 boxed_privateDataSlot_preserve = privateDataSlot;
-                privateDataSlot = unbox_VkPrivateDataSlot(privateDataSlot);
+                privateDataSlot = try_unbox_VkPrivateDataSlot(privateDataSlot);
                 // WARNING PTR CHECK
                 memcpy((VkAllocationCallbacks**)&pAllocator, (*readStreamPtrPtr), 8);
                 android::base::Stream::fromBe64((uint8_t*)&pAllocator);
