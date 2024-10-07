@@ -3101,7 +3101,7 @@ void GL2Encoder::s_glGenRenderbuffers(void* self,
 
     SET_ERROR_IF(n < 0, GL_INVALID_VALUE);
 
-    ctx->m_glGenFramebuffers_enc(self, n, renderbuffers);
+    ctx->m_glGenRenderbuffers_enc(self, n, renderbuffers);
     state->addRenderbuffers(n, renderbuffers);
 }
 
