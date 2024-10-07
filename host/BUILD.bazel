@@ -137,6 +137,7 @@ cc_library(
         "//hardware/google/aemu/snapshot:aemu-snapshot",
         "//hardware/google/gfxstream:gfxstream-gl-host-common-headers",
         "//hardware/google/gfxstream/host/apigen-codec-common",
+        "//hardware/google/gfxstream/host/backend:gfxstream_backend",
         "//hardware/google/gfxstream/host/features:gfxstream_features",
         "//hardware/google/gfxstream/host/gl:EGL_translator_static",
         "//hardware/google/gfxstream/host/gl:OpenGLESDispatch",
@@ -150,6 +151,7 @@ cc_library(
         "//hardware/google/gfxstream/host/magma:gfxstream-magma-server",
         "//hardware/google/gfxstream/host/magma:magma-headers",
         "//hardware/google/gfxstream/host/renderControl_dec",
+        "//hardware/google/gfxstream/host/tracing:gfxstream_host_tracing",
         "//hardware/google/gfxstream/host/vulkan:gfxstream-vulkan-server",
     ] + select({
         "@platforms//os:macos": [

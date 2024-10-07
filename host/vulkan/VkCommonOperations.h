@@ -33,6 +33,7 @@
 #include "aemu/base/ManagedDescriptor.hpp"
 #include "aemu/base/Optional.h"
 #include "aemu/base/synchronization/Lock.h"
+#include "gfxstream/host/BackendCallbacks.h"
 #include "gfxstream/host/Features.h"
 #include "goldfish_vk_private_defs.h"
 #include "utils/GfxApiLogger.h"
@@ -102,6 +103,8 @@ enum class AstcEmulationMode {
 struct VkEmulation {
     // Whether initialization succeeded.
     bool live = false;
+
+    gfxstream::host::BackendCallbacks callbacks;
 
     gfxstream::host::FeatureSet features;
 
@@ -336,6 +339,7 @@ struct VkEmulation {
 
         VkImage image = VK_NULL_HANDLE;
         VkImageView imageView = VK_NULL_HANDLE;
+        VkSamplerYcbcrConversion ycbcrConversion = VK_NULL_HANDLE;
         VkImageCreateInfo imageCreateInfoShallow = {};
         VkMemoryRequirements memReqs;
 
@@ -443,7 +447,9 @@ struct VkEmulation {
     std::optional<RepresentativeColorBufferMemoryTypeInfo> representativeColorBufferMemoryTypeInfo;
 };
 
-VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk, gfxstream::host::FeatureSet features);
+VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk,
+                                     gfxstream::host::BackendCallbacks callbacks,
+                                     gfxstream::host::FeatureSet features);
 
 struct VkEmulationFeatures {
     bool glInteropSupported = false;

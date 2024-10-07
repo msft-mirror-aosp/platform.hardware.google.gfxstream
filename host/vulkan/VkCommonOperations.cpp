@@ -242,6 +242,50 @@ static bool extensionsSupported(const std::vector<VkExtensionProperties>& curren
     return true;
 }
 
+// Return true if format requires sampler YCBCR conversion for VK_IMAGE_ASPECT_COLOR_BIT image
+// views. Table found in spec
+static bool formatRequiresYcbcrConversion(VkFormat format) {
+    switch (format) {
+        case VK_FORMAT_G8B8G8R8_422_UNORM:
+        case VK_FORMAT_B8G8R8G8_422_UNORM:
+        case VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM:
+        case VK_FORMAT_G8_B8R8_2PLANE_420_UNORM:
+        case VK_FORMAT_G8_B8_R8_3PLANE_422_UNORM:
+        case VK_FORMAT_G8_B8R8_2PLANE_422_UNORM:
+        case VK_FORMAT_G8_B8_R8_3PLANE_444_UNORM:
+        case VK_FORMAT_R10X6G10X6B10X6A10X6_UNORM_4PACK16:
+        case VK_FORMAT_G10X6B10X6G10X6R10X6_422_UNORM_4PACK16:
+        case VK_FORMAT_B10X6G10X6R10X6G10X6_422_UNORM_4PACK16:
+        case VK_FORMAT_G10X6_B10X6_R10X6_3PLANE_420_UNORM_3PACK16:
+        case VK_FORMAT_G10X6_B10X6R10X6_2PLANE_420_UNORM_3PACK16:
+        case VK_FORMAT_G10X6_B10X6_R10X6_3PLANE_422_UNORM_3PACK16:
+        case VK_FORMAT_G10X6_B10X6R10X6_2PLANE_422_UNORM_3PACK16:
+        case VK_FORMAT_G10X6_B10X6_R10X6_3PLANE_444_UNORM_3PACK16:
+        case VK_FORMAT_R12X4G12X4B12X4A12X4_UNORM_4PACK16:
+        case VK_FORMAT_G12X4B12X4G12X4R12X4_422_UNORM_4PACK16:
+        case VK_FORMAT_B12X4G12X4R12X4G12X4_422_UNORM_4PACK16:
+        case VK_FORMAT_G12X4_B12X4_R12X4_3PLANE_420_UNORM_3PACK16:
+        case VK_FORMAT_G12X4_B12X4R12X4_2PLANE_420_UNORM_3PACK16:
+        case VK_FORMAT_G12X4_B12X4_R12X4_3PLANE_422_UNORM_3PACK16:
+        case VK_FORMAT_G12X4_B12X4R12X4_2PLANE_422_UNORM_3PACK16:
+        case VK_FORMAT_G12X4_B12X4_R12X4_3PLANE_444_UNORM_3PACK16:
+        case VK_FORMAT_G16B16G16R16_422_UNORM:
+        case VK_FORMAT_B16G16R16G16_422_UNORM:
+        case VK_FORMAT_G16_B16_R16_3PLANE_420_UNORM:
+        case VK_FORMAT_G16_B16R16_2PLANE_420_UNORM:
+        case VK_FORMAT_G16_B16_R16_3PLANE_422_UNORM:
+        case VK_FORMAT_G16_B16R16_2PLANE_422_UNORM:
+        case VK_FORMAT_G16_B16_R16_3PLANE_444_UNORM:
+        case VK_FORMAT_G8_B8R8_2PLANE_444_UNORM:
+        case VK_FORMAT_G10X6_B10X6R10X6_2PLANE_444_UNORM_3PACK16:
+        case VK_FORMAT_G12X4_B12X4R12X4_2PLANE_444_UNORM_3PACK16:
+        case VK_FORMAT_G16_B16R16_2PLANE_444_UNORM:
+            return true;
+        default:
+            return false;
+    }
+}
+
 // For a given ImageSupportInfo, populates usageWithExternalHandles and
 // requiresDedicatedAllocation. memoryTypeBits are populated later once the
 // device is created, because that needs a test image to be created.
@@ -662,7 +706,9 @@ int getSelectedGpuIndex(const std::vector<VkEmulation::DeviceSupportInfo>& devic
     return selectedGpuIndex;
 }
 
-VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk, gfxstream::host::FeatureSet features) {
+VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk,
+                                     gfxstream::host::BackendCallbacks callbacks,
+                                     gfxstream::host::FeatureSet features) {
 // Downstream branches can provide abort logic or otherwise use result without a new macro
 #define VK_EMU_INIT_RETURN_OR_ABORT_ON_ERROR(res, ...) \
     do {                                               \
@@ -680,7 +726,7 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk, gfxstream::host::Featur
     }
 
     sVkEmulation = new VkEmulation;
-
+    sVkEmulation->callbacks = callbacks;
     sVkEmulation->features = features;
 
     sVkEmulation->gvk = vk;
@@ -2202,7 +2248,7 @@ static std::unique_ptr<VkImageCreateInfo> generateColorBufferVkImageCreateInfo_l
         }
     }
     if (!maybeImageSupportInfo) {
-        ERR("Format %s is not supported.", string_VkFormat(format));
+        ERR("Format %s [%d] is not supported.", string_VkFormat(format), format);
         return nullptr;
     }
     const VkEmulation::ImageSupportInfo& imageSupportInfo = *maybeImageSupportInfo;
@@ -2449,12 +2495,15 @@ bool initializeVkColorBufferLocked(
     infoPtr->memory.typeIndex =
         getValidMemoryTypeIndex(infoPtr->memReqs.memoryTypeBits, infoPtr->memoryProperty);
 
+    const VkFormat imageVkFormat = infoPtr->imageCreateInfoShallow.format;
     VERBOSE(
-        "ColorBuffer %d, "
+        "ColorBuffer %d, dimensions: %dx%d, format: %s, "
         "allocation size and type index: %lu, %d, "
         "allocated memory property: %d, "
         "requested memory property: %d",
-        colorBufferHandle, infoPtr->memory.size, infoPtr->memory.typeIndex,
+        colorBufferHandle, infoPtr->width, infoPtr->height,
+        string_VkFormat(imageVkFormat),
+        infoPtr->memory.size, infoPtr->memory.typeIndex,
         sVkEmulation->deviceInfo.memProps.memoryTypes[infoPtr->memory.typeIndex].propertyFlags,
         infoPtr->memoryProperty);
 
@@ -2504,13 +2553,43 @@ bool initializeVkColorBufferLocked(
         return false;
     }
 
+    VkSamplerYcbcrConversionInfo ycbcrInfo = {VK_STRUCTURE_TYPE_SAMPLER_YCBCR_CONVERSION_INFO,
+                                              nullptr, VK_NULL_HANDLE};
+    const bool addConversion = formatRequiresYcbcrConversion(imageVkFormat);
+    if (addConversion) {
+        VkSamplerYcbcrConversionCreateInfo ycbcrCreateInfo = {
+            VK_STRUCTURE_TYPE_SAMPLER_YCBCR_CONVERSION_CREATE_INFO,
+            nullptr,
+            imageVkFormat,
+            VK_SAMPLER_YCBCR_MODEL_CONVERSION_RGB_IDENTITY,
+            VK_SAMPLER_YCBCR_RANGE_ITU_FULL,
+            {VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY,
+             VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY},
+            VK_CHROMA_LOCATION_MIDPOINT,
+            VK_CHROMA_LOCATION_MIDPOINT,
+            VK_FILTER_NEAREST,
+            VK_FALSE};
+
+        createRes = vk->vkCreateSamplerYcbcrConversion(sVkEmulation->device, &ycbcrCreateInfo,
+                                                       nullptr, &infoPtr->ycbcrConversion);
+        if (createRes != VK_SUCCESS) {
+            VERBOSE(
+                "Failed to create Vulkan ycbcrConversion for ColorBuffer %d with format %s [%d], "
+                "Error: %s",
+                colorBufferHandle, string_VkFormat(imageVkFormat), imageVkFormat,
+                string_VkResult(createRes));
+            return false;
+        }
+        ycbcrInfo.conversion = infoPtr->ycbcrConversion;
+    }
+
     const VkImageViewCreateInfo imageViewCi = {
         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-        .pNext = nullptr,
+        .pNext = addConversion ? &ycbcrInfo : nullptr,
         .flags = 0,
         .image = infoPtr->image,
         .viewType = VK_IMAGE_VIEW_TYPE_2D,
-        .format = infoPtr->imageCreateInfoShallow.format,
+        .format = imageVkFormat,
         .components =
             {
                 .r = VK_COMPONENT_SWIZZLE_IDENTITY,
@@ -2688,6 +2767,7 @@ bool teardownVkColorBufferLocked(uint32_t colorBufferHandle) {
             VK_CHECK(vk->vkQueueWaitIdle(sVkEmulation->queue));
         }
         vk->vkDestroyImageView(sVkEmulation->device, info.imageView, nullptr);
+        vk->vkDestroySamplerYcbcrConversion(sVkEmulation->device, info.ycbcrConversion, nullptr);
         vk->vkDestroyImage(sVkEmulation->device, info.image, nullptr);
         freeExternalMemoryLocked(vk, &info.memory);
 

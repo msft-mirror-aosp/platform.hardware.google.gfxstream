@@ -34,6 +34,7 @@
 #include "aemu/base/threads/WorkerThread.h"
 #include "gfxstream/Strings.h"
 #include "gfxstream/host/Features.h"
+#include "gfxstream/host/Tracing.h"
 #include "host-common/AddressSpaceService.h"
 #include "host-common/GfxstreamFatalError.h"
 #include "host-common/address_space_device.h"
@@ -41,6 +42,7 @@
 #include "host-common/android_pipe_device.h"
 #include "host-common/feature_control.h"
 #include "host-common/globals.h"
+#include "host-common/logging.h"
 #include "host-common/opengles-pipe.h"
 #include "host-common/opengles.h"
 #include "host-common/refcount-pipe.h"
@@ -71,63 +73,159 @@ struct iovec {
 #endif  // _WIN32
 
 #define MAX_DEBUG_BUFFER_SIZE 512
+#define ELLIPSIS "...\0"
+#define ELLIPSIS_LEN 4
+
+// Define the typedef for emulogger
+typedef void (*emulogger)(char severity, const char* file, unsigned int line,
+                          int64_t timestamp_us, const char* message);
+
+// Template to enable the method call if gfxstream_logger_t equals emulogger
+template<typename T>
+typename std::enable_if<std::is_same<T, emulogger>::value, bool>::type
+call_logger_if_valid(T logger, char severity, const char* file, unsigned int line, int64_t timestamp_us, const char* message) {
+    // Call the logger and return true if the type matches
+    if (!logger) { return false; }
+    logger(severity, file, line, timestamp_us, message);
+    return true;
+}
+
+// Template for invalid logger types (returns false if types don't match)
+template<typename T>
+typename std::enable_if<!std::is_same<T, emulogger>::value, bool>::type
+call_logger_if_valid(T, char, const char*, unsigned int, int64_t, const char*) {
+    // Return false if the type doesn't match
+    return false;
+}
+
 
 void* globalUserData = nullptr;
 stream_renderer_debug_callback globalDebugCallback = nullptr;
 
-void stream_renderer_log(uint32_t type, const char* format, ...) {
-    char buf[MAX_DEBUG_BUFFER_SIZE];
+static void append_truncation_marker(char* buf, int remaining_size) {
+    // Safely append truncation marker "..." if buffer has enough space
+    if (remaining_size >= ELLIPSIS_LEN) {
+        strncpy(buf + remaining_size - ELLIPSIS_LEN, ELLIPSIS, ELLIPSIS_LEN);
+    } else if (remaining_size >= 1) {
+        buf[remaining_size - 1] = '\0';
+    } else {
+        // Oh oh.. In theory this shouldn't happen.
+        assert(false);
+    }
+}
+
+static void log_with_prefix(char*& buf, int& remaining_size, const char* file, int line,
+                            const char* pretty_function) {
+    // Add logging prefix if necessary
+    int formatted_len = snprintf(buf, remaining_size, "[%s(%d)] %s ", file, line, pretty_function);
+
+    // Handle potential truncation
+    if (formatted_len >= remaining_size) {
+        append_truncation_marker(buf, remaining_size);
+        remaining_size = 0;
+    } else {
+        buf += formatted_len;             // Adjust buf
+        remaining_size -= formatted_len;  // Reduce remaining buffer size
+    }
+}
+
+static char translate_severity(uint32_t type) {
+    switch (type) {
+        case STREAM_RENDERER_DEBUG_ERROR:
+            return 'E';
+        case STREAM_RENDERER_DEBUG_WARN:
+            return 'W';
+        case STREAM_RENDERER_DEBUG_INFO:
+            return 'I';
+        case STREAM_RENDERER_DEBUG_DEBUG:
+            return 'D';
+        default:
+            return 'D';
+    }
+}
+
+void stream_renderer_log(uint32_t type, const char* file, int line, const char* pretty_function,
+                         const char* format, ...) {
+
+    char printbuf[MAX_DEBUG_BUFFER_SIZE];
+    char* buf = printbuf;
+    int remaining_size = MAX_DEBUG_BUFFER_SIZE;
+    static_assert(MAX_DEBUG_BUFFER_SIZE > 4);
+
+    // Add the logging prefix if needed
+#ifdef CONFIG_AEMU
+    static gfxstream_logger_t gfx_logger = get_gfx_stream_logger();
+    if (!gfx_logger) {
+        log_with_prefix(buf, remaining_size, file, line, pretty_function);
+    }
+#else
+    log_with_prefix(buf, remaining_size, file, line, pretty_function);
+#endif
+
+    // Format the message with variable arguments
     va_list args;
     va_start(args, format);
-    vsnprintf(buf, MAX_DEBUG_BUFFER_SIZE, format, args);
+    int formatted_len = vsnprintf(buf, remaining_size, format, args);
     va_end(args);
 
+    // Handle potential truncation
+    if (formatted_len >= remaining_size) {
+        append_truncation_marker(buf, remaining_size);
+    }
+
+#ifdef CONFIG_AEMU
+    // Forward to emulator?
+    if (call_logger_if_valid(gfx_logger, translate_severity(type), file, line, 0, printbuf)) {
+        return;
+    }
+#endif
+
+    // To a gfxstream debugger?
     if (globalUserData && globalDebugCallback) {
         struct stream_renderer_debug debug = {0};
         debug.debug_type = type;
-        debug.message = &buf[0];
-
+        debug.message = &printbuf[0];
         globalDebugCallback(globalUserData, &debug);
     } else {
-        fprintf(stderr, "%s\n", buf);
+        fprintf(stderr, "%s\n", printbuf);
     }
 }
 
 #if STREAM_RENDERER_LOG_LEVEL >= STREAM_RENDERER_DEBUG_ERROR
-#define stream_renderer_error(format, ...)                                                \
-    do {                                                                                  \
-        stream_renderer_log(STREAM_RENDERER_DEBUG_ERROR, "[%s(%d)] %s " format, __FILE__, \
-                            __LINE__, __PRETTY_FUNCTION__, ##__VA_ARGS__);                \
+#define stream_renderer_error(format, ...)                                                        \
+    do {                                                                                          \
+        stream_renderer_log(STREAM_RENDERER_DEBUG_ERROR, __FILE__, __LINE__, __PRETTY_FUNCTION__, \
+                            format, ##__VA_ARGS__);                                               \
     } while (0)
 #else
 #define stream_renderer_error(format, ...)
 #endif
 
 #if STREAM_RENDERER_LOG_LEVEL >= STREAM_RENDERER_DEBUG_WARN
-#define stream_renderer_warn(format, ...)                                                          \
-    do {                                                                                           \
-        stream_renderer_log(STREAM_RENDERER_DEBUG_WARN, "[%s(%d)] %s " format, __FILE__, __LINE__, \
-                            __PRETTY_FUNCTION__, ##__VA_ARGS__);                                   \
+#define stream_renderer_warn(format, ...)                                                        \
+    do {                                                                                         \
+        stream_renderer_log(STREAM_RENDERER_DEBUG_WARN, __FILE__, __LINE__, __PRETTY_FUNCTION__, \
+                            format, ##__VA_ARGS__);                                              \
     } while (0)
 #else
 #define stream_renderer_warn(format, ...)
 #endif
 
 #if STREAM_RENDERER_LOG_LEVEL >= STREAM_RENDERER_DEBUG_INFO
-#define stream_renderer_info(format, ...)                                                          \
-    do {                                                                                           \
-        stream_renderer_log(STREAM_RENDERER_DEBUG_INFO, "[%s(%d)] %s " format, __FILE__, __LINE__, \
-                            __FUNCTION__, ##__VA_ARGS__);                                          \
+#define stream_renderer_info(format, ...)                                                         \
+    do {                                                                                          \
+        stream_renderer_log(STREAM_RENDERER_DEBUG_INFO, __FILE__, __LINE__, __FUNCTION__, format, \
+                            ##__VA_ARGS__);                                                       \
     } while (0)
 #else
 #define stream_renderer_info(format, ...)
 #endif
 
 #if STREAM_RENDERER_LOG_LEVEL >= STREAM_RENDERER_DEBUG_DEBUG
-#define stream_renderer_debug(format, ...)                                                \
-    do {                                                                                  \
-        stream_renderer_log(STREAM_RENDERER_DEBUG_DEBUG, "[%s(%d)] %s " format, __FILE__, \
-                            __LINE__, __PRETTY_FUNCTION__, ##__VA_ARGS__);                \
+#define stream_renderer_debug(format, ...)                                                        \
+    do {                                                                                          \
+        stream_renderer_log(STREAM_RENDERER_DEBUG_DEBUG, __FILE__, __LINE__, __PRETTY_FUNCTION__, \
+                            format, ##__VA_ARGS__);                                               \
     } while (0)
 #else
 #define stream_renderer_debug(format, ...)
@@ -1029,12 +1127,19 @@ class PipeVirglRenderer {
         switch (header.opCode) {
             case GFXSTREAM_CONTEXT_CREATE:
             case GFXSTREAM_CONTEXT_PING:
-            case GFXSTREAM_CONTEXT_PING_WITH_RESPONSE:
+            case GFXSTREAM_CONTEXT_PING_WITH_RESPONSE: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY,
+                                      "GFXSTREAM_CONTEXT_[CREATE|PING]");
+
                 if (addressSpaceProcessCmd(cmd->ctx_id, (uint32_t*)buffer)) {
                     return -EINVAL;
                 }
                 break;
+            }
             case GFXSTREAM_CREATE_EXPORT_SYNC: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY,
+                                      "GFXSTREAM_CREATE_EXPORT_SYNC");
+
                 DECODE(exportSync, gfxstream::gfxstreamCreateExportSync, buffer)
 
                 uint64_t sync_handle =
@@ -1051,6 +1156,9 @@ class PipeVirglRenderer {
             }
             case GFXSTREAM_CREATE_EXPORT_SYNC_VK:
             case GFXSTREAM_CREATE_IMPORT_SYNC_VK: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY,
+                                      "GFXSTREAM_CREATE_[IMPORT|EXPORT]_SYNC_VK");
+
                 // The guest sync export assumes fence context support and always uses
                 // VIRTGPU_EXECBUF_RING_IDX. With this, the task created here must use
                 // the same ring as the fence created for the virtio gpu command or the
@@ -1076,6 +1184,9 @@ class PipeVirglRenderer {
                 break;
             }
             case GFXSTREAM_CREATE_QSRI_EXPORT_VK: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY,
+                                      "GFXSTREAM_CREATE_QSRI_EXPORT_VK");
+
                 // The guest QSRI export assumes fence context support and always uses
                 // VIRTGPU_EXECBUF_RING_IDX. With this, the task created here must use
                 // the same ring as the fence created for the virtio gpu command or the
@@ -1099,6 +1210,9 @@ class PipeVirglRenderer {
                 break;
             }
             case GFXSTREAM_RESOURCE_CREATE_3D: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY,
+                                      "GFXSTREAM_RESOURCE_CREATE_3D");
+
                 DECODE(create3d, gfxstream::gfxstreamResourceCreate3d, buffer)
                 struct stream_renderer_resource_create_args rc3d = {0};
 
@@ -1129,6 +1243,9 @@ class PipeVirglRenderer {
                 break;
             }
             case GFXSTREAM_ACQUIRE_SYNC: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY,
+                                      "GFXSTREAM_ACQUIRE_SYNC");
+
                 DECODE(acquireSync, gfxstream::gfxstreamAcquireSync, buffer);
 
                 auto ctxIt = mContexts.find(cmd->ctx_id);
@@ -1156,6 +1273,9 @@ class PipeVirglRenderer {
                 break;
             }
             case GFXSTREAM_PLACEHOLDER_COMMAND_VK: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY,
+                                      "GFXSTREAM_PLACEHOLDER_COMMAND_VK");
+
                 // Do nothing, this is a placeholder command
                 break;
             }
@@ -2308,18 +2428,29 @@ extern "C" {
 
 VG_EXPORT int stream_renderer_resource_create(struct stream_renderer_resource_create_args* args,
                                               struct iovec* iov, uint32_t num_iovs) {
+    GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY,
+                          "stream_renderer_resource_create()");
+
     return sRenderer()->createResource(args, iov, num_iovs);
 }
 
 VG_EXPORT void stream_renderer_resource_unref(uint32_t res_handle) {
+    GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY,
+                          "stream_renderer_resource_unref()");
+
     sRenderer()->unrefResource(res_handle);
 }
 
 VG_EXPORT void stream_renderer_context_destroy(uint32_t handle) {
+    GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY,
+                          "stream_renderer_context_destroy()");
+
     sRenderer()->destroyContext(handle);
 }
 
 VG_EXPORT int stream_renderer_submit_cmd(struct stream_renderer_command* cmd) {
+    GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY, "stream_renderer_submit_cmd()");
+
     return sRenderer()->submitCmd(cmd);
 }
 
@@ -2327,6 +2458,9 @@ VG_EXPORT int stream_renderer_transfer_read_iov(uint32_t handle, uint32_t ctx_id
                                                 uint32_t stride, uint32_t layer_stride,
                                                 struct stream_renderer_box* box, uint64_t offset,
                                                 struct iovec* iov, int iovec_cnt) {
+    GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY,
+                          "stream_renderer_transfer_read_iov()");
+
     return sRenderer()->transferReadIov(handle, offset, box, iov, iovec_cnt);
 }
 
@@ -2334,42 +2468,70 @@ VG_EXPORT int stream_renderer_transfer_write_iov(uint32_t handle, uint32_t ctx_i
                                                  uint32_t stride, uint32_t layer_stride,
                                                  struct stream_renderer_box* box, uint64_t offset,
                                                  struct iovec* iovec, unsigned int iovec_cnt) {
+    GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY,
+                          "stream_renderer_transfer_write_iov()");
+
     return sRenderer()->transferWriteIov(handle, offset, box, iovec, iovec_cnt);
 }
 
 VG_EXPORT void stream_renderer_get_cap_set(uint32_t set, uint32_t* max_ver, uint32_t* max_size) {
+    GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY,
+                          "stream_renderer_get_cap_set()");
+
+    GFXSTREAM_TRACE_NAME_TRACK(GFXSTREAM_TRACE_TRACK_FOR_CURRENT_THREAD(),
+                               "Main Virtio Gpu Thread");
+
     // `max_ver` not useful
     return sRenderer()->getCapset(set, max_size);
 }
 
 VG_EXPORT void stream_renderer_fill_caps(uint32_t set, uint32_t version, void* caps) {
+    GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY, "stream_renderer_fill_caps()");
+
     // `version` not useful
     return sRenderer()->fillCaps(set, caps);
 }
 
 VG_EXPORT int stream_renderer_resource_attach_iov(int res_handle, struct iovec* iov, int num_iovs) {
+    GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY,
+                          "stream_renderer_resource_attach_iov()");
+
     return sRenderer()->attachIov(res_handle, iov, num_iovs);
 }
 
 VG_EXPORT void stream_renderer_resource_detach_iov(int res_handle, struct iovec** iov,
                                                    int* num_iovs) {
+    GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY,
+                          "stream_renderer_resource_detach_iov()");
+
     return sRenderer()->detachIov(res_handle, iov, num_iovs);
 }
 
 VG_EXPORT void stream_renderer_ctx_attach_resource(int ctx_id, int res_handle) {
+    GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY,
+                          "stream_renderer_ctx_attach_resource()");
+
     sRenderer()->attachResource(ctx_id, res_handle);
 }
 
 VG_EXPORT void stream_renderer_ctx_detach_resource(int ctx_id, int res_handle) {
+    GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY,
+                          "stream_renderer_ctx_detach_resource()");
+
     sRenderer()->detachResource(ctx_id, res_handle);
 }
 
 VG_EXPORT int stream_renderer_resource_get_info(int res_handle,
                                                 struct stream_renderer_resource_info* info) {
+    GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY,
+                          "stream_renderer_resource_get_info()");
+
     return sRenderer()->getResourceInfo(res_handle, info);
 }
 
 VG_EXPORT void stream_renderer_flush(uint32_t res_handle) {
+    GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY, "stream_renderer_flush()");
+
     sRenderer()->flushResource(res_handle);
 }
 
@@ -2377,29 +2539,47 @@ VG_EXPORT int stream_renderer_create_blob(uint32_t ctx_id, uint32_t res_handle,
                                           const struct stream_renderer_create_blob* create_blob,
                                           const struct iovec* iovecs, uint32_t num_iovs,
                                           const struct stream_renderer_handle* handle) {
+    GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY,
+                          "stream_renderer_create_blob()");
+
     sRenderer()->createBlob(ctx_id, res_handle, create_blob, handle);
     return 0;
 }
 
 VG_EXPORT int stream_renderer_export_blob(uint32_t res_handle,
                                           struct stream_renderer_handle* handle) {
+    GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY,
+                          "stream_renderer_export_blob()");
+
     return sRenderer()->exportBlob(res_handle, handle);
 }
 
 VG_EXPORT int stream_renderer_resource_map(uint32_t res_handle, void** hvaOut, uint64_t* sizeOut) {
+    GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY,
+                          "stream_renderer_resource_map()");
+
     return sRenderer()->resourceMap(res_handle, hvaOut, sizeOut);
 }
 
 VG_EXPORT int stream_renderer_resource_unmap(uint32_t res_handle) {
+    GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY,
+                          "stream_renderer_resource_unmap()");
+
     return sRenderer()->resourceUnmap(res_handle);
 }
 
 VG_EXPORT int stream_renderer_context_create(uint32_t ctx_id, uint32_t nlen, const char* name,
                                              uint32_t context_init) {
+    GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY,
+                          "stream_renderer_context_create()");
+
     return sRenderer()->createContext(ctx_id, nlen, name, context_init);
 }
 
 VG_EXPORT int stream_renderer_create_fence(const struct stream_renderer_fence* fence) {
+    GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY,
+                          "stream_renderer_create_fence()");
+
     if (fence->flags & STREAM_RENDERER_FLAG_FENCE_SHAREABLE) {
         int ret = sRenderer()->acquireContextFence(fence->ctx_id, fence->fence_id);
         if (ret) {
@@ -2421,41 +2601,67 @@ VG_EXPORT int stream_renderer_create_fence(const struct stream_renderer_fence* f
 
 VG_EXPORT int stream_renderer_export_fence(uint64_t fence_id,
                                            struct stream_renderer_handle* handle) {
+    GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY,
+                          "stream_renderer_export_fence()");
+
     return sRenderer()->exportFence(fence_id, handle);
 }
 
 VG_EXPORT int stream_renderer_platform_import_resource(int res_handle, int res_info,
                                                        void* resource) {
+    GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY,
+                          "stream_renderer_platform_import_resource()");
+
     return sRenderer()->platformImportResource(res_handle, res_info, resource);
 }
 
 VG_EXPORT int stream_renderer_platform_resource_info(int res_handle, int* width, int* height,
                                                      int* internal_format) {
+    GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY,
+                          "stream_renderer_platform_resource_info()");
+
     return sRenderer()->platformResourceInfo(res_handle, width, height, internal_format);
 }
 
 VG_EXPORT void* stream_renderer_platform_create_shared_egl_context() {
+    GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY,
+                          "stream_renderer_platform_create_shared_egl_context()");
+
     return sRenderer()->platformCreateSharedEglContext();
 }
 
 VG_EXPORT int stream_renderer_platform_destroy_shared_egl_context(void* context) {
+    GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY,
+                          "stream_renderer_platform_destroy_shared_egl_context()");
+
     return sRenderer()->platformDestroySharedEglContext(context);
 }
 
 VG_EXPORT int stream_renderer_wait_sync_resource(uint32_t res_handle) {
+    GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY,
+                          "stream_renderer_wait_sync_resource()");
+
     return sRenderer()->waitSyncResource(res_handle);
 }
 
 VG_EXPORT int stream_renderer_resource_map_info(uint32_t res_handle, uint32_t* map_info) {
+    GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY,
+                          "stream_renderer_resource_map_info()");
+
     return sRenderer()->resourceMapInfo(res_handle, map_info);
 }
 
 VG_EXPORT int stream_renderer_vulkan_info(uint32_t res_handle,
                                           struct stream_renderer_vulkan_info* vulkan_info) {
+    GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY,
+                          "stream_renderer_vulkan_info()");
+
     return sRenderer()->vulkanInfo(res_handle, vulkan_info);
 }
 
 VG_EXPORT int stream_renderer_snapshot(const char* dir) {
+    GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY, "stream_renderer_snapshot()");
+
 #ifdef GFXSTREAM_ENABLE_HOST_VK_SNAPSHOT
     std::string dirString(dir);
 
@@ -2478,6 +2684,8 @@ VG_EXPORT int stream_renderer_snapshot(const char* dir) {
 }
 
 VG_EXPORT int stream_renderer_restore(const char* dir) {
+    GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY, "stream_renderer_restore()");
+
 #ifdef GFXSTREAM_ENABLE_HOST_VK_SNAPSHOT
     std::string dirString(dir);
     std::string snapshotFileName = dirString + "snapshot.bin";
@@ -3003,6 +3211,8 @@ VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer
                              featureInfo->reason.c_str());
     }
 
+    gfxstream::host::InitializeTracing();
+
     // Set non product-specific callbacks
     gfxstream::vk::vk_util::setVkCheckCallbacks(
         std::make_unique<gfxstream::vk::vk_util::VkCheckCallbacks>(
@@ -3047,6 +3257,8 @@ VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer
             return ret;
         }
     }
+
+    GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY, "stream_renderer_init()");
 
     sRenderer()->init(renderer_cookie, features, fence_callback);
     gfxstream::FrameBuffer::waitUntilInitialized();

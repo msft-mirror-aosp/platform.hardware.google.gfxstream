@@ -520,6 +520,9 @@ class VkDecoderGlobalState {
     VkResult on_vkCreateFence(android::base::BumpPool* pool, VkDevice device,
                               const VkFenceCreateInfo* pCreateInfo,
                               const VkAllocationCallbacks* pAllocator, VkFence* pFence);
+    VkResult on_vkGetFenceStatus(android::base::BumpPool* pool, VkDevice device, VkFence pFence);
+    VkResult on_vkWaitForFences(android::base::BumpPool* pool, VkDevice device, uint32_t fenceCount,
+                                const VkFence* pFences, VkBool32 waitAll, uint64_t timeout);
     VkResult on_vkResetFences(android::base::BumpPool* pool, VkDevice device, uint32_t fenceCount,
                               const VkFence* pFences);
     void on_vkDestroyFence(android::base::BumpPool* pool, VkDevice device, VkFence fence,
@@ -755,6 +758,7 @@ class VkDecoderGlobalState {
     type new_boxed_##type(type underlying, VulkanDispatch* dispatch, bool ownDispatch); \
     void delete_##type(type boxed);                                                     \
     type unbox_##type(type boxed);                                                      \
+    type try_unbox_##type(type boxed);                                                  \
     type unboxed_to_boxed_##type(type boxed);                                           \
     VulkanDispatch* dispatch_##type(type boxed);
 
@@ -762,6 +766,7 @@ class VkDecoderGlobalState {
     type new_boxed_non_dispatchable_##type(type underlying); \
     void delete_##type(type boxed);                          \
     type unbox_##type(type boxed);                           \
+    type try_unbox_##type(type boxed);                       \
     type unboxed_to_boxed_non_dispatchable_##type(type boxed);
 
     GOLDFISH_VK_LIST_DISPATCHABLE_HANDLE_TYPES(DEFINE_BOXED_DISPATCHABLE_HANDLE_API_DECL)

@@ -18,6 +18,7 @@
 #include <atomic>
 #include <deque>
 #include <memory>
+#include <optional>
 #include <unordered_set>
 #include <vector>
 
@@ -26,6 +27,7 @@
 #include "aemu/base/BumpPool.h"
 #include "aemu/base/synchronization/ConditionVariable.h"
 #include "aemu/base/synchronization/Lock.h"
+#include "gfxstream/host/BackendCallbacks.h"
 #include "goldfish_vk_private_defs.h"
 
 namespace gfxstream {
@@ -95,6 +97,7 @@ struct AndroidNativeBufferInfo {
         VkFence fence = VK_NULL_HANDLE;
         android::base::Lock* lock = nullptr;
         uint32_t queueFamilyIndex = 0;
+        std::optional<CancelableFuture> latestUse;
         void setup(VulkanDispatch* vk, VkDevice device, VkQueue queue, uint32_t queueFamilyIndex,
                    android::base::Lock* queueLock);
         void teardown(VulkanDispatch* vk, VkDevice device);
@@ -163,10 +166,11 @@ VkResult setAndroidNativeImageSemaphoreSignaled(VulkanDispatch* vk, VkDevice dev
                                                 VkSemaphore semaphore, VkFence fence,
                                                 AndroidNativeBufferInfo* anbInfo);
 
-VkResult syncImageToColorBuffer(VulkanDispatch* vk, uint32_t queueFamilyIndex, VkQueue queue,
+VkResult syncImageToColorBuffer(gfxstream::host::BackendCallbacks& callbacks, VulkanDispatch* vk,
+                                uint32_t queueFamilyIndex, VkQueue queue,
                                 android::base::Lock* queueLock, uint32_t waitSemaphoreCount,
                                 const VkSemaphore* pWaitSemaphores, int* pNativeFenceFd,
-                                std::shared_ptr<AndroidNativeBufferInfo> anbInfo);
+                                AndroidNativeBufferInfo* anbInfo);
 
 }  // namespace vk
 }  // namespace gfxstream
