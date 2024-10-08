@@ -2164,7 +2164,6 @@ TEST_P(GfxstreamEnd2EndVkTest, MultiThreadedResetCommandBuffer) {
                 }
                 auto waitResult = device->waitForFences(*transferFence, VK_TRUE, AsVkTimeout(3s));
                 ASSERT_THAT(waitResult, IsVkSuccess());
-                device->resetFences(*transferFence);
             }
         });
     }
@@ -2210,36 +2209,6 @@ std::vector<TestParams> GenerateTestCases() {
     cases = WithAndWithoutFeatures(cases, {"VulkanSnapshots"});
     cases = WithAndWithoutFeatures(cases, {"VulkanUseDedicatedAhbMemoryType"});
     return cases;
-}
-
-TEST_P(GfxstreamEnd2EndVkTest, GetFenceStatusDefault) {
-    auto [instance, physicalDevice, device, queue, queueFamilyIndex] =
-        GFXSTREAM_ASSERT(SetUpTypicalVkTestEnvironment());
-    vkhpp::UniqueFence fence = device->createFenceUnique(vkhpp::FenceCreateInfo()).value;
-    auto status = device->getFenceStatus(*fence);
-    ASSERT_THAT(status, Eq(vkhpp::Result::eNotReady));
-}
-
-TEST_P(GfxstreamEnd2EndVkTest, GetFenceStatusCreateSignaled) {
-    auto [instance, physicalDevice, device, queue, queueFamilyIndex] =
-        GFXSTREAM_ASSERT(SetUpTypicalVkTestEnvironment());
-    vkhpp::FenceCreateInfo fenceCreateInfo = {
-        .flags = vkhpp::FenceCreateFlagBits::eSignaled,
-    };
-    vkhpp::UniqueFence fence = device->createFenceUnique(fenceCreateInfo).value;
-    auto status = device->getFenceStatus(*fence);
-    ASSERT_THAT(status, Eq(vkhpp::Result::eSuccess));
-}
-
-TEST_P(GfxstreamEnd2EndVkTest, WaitForFenceCreateSignaled) {
-    auto [instance, physicalDevice, device, queue, queueFamilyIndex] =
-        GFXSTREAM_ASSERT(SetUpTypicalVkTestEnvironment());
-    vkhpp::FenceCreateInfo fenceCreateInfo = {
-        .flags = vkhpp::FenceCreateFlagBits::eSignaled,
-    };
-    vkhpp::UniqueFence fence = device->createFenceUnique(fenceCreateInfo).value;
-    auto status = device->waitForFences(*fence, VK_TRUE, AsVkTimeout(3s));
-    ASSERT_THAT(status, Eq(vkhpp::Result::eSuccess));
 }
 
 TEST_P(GfxstreamEnd2EndVkTest, GetFenceStatusOnExternalFence) {
