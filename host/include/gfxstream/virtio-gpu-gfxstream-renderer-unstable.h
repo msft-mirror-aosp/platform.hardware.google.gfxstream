@@ -86,8 +86,6 @@ VG_EXPORT void stream_renderer_flush(uint32_t res_handle);
 
 VG_EXPORT int stream_renderer_platform_import_resource(int res_handle, int res_info,
                                                        void* resource);
-VG_EXPORT int stream_renderer_platform_resource_info(int res_handle, int* width, int* height,
-                                                     int* internal_format);
 VG_EXPORT void* stream_renderer_platform_create_shared_egl_context(void);
 VG_EXPORT int stream_renderer_platform_destroy_shared_egl_context(void*);
 
