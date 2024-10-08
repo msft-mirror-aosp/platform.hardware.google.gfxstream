@@ -11148,9 +11148,7 @@ VkResult VkEncoder::vkEnumerateInstanceVersion(uint32_t* pApiVersion, uint32_t d
     auto pool = mImpl->pool();
     size_t count = 0;
     size_t* countPtr = &count;
-    {
-        *countPtr += sizeof(uint32_t);
-    }
+    { *countPtr += sizeof(uint32_t); }
     uint32_t packetSize_vkEnumerateInstanceVersion =
         4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkEnumerateInstanceVersion);
