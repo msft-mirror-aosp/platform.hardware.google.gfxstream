@@ -108,6 +108,8 @@ VG_EXPORT int stream_renderer_snapshot(const char* dir);
 
 VG_EXPORT int stream_renderer_restore(const char* dir);
 
+VG_EXPORT int stream_renderer_wait_sync_resource(uint32_t res_handle);
+
 #ifdef __cplusplus
 }  // extern "C"
 #endif
