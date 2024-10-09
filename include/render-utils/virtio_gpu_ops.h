@@ -133,7 +133,6 @@ typedef void* async_wait_for_gpu_vulkan_qsri_with_cb_t;
 typedef bool (*platform_import_resource_t)(uint32_t handle, uint32_t info, void* resource);
 typedef void* (*platform_create_shared_egl_context_t)(void);
 typedef bool (*platform_destroy_shared_egl_context_t)(void* context);
-typedef int (*wait_sync_color_buffer_t)(uint32_t handle);
 
 struct AndroidVirtioGpuOps {
     create_buffer_with_handle_t create_buffer_with_handle;
@@ -170,6 +169,4 @@ struct AndroidVirtioGpuOps {
     platform_import_resource_t platform_import_resource;
     platform_create_shared_egl_context_t platform_create_shared_egl_context;
     platform_destroy_shared_egl_context_t platform_destroy_shared_egl_context;
-
-    wait_sync_color_buffer_t wait_sync_color_buffer;
 };
