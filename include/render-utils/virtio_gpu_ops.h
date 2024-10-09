@@ -117,20 +117,6 @@ typedef void* async_wait_for_gpu_vulkan_with_cb_t;
 typedef void* async_wait_for_gpu_vulkan_qsri_with_cb_t;
 #endif
 
-
-// Platform resources and contexts support
-#define RESOURCE_TYPE_MASK 0x0F
-#define RESOURCE_USE_MASK  0xF0
-
-// types
-#define RESOURCE_TYPE_EGL_NATIVE_PIXMAP 0x01
-#define RESOURCE_TYPE_EGL_IMAGE 0x02
-#define RESOURCE_TYPE_VK_EXT_MEMORY_HANDLE 0x03
-
-// uses
-#define RESOURCE_USE_PRESERVE 0x10
-
-typedef bool (*platform_import_resource_t)(uint32_t handle, uint32_t info, void* resource);
 typedef void* (*platform_create_shared_egl_context_t)(void);
 typedef bool (*platform_destroy_shared_egl_context_t)(void* context);
 
@@ -166,7 +152,6 @@ struct AndroidVirtioGpuOps {
 
     update_color_buffer_from_framework_format_t update_color_buffer_from_framework_format;
 
-    platform_import_resource_t platform_import_resource;
     platform_create_shared_egl_context_t platform_create_shared_egl_context;
     platform_destroy_shared_egl_context_t platform_destroy_shared_egl_context;
 };
