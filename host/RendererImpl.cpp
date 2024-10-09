@@ -658,10 +658,6 @@ static struct AndroidVirtioGpuOps sVirtioGpuOps = {
         [](uint32_t handle, uint32_t info, void* resource) {
             return FrameBuffer::getFB()->platformImportResource(handle, info, resource);
         },
-    .platform_resource_info =
-        [](uint32_t handle, int32_t* width, int32_t* height, int32_t* internal_format) {
-            return FrameBuffer::getFB()->getColorBufferInfo(handle, width, height, internal_format);
-        },
 #if GFXSTREAM_ENABLE_HOST_GLES
     .platform_create_shared_egl_context =
         []() { return FrameBuffer::getFB()->platformCreateSharedEglContext(); },
