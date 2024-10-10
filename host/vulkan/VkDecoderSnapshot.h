@@ -1340,11 +1340,6 @@ class VkDecoderSnapshot {
                                               VkPhysicalDevice physicalDevice, uint32_t* pToolCount,
                                               VkPhysicalDeviceToolProperties* pToolProperties);
 #endif
-#ifdef VK_EXT_line_rasterization
-    void vkCmdSetLineStippleEXT(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                                uint32_t lineStippleFactor, uint16_t lineStipplePattern);
-#endif
 #ifdef VK_EXT_extended_dynamic_state
     void vkCmdSetCullModeEXT(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
                              android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
