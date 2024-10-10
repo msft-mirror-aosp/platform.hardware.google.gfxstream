@@ -98,7 +98,9 @@ cc_library(
         "RendererImpl.cpp",
         "RingStream.cpp",
         "SyncThread.cpp",
+        "VirtioGpuContext.cpp",
         "VirtioGpuFrontend.cpp",
+        "VirtioGpuResource.cpp",
         "VirtioGpuTimelines.cpp",
         "VsyncThread.cpp",
     ] + select({

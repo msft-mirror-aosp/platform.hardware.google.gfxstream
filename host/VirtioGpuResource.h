@@ -17,12 +17,17 @@
 #include <stdint.h>
 
 #include <memory>
+#include <optional>
 
 extern "C" {
 #include "host-common/goldfish_pipe.h"
 }  // extern "C"
 
 #include "ExternalObjectManager.h"
+#include "VirtioGpu.h"
+#ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
+#include "VirtioGpuResourceSnapshot.pb.h"
+#endif  // GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
 #include "VirtioGpuRingBlobMemory.h"
 #include "gfxstream/virtio-gpu-gfxstream-renderer.h"
 
@@ -41,6 +46,7 @@ enum class VirtioGpuResourceType {
     BLOB,
 };
 
+// LINT.IfChange(virtio_gpu_resource)
 struct VirtioGpuResource {
     stream_renderer_resource_create_args args;
     iovec* iov;
@@ -60,6 +66,16 @@ struct VirtioGpuResource {
     bool externalAddr = false;
     std::shared_ptr<BlobDescriptorInfo> descriptorInfo = nullptr;
 };
+// LINT.ThenChange(VirtioGpuResourceSnapshot.proto:virtio_gpu_resource)
+
+#ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
+std::optional<gfxstream::host::snapshot::VirtioGpuResourceSnapshot>
+SnapshotResource(const VirtioGpuResource& resource);
+
+std::optional<VirtioGpuResource>
+RestoreResource(const gfxstream::host::snapshot::VirtioGpuResourceSnapshot& snapshot);
+#endif
+
 
 }  // namespace host
 }  // namespace gfxstream

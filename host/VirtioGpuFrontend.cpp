@@ -35,6 +35,11 @@ namespace {
 
 using android::base::DescriptorType;
 using android::base::SharedMemory;
+#ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
+using gfxstream::host::snapshot::VirtioGpuContextSnapshot;
+using gfxstream::host::snapshot::VirtioGpuFrontendSnapshot;
+using gfxstream::host::snapshot::VirtioGpuResourceSnapshot;
+#endif  // ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
 
 enum pipe_texture_target {
     PIPE_BUFFER,
@@ -1704,6 +1709,52 @@ inline const GoldfishPipeServiceOps* VirtioGpuFrontend::ensureAndGetServiceOps()
     mServiceOps = goldfish_pipe_get_service_ops();
     return mServiceOps;
 }
+
+#ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
+
+int VirtioGpuFrontend::snapshot(gfxstream::host::snapshot::VirtioGpuFrontendSnapshot& outSnapshot) {
+    for (const auto& [contextId, context] : mContexts) {
+        auto contextSnapshotOpt = SnapshotContext(context);
+        if (!contextSnapshotOpt) {
+            stream_renderer_error("Failed to snapshot context %d", contextId);
+            return -1;
+        }
+        (*outSnapshot.mutable_contexts())[contextId] = std::move(*contextSnapshotOpt);
+    }
+    for (const auto& [resourceId, resource] : mResources) {
+        auto resourceSnapshotOpt = SnapshotResource(resource);
+        if (!resourceSnapshotOpt) {
+            stream_renderer_error("Failed to snapshot resource %d", resourceId);
+            return -1;
+        }
+        (*outSnapshot.mutable_resources())[resourceId] = std::move(*resourceSnapshotOpt);
+    }
+    return 0;
+}
+
+int VirtioGpuFrontend::restore(const VirtioGpuFrontendSnapshot& snapshot) {
+    mContexts.clear();
+    mResources.clear();
+    for (const auto& [contextId, contextSnapshot] : snapshot.contexts()) {
+        auto contextOpt = RestoreContext(contextSnapshot);
+        if (!contextOpt) {
+            stream_renderer_error("Failed to restore context %d", contextId);
+            return -1;
+        }
+        mContexts.emplace(contextId, std::move(*contextOpt));
+    }
+    for (const auto& [resourceId, resourceSnapshot] : snapshot.resources()) {
+        auto resourceOpt = RestoreResource(resourceSnapshot);
+        if (!resourceOpt) {
+            stream_renderer_error("Failed to restore resource %d", resourceId);
+            return -1;
+        }
+        mResources.emplace(resourceId, std::move(*resourceOpt));
+    }
+    return 0;
+}
+
+#endif  // ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
 
 }  // namespace host
 }  // namespace gfxstream

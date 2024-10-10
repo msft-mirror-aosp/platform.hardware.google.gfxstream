@@ -28,6 +28,9 @@ extern "C" {
 #include "VirtioGpu.h"
 #include "VirtioGpuContext.h"
 #include "VirtioGpuFormatUtils.h"
+#ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
+#include "VirtioGpuFrontendSnapshot.pb.h"
+#endif
 #include "VirtioGpuResource.h"
 #include "VirtioGpuTimelines.h"
 #include "gfxstream/host/Features.h"
@@ -134,6 +137,11 @@ class VirtioGpuFrontend {
     int exportFence(uint64_t fenceId, struct stream_renderer_handle* handle);
     int vulkanInfo(uint32_t res_handle, struct stream_renderer_vulkan_info* vulkan_info);
 
+#ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
+    int snapshot(gfxstream::host::snapshot::VirtioGpuFrontendSnapshot& outSnapshot);
+    int restore(const gfxstream::host::snapshot::VirtioGpuFrontendSnapshot& snapshot);
+#endif
+
 #ifdef CONFIG_AEMU
     void setServiceOps(const GoldfishPipeServiceOps* ops);
 #endif  // CONFIG_AEMU
@@ -152,16 +160,19 @@ class VirtioGpuFrontend {
 
     const GoldfishPipeServiceOps* mServiceOps = nullptr;
 
+    // State that is preserved across snapshots:
+    //
+    // LINT.IfChange(virtio_gpu_frontend)
     std::unordered_map<VirtioGpuContextId, VirtioGpuContext> mContexts;
     std::unordered_map<VirtioGpuResourceId, VirtioGpuResource> mResources;
     std::unordered_map<VirtioGpuContextId, std::vector<VirtioGpuResourceId>> mContextResources;
     std::unordered_map<VirtioGpuResourceId, std::vector<VirtioGpuContextId>> mResourceContexts;
     std::unordered_map<uint64_t, std::shared_ptr<SyncDescriptorInfo>> mSyncMap;
-
     // When we wait for gpu or wait for gpu vulkan, the next (and subsequent)
     // fences created for that context should not be signaled immediately.
     // Rather, they should get in line.
     std::unique_ptr<VirtioGpuTimelines> mVirtioGpuTimelines = nullptr;
+    // LINT.ThenChange(VirtioGpuFrontend.h:virtio_gpu_frontend)
 
     std::unique_ptr<CleanupThread> mCleanupThread;
 };
