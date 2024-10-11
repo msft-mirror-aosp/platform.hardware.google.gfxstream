@@ -216,6 +216,12 @@ struct FeatureSet {
         "called on a virtio-gpu-next branch in upstream kernel?).",
         &map,
     };
+    FeatureInfo BypassVulkanDeviceFeatureOverrides = {
+        "BypassVulkanDeviceFeatureOverrides",
+        "We are force disabling (overriding) some vulkan features (private data, uniform inline block etc) which the device may naturally support."
+        "If toggled ON, this flag will cause the host side to not force disable anything and let the device fully advertise supported features.",
+        &map,
+    };
     FeatureInfo VulkanAllocateDeviceMemoryOnly = {
         "VulkanAllocateDeviceMemoryOnly",
         "If enabled, prevents the guest from allocating Vulkan memory that does "
