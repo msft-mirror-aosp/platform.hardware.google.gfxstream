@@ -101,6 +101,7 @@ cc_library(
         "VirtioGpuContext.cpp",
         "VirtioGpuFrontend.cpp",
         "VirtioGpuResource.cpp",
+        "VirtioGpuRingBlob.cpp",
         "VirtioGpuTimelines.cpp",
         "VsyncThread.cpp",
     ] + select({

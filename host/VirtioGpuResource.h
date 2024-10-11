@@ -28,7 +28,7 @@ extern "C" {
 #ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
 #include "VirtioGpuResourceSnapshot.pb.h"
 #endif  // GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
-#include "VirtioGpuRingBlobMemory.h"
+#include "VirtioGpuRingBlob.h"
 #include "gfxstream/virtio-gpu-gfxstream-renderer.h"
 
 namespace gfxstream {
@@ -49,6 +49,7 @@ enum class VirtioGpuResourceType {
 // LINT.IfChange(virtio_gpu_resource)
 struct VirtioGpuResource {
     stream_renderer_resource_create_args args;
+    std::optional<struct stream_renderer_create_blob> createBlobArgs;
     std::vector<struct iovec> iovs;
     void* linear;
     size_t linearSize;
@@ -56,9 +57,6 @@ struct VirtioGpuResource {
     VirtioGpuContextId ctxId;
     void* hva;
     uint64_t hvaSize;
-    uint64_t blobId;
-    uint32_t blobMem;
-    uint32_t blobFlags;
     uint32_t caching;
     VirtioGpuResourceType type;
     std::shared_ptr<RingBlob> ringBlob;

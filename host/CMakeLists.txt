@@ -32,6 +32,7 @@ set(stream-server-core-sources
     VirtioGpuContext.cpp
     VirtioGpuFrontend.cpp
     VirtioGpuResource.cpp
+    VirtioGpuRingBlob.cpp
     VirtioGpuTimelines.cpp
     VsyncThread.cpp
     ChannelStream.cpp

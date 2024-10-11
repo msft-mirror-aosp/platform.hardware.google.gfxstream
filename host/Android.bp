@@ -32,6 +32,7 @@ cc_library_host_static {
     srcs: [
         "VirtioGpuContextSnapshot.proto",
         "VirtioGpuFrontendSnapshot.proto",
+        "VirtioGpuRingBlobSnapshot.proto",
         "VirtioGpuResourceSnapshot.proto",
     ],
 }
@@ -144,6 +145,7 @@ cc_defaults {
         "VirtioGpuContext.cpp",
         "VirtioGpuFrontend.cpp",
         "VirtioGpuResource.cpp",
+        "VirtioGpuRingBlob.cpp",
         "VirtioGpuTimelines.cpp",
         "VsyncThread.cpp",
     ],
