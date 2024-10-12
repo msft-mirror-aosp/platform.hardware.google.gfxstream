@@ -153,6 +153,7 @@ VG_EXPORT void stream_renderer_teardown(void);
 
 VG_EXPORT int stream_renderer_resource_create(struct stream_renderer_resource_create_args* args,
                                               struct iovec* iov, uint32_t num_iovs);
+
 VG_EXPORT void stream_renderer_resource_unref(uint32_t res_handle);
 VG_EXPORT void stream_renderer_context_destroy(uint32_t handle);
 
@@ -237,8 +238,6 @@ struct stream_renderer_vulkan_info {
 
 VG_EXPORT int stream_renderer_vulkan_info(uint32_t res_handle,
                                           struct stream_renderer_vulkan_info* vulkan_info);
-
-VG_EXPORT int stream_renderer_wait_sync_resource(uint32_t res_handle);
 
 #ifdef __cplusplus
 }  // extern "C"
