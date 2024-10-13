@@ -87,6 +87,16 @@
 #include "utils/RenderDoc.h"
 #include "vulkan/vk_util.h"
 
+//// Import info types for FrameBuffer::platformImportResource
+// Platform resources and contexts support
+#define RESOURCE_TYPE_MASK 0x0F
+// types
+#define RESOURCE_TYPE_EGL_NATIVE_PIXMAP 0x01
+#define RESOURCE_TYPE_EGL_IMAGE 0x02
+#define RESOURCE_TYPE_VK_EXT_MEMORY_HANDLE 0x03
+// uses
+#define RESOURCE_USE_PRESERVE 0x10
+
 namespace gfxstream {
 namespace vk {
 class DisplayVk;

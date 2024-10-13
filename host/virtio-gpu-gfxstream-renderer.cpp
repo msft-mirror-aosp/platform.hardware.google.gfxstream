@@ -2189,17 +2189,6 @@ class PipeVirglRenderer {
         return success ? 0 : -1;
     }
 
-    int platformResourceInfo(int res_handle, int* width, int* height, int* internal_format) {
-        bool success = false;
-        auto it = mResources.find(res_handle);
-        if (it == mResources.end()) return -EINVAL;
-#if GFXSTREAM_ENABLE_HOST_GLES
-        success = gfxstream::FrameBuffer::getFB()->getColorBufferInfo(res_handle, width, height,
-                                                                      internal_format);
-#endif
-        return success ? 0 : -1;
-    }
-
     void* platformCreateSharedEglContext() {
         void* ptr = nullptr;
 #if GFXSTREAM_ENABLE_HOST_GLES
@@ -2613,14 +2602,6 @@ VG_EXPORT int stream_renderer_platform_import_resource(int res_handle, int res_i
                           "stream_renderer_platform_import_resource()");
 
     return sRenderer()->platformImportResource(res_handle, res_info, resource);
-}
-
-VG_EXPORT int stream_renderer_platform_resource_info(int res_handle, int* width, int* height,
-                                                     int* internal_format) {
-    GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY,
-                          "stream_renderer_platform_resource_info()");
-
-    return sRenderer()->platformResourceInfo(res_handle, width, height, internal_format);
 }
 
 VG_EXPORT void* stream_renderer_platform_create_shared_egl_context() {
