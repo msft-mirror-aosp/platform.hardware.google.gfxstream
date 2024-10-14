@@ -48,7 +48,8 @@ enum class VirtioGpuResourceType {
 
 // LINT.IfChange(virtio_gpu_resource)
 struct VirtioGpuResource {
-    stream_renderer_resource_create_args args;
+    VirtioGpuResourceId id = -1;
+    std::optional<struct stream_renderer_resource_create_args> createArgs;
     std::optional<struct stream_renderer_create_blob> createBlobArgs;
     std::vector<struct iovec> iovs;
     void* linear;

@@ -93,11 +93,17 @@ enum IovSyncDir {
 
 static int sync_iov(VirtioGpuResource* res, uint64_t offset, const stream_renderer_box* box,
                     IovSyncDir dir) {
+    if (!res->createArgs) {
+        stream_renderer_error("Missing resource args.");
+        return -EINVAL;
+    }
+
     stream_renderer_debug("offset: 0x%llx box: %u %u %u %u size %u x %u iovs %u linearSize %zu",
                           (unsigned long long)offset, box->x, box->y, box->w, box->h,
-                          res->args.width, res->args.height, res->iovs.size(), res->linearSize);
+                          res->createArgs->width, res->createArgs->height, res->iovs.size(),
+                          res->linearSize);
 
-    if (box->x > res->args.width || box->y > res->args.height) {
+    if (box->x > res->createArgs->width || box->y > res->createArgs->height) {
         stream_renderer_error("Box out of range of resource");
         return -EINVAL;
     }
@@ -105,18 +111,20 @@ static int sync_iov(VirtioGpuResource* res, uint64_t offset, const stream_render
         stream_renderer_error("Empty transfer");
         return -EINVAL;
     }
-    if (box->x + box->w > res->args.width) {
+    if (box->x + box->w > res->createArgs->width) {
         stream_renderer_error("Box overflows resource width");
         return -EINVAL;
     }
 
-    size_t linearBase = virgl_format_to_linear_base(
-        res->args.format, res->args.width, res->args.height, box->x, box->y, box->w, box->h);
+    size_t linearBase =
+        virgl_format_to_linear_base(res->createArgs->format, res->createArgs->width,
+                                    res->createArgs->height, box->x, box->y, box->w, box->h);
     size_t start = linearBase;
     // height - 1 in order to treat the (w * bpp) row specially
     // (i.e., the last row does not occupy the full stride)
-    size_t length = virgl_format_to_total_xfer_len(
-        res->args.format, res->args.width, res->args.height, box->x, box->y, box->w, box->h);
+    size_t length =
+        virgl_format_to_total_xfer_len(res->createArgs->format, res->createArgs->width,
+                                       res->createArgs->height, box->x, box->y, box->w, box->h);
     size_t end = start + length;
 
     if (start == end) {
@@ -764,7 +772,8 @@ int VirtioGpuFrontend::createResource(struct stream_renderer_resource_create_arg
     }
 
     VirtioGpuResource e;
-    e.args = *args;
+    e.id = args->handle;
+    e.createArgs = *args;
     e.linear = 0;
     e.hostPipe = 0;
     e.hva = nullptr;
@@ -843,7 +852,7 @@ void VirtioGpuFrontend::detachIov(int resId) {
 int VirtioGpuFrontend::handleTransferReadPipe(VirtioGpuResource* res, uint64_t offset,
                                               stream_renderer_box* box) {
     if (res->type != VirtioGpuResourceType::PIPE) {
-        stream_renderer_error("resid: %d not a PIPE resource", res->args.handle);
+        stream_renderer_error("Failed to transfer: resource %d is not PIPE.", res->id);
         return -EINVAL;
     }
 
@@ -878,7 +887,11 @@ int VirtioGpuFrontend::handleTransferReadPipe(VirtioGpuResource* res, uint64_t o
 int VirtioGpuFrontend::handleTransferWritePipe(VirtioGpuResource* res, uint64_t offset,
                                                stream_renderer_box* box) {
     if (res->type != VirtioGpuResourceType::PIPE) {
-        stream_renderer_error("resid: %d not a PIPE resource", res->args.handle);
+        stream_renderer_error("Failed to transfer: resource %d is not PIPE.", res->id);
+        return -EINVAL;
+    }
+    if (!res->createArgs) {
+        stream_renderer_error("Failed to transfer: resource %d missing args.", res->id);
         return -EINVAL;
     }
 
@@ -889,7 +902,7 @@ int VirtioGpuFrontend::handleTransferWritePipe(VirtioGpuResource* res, uint64_t 
         return -EINVAL;
     }
 
-    stream_renderer_debug("resid: %d offset: 0x%llx hostpipe: %p", res->args.handle,
+    stream_renderer_debug("resid: %d offset: 0x%llx hostpipe: %p", res->createArgs->handle,
                           (unsigned long long)offset, hostPipe);
 
     auto ops = ensureAndGetServiceOps();
@@ -911,7 +924,7 @@ int VirtioGpuFrontend::handleTransferWritePipe(VirtioGpuResource* res, uint64_t 
                 return -EINVAL;
             }
 
-            auto it = mResources.find(res->args.handle);
+            auto it = mResources.find(res->createArgs->handle);
             res = &it->second;
         }
 
@@ -930,47 +943,62 @@ int VirtioGpuFrontend::handleTransferWritePipe(VirtioGpuResource* res, uint64_t 
 int VirtioGpuFrontend::handleTransferReadBuffer(VirtioGpuResource* res, uint64_t offset,
                                                 stream_renderer_box* box) {
     if (res->type != VirtioGpuResourceType::BUFFER) {
-        stream_renderer_error("resid: %d not a BUFFER resource", res->args.handle);
+        stream_renderer_error("Failed to transfer: resource %d is not BUFFER.", res->id);
         return -EINVAL;
     }
 
-    gfxstream::FrameBuffer::getFB()->readBuffer(res->args.handle, 0,
-                                                res->args.width * res->args.height, res->linear);
+    if (!res->createArgs) {
+        stream_renderer_error("Failed to transfer: resource %d missing args.", res->id);
+        return -EINVAL;
+    }
+
+    gfxstream::FrameBuffer::getFB()->readBuffer(
+        res->createArgs->handle, 0, res->createArgs->width * res->createArgs->height, res->linear);
     return 0;
 }
 
 int VirtioGpuFrontend::handleTransferWriteBuffer(VirtioGpuResource* res, uint64_t offset,
                                                  stream_renderer_box* box) {
     if (res->type != VirtioGpuResourceType::BUFFER) {
-        stream_renderer_error("resid: %d not a BUFFER resource", res->args.handle);
+        stream_renderer_error("Failed to transfer: resource %d is not BUFFER.", res->id);
         return -EINVAL;
     }
 
-    gfxstream::FrameBuffer::getFB()->updateBuffer(res->args.handle, 0,
-                                                  res->args.width * res->args.height, res->linear);
+    if (!res->createArgs) {
+        stream_renderer_error("Failed to transfer: resource %d missing args.", res->id);
+        return -EINVAL;
+    }
+
+    gfxstream::FrameBuffer::getFB()->updateBuffer(
+        res->createArgs->handle, 0, res->createArgs->width * res->createArgs->height, res->linear);
     return 0;
 }
 
 int VirtioGpuFrontend::handleTransferReadColorBuffer(VirtioGpuResource* res, uint64_t offset,
                                                      stream_renderer_box* box) {
     if (res->type != VirtioGpuResourceType::COLOR_BUFFER) {
-        stream_renderer_error("resid: %d not a COLOR_BUFFER resource", res->args.handle);
+        stream_renderer_error("Failed to transfer: resource %d is not COLOR_BUFFER.", res->id);
         return -EINVAL;
     }
 
-    auto glformat = virgl_format_to_gl(res->args.format);
+    if (!res->createArgs) {
+        stream_renderer_error("Failed to transfer: resource %d missing args.", res->id);
+        return -EINVAL;
+    }
+
+    auto glformat = virgl_format_to_gl(res->createArgs->format);
     auto gltype = gl_format_to_natural_type(glformat);
 
     // We always xfer the whole thing again from GL
     // since it's fiddly to calc / copy-out subregions
-    if (virgl_format_is_yuv(res->args.format)) {
-        gfxstream::FrameBuffer::getFB()->readColorBufferYUV(res->args.handle, 0, 0, res->args.width,
-                                                            res->args.height, res->linear,
-                                                            res->linearSize);
+    if (virgl_format_is_yuv(res->createArgs->format)) {
+        gfxstream::FrameBuffer::getFB()->readColorBufferYUV(
+            res->createArgs->handle, 0, 0, res->createArgs->width, res->createArgs->height,
+            res->linear, res->linearSize);
     } else {
-        gfxstream::FrameBuffer::getFB()->readColorBuffer(res->args.handle, 0, 0, res->args.width,
-                                                         res->args.height, glformat, gltype,
-                                                         res->linear);
+        gfxstream::FrameBuffer::getFB()->readColorBuffer(
+            res->createArgs->handle, 0, 0, res->createArgs->width, res->createArgs->height,
+            glformat, gltype, res->linear);
     }
 
     return 0;
@@ -979,24 +1007,33 @@ int VirtioGpuFrontend::handleTransferReadColorBuffer(VirtioGpuResource* res, uin
 int VirtioGpuFrontend::handleTransferWriteColorBuffer(VirtioGpuResource* res, uint64_t offset,
                                                       stream_renderer_box* box) {
     if (res->type != VirtioGpuResourceType::COLOR_BUFFER) {
-        stream_renderer_error("resid: %d not a COLOR_BUFFER resource", res->args.handle);
+        stream_renderer_error("Failed to transfer: resource %d is not COLOR_BUFFER.", res->id);
         return -EINVAL;
     }
 
-    auto glformat = virgl_format_to_gl(res->args.format);
+    if (!res->createArgs) {
+        stream_renderer_error("Failed to transfer: resource %d missing args.", res->id);
+        return -EINVAL;
+    }
+
+    auto glformat = virgl_format_to_gl(res->createArgs->format);
     auto gltype = gl_format_to_natural_type(glformat);
 
     // We always xfer the whole thing again to GL
     // since it's fiddly to calc / copy-out subregions
     gfxstream::FrameBuffer::getFB()->updateColorBuffer(
-        res->args.handle, 0, 0, res->args.width, res->args.height, glformat, gltype, res->linear);
+        res->createArgs->handle, 0, 0, res->createArgs->width, res->createArgs->height, glformat,
+        gltype, res->linear);
     return 0;
 }
 
 int VirtioGpuFrontend::transferReadIov(int resId, uint64_t offset, stream_renderer_box* box,
                                        struct iovec* iov, int iovec_cnt) {
     auto it = mResources.find(resId);
-    if (it == mResources.end()) return EINVAL;
+    if (it == mResources.end()) {
+        stream_renderer_error("Failed to transfer: failed to find resource %d.", resId);
+        return EINVAL;
+    }
 
     int ret = 0;
 
@@ -1021,7 +1058,7 @@ int VirtioGpuFrontend::transferReadIov(int resId, uint64_t offset, stream_render
 
     if (iovec_cnt) {
         VirtioGpuResource e = {
-            .args = entry.args,
+            .createArgs = entry.createArgs,
             .createBlobArgs = std::nullopt,
             .iovs = std::vector<struct iovec>(iov, iov + iovec_cnt),
             .linear = entry.linear,
@@ -1038,14 +1075,17 @@ int VirtioGpuFrontend::transferReadIov(int resId, uint64_t offset, stream_render
 int VirtioGpuFrontend::transferWriteIov(int resId, uint64_t offset, stream_renderer_box* box,
                                         struct iovec* iov, int iovec_cnt) {
     auto it = mResources.find(resId);
-    if (it == mResources.end()) return EINVAL;
+    if (it == mResources.end()) {
+        stream_renderer_error("Failed to transfer: failed to find resource %d.", resId);
+        return EINVAL;
+    }
 
     auto& entry = it->second;
 
     int ret = 0;
     if (iovec_cnt) {
         VirtioGpuResource e = {
-            .args = entry.args,
+            .createArgs = entry.createArgs,
             .createBlobArgs = std::nullopt,
             .iovs = std::vector<struct iovec>(iov, iov + iovec_cnt),
             .linear = entry.linear,
@@ -1261,12 +1301,20 @@ int VirtioGpuFrontend::getResourceInfo(uint32_t resId, struct stream_renderer_re
     if (!info) return EINVAL;
 
     auto it = mResources.find(resId);
-    if (it == mResources.end()) return ENOENT;
+    if (it == mResources.end()) {
+        stream_renderer_error("Failed to get info: failed to find resource %d.", resId);
+        return ENOENT;
+    }
 
     auto& entry = it->second;
 
+    if (!entry.createArgs) {
+        stream_renderer_error("Failed to get info: resource %d missing args.", resId);
+        return ENOENT;
+    }
+
     uint32_t bpp = 4U;
-    switch (entry.args.format) {
+    switch (entry.createArgs->format) {
         case VIRGL_FORMAT_B8G8R8A8_UNORM:
             info->drm_fourcc = DRM_FORMAT_ARGB8888;
             break;
@@ -1291,13 +1339,13 @@ int VirtioGpuFrontend::getResourceInfo(uint32_t resId, struct stream_renderer_re
             return EINVAL;
     }
 
-    info->stride = align_up(entry.args.width * bpp, 16U);
-    info->virgl_format = entry.args.format;
-    info->handle = entry.args.handle;
-    info->height = entry.args.height;
-    info->width = entry.args.width;
-    info->depth = entry.args.depth;
-    info->flags = entry.args.flags;
+    info->stride = align_up(entry.createArgs->width * bpp, 16U);
+    info->virgl_format = entry.createArgs->format;
+    info->handle = entry.createArgs->handle;
+    info->height = entry.createArgs->height;
+    info->width = entry.createArgs->width;
+    info->depth = entry.createArgs->depth;
+    info->flags = entry.createArgs->flags;
     info->tex_id = 0;
     return 0;
 }
@@ -1340,9 +1388,8 @@ int VirtioGpuFrontend::createBlob(uint32_t ctx_id, uint32_t res_handle,
                           create_blob->blob_id, create_blob->size);
 
     VirtioGpuResource e;
-    struct stream_renderer_resource_create_args args = {0};
+    e.id = res_handle;
     std::optional<BlobDescriptorInfo> descriptorInfoOpt = std::nullopt;
-    e.args = args;
     e.hostPipe = 0;
 
     auto ctxIt = mContexts.find(ctx_id);
@@ -1378,7 +1425,7 @@ int VirtioGpuFrontend::createBlob(uint32_t ctx_id, uint32_t res_handle,
                 break;
         }
 
-        e.args = create3d;
+        e.createArgs = create3d;
         ctxEntry.blobMap.erase(create_blob->blob_id);
     }
 

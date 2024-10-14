@@ -25,20 +25,22 @@ using gfxstream::host::snapshot::VirtioGpuResourceSnapshot;
 
 std::optional<VirtioGpuResourceSnapshot> SnapshotResource(const VirtioGpuResource& resource) {
     VirtioGpuResourceSnapshot resourceSnapshot;
-    resourceSnapshot.set_id(resource.args.handle);
+    resourceSnapshot.set_id(resource.id);
 
-    VirtioGpuResourceCreateArgs* snapshotCreateArgs = resourceSnapshot.mutable_create_args();
-    snapshotCreateArgs->set_id(resource.args.handle);
-    snapshotCreateArgs->set_target(resource.args.target);
-    snapshotCreateArgs->set_format(resource.args.format);
-    snapshotCreateArgs->set_bind(resource.args.bind);
-    snapshotCreateArgs->set_width(resource.args.width);
-    snapshotCreateArgs->set_height(resource.args.height);
-    snapshotCreateArgs->set_depth(resource.args.depth);
-    snapshotCreateArgs->set_array_size(resource.args.array_size);
-    snapshotCreateArgs->set_last_level(resource.args.last_level);
-    snapshotCreateArgs->set_nr_samples(resource.args.nr_samples);
-    snapshotCreateArgs->set_flags(resource.args.flags);
+    if (resource.createArgs) {
+        VirtioGpuResourceCreateArgs* snapshotCreateArgs = resourceSnapshot.mutable_create_args();
+        snapshotCreateArgs->set_id(resource.createArgs->handle);
+        snapshotCreateArgs->set_target(resource.createArgs->target);
+        snapshotCreateArgs->set_format(resource.createArgs->format);
+        snapshotCreateArgs->set_bind(resource.createArgs->bind);
+        snapshotCreateArgs->set_width(resource.createArgs->width);
+        snapshotCreateArgs->set_height(resource.createArgs->height);
+        snapshotCreateArgs->set_depth(resource.createArgs->depth);
+        snapshotCreateArgs->set_array_size(resource.createArgs->array_size);
+        snapshotCreateArgs->set_last_level(resource.createArgs->last_level);
+        snapshotCreateArgs->set_nr_samples(resource.createArgs->nr_samples);
+        snapshotCreateArgs->set_flags(resource.createArgs->flags);
+    }
 
     if (resource.createBlobArgs) {
         VirtioGpuResourceCreateBlobArgs* snapshotCreateArgs = resourceSnapshot.mutable_create_blob_args();
@@ -51,8 +53,7 @@ std::optional<VirtioGpuResourceSnapshot> SnapshotResource(const VirtioGpuResourc
     if (resource.ringBlob) {
         auto snapshotRingBlobOpt = resource.ringBlob->Snapshot();
         if (!snapshotRingBlobOpt) {
-            stream_renderer_error("Failed to snapshot ring blob for resource %d",
-                                  resource.args.handle);
+            stream_renderer_error("Failed to snapshot ring blob for resource %d.", resource.id);
             return std::nullopt;
         }
         resourceSnapshot.mutable_ring_blob()->Swap(&*snapshotRingBlobOpt);
@@ -65,34 +66,37 @@ std::optional<VirtioGpuResource> RestoreResource(
         const VirtioGpuResourceSnapshot& resourceSnapshot) {
     VirtioGpuResource resource = {};
 
-    const auto& resourceCreateArgsSnapshot = resourceSnapshot.create_args();
-    resource.args.handle = resourceCreateArgsSnapshot.id();
-    resource.args.target = resourceCreateArgsSnapshot.target();
-    resource.args.format = resourceCreateArgsSnapshot.format();
-    resource.args.bind = resourceCreateArgsSnapshot.bind();
-    resource.args.width = resourceCreateArgsSnapshot.width();
-    resource.args.height = resourceCreateArgsSnapshot.height();
-    resource.args.depth = resourceCreateArgsSnapshot.depth();
-    resource.args.array_size = resourceCreateArgsSnapshot.array_size();
-    resource.args.last_level = resourceCreateArgsSnapshot.last_level();
-    resource.args.nr_samples = resourceCreateArgsSnapshot.nr_samples();
-    resource.args.flags = resourceCreateArgsSnapshot.flags();
+    if (resourceSnapshot.has_create_args()) {
+        const auto& createArgsSnapshot = resourceSnapshot.create_args();
+        resource.createArgs = {
+            .handle = createArgsSnapshot.id(),
+            .target = createArgsSnapshot.target(),
+            .format = createArgsSnapshot.format(),
+            .bind = createArgsSnapshot.bind(),
+            .width = createArgsSnapshot.width(),
+            .height = createArgsSnapshot.height(),
+            .depth = createArgsSnapshot.depth(),
+            .array_size = createArgsSnapshot.array_size(),
+            .last_level = createArgsSnapshot.last_level(),
+            .nr_samples = createArgsSnapshot.nr_samples(),
+            .flags = createArgsSnapshot.flags(),
+        };
+    }
 
     if (resourceSnapshot.has_create_blob_args()) {
-        const auto& snapshotCreateArgs = resourceSnapshot.create_blob_args();
+        const auto& createArgsSnapshot = resourceSnapshot.create_blob_args();
         resource.createBlobArgs = {
-            .blob_mem = snapshotCreateArgs.mem(),
-            .blob_flags = snapshotCreateArgs.flags(),
-            .blob_id = snapshotCreateArgs.id(),
-            .size = snapshotCreateArgs.size(),
+            .blob_mem = createArgsSnapshot.mem(),
+            .blob_flags = createArgsSnapshot.flags(),
+            .blob_id = createArgsSnapshot.id(),
+            .size = createArgsSnapshot.size(),
         };
     }
 
     if (resourceSnapshot.has_ring_blob()) {
         auto resourceRingBlobOpt = RingBlob::Restore(resourceSnapshot.ring_blob());
         if (!resourceRingBlobOpt) {
-            stream_renderer_error("Failed to restore ring blob for resource %d",
-                                  resource.args.handle);
+            stream_renderer_error("Failed to restore ring blob for resource %d", resource.id);
             return std::nullopt;
         }
         resource.ringBlob = std::move(*resourceRingBlobOpt);
