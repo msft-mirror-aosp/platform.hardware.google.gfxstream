@@ -11148,7 +11148,9 @@ VkResult VkEncoder::vkEnumerateInstanceVersion(uint32_t* pApiVersion, uint32_t d
     auto pool = mImpl->pool();
     size_t count = 0;
     size_t* countPtr = &count;
-    { *countPtr += sizeof(uint32_t); }
+    {
+        *countPtr += sizeof(uint32_t);
+    }
     uint32_t packetSize_vkEnumerateInstanceVersion =
         4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkEnumerateInstanceVersion);
@@ -21386,6 +21388,58 @@ void VkEncoder::vkGetImageSubresourceLayout2KHR(VkDevice device, VkImage image,
 }
 
 #endif
+#ifdef VK_KHR_line_rasterization
+void VkEncoder::vkCmdSetLineStippleKHR(VkCommandBuffer commandBuffer, uint32_t lineStippleFactor,
+                                       uint16_t lineStipplePattern, uint32_t doLock) {
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled =
+        sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
+    auto stream = mImpl->stream();
+    auto pool = mImpl->pool();
+    VkCommandBuffer local_commandBuffer;
+    uint32_t local_lineStippleFactor;
+    uint16_t local_lineStipplePattern;
+    local_commandBuffer = commandBuffer;
+    local_lineStippleFactor = lineStippleFactor;
+    local_lineStipplePattern = lineStipplePattern;
+    size_t count = 0;
+    size_t* countPtr = &count;
+    {
+        uint64_t cgen_var_0;
+        *countPtr += 1 * 8;
+        *countPtr += sizeof(uint32_t);
+        *countPtr += sizeof(uint16_t);
+    }
+    uint32_t packetSize_vkCmdSetLineStippleKHR = 4 + 4 + count;
+    if (queueSubmitWithCommandsEnabled) packetSize_vkCmdSetLineStippleKHR -= 8;
+    uint8_t* streamPtr = stream->reserve(packetSize_vkCmdSetLineStippleKHR);
+    uint8_t* packetBeginPtr = streamPtr;
+    uint8_t** streamPtrPtr = &streamPtr;
+    uint32_t opcode_vkCmdSetLineStippleKHR = OP_vkCmdSetLineStippleKHR;
+    memcpy(streamPtr, &opcode_vkCmdSetLineStippleKHR, sizeof(uint32_t));
+    streamPtr += sizeof(uint32_t);
+    memcpy(streamPtr, &packetSize_vkCmdSetLineStippleKHR, sizeof(uint32_t));
+    streamPtr += sizeof(uint32_t);
+    if (!queueSubmitWithCommandsEnabled) {
+        uint64_t cgen_var_0;
+        *&cgen_var_0 = get_host_u64_VkCommandBuffer((*&local_commandBuffer));
+        memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
+        *streamPtrPtr += 1 * 8;
+    }
+    memcpy(*streamPtrPtr, (uint32_t*)&local_lineStippleFactor, sizeof(uint32_t));
+    *streamPtrPtr += sizeof(uint32_t);
+    memcpy(*streamPtrPtr, (uint16_t*)&local_lineStipplePattern, sizeof(uint16_t));
+    *streamPtrPtr += sizeof(uint16_t);
+    ++encodeCount;
+    if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
+        pool->freeAll();
+        stream->clearPool();
+    }
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
+}
+
+#endif
 #ifdef VK_ANDROID_native_buffer
 VkResult VkEncoder::vkGetSwapchainGrallocUsageANDROID(VkDevice device, VkFormat format,
                                                       VkImageUsageFlags imageUsage,
@@ -22358,58 +22412,6 @@ VkResult VkEncoder::vkGetPhysicalDeviceToolPropertiesEXT(
     }
     if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkGetPhysicalDeviceToolPropertiesEXT_VkResult_return;
-}
-
-#endif
-#ifdef VK_EXT_line_rasterization
-void VkEncoder::vkCmdSetLineStippleEXT(VkCommandBuffer commandBuffer, uint32_t lineStippleFactor,
-                                       uint16_t lineStipplePattern, uint32_t doLock) {
-    (void)doLock;
-    bool queueSubmitWithCommandsEnabled =
-        sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
-    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
-    auto stream = mImpl->stream();
-    auto pool = mImpl->pool();
-    VkCommandBuffer local_commandBuffer;
-    uint32_t local_lineStippleFactor;
-    uint16_t local_lineStipplePattern;
-    local_commandBuffer = commandBuffer;
-    local_lineStippleFactor = lineStippleFactor;
-    local_lineStipplePattern = lineStipplePattern;
-    size_t count = 0;
-    size_t* countPtr = &count;
-    {
-        uint64_t cgen_var_0;
-        *countPtr += 1 * 8;
-        *countPtr += sizeof(uint32_t);
-        *countPtr += sizeof(uint16_t);
-    }
-    uint32_t packetSize_vkCmdSetLineStippleEXT = 4 + 4 + count;
-    if (queueSubmitWithCommandsEnabled) packetSize_vkCmdSetLineStippleEXT -= 8;
-    uint8_t* streamPtr = stream->reserve(packetSize_vkCmdSetLineStippleEXT);
-    uint8_t* packetBeginPtr = streamPtr;
-    uint8_t** streamPtrPtr = &streamPtr;
-    uint32_t opcode_vkCmdSetLineStippleEXT = OP_vkCmdSetLineStippleEXT;
-    memcpy(streamPtr, &opcode_vkCmdSetLineStippleEXT, sizeof(uint32_t));
-    streamPtr += sizeof(uint32_t);
-    memcpy(streamPtr, &packetSize_vkCmdSetLineStippleEXT, sizeof(uint32_t));
-    streamPtr += sizeof(uint32_t);
-    if (!queueSubmitWithCommandsEnabled) {
-        uint64_t cgen_var_0;
-        *&cgen_var_0 = get_host_u64_VkCommandBuffer((*&local_commandBuffer));
-        memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
-        *streamPtrPtr += 1 * 8;
-    }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_lineStippleFactor, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    memcpy(*streamPtrPtr, (uint16_t*)&local_lineStipplePattern, sizeof(uint16_t));
-    *streamPtrPtr += sizeof(uint16_t);
-    ++encodeCount;
-    if (0 == encodeCount % POOL_CLEAR_INTERVAL) {
-        pool->freeAll();
-        stream->clearPool();
-    }
-    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 #endif
