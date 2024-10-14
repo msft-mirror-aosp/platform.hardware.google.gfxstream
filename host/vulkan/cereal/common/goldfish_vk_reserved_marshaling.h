@@ -1622,6 +1622,20 @@ void reservedunmarshal_VkBufferUsageFlags2CreateInfoKHR(
     VkBufferUsageFlags2CreateInfoKHR* forUnmarshaling, uint8_t** ptr);
 
 #endif
+#ifdef VK_KHR_line_rasterization
+void reservedunmarshal_VkPhysicalDeviceLineRasterizationFeaturesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceLineRasterizationFeaturesKHR* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkPhysicalDeviceLineRasterizationPropertiesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceLineRasterizationPropertiesKHR* forUnmarshaling, uint8_t** ptr);
+
+void reservedunmarshal_VkPipelineRasterizationLineStateCreateInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPipelineRasterizationLineStateCreateInfoKHR* forUnmarshaling, uint8_t** ptr);
+
+#endif
 #ifdef VK_ANDROID_native_buffer
 void reservedunmarshal_VkNativeBufferUsage2ANDROID(VulkanStream* vkStream, VkStructureType rootType,
                                                    VkNativeBufferUsage2ANDROID* forUnmarshaling,
@@ -1838,20 +1852,6 @@ void reservedunmarshal_VkPhysicalDeviceProvokingVertexPropertiesEXT(
 void reservedunmarshal_VkPipelineRasterizationProvokingVertexStateCreateInfoEXT(
     VulkanStream* vkStream, VkStructureType rootType,
     VkPipelineRasterizationProvokingVertexStateCreateInfoEXT* forUnmarshaling, uint8_t** ptr);
-
-#endif
-#ifdef VK_EXT_line_rasterization
-void reservedunmarshal_VkPhysicalDeviceLineRasterizationFeaturesEXT(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkPhysicalDeviceLineRasterizationFeaturesEXT* forUnmarshaling, uint8_t** ptr);
-
-void reservedunmarshal_VkPhysicalDeviceLineRasterizationPropertiesEXT(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkPhysicalDeviceLineRasterizationPropertiesEXT* forUnmarshaling, uint8_t** ptr);
-
-void reservedunmarshal_VkPipelineRasterizationLineStateCreateInfoEXT(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkPipelineRasterizationLineStateCreateInfoEXT* forUnmarshaling, uint8_t** ptr);
 
 #endif
 #ifdef VK_EXT_index_type_uint8
