@@ -660,6 +660,17 @@ size_t goldfish_vk_extension_struct_size(VkStructureType rootType, const void* s
             return sizeof(VkPhysicalDeviceCooperativeMatrixPropertiesKHR);
         }
 #endif
+#ifdef VK_KHR_line_rasterization
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_FEATURES_KHR: {
+            return sizeof(VkPhysicalDeviceLineRasterizationFeaturesKHR);
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_PROPERTIES_KHR: {
+            return sizeof(VkPhysicalDeviceLineRasterizationPropertiesKHR);
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_LINE_STATE_CREATE_INFO_KHR: {
+            return sizeof(VkPipelineRasterizationLineStateCreateInfoKHR);
+        }
+#endif
 #ifdef VK_ANDROID_native_buffer
         case VK_STRUCTURE_TYPE_NATIVE_BUFFER_ANDROID: {
             return sizeof(VkNativeBufferANDROID);
@@ -1309,17 +1320,6 @@ size_t goldfish_vk_extension_struct_size(VkStructureType rootType, const void* s
         }
         case VK_STRUCTURE_TYPE_SURFACE_FULL_SCREEN_EXCLUSIVE_WIN32_INFO_EXT: {
             return sizeof(VkSurfaceFullScreenExclusiveWin32InfoEXT);
-        }
-#endif
-#ifdef VK_EXT_line_rasterization
-        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_FEATURES_EXT: {
-            return sizeof(VkPhysicalDeviceLineRasterizationFeaturesEXT);
-        }
-        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_PROPERTIES_EXT: {
-            return sizeof(VkPhysicalDeviceLineRasterizationPropertiesEXT);
-        }
-        case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_LINE_STATE_CREATE_INFO_EXT: {
-            return sizeof(VkPipelineRasterizationLineStateCreateInfoEXT);
         }
 #endif
 #ifdef VK_EXT_shader_atomic_float
@@ -2774,6 +2774,17 @@ size_t goldfish_vk_extension_struct_size_with_stream_features(uint32_t streamFea
             return sizeof(VkPhysicalDeviceCooperativeMatrixPropertiesKHR);
         }
 #endif
+#ifdef VK_KHR_line_rasterization
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_FEATURES_KHR: {
+            return sizeof(VkPhysicalDeviceLineRasterizationFeaturesKHR);
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_PROPERTIES_KHR: {
+            return sizeof(VkPhysicalDeviceLineRasterizationPropertiesKHR);
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_LINE_STATE_CREATE_INFO_KHR: {
+            return sizeof(VkPipelineRasterizationLineStateCreateInfoKHR);
+        }
+#endif
 #ifdef VK_ANDROID_native_buffer
         case VK_STRUCTURE_TYPE_NATIVE_BUFFER_ANDROID: {
             return sizeof(VkNativeBufferANDROID);
@@ -3423,17 +3434,6 @@ size_t goldfish_vk_extension_struct_size_with_stream_features(uint32_t streamFea
         }
         case VK_STRUCTURE_TYPE_SURFACE_FULL_SCREEN_EXCLUSIVE_WIN32_INFO_EXT: {
             return sizeof(VkSurfaceFullScreenExclusiveWin32InfoEXT);
-        }
-#endif
-#ifdef VK_EXT_line_rasterization
-        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_FEATURES_EXT: {
-            return sizeof(VkPhysicalDeviceLineRasterizationFeaturesEXT);
-        }
-        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_PROPERTIES_EXT: {
-            return sizeof(VkPhysicalDeviceLineRasterizationPropertiesEXT);
-        }
-        case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_LINE_STATE_CREATE_INFO_EXT: {
-            return sizeof(VkPipelineRasterizationLineStateCreateInfoEXT);
         }
 #endif
 #ifdef VK_EXT_shader_atomic_float
