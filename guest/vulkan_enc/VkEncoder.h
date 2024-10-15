@@ -827,6 +827,10 @@ class VkEncoder {
                                          const VkImageSubresource2KHR* pSubresource,
                                          VkSubresourceLayout2KHR* pLayout, uint32_t doLock);
 #endif
+#ifdef VK_KHR_line_rasterization
+    void vkCmdSetLineStippleKHR(VkCommandBuffer commandBuffer, uint32_t lineStippleFactor,
+                                uint16_t lineStipplePattern, uint32_t doLock);
+#endif
 #ifdef VK_ANDROID_native_buffer
     VkResult vkGetSwapchainGrallocUsageANDROID(VkDevice device, VkFormat format,
                                                VkImageUsageFlags imageUsage, int* grallocUsage,
@@ -873,10 +877,6 @@ class VkEncoder {
                                                   uint32_t* pToolCount,
                                                   VkPhysicalDeviceToolProperties* pToolProperties,
                                                   uint32_t doLock);
-#endif
-#ifdef VK_EXT_line_rasterization
-    void vkCmdSetLineStippleEXT(VkCommandBuffer commandBuffer, uint32_t lineStippleFactor,
-                                uint16_t lineStipplePattern, uint32_t doLock);
 #endif
 #ifdef VK_EXT_extended_dynamic_state
     void vkCmdSetCullModeEXT(VkCommandBuffer commandBuffer, VkCullModeFlags cullMode,
