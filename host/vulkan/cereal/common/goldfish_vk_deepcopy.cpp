@@ -7400,6 +7400,77 @@ void deepcopy_VkBufferUsageFlags2CreateInfoKHR(Allocator* alloc, VkStructureType
 }
 
 #endif
+#ifdef VK_KHR_line_rasterization
+void deepcopy_VkPhysicalDeviceLineRasterizationFeaturesKHR(
+    Allocator* alloc, VkStructureType rootType,
+    const VkPhysicalDeviceLineRasterizationFeaturesKHR* from,
+    VkPhysicalDeviceLineRasterizationFeaturesKHR* to) {
+    (void)alloc;
+    (void)rootType;
+    *to = *from;
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = from->sType;
+    }
+    const void* from_pNext = from;
+    size_t pNext_size = 0u;
+    while (!pNext_size && from_pNext) {
+        from_pNext = static_cast<const vk_struct_common*>(from_pNext)->pNext;
+        pNext_size = goldfish_vk_extension_struct_size(rootType, from_pNext);
+    }
+    to->pNext = nullptr;
+    if (pNext_size) {
+        to->pNext = (void*)alloc->alloc(pNext_size);
+        deepcopy_extension_struct(alloc, rootType, from_pNext, (void*)(to->pNext));
+    }
+}
+
+void deepcopy_VkPhysicalDeviceLineRasterizationPropertiesKHR(
+    Allocator* alloc, VkStructureType rootType,
+    const VkPhysicalDeviceLineRasterizationPropertiesKHR* from,
+    VkPhysicalDeviceLineRasterizationPropertiesKHR* to) {
+    (void)alloc;
+    (void)rootType;
+    *to = *from;
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = from->sType;
+    }
+    const void* from_pNext = from;
+    size_t pNext_size = 0u;
+    while (!pNext_size && from_pNext) {
+        from_pNext = static_cast<const vk_struct_common*>(from_pNext)->pNext;
+        pNext_size = goldfish_vk_extension_struct_size(rootType, from_pNext);
+    }
+    to->pNext = nullptr;
+    if (pNext_size) {
+        to->pNext = (void*)alloc->alloc(pNext_size);
+        deepcopy_extension_struct(alloc, rootType, from_pNext, (void*)(to->pNext));
+    }
+}
+
+void deepcopy_VkPipelineRasterizationLineStateCreateInfoKHR(
+    Allocator* alloc, VkStructureType rootType,
+    const VkPipelineRasterizationLineStateCreateInfoKHR* from,
+    VkPipelineRasterizationLineStateCreateInfoKHR* to) {
+    (void)alloc;
+    (void)rootType;
+    *to = *from;
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = from->sType;
+    }
+    const void* from_pNext = from;
+    size_t pNext_size = 0u;
+    while (!pNext_size && from_pNext) {
+        from_pNext = static_cast<const vk_struct_common*>(from_pNext)->pNext;
+        pNext_size = goldfish_vk_extension_struct_size(rootType, from_pNext);
+    }
+    to->pNext = nullptr;
+    if (pNext_size) {
+        to->pNext = (void*)alloc->alloc(pNext_size);
+        deepcopy_extension_struct(alloc, rootType, from_pNext, (void*)(to->pNext));
+    }
+}
+
+#endif
 #ifdef VK_ANDROID_native_buffer
 void deepcopy_VkNativeBufferUsage2ANDROID(Allocator* alloc, VkStructureType rootType,
                                           const VkNativeBufferUsage2ANDROID* from,
@@ -8334,77 +8405,6 @@ void deepcopy_VkPipelineRasterizationProvokingVertexStateCreateInfoEXT(
     Allocator* alloc, VkStructureType rootType,
     const VkPipelineRasterizationProvokingVertexStateCreateInfoEXT* from,
     VkPipelineRasterizationProvokingVertexStateCreateInfoEXT* to) {
-    (void)alloc;
-    (void)rootType;
-    *to = *from;
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = from->sType;
-    }
-    const void* from_pNext = from;
-    size_t pNext_size = 0u;
-    while (!pNext_size && from_pNext) {
-        from_pNext = static_cast<const vk_struct_common*>(from_pNext)->pNext;
-        pNext_size = goldfish_vk_extension_struct_size(rootType, from_pNext);
-    }
-    to->pNext = nullptr;
-    if (pNext_size) {
-        to->pNext = (void*)alloc->alloc(pNext_size);
-        deepcopy_extension_struct(alloc, rootType, from_pNext, (void*)(to->pNext));
-    }
-}
-
-#endif
-#ifdef VK_EXT_line_rasterization
-void deepcopy_VkPhysicalDeviceLineRasterizationFeaturesEXT(
-    Allocator* alloc, VkStructureType rootType,
-    const VkPhysicalDeviceLineRasterizationFeaturesEXT* from,
-    VkPhysicalDeviceLineRasterizationFeaturesEXT* to) {
-    (void)alloc;
-    (void)rootType;
-    *to = *from;
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = from->sType;
-    }
-    const void* from_pNext = from;
-    size_t pNext_size = 0u;
-    while (!pNext_size && from_pNext) {
-        from_pNext = static_cast<const vk_struct_common*>(from_pNext)->pNext;
-        pNext_size = goldfish_vk_extension_struct_size(rootType, from_pNext);
-    }
-    to->pNext = nullptr;
-    if (pNext_size) {
-        to->pNext = (void*)alloc->alloc(pNext_size);
-        deepcopy_extension_struct(alloc, rootType, from_pNext, (void*)(to->pNext));
-    }
-}
-
-void deepcopy_VkPhysicalDeviceLineRasterizationPropertiesEXT(
-    Allocator* alloc, VkStructureType rootType,
-    const VkPhysicalDeviceLineRasterizationPropertiesEXT* from,
-    VkPhysicalDeviceLineRasterizationPropertiesEXT* to) {
-    (void)alloc;
-    (void)rootType;
-    *to = *from;
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = from->sType;
-    }
-    const void* from_pNext = from;
-    size_t pNext_size = 0u;
-    while (!pNext_size && from_pNext) {
-        from_pNext = static_cast<const vk_struct_common*>(from_pNext)->pNext;
-        pNext_size = goldfish_vk_extension_struct_size(rootType, from_pNext);
-    }
-    to->pNext = nullptr;
-    if (pNext_size) {
-        to->pNext = (void*)alloc->alloc(pNext_size);
-        deepcopy_extension_struct(alloc, rootType, from_pNext, (void*)(to->pNext));
-    }
-}
-
-void deepcopy_VkPipelineRasterizationLineStateCreateInfoEXT(
-    Allocator* alloc, VkStructureType rootType,
-    const VkPipelineRasterizationLineStateCreateInfoEXT* from,
-    VkPipelineRasterizationLineStateCreateInfoEXT* to) {
     (void)alloc;
     (void)rootType;
     *to = *from;
@@ -10662,6 +10662,35 @@ void deepcopy_extension_struct(Allocator* alloc, VkStructureType rootType,
             break;
         }
 #endif
+#ifdef VK_KHR_line_rasterization
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_FEATURES_KHR: {
+            deepcopy_VkPhysicalDeviceLineRasterizationFeaturesKHR(
+                alloc, rootType,
+                reinterpret_cast<const VkPhysicalDeviceLineRasterizationFeaturesKHR*>(
+                    structExtension),
+                reinterpret_cast<VkPhysicalDeviceLineRasterizationFeaturesKHR*>(
+                    structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_PROPERTIES_KHR: {
+            deepcopy_VkPhysicalDeviceLineRasterizationPropertiesKHR(
+                alloc, rootType,
+                reinterpret_cast<const VkPhysicalDeviceLineRasterizationPropertiesKHR*>(
+                    structExtension),
+                reinterpret_cast<VkPhysicalDeviceLineRasterizationPropertiesKHR*>(
+                    structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_LINE_STATE_CREATE_INFO_KHR: {
+            deepcopy_VkPipelineRasterizationLineStateCreateInfoKHR(
+                alloc, rootType,
+                reinterpret_cast<const VkPipelineRasterizationLineStateCreateInfoKHR*>(
+                    structExtension),
+                reinterpret_cast<VkPipelineRasterizationLineStateCreateInfoKHR*>(
+                    structExtension_out));
+            break;
+        }
+#endif
 #ifdef VK_ANDROID_native_buffer
         case VK_STRUCTURE_TYPE_NATIVE_BUFFER_ANDROID: {
             deepcopy_VkNativeBufferANDROID(
@@ -10973,35 +11002,6 @@ void deepcopy_extension_struct(Allocator* alloc, VkStructureType rootType,
                 reinterpret_cast<const VkPipelineRasterizationProvokingVertexStateCreateInfoEXT*>(
                     structExtension),
                 reinterpret_cast<VkPipelineRasterizationProvokingVertexStateCreateInfoEXT*>(
-                    structExtension_out));
-            break;
-        }
-#endif
-#ifdef VK_EXT_line_rasterization
-        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_FEATURES_EXT: {
-            deepcopy_VkPhysicalDeviceLineRasterizationFeaturesEXT(
-                alloc, rootType,
-                reinterpret_cast<const VkPhysicalDeviceLineRasterizationFeaturesEXT*>(
-                    structExtension),
-                reinterpret_cast<VkPhysicalDeviceLineRasterizationFeaturesEXT*>(
-                    structExtension_out));
-            break;
-        }
-        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_PROPERTIES_EXT: {
-            deepcopy_VkPhysicalDeviceLineRasterizationPropertiesEXT(
-                alloc, rootType,
-                reinterpret_cast<const VkPhysicalDeviceLineRasterizationPropertiesEXT*>(
-                    structExtension),
-                reinterpret_cast<VkPhysicalDeviceLineRasterizationPropertiesEXT*>(
-                    structExtension_out));
-            break;
-        }
-        case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_LINE_STATE_CREATE_INFO_EXT: {
-            deepcopy_VkPipelineRasterizationLineStateCreateInfoEXT(
-                alloc, rootType,
-                reinterpret_cast<const VkPipelineRasterizationLineStateCreateInfoEXT*>(
-                    structExtension),
-                reinterpret_cast<VkPipelineRasterizationLineStateCreateInfoEXT*>(
                     structExtension_out));
             break;
         }
