@@ -11649,6 +11649,112 @@ void reservedunmarshal_VkBufferUsageFlags2CreateInfoKHR(
 }
 
 #endif
+#ifdef VK_KHR_line_rasterization
+void reservedunmarshal_VkPhysicalDeviceLineRasterizationFeaturesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceLineRasterizationFeaturesKHR* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((VkBool32*)&forUnmarshaling->rectangularLines, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((VkBool32*)&forUnmarshaling->bresenhamLines, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((VkBool32*)&forUnmarshaling->smoothLines, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((VkBool32*)&forUnmarshaling->stippledRectangularLines, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((VkBool32*)&forUnmarshaling->stippledBresenhamLines, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((VkBool32*)&forUnmarshaling->stippledSmoothLines, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+}
+
+void reservedunmarshal_VkPhysicalDeviceLineRasterizationPropertiesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceLineRasterizationPropertiesKHR* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((uint32_t*)&forUnmarshaling->lineSubPixelPrecisionBits, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+}
+
+void reservedunmarshal_VkPipelineRasterizationLineStateCreateInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPipelineRasterizationLineStateCreateInfoKHR* forUnmarshaling, uint8_t** ptr) {
+    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    uint32_t pNext_size;
+    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
+    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
+    *ptr += sizeof(uint32_t);
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
+        *ptr += sizeof(VkStructureType);
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
+                                           ptr);
+    }
+    memcpy((VkLineRasterizationModeKHR*)&forUnmarshaling->lineRasterizationMode, *ptr,
+           sizeof(VkLineRasterizationModeKHR));
+    *ptr += sizeof(VkLineRasterizationModeKHR);
+    memcpy((VkBool32*)&forUnmarshaling->stippledLineEnable, *ptr, sizeof(VkBool32));
+    *ptr += sizeof(VkBool32);
+    memcpy((uint32_t*)&forUnmarshaling->lineStippleFactor, *ptr, sizeof(uint32_t));
+    *ptr += sizeof(uint32_t);
+    memcpy((uint16_t*)&forUnmarshaling->lineStipplePattern, *ptr, sizeof(uint16_t));
+    *ptr += sizeof(uint16_t);
+}
+
+#endif
 #ifdef VK_ANDROID_native_buffer
 void reservedunmarshal_VkNativeBufferUsage2ANDROID(VulkanStream* vkStream, VkStructureType rootType,
                                                    VkNativeBufferUsage2ANDROID* forUnmarshaling,
@@ -12929,112 +13035,6 @@ void reservedunmarshal_VkPipelineRasterizationProvokingVertexStateCreateInfoEXT(
     memcpy((VkProvokingVertexModeEXT*)&forUnmarshaling->provokingVertexMode, *ptr,
            sizeof(VkProvokingVertexModeEXT));
     *ptr += sizeof(VkProvokingVertexModeEXT);
-}
-
-#endif
-#ifdef VK_EXT_line_rasterization
-void reservedunmarshal_VkPhysicalDeviceLineRasterizationFeaturesEXT(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkPhysicalDeviceLineRasterizationFeaturesEXT* forUnmarshaling, uint8_t** ptr) {
-    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
-    *ptr += sizeof(VkStructureType);
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = forUnmarshaling->sType;
-    }
-    uint32_t pNext_size;
-    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
-    *ptr += sizeof(uint32_t);
-    forUnmarshaling->pNext = nullptr;
-    if (pNext_size) {
-        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
-        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
-        *ptr += sizeof(VkStructureType);
-        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
-        vkStream->alloc((void**)&forUnmarshaling->pNext,
-                        goldfish_vk_extension_struct_size_with_stream_features(
-                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
-        *(VkStructureType*)forUnmarshaling->pNext = extType;
-        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
-                                           ptr);
-    }
-    memcpy((VkBool32*)&forUnmarshaling->rectangularLines, *ptr, sizeof(VkBool32));
-    *ptr += sizeof(VkBool32);
-    memcpy((VkBool32*)&forUnmarshaling->bresenhamLines, *ptr, sizeof(VkBool32));
-    *ptr += sizeof(VkBool32);
-    memcpy((VkBool32*)&forUnmarshaling->smoothLines, *ptr, sizeof(VkBool32));
-    *ptr += sizeof(VkBool32);
-    memcpy((VkBool32*)&forUnmarshaling->stippledRectangularLines, *ptr, sizeof(VkBool32));
-    *ptr += sizeof(VkBool32);
-    memcpy((VkBool32*)&forUnmarshaling->stippledBresenhamLines, *ptr, sizeof(VkBool32));
-    *ptr += sizeof(VkBool32);
-    memcpy((VkBool32*)&forUnmarshaling->stippledSmoothLines, *ptr, sizeof(VkBool32));
-    *ptr += sizeof(VkBool32);
-}
-
-void reservedunmarshal_VkPhysicalDeviceLineRasterizationPropertiesEXT(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkPhysicalDeviceLineRasterizationPropertiesEXT* forUnmarshaling, uint8_t** ptr) {
-    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
-    *ptr += sizeof(VkStructureType);
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = forUnmarshaling->sType;
-    }
-    uint32_t pNext_size;
-    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
-    *ptr += sizeof(uint32_t);
-    forUnmarshaling->pNext = nullptr;
-    if (pNext_size) {
-        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
-        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
-        *ptr += sizeof(VkStructureType);
-        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
-        vkStream->alloc((void**)&forUnmarshaling->pNext,
-                        goldfish_vk_extension_struct_size_with_stream_features(
-                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
-        *(VkStructureType*)forUnmarshaling->pNext = extType;
-        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
-                                           ptr);
-    }
-    memcpy((uint32_t*)&forUnmarshaling->lineSubPixelPrecisionBits, *ptr, sizeof(uint32_t));
-    *ptr += sizeof(uint32_t);
-}
-
-void reservedunmarshal_VkPipelineRasterizationLineStateCreateInfoEXT(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkPipelineRasterizationLineStateCreateInfoEXT* forUnmarshaling, uint8_t** ptr) {
-    memcpy((VkStructureType*)&forUnmarshaling->sType, *ptr, sizeof(VkStructureType));
-    *ptr += sizeof(VkStructureType);
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
-        rootType = forUnmarshaling->sType;
-    }
-    uint32_t pNext_size;
-    memcpy((uint32_t*)&pNext_size, *ptr, sizeof(uint32_t));
-    android::base::Stream::fromBe32((uint8_t*)&pNext_size);
-    *ptr += sizeof(uint32_t);
-    forUnmarshaling->pNext = nullptr;
-    if (pNext_size) {
-        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
-        memcpy((void*)forUnmarshaling->pNext, *ptr, sizeof(VkStructureType));
-        *ptr += sizeof(VkStructureType);
-        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
-        vkStream->alloc((void**)&forUnmarshaling->pNext,
-                        goldfish_vk_extension_struct_size_with_stream_features(
-                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
-        *(VkStructureType*)forUnmarshaling->pNext = extType;
-        reservedunmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext),
-                                           ptr);
-    }
-    memcpy((VkLineRasterizationModeEXT*)&forUnmarshaling->lineRasterizationMode, *ptr,
-           sizeof(VkLineRasterizationModeEXT));
-    *ptr += sizeof(VkLineRasterizationModeEXT);
-    memcpy((VkBool32*)&forUnmarshaling->stippledLineEnable, *ptr, sizeof(VkBool32));
-    *ptr += sizeof(VkBool32);
-    memcpy((uint32_t*)&forUnmarshaling->lineStippleFactor, *ptr, sizeof(uint32_t));
-    *ptr += sizeof(uint32_t);
-    memcpy((uint16_t*)&forUnmarshaling->lineStipplePattern, *ptr, sizeof(uint16_t));
-    *ptr += sizeof(uint16_t);
 }
 
 #endif
@@ -15702,6 +15702,32 @@ void reservedunmarshal_extension_struct(VulkanStream* vkStream, VkStructureType 
             break;
         }
 #endif
+#ifdef VK_KHR_line_rasterization
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_FEATURES_KHR: {
+            reservedunmarshal_VkPhysicalDeviceLineRasterizationFeaturesKHR(
+                vkStream, rootType,
+                reinterpret_cast<VkPhysicalDeviceLineRasterizationFeaturesKHR*>(
+                    structExtension_out),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_PROPERTIES_KHR: {
+            reservedunmarshal_VkPhysicalDeviceLineRasterizationPropertiesKHR(
+                vkStream, rootType,
+                reinterpret_cast<VkPhysicalDeviceLineRasterizationPropertiesKHR*>(
+                    structExtension_out),
+                ptr);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_LINE_STATE_CREATE_INFO_KHR: {
+            reservedunmarshal_VkPipelineRasterizationLineStateCreateInfoKHR(
+                vkStream, rootType,
+                reinterpret_cast<VkPipelineRasterizationLineStateCreateInfoKHR*>(
+                    structExtension_out),
+                ptr);
+            break;
+        }
+#endif
 #ifdef VK_ANDROID_native_buffer
         case VK_STRUCTURE_TYPE_NATIVE_BUFFER_ANDROID: {
             reservedunmarshal_VkNativeBufferANDROID(
@@ -15981,32 +16007,6 @@ void reservedunmarshal_extension_struct(VulkanStream* vkStream, VkStructureType 
             reservedunmarshal_VkPipelineRasterizationProvokingVertexStateCreateInfoEXT(
                 vkStream, rootType,
                 reinterpret_cast<VkPipelineRasterizationProvokingVertexStateCreateInfoEXT*>(
-                    structExtension_out),
-                ptr);
-            break;
-        }
-#endif
-#ifdef VK_EXT_line_rasterization
-        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_FEATURES_EXT: {
-            reservedunmarshal_VkPhysicalDeviceLineRasterizationFeaturesEXT(
-                vkStream, rootType,
-                reinterpret_cast<VkPhysicalDeviceLineRasterizationFeaturesEXT*>(
-                    structExtension_out),
-                ptr);
-            break;
-        }
-        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_PROPERTIES_EXT: {
-            reservedunmarshal_VkPhysicalDeviceLineRasterizationPropertiesEXT(
-                vkStream, rootType,
-                reinterpret_cast<VkPhysicalDeviceLineRasterizationPropertiesEXT*>(
-                    structExtension_out),
-                ptr);
-            break;
-        }
-        case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_LINE_STATE_CREATE_INFO_EXT: {
-            reservedunmarshal_VkPipelineRasterizationLineStateCreateInfoEXT(
-                vkStream, rootType,
-                reinterpret_cast<VkPipelineRasterizationLineStateCreateInfoEXT*>(
                     structExtension_out),
                 ptr);
             break;

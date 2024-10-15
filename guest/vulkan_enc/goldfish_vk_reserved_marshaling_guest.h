@@ -1623,6 +1623,20 @@ void reservedmarshal_VkBufferUsageFlags2CreateInfoKHR(
     const VkBufferUsageFlags2CreateInfoKHR* forMarshaling, uint8_t** ptr);
 
 #endif
+#ifdef VK_KHR_line_rasterization
+void reservedmarshal_VkPhysicalDeviceLineRasterizationFeaturesKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceLineRasterizationFeaturesKHR* forMarshaling, uint8_t** ptr);
+
+void reservedmarshal_VkPhysicalDeviceLineRasterizationPropertiesKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceLineRasterizationPropertiesKHR* forMarshaling, uint8_t** ptr);
+
+void reservedmarshal_VkPipelineRasterizationLineStateCreateInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPipelineRasterizationLineStateCreateInfoKHR* forMarshaling, uint8_t** ptr);
+
+#endif
 #ifdef VK_ANDROID_native_buffer
 void reservedmarshal_VkNativeBufferUsage2ANDROID(VulkanStreamGuest* vkStream,
                                                  VkStructureType rootType,
@@ -1789,17 +1803,6 @@ void reservedmarshal_VkPhysicalDeviceProvokingVertexPropertiesEXT(
 void reservedmarshal_VkPipelineRasterizationProvokingVertexStateCreateInfoEXT(
     VulkanStreamGuest* vkStream, VkStructureType rootType,
     const VkPipelineRasterizationProvokingVertexStateCreateInfoEXT* forMarshaling, uint8_t** ptr);
-
-#endif
-#ifdef VK_EXT_line_rasterization
-DEFINE_ALIAS_FUNCTION(reservedmarshal_VkPhysicalDeviceLineRasterizationFeaturesKHR,
-                      reservedmarshal_VkPhysicalDeviceLineRasterizationFeaturesEXT)
-
-DEFINE_ALIAS_FUNCTION(reservedmarshal_VkPhysicalDeviceLineRasterizationPropertiesKHR,
-                      reservedmarshal_VkPhysicalDeviceLineRasterizationPropertiesEXT)
-
-DEFINE_ALIAS_FUNCTION(reservedmarshal_VkPipelineRasterizationLineStateCreateInfoKHR,
-                      reservedmarshal_VkPipelineRasterizationLineStateCreateInfoEXT)
 
 #endif
 #ifdef VK_EXT_index_type_uint8
