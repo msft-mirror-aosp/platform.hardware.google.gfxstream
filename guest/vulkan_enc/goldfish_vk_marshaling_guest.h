@@ -3052,6 +3052,33 @@ void unmarshal_VkBufferUsageFlags2CreateInfoKHR(VulkanStreamGuest* vkStream,
                                                 VkBufferUsageFlags2CreateInfoKHR* forUnmarshaling);
 
 #endif
+#ifdef VK_KHR_line_rasterization
+void marshal_VkPhysicalDeviceLineRasterizationFeaturesKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceLineRasterizationFeaturesKHR* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceLineRasterizationFeaturesKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceLineRasterizationFeaturesKHR* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceLineRasterizationPropertiesKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceLineRasterizationPropertiesKHR* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceLineRasterizationPropertiesKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceLineRasterizationPropertiesKHR* forUnmarshaling);
+
+void marshal_VkPipelineRasterizationLineStateCreateInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    const VkPipelineRasterizationLineStateCreateInfoKHR* forMarshaling);
+
+void unmarshal_VkPipelineRasterizationLineStateCreateInfoKHR(
+    VulkanStreamGuest* vkStream, VkStructureType rootType,
+    VkPipelineRasterizationLineStateCreateInfoKHR* forUnmarshaling);
+
+#define OP_vkCmdSetLineStippleKHR 219923286
+#endif
 #ifdef VK_ANDROID_native_buffer
 void marshal_VkNativeBufferUsage2ANDROID(VulkanStreamGuest* vkStream, VkStructureType rootType,
                                          const VkNativeBufferUsage2ANDROID* forMarshaling);
@@ -3365,27 +3392,6 @@ void unmarshal_VkPipelineRasterizationProvokingVertexStateCreateInfoEXT(
     VulkanStreamGuest* vkStream, VkStructureType rootType,
     VkPipelineRasterizationProvokingVertexStateCreateInfoEXT* forUnmarshaling);
 
-#endif
-#ifdef VK_EXT_line_rasterization
-DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceLineRasterizationFeaturesKHR,
-                      marshal_VkPhysicalDeviceLineRasterizationFeaturesEXT)
-
-DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceLineRasterizationFeaturesKHR,
-                      unmarshal_VkPhysicalDeviceLineRasterizationFeaturesEXT)
-
-DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceLineRasterizationPropertiesKHR,
-                      marshal_VkPhysicalDeviceLineRasterizationPropertiesEXT)
-
-DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceLineRasterizationPropertiesKHR,
-                      unmarshal_VkPhysicalDeviceLineRasterizationPropertiesEXT)
-
-DEFINE_ALIAS_FUNCTION(marshal_VkPipelineRasterizationLineStateCreateInfoKHR,
-                      marshal_VkPipelineRasterizationLineStateCreateInfoEXT)
-
-DEFINE_ALIAS_FUNCTION(unmarshal_VkPipelineRasterizationLineStateCreateInfoKHR,
-                      unmarshal_VkPipelineRasterizationLineStateCreateInfoEXT)
-
-#define OP_vkCmdSetLineStippleEXT 263855692
 #endif
 #ifdef VK_EXT_index_type_uint8
 DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceIndexTypeUint8FeaturesKHR,

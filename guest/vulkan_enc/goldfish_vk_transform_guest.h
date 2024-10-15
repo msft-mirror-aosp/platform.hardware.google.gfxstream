@@ -2585,6 +2585,26 @@ void transform_fromhost_VkBufferUsageFlags2CreateInfoKHR(
     ResourceTracker* resourceTracker, VkBufferUsageFlags2CreateInfoKHR* toTransform);
 
 #endif
+#ifdef VK_KHR_line_rasterization
+void transform_tohost_VkPhysicalDeviceLineRasterizationFeaturesKHR(
+    ResourceTracker* resourceTracker, VkPhysicalDeviceLineRasterizationFeaturesKHR* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceLineRasterizationFeaturesKHR(
+    ResourceTracker* resourceTracker, VkPhysicalDeviceLineRasterizationFeaturesKHR* toTransform);
+
+void transform_tohost_VkPhysicalDeviceLineRasterizationPropertiesKHR(
+    ResourceTracker* resourceTracker, VkPhysicalDeviceLineRasterizationPropertiesKHR* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceLineRasterizationPropertiesKHR(
+    ResourceTracker* resourceTracker, VkPhysicalDeviceLineRasterizationPropertiesKHR* toTransform);
+
+void transform_tohost_VkPipelineRasterizationLineStateCreateInfoKHR(
+    ResourceTracker* resourceTracker, VkPipelineRasterizationLineStateCreateInfoKHR* toTransform);
+
+void transform_fromhost_VkPipelineRasterizationLineStateCreateInfoKHR(
+    ResourceTracker* resourceTracker, VkPipelineRasterizationLineStateCreateInfoKHR* toTransform);
+
+#endif
 #ifdef VK_ANDROID_native_buffer
 void transform_tohost_VkNativeBufferUsage2ANDROID(ResourceTracker* resourceTracker,
                                                   VkNativeBufferUsage2ANDROID* toTransform);
@@ -2849,26 +2869,6 @@ void transform_tohost_VkPipelineRasterizationProvokingVertexStateCreateInfoEXT(
 void transform_fromhost_VkPipelineRasterizationProvokingVertexStateCreateInfoEXT(
     ResourceTracker* resourceTracker,
     VkPipelineRasterizationProvokingVertexStateCreateInfoEXT* toTransform);
-
-#endif
-#ifdef VK_EXT_line_rasterization
-DEFINE_ALIAS_FUNCTION(transform_tohost_VkPhysicalDeviceLineRasterizationFeaturesKHR,
-                      transform_tohost_VkPhysicalDeviceLineRasterizationFeaturesEXT)
-
-DEFINE_ALIAS_FUNCTION(transform_fromhost_VkPhysicalDeviceLineRasterizationFeaturesKHR,
-                      transform_fromhost_VkPhysicalDeviceLineRasterizationFeaturesEXT)
-
-DEFINE_ALIAS_FUNCTION(transform_tohost_VkPhysicalDeviceLineRasterizationPropertiesKHR,
-                      transform_tohost_VkPhysicalDeviceLineRasterizationPropertiesEXT)
-
-DEFINE_ALIAS_FUNCTION(transform_fromhost_VkPhysicalDeviceLineRasterizationPropertiesKHR,
-                      transform_fromhost_VkPhysicalDeviceLineRasterizationPropertiesEXT)
-
-DEFINE_ALIAS_FUNCTION(transform_tohost_VkPipelineRasterizationLineStateCreateInfoKHR,
-                      transform_tohost_VkPipelineRasterizationLineStateCreateInfoEXT)
-
-DEFINE_ALIAS_FUNCTION(transform_fromhost_VkPipelineRasterizationLineStateCreateInfoKHR,
-                      transform_fromhost_VkPipelineRasterizationLineStateCreateInfoEXT)
 
 #endif
 #ifdef VK_EXT_index_type_uint8
