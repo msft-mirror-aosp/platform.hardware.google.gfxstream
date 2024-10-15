@@ -49,8 +49,7 @@ enum class VirtioGpuResourceType {
 // LINT.IfChange(virtio_gpu_resource)
 struct VirtioGpuResource {
     stream_renderer_resource_create_args args;
-    iovec* iov;
-    uint32_t numIovs;
+    std::vector<struct iovec> iovs;
     void* linear;
     size_t linearSize;
     GoldfishHostPipe* hostPipe;

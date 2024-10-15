@@ -95,7 +95,7 @@ static int sync_iov(VirtioGpuResource* res, uint64_t offset, const stream_render
                     IovSyncDir dir) {
     stream_renderer_debug("offset: 0x%llx box: %u %u %u %u size %u x %u iovs %u linearSize %zu",
                           (unsigned long long)offset, box->x, box->y, box->w, box->h,
-                          res->args.width, res->args.height, res->numIovs, res->linearSize);
+                          res->args.width, res->args.height, res->iovs.size(), res->linearSize);
 
     if (box->x > res->args.width || box->y > res->args.height) {
         stream_renderer_error("Box out of range of resource");
@@ -135,14 +135,14 @@ static int sync_iov(VirtioGpuResource* res, uint64_t offset, const stream_render
     char* linear = static_cast<char*>(res->linear);
 
     while (written < length) {
-        if (iovIndex >= res->numIovs) {
+        if (iovIndex >= res->iovs.size()) {
             stream_renderer_error("write request overflowed numIovs");
             return -EINVAL;
         }
 
-        const char* iovBase_const = static_cast<const char*>(res->iov[iovIndex].iov_base);
-        char* iovBase = static_cast<char*>(res->iov[iovIndex].iov_base);
-        size_t iovLen = res->iov[iovIndex].iov_len;
+        const char* iovBase_const = static_cast<const char*>(res->iovs[iovIndex].iov_base);
+        char* iovBase = static_cast<char*>(res->iovs[iovIndex].iov_base);
+        size_t iovLen = res->iovs[iovIndex].iov_len;
         size_t iovOffsetEnd = iovOffset + iovLen;
 
         auto lower_intersect = std::max(iovOffset, start);
@@ -811,12 +811,7 @@ void VirtioGpuFrontend::unrefResource(uint32_t toUnrefId) {
         entry.linear = nullptr;
     }
 
-    if (entry.iov) {
-        free(entry.iov);
-        entry.iov = nullptr;
-        entry.numIovs = 0;
-    }
-
+    entry.iovs.clear();
     entry.hva = nullptr;
     entry.hvaSize = 0;
     entry.blobId = 0;
@@ -824,7 +819,7 @@ void VirtioGpuFrontend::unrefResource(uint32_t toUnrefId) {
     mResources.erase(it);
 }
 
-int VirtioGpuFrontend::attachIov(int resId, iovec* iov, int num_iovs) {
+int VirtioGpuFrontend::attachIov(int resId, struct iovec* iov, int num_iovs) {
     stream_renderer_debug("resid: %d numiovs: %d", resId, num_iovs);
 
     auto it = mResources.find(resId);
@@ -838,29 +833,13 @@ int VirtioGpuFrontend::attachIov(int resId, iovec* iov, int num_iovs) {
     return 0;
 }
 
-void VirtioGpuFrontend::detachIov(int resId, iovec** iov, int* num_iovs) {
+void VirtioGpuFrontend::detachIov(int resId) {
     auto it = mResources.find(resId);
     if (it == mResources.end()) return;
-
     auto& entry = it->second;
 
-    if (num_iovs) {
-        *num_iovs = entry.numIovs;
-        stream_renderer_debug("resid: %d numIovs: %d", resId, *num_iovs);
-    } else {
-        stream_renderer_debug("resid: %d numIovs: 0", resId);
-    }
-
-    entry.numIovs = 0;
-
-    if (entry.iov) free(entry.iov);
-    entry.iov = nullptr;
-
-    if (iov) {
-        *iov = entry.iov;
-    }
-
-    allocResource(entry, entry.iov, entry.numIovs);
+    entry.iovs.clear();
+    allocResource(entry, nullptr, 0);
     stream_renderer_debug("done");
 }
 
@@ -1045,7 +1024,10 @@ int VirtioGpuFrontend::transferReadIov(int resId, uint64_t offset, stream_render
 
     if (iovec_cnt) {
         VirtioGpuResource e = {
-            entry.args, iov, (uint32_t)iovec_cnt, entry.linear, entry.linearSize,
+            entry.args,
+            std::vector<struct iovec>(iov, iov + iovec_cnt),
+            entry.linear,
+            entry.linearSize,
         };
         ret = sync_iov(&e, offset, box, LINEAR_TO_IOV);
     } else {
@@ -1065,7 +1047,10 @@ int VirtioGpuFrontend::transferWriteIov(int resId, uint64_t offset, stream_rende
     int ret = 0;
     if (iovec_cnt) {
         VirtioGpuResource e = {
-            entry.args, iov, (uint32_t)iovec_cnt, entry.linear, entry.linearSize,
+            entry.args,
+            std::vector<struct iovec>(iov, iov + iovec_cnt),
+            entry.linear,
+            entry.linearSize,
         };
         ret = sync_iov(&e, offset, box, IOV_TO_LINEAR);
     } else {
@@ -1457,8 +1442,6 @@ int VirtioGpuFrontend::createBlob(uint32_t ctx_id, uint32_t res_handle,
     e.blobMem = create_blob->blob_mem;
     e.blobFlags = create_blob->blob_flags;
     e.type = blobType;
-    e.iov = nullptr;
-    e.numIovs = 0;
     e.linear = 0;
     e.linearSize = 0;
 
@@ -1642,7 +1625,8 @@ int VirtioGpuFrontend::vulkanInfo(uint32_t res_handle,
 void VirtioGpuFrontend::setServiceOps(const GoldfishPipeServiceOps* ops) { mServiceOps = ops; }
 #endif  // CONFIG_AEMU
 
-void VirtioGpuFrontend::allocResource(VirtioGpuResource& entry, iovec* iov, int num_iovs) {
+void VirtioGpuFrontend::allocResource(VirtioGpuResource& entry, struct iovec* iov,
+                                      int num_iovs) {
     stream_renderer_debug("entry linear: %p", entry.linear);
     if (entry.linear) free(entry.linear);
 
@@ -1659,11 +1643,12 @@ void VirtioGpuFrontend::allocResource(VirtioGpuResource& entry, iovec* iov, int 
 
     if (linearSize) linear = malloc(linearSize);
 
-    entry.numIovs = num_iovs;
-    entry.iov = (iovec*)malloc(sizeof(*iov) * num_iovs);
-    if (entry.numIovs > 0) {
-        memcpy(entry.iov, iov, num_iovs * sizeof(*iov));
+    entry.iovs.clear();
+    if (num_iovs) {
+        entry.iovs.reserve(num_iovs);
+        entry.iovs.insert(entry.iovs.begin(), iov, iov + num_iovs);
     }
+
     entry.linear = linear;
     entry.linearSize = linearSize;
 }

@@ -83,7 +83,7 @@ class VirtioGpuFrontend {
     void unrefResource(uint32_t toUnrefId);
 
     int attachIov(int resId, iovec* iov, int num_iovs);
-    void detachIov(int resId, iovec** iov, int* num_iovs);
+    void detachIov(int resId);
 
     int handleTransferReadPipe(VirtioGpuResource* res, uint64_t offset, stream_renderer_box* box);
     int handleTransferWritePipe(VirtioGpuResource* res, uint64_t offset, stream_renderer_box* box);

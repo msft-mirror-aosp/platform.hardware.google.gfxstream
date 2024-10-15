@@ -30,15 +30,13 @@ message VirtioGpuResourceCreateArgs {
     optional uint32 flags = 11;
 }
 
-message VirtioGpuIovec {
-    optional uint64 addr = 1;
-    optional uint64 size = 2;
-}
-
 // LINT.IfChange(virtio_gpu_resource)
 message VirtioGpuResourceSnapshot {
     optional uint32 id = 1;
     optional VirtioGpuResourceCreateArgs create_args = 2;
-    repeated VirtioGpuIovec iovs = 4;
+    // NOTE: `VirtioGpuResource::iovs` is not saved because the host virtual address
+    // may not be the same across snapshot and restore. VMMs are expected to re-call
+    // `stream_renderer_resource_attach_iov()` for resources with the new guest-memory
+    // host virtual addresses.
 }
 // LINT.ThenChange(VirtioGpuResource.h:virtio_gpu_resource)
