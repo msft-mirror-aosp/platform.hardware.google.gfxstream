@@ -50,8 +50,6 @@ class VirtioGpuFrontend {
 
     void teardown();
 
-    int resetPipe(GoldfishHwPipe* hwPipe, GoldfishHostPipe* hostPipe);
-
     int createContext(VirtioGpuContextId ctx_id, uint32_t nlen, const char* name,
                       uint32_t context_init);
 
@@ -72,29 +70,12 @@ class VirtioGpuFrontend {
 
     void poll();
 
-    VirtioGpuResourceType getResourceType(
-        const struct stream_renderer_resource_create_args& args) const;
-
-    void handleCreateResourceBuffer(struct stream_renderer_resource_create_args* args);
-    void handleCreateResourceColorBuffer(struct stream_renderer_resource_create_args* args);
-
     int createResource(struct stream_renderer_resource_create_args* args, struct iovec* iov,
                        uint32_t num_iovs);
     void unrefResource(uint32_t toUnrefId);
 
     int attachIov(int resId, iovec* iov, int num_iovs);
     void detachIov(int resId);
-
-    int handleTransferReadPipe(VirtioGpuResource* res, uint64_t offset, stream_renderer_box* box);
-    int handleTransferWritePipe(VirtioGpuResource* res, uint64_t offset, stream_renderer_box* box);
-
-    int handleTransferReadBuffer(VirtioGpuResource* res, uint64_t offset, stream_renderer_box* box);
-    int handleTransferWriteBuffer(VirtioGpuResource* res, uint64_t offset,
-                                  stream_renderer_box* box);
-    int handleTransferReadColorBuffer(VirtioGpuResource* res, uint64_t offset,
-                                      stream_renderer_box* box);
-    int handleTransferWriteColorBuffer(VirtioGpuResource* res, uint64_t offset,
-                                       stream_renderer_box* box);
 
     int transferReadIov(int resId, uint64_t offset, stream_renderer_box* box, struct iovec* iov,
                         int iovec_cnt);
@@ -147,6 +128,8 @@ class VirtioGpuFrontend {
 #endif  // CONFIG_AEMU
 
    private:
+    int resetPipe(VirtioGpuContextId contextId, GoldfishHostPipe* hostPipe);
+
     void allocResource(VirtioGpuResource& entry, iovec* iov, int num_iovs);
     void detachResourceLocked(uint32_t ctxId, uint32_t toUnrefId);
 
