@@ -48,7 +48,6 @@ enum class VirtioGpuResourceType {
     BLOB,
 };
 
-// LINT.IfChange(virtio_gpu_resource)
 class VirtioGpuResource {
    public:
     VirtioGpuResource() {}
@@ -104,7 +103,7 @@ class VirtioGpuResource {
 
     int ExportBlob(struct stream_renderer_handle* outHandle);
 
-    std::shared_ptr<RingBlob> ShareRingBlob() { return mRingBlob; }
+    std::shared_ptr<RingBlob> ShareRingBlob();
 
 #ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
     std::optional<gfxstream::host::snapshot::VirtioGpuResourceSnapshot> Snapshot() const;
@@ -144,6 +143,7 @@ class VirtioGpuResource {
     int TransferWithIov(uint64_t offset, const stream_renderer_box* box,
                         const std::vector<struct iovec>& iovs, TransferDirection direction);
 
+    // LINT.IfChange(virtio_gpu_resource)
     VirtioGpuResourceId mId = -1;
     VirtioGpuResourceType mResourceType;
     std::optional<struct stream_renderer_resource_create_args> mCreateArgs;
@@ -152,14 +152,24 @@ class VirtioGpuResource {
     std::vector<char> mLinear;
     GoldfishHostPipe* mHostPipe = nullptr;
     std::optional<VirtioGpuContextId> mContextId;
-    void* mHva = nullptr;
-    uint64_t mHvaSize = 0;
-    uint32_t mCaching = 0;
-    std::shared_ptr<RingBlob> mRingBlob;
-    bool mExternalAddress = false;
-    std::shared_ptr<BlobDescriptorInfo> mDescriptorInfo;
+
+    // If this resource is a blob resource, the source of the external memory.
+    //
+    //   * For ring blobs, blobs that are used soley for guest and host
+    //     communication, the external memory is allocated by this resource
+    //     in the frontend.
+    //
+    //   * For non ring blobs, the memory from the backend as either an external
+    //     memory handle (`BlobDescriptorInfo`) or a raw mapping.
+    using RingBlobMemory = std::shared_ptr<RingBlob>;
+    using ExternalMemoryDescriptor = std::shared_ptr<BlobDescriptorInfo>;
+    using ExternalMemoryMapping = HostMemInfo;
+
+    using BlobMemory =
+        std::variant<RingBlobMemory, ExternalMemoryDescriptor, ExternalMemoryMapping>;
+    std::optional<BlobMemory> mBlobMemory;
+    // LINT.ThenChange(VirtioGpuResourceSnapshot.proto:virtio_gpu_resource)
 };
-// LINT.ThenChange(VirtioGpuResourceSnapshot.proto:virtio_gpu_resource)
 
 }  // namespace host
 }  // namespace gfxstream

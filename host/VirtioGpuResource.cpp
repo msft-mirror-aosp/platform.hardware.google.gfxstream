@@ -180,20 +180,17 @@ std::optional<VirtioGpuResource> VirtioGpuResource::Create(
     resource.mCreateBlobArgs = *createBlobArgs;
 
     if (createBlobArgs->blob_id == 0) {
+        RingBlobMemory memory;
         if (features.ExternalBlob.enabled) {
-            resource.mRingBlob = RingBlob::CreateWithShmem(resourceId, createBlobArgs->size);
+            memory = RingBlob::CreateWithShmem(resourceId, createBlobArgs->size);
         } else {
-            resource.mRingBlob =
-                RingBlob::CreateWithHostMemory(resourceId, createBlobArgs->size, pageSize);
+            memory = RingBlob::CreateWithHostMemory(resourceId, createBlobArgs->size, pageSize);
         }
-        if (!resource.mRingBlob) {
+        if (!memory) {
             stream_renderer_error("Failed to create blob: failed to create ring blob.");
             return std::nullopt;
         }
-        resource.mHva = resource.mRingBlob->map();
-        resource.mHvaSize = createBlobArgs->size;
-        resource.mExternalAddress = true;
-        resource.mCaching = STREAM_RENDERER_MAP_CACHE_CACHED;
+        resource.mBlobMemory.emplace(std::move(memory));
     } else if (features.ExternalBlob.enabled) {
         if (createBlobArgs->blob_mem == STREAM_BLOB_MEM_GUEST &&
             (createBlobArgs->blob_flags & STREAM_BLOB_FLAG_CREATE_GUEST_HANDLE)) {
@@ -202,8 +199,6 @@ std::optional<VirtioGpuResource> VirtioGpuResource::Create(
             ExternalObjectManager::get()->addBlobDescriptorInfo(
                 contextId, createBlobArgs->blob_id, std::move(managedHandle), handle->handle_type,
                 0, std::nullopt);
-
-            resource.mCaching = STREAM_RENDERER_MAP_CACHE_CACHED;
 #else
             stream_renderer_error("Failed to create blob: unimplemented external blob.");
             return std::nullopt;
@@ -213,28 +208,21 @@ std::optional<VirtioGpuResource> VirtioGpuResource::Create(
                 descriptorInfoOpt = ExternalObjectManager::get()->removeBlobDescriptorInfo(
                     contextId, createBlobArgs->blob_id);
             }
-
-            if (descriptorInfoOpt) {
-                resource.mDescriptorInfo =
-                    std::make_shared<BlobDescriptorInfo>(std::move(*descriptorInfoOpt));
-            } else {
+            if (!descriptorInfoOpt) {
                 stream_renderer_error("Failed to create blob: no external blob descriptor.");
                 return std::nullopt;
             }
-
-            resource.mCaching = resource.mDescriptorInfo->caching;
+            resource.mBlobMemory.emplace(
+                std::make_shared<BlobDescriptorInfo>(std::move(*descriptorInfoOpt)));
         }
     } else {
-        auto entryOpt =
+        auto memoryMappingOpt =
             ExternalObjectManager::get()->removeMapping(contextId, createBlobArgs->blob_id);
-        if (entryOpt) {
-            resource.mHva = entryOpt->addr;
-            resource.mHvaSize = createBlobArgs->size;
-            resource.mCaching = entryOpt->caching;
-        } else {
+        if (!memoryMappingOpt) {
             stream_renderer_error("Failed to create blob: no external blob mapping.");
             return std::nullopt;
         }
+        resource.mBlobMemory.emplace(std::move(*memoryMappingOpt));
     }
 
     return resource;
@@ -280,11 +268,36 @@ void VirtioGpuResource::DetachIov() {
 }
 
 int VirtioGpuResource::Map(void** outAddress, uint64_t* outSize) {
+    if (!mBlobMemory) {
+        stream_renderer_error("Failed to map resource %d: no blob memory to map.", mId);
+        return -EINVAL;
+    }
+
+    void* hva = nullptr;
+    uint64_t hvaSize = 0;
+
+    if (std::holds_alternative<RingBlobMemory>(*mBlobMemory)) {
+        auto& memory = std::get<RingBlobMemory>(*mBlobMemory);
+        hva = memory->map();
+        hvaSize = memory->size();
+    } else if (std::holds_alternative<ExternalMemoryMapping>(*mBlobMemory)) {
+        if (!mCreateBlobArgs) {
+            stream_renderer_error("failed to map resource %d: missing args.", mId);
+            return -EINVAL;
+        }
+        auto& memory = std::get<ExternalMemoryMapping>(*mBlobMemory);
+        hva = memory.addr;
+        hvaSize = mCreateBlobArgs->size;
+    } else {
+        stream_renderer_error("failed to map resource %d: no mappable memory.", mId);
+        return -EINVAL;
+    }
+
     if (outAddress) {
-        *outAddress = mHva;
+        *outAddress = hva;
     }
     if (outSize) {
-        *outSize = mHvaSize;
+        *outSize = hvaSize;
     }
     return 0;
 }
@@ -333,23 +346,43 @@ int VirtioGpuResource::GetInfo(struct stream_renderer_resource_info* outInfo) co
 }
 
 int VirtioGpuResource::GetVulkanInfo(struct stream_renderer_vulkan_info* outInfo) const {
-    if (mDescriptorInfo && mDescriptorInfo->vulkanInfoOpt) {
-        auto& vulkanInfo = *mDescriptorInfo->vulkanInfoOpt;
-
-        outInfo->memory_index = vulkanInfo.memoryIndex;
-        memcpy(outInfo->device_id.device_uuid, vulkanInfo.deviceUUID,
-               sizeof(outInfo->device_id.device_uuid));
-        memcpy(outInfo->device_id.driver_uuid, vulkanInfo.driverUUID,
-               sizeof(outInfo->device_id.driver_uuid));
-        return 0;
+    if (!mBlobMemory) {
+        return -EINVAL;
     }
+    if (!std::holds_alternative<ExternalMemoryDescriptor>(*mBlobMemory)) {
+        return -EINVAL;
+    }
+    auto& memory = std::get<ExternalMemoryDescriptor>(*mBlobMemory);
+    if (!memory->vulkanInfoOpt) {
+        return -EINVAL;
+    }
+    auto& memoryVulkanInfo = *memory->vulkanInfoOpt;
 
-    return -EINVAL;
+    outInfo->memory_index = memoryVulkanInfo.memoryIndex;
+    memcpy(outInfo->device_id.device_uuid, memoryVulkanInfo.deviceUUID,
+           sizeof(outInfo->device_id.device_uuid));
+    memcpy(outInfo->device_id.driver_uuid, memoryVulkanInfo.driverUUID,
+           sizeof(outInfo->device_id.driver_uuid));
+    return 0;
 }
 
 int VirtioGpuResource::GetCaching(uint32_t* outCaching) const {
-    *outCaching = mCaching;
-    return 0;
+    if (!mBlobMemory) {
+        stream_renderer_error("failed to get caching for resource %d: no blob memory", mId);
+        return -EINVAL;
+    }
+
+    if (std::holds_alternative<RingBlobMemory>(*mBlobMemory)) {
+        *outCaching = STREAM_RENDERER_MAP_CACHE_CACHED;
+        return 0;
+    } else if (std::holds_alternative<ExternalMemoryMapping>(*mBlobMemory)) {
+        auto& memory = std::get<ExternalMemoryMapping>(*mBlobMemory);
+        *outCaching = memory.caching;
+        return 0;
+    }
+
+    stream_renderer_error("failed to get caching for resource %d: unhandled type?", mId);
+    return -EINVAL;
 }
 
 int VirtioGpuResource::WaitSyncResource() {
@@ -730,40 +763,56 @@ int VirtioGpuResource::TransferWithIov(uint64_t offset, const stream_renderer_bo
 }
 
 int VirtioGpuResource::ExportBlob(struct stream_renderer_handle* outHandle) {
-    if (mRingBlob && mRingBlob->isExportable()) {
+    if (!mBlobMemory) {
+        return -EINVAL;
+    }
+
+    if (std::holds_alternative<RingBlobMemory>(*mBlobMemory)) {
+        auto& memory = std::get<RingBlobMemory>(*mBlobMemory);
+        if (!memory->isExportable()) {
+            return -EINVAL;
+        }
+
         // Handle ownership transferred to VMM, Gfxstream keeps the mapping.
 #ifdef _WIN32
         outHandle->os_handle =
-            static_cast<int64_t>(reinterpret_cast<intptr_t>(mRingBlob->releaseHandle()));
+            static_cast<int64_t>(reinterpret_cast<intptr_t>(memory->releaseHandle()));
 #else
-        outHandle->os_handle = static_cast<int64_t>(mRingBlob->releaseHandle());
+        outHandle->os_handle = static_cast<int64_t>(memory->releaseHandle());
 #endif
         outHandle->handle_type = STREAM_MEM_HANDLE_TYPE_SHM;
         return 0;
-    }
+    } else if (std::holds_alternative<ExternalMemoryDescriptor>(*mBlobMemory)) {
+        auto& memory = std::get<ExternalMemoryDescriptor>(*mBlobMemory);
 
-    if (mDescriptorInfo) {
-        DescriptorType rawDescriptor;
-        auto rawDescriptorOpt = mDescriptorInfo->descriptor.release();
-        if (rawDescriptorOpt) {
-            rawDescriptor = *rawDescriptorOpt;
-        } else {
+        auto rawDescriptorOpt = memory->descriptor.release();
+        if (!rawDescriptorOpt) {
             stream_renderer_error(
                 "failed to export blob for resource %u: failed to get raw handle.", mId);
             return -EINVAL;
         }
+        auto rawDescriptor = *rawDescriptorOpt;
 
 #ifdef _WIN32
         outHandle->os_handle = static_cast<int64_t>(reinterpret_cast<intptr_t>(rawDescriptor));
 #else
         outHandle->os_handle = static_cast<int64_t>(rawDescriptor);
 #endif
-        outHandle->handle_type = mDescriptorInfo->handleType;
-
+        outHandle->handle_type = memory->handleType;
         return 0;
     }
 
     return -EINVAL;
+}
+
+std::shared_ptr<RingBlob> VirtioGpuResource::ShareRingBlob() {
+    if (!mBlobMemory) {
+        return nullptr;
+    }
+    if (!std::holds_alternative<RingBlobMemory>(*mBlobMemory)) {
+        return nullptr;
+    }
+    return std::get<RingBlobMemory>(*mBlobMemory);
 }
 
 #ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
@@ -788,20 +837,48 @@ std::optional<VirtioGpuResourceSnapshot> VirtioGpuResource::Snapshot() const {
     }
 
     if (mCreateBlobArgs) {
-        VirtioGpuResourceCreateBlobArgs* snapshotCreateArgs = resourceSnapshot.mutable_create_blob_args();
+        auto* snapshotCreateArgs = resourceSnapshot.mutable_create_blob_args();
         snapshotCreateArgs->set_mem(mCreateBlobArgs->blob_mem);
         snapshotCreateArgs->set_flags(mCreateBlobArgs->blob_flags);
         snapshotCreateArgs->set_id(mCreateBlobArgs->blob_id);
         snapshotCreateArgs->set_size(mCreateBlobArgs->size);
     }
 
-    if (mRingBlob) {
-        auto snapshotRingBlobOpt = mRingBlob->Snapshot();
-        if (!snapshotRingBlobOpt) {
-            stream_renderer_error("Failed to snapshot ring blob for resource %d.", mId);
-            return std::nullopt;
+    if (mBlobMemory) {
+        if (std::holds_alternative<RingBlobMemory>(*mBlobMemory)) {
+            auto& memory = std::get<RingBlobMemory>(*mBlobMemory);
+
+            auto snapshotRingBlobOpt = memory->Snapshot();
+            if (!snapshotRingBlobOpt) {
+                stream_renderer_error("Failed to snapshot ring blob for resource %d.", mId);
+                return std::nullopt;
+            }
+            resourceSnapshot.mutable_ring_blob()->Swap(&*snapshotRingBlobOpt);
+        } else if (std::holds_alternative<ExternalMemoryDescriptor>(*mBlobMemory)) {
+            if (!mContextId) {
+                stream_renderer_error("Failed to snapshot resource %d: missing blob context?", mId);
+                return std::nullopt;
+            }
+            if (!mCreateBlobArgs) {
+                stream_renderer_error("Failed to snapshot resource %d: missing blob args?", mId);
+                return std::nullopt;
+            }
+            auto snapshotDescriptorInfo = resourceSnapshot.mutable_external_memory_descriptor();
+            snapshotDescriptorInfo->set_context_id(*mContextId);
+            snapshotDescriptorInfo->set_blob_id(mCreateBlobArgs->blob_id);
+        } else if (std::holds_alternative<ExternalMemoryMapping>(*mBlobMemory)) {
+            if (!mContextId) {
+                stream_renderer_error("Failed to snapshot resource %d: missing blob context?", mId);
+                return std::nullopt;
+            }
+            if (!mCreateBlobArgs) {
+                stream_renderer_error("Failed to snapshot resource %d: missing blob args?", mId);
+                return std::nullopt;
+            }
+            auto snapshotDescriptorInfo = resourceSnapshot.mutable_external_memory_mapping();
+            snapshotDescriptorInfo->set_context_id(*mContextId);
+            snapshotDescriptorInfo->set_blob_id(mCreateBlobArgs->blob_id);
         }
-        resourceSnapshot.mutable_ring_blob()->Swap(&*snapshotRingBlobOpt);
     }
 
     return resourceSnapshot;
@@ -844,9 +921,30 @@ std::optional<VirtioGpuResourceSnapshot> VirtioGpuResource::Snapshot() const {
             stream_renderer_error("Failed to restore ring blob for resource %d", resource.mId);
             return std::nullopt;
         }
-        resource.mRingBlob = std::move(*resourceRingBlobOpt);
-        resource.mHva = resource.mRingBlob->map();
-        resource.mHvaSize = resource.mRingBlob->size();
+        resource.mBlobMemory.emplace(std::move(*resourceRingBlobOpt));
+    } else if (resourceSnapshot.has_external_memory_descriptor()) {
+        const auto& snapshotDescriptorInfo = resourceSnapshot.external_memory_descriptor();
+
+        auto descriptorInfoOpt = ExternalObjectManager::get()->removeBlobDescriptorInfo(
+            snapshotDescriptorInfo.context_id(), snapshotDescriptorInfo.blob_id());
+        if (!descriptorInfoOpt) {
+            stream_renderer_error(
+                "Failed to restore resource: failed to find blob descriptor info.");
+            return std::nullopt;
+        }
+
+        resource.mBlobMemory.emplace(
+            std::make_shared<BlobDescriptorInfo>(std::move(*descriptorInfoOpt)));
+    } else if (resourceSnapshot.has_external_memory_mapping()) {
+        const auto& snapshotDescriptorInfo = resourceSnapshot.external_memory_mapping();
+
+        auto memoryMappingOpt = ExternalObjectManager::get()->removeMapping(
+            snapshotDescriptorInfo.context_id(), snapshotDescriptorInfo.blob_id());
+        if (!memoryMappingOpt) {
+            stream_renderer_error("Failed to restore resource: failed to find mapping info.");
+            return std::nullopt;
+        }
+        resource.mBlobMemory.emplace(std::move(*memoryMappingOpt));
     }
 
     return resource;

@@ -39,6 +39,15 @@ message VirtioGpuResourceCreateBlobArgs {
     optional uint64 size = 4;
 }
 
+// NOTE: This does not actually save the blob's external memory because the handle
+// or mapping may not be the same across snapshot and restore. This instead saves
+// the info needed to refetch either the descriptor or mapping from
+// `ExternalObjectManager` after a restore.
+message VirtioGpuBlobExternalMemoryInfo {
+    optional uint32 context_id = 1;
+    optional uint32 blob_id = 2;
+}
+
 // LINT.IfChange(virtio_gpu_resource)
 message VirtioGpuResourceSnapshot {
     optional uint32 id = 1;
@@ -48,6 +57,11 @@ message VirtioGpuResourceSnapshot {
     // may not be the same across snapshot and restore. VMMs are expected to re-call
     // `stream_renderer_resource_attach_iov()` for resources with the new guest-memory
     // host virtual addresses.
-    optional VirtioGpuRingBlobSnapshot ring_blob = 4;
+
+    oneof blob_memory {
+        VirtioGpuRingBlobSnapshot ring_blob = 4;
+        VirtioGpuBlobExternalMemoryInfo external_memory_descriptor = 5;
+        VirtioGpuBlobExternalMemoryInfo external_memory_mapping = 6;
+    }
 }
 // LINT.ThenChange(VirtioGpuResource.h:virtio_gpu_resource)
