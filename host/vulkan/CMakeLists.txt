@@ -2,7 +2,7 @@ add_subdirectory(cereal)
 add_subdirectory(emulated_textures)
 
 if(CONFIG_AEMU)
-    add_compile_definitions(GFXSTREAM_ENABLE_HOST_VK_SNAPSHOT)
+    add_compile_definitions(GFXSTREAM_BUILD_WITH_SNAPSHOT_SUPPORT)
     add_compile_definitions(CONFIG_AEMU)
 endif()
 
