@@ -1208,7 +1208,7 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk,
     }
 
     auto deviceVersion = sVkEmulation->deviceInfo.physdevProps.apiVersion;
-    WARN("Selecting Vulkan device: %s, Version: %d.%d.%d",
+    INFO("Selecting Vulkan device: %s, Version: %d.%d.%d",
          sVkEmulation->deviceInfo.physdevProps.deviceName, VK_VERSION_MAJOR(deviceVersion),
          VK_VERSION_MINOR(deviceVersion), VK_VERSION_PATCH(deviceVersion));
 
