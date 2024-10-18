@@ -29,6 +29,7 @@ set(stream-server-core-sources
     ExternalObjectManager.cpp
     ColorBuffer.cpp
     GfxStreamAgents.cpp
+    VirtioGpuFrontend.cpp
     VirtioGpuTimelines.cpp
     VsyncThread.cpp
     ChannelStream.cpp
