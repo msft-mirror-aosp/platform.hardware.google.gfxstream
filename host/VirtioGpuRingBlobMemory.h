@@ -1,0 +1,66 @@
+// Copyright (C) 2024 The Android Open Source Project
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+#pragma once
+
+#include <memory>
+#include <variant>
+
+#include "aemu/base/AlignedBuf.h"
+#include "aemu/base/memory/SharedMemory.h"
+
+namespace gfxstream {
+namespace host {
+
+struct AlignedMemory {
+    void* addr = nullptr;
+
+    AlignedMemory(size_t align, size_t size) : addr(android::aligned_buf_alloc(align, size)) {}
+
+    ~AlignedMemory() {
+        if (addr != nullptr) {
+            android::aligned_buf_free(addr);
+        }
+    }
+
+    // AlignedMemory is neither copyable nor movable.
+    AlignedMemory(const AlignedMemory& other) = delete;
+    AlignedMemory& operator=(const AlignedMemory& other) = delete;
+    AlignedMemory(AlignedMemory&& other) = delete;
+    AlignedMemory& operator=(AlignedMemory&& other) = delete;
+};
+
+// Memory used as a ring buffer for communication between the guest and host.
+class RingBlob : public std::variant<std::unique_ptr<AlignedMemory>,
+                                     std::unique_ptr<android::base::SharedMemory>> {
+   public:
+    using BaseType =
+        std::variant<std::unique_ptr<AlignedMemory>, std::unique_ptr<android::base::SharedMemory>>;
+    // Inherit constructors.
+    using BaseType::BaseType;
+
+    bool isExportable() const {
+        return std::holds_alternative<std::unique_ptr<android::base::SharedMemory>>(*this);
+    }
+
+    android::base::SharedMemory::handle_type releaseHandle() {
+        if (!isExportable()) {
+            return android::base::SharedMemory::invalidHandle();
+        }
+        return std::get<std::unique_ptr<android::base::SharedMemory>>(*this)->releaseHandle();
+    }
+};
+
+}  // namespace host
+}  // namespace gfxstream
