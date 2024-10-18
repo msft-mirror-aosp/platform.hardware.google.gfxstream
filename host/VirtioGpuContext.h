@@ -25,11 +25,15 @@ extern "C" {
 
 #include "ExternalObjectManager.h"
 #include "VirtioGpu.h"
+#ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
+#include "VirtioGpuContextSnapshot.pb.h"
+#endif
 #include "gfxstream/virtio-gpu-gfxstream-renderer.h"
 
 namespace gfxstream {
 namespace host {
 
+// LINT.IfChange(virtio_gpu_context)
 struct VirtioGpuContext {
     std::string name;
     uint32_t capsetId;
@@ -42,6 +46,15 @@ struct VirtioGpuContext {
     std::unordered_map<uint32_t, struct stream_renderer_resource_create_args> blobMap;
     std::shared_ptr<gfxstream::SyncDescriptorInfo> latestFence;
 };
+// LINT.ThenChange(VirtioGpuContextSnapshot.proto:virtio_gpu_context)
+
+#ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
+std::optional<gfxstream::host::snapshot::VirtioGpuContextSnapshot>
+SnapshotContext(const VirtioGpuContext& context);
+
+std::optional<VirtioGpuContext>
+RestoreContext(const gfxstream::host::snapshot::VirtioGpuContextSnapshot& snapshot);
+#endif
 
 }  // namespace host
 }  // namespace gfxstream
