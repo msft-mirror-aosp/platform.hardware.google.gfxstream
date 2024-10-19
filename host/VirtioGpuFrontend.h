@@ -28,6 +28,9 @@ extern "C" {
 #include "VirtioGpu.h"
 #include "VirtioGpuContext.h"
 #include "VirtioGpuFormatUtils.h"
+#ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
+#include "VirtioGpuFrontendSnapshot.pb.h"
+#endif
 #include "VirtioGpuResource.h"
 #include "VirtioGpuTimelines.h"
 #include "gfxstream/host/Features.h"
@@ -46,8 +49,6 @@ class VirtioGpuFrontend {
              stream_renderer_fence_callback fence_callback);
 
     void teardown();
-
-    int resetPipe(GoldfishHwPipe* hwPipe, GoldfishHostPipe* hostPipe);
 
     int createContext(VirtioGpuContextId ctx_id, uint32_t nlen, const char* name,
                       uint32_t context_init);
@@ -69,29 +70,12 @@ class VirtioGpuFrontend {
 
     void poll();
 
-    VirtioGpuResourceType getResourceType(
-        const struct stream_renderer_resource_create_args& args) const;
-
-    void handleCreateResourceBuffer(struct stream_renderer_resource_create_args* args);
-    void handleCreateResourceColorBuffer(struct stream_renderer_resource_create_args* args);
-
     int createResource(struct stream_renderer_resource_create_args* args, struct iovec* iov,
                        uint32_t num_iovs);
     void unrefResource(uint32_t toUnrefId);
 
     int attachIov(int resId, iovec* iov, int num_iovs);
-    void detachIov(int resId, iovec** iov, int* num_iovs);
-
-    int handleTransferReadPipe(VirtioGpuResource* res, uint64_t offset, stream_renderer_box* box);
-    int handleTransferWritePipe(VirtioGpuResource* res, uint64_t offset, stream_renderer_box* box);
-
-    int handleTransferReadBuffer(VirtioGpuResource* res, uint64_t offset, stream_renderer_box* box);
-    int handleTransferWriteBuffer(VirtioGpuResource* res, uint64_t offset,
-                                  stream_renderer_box* box);
-    int handleTransferReadColorBuffer(VirtioGpuResource* res, uint64_t offset,
-                                      stream_renderer_box* box);
-    int handleTransferWriteColorBuffer(VirtioGpuResource* res, uint64_t offset,
-                                       stream_renderer_box* box);
+    void detachIov(int resId);
 
     int transferReadIov(int resId, uint64_t offset, stream_renderer_box* box, struct iovec* iov,
                         int iovec_cnt);
@@ -134,11 +118,18 @@ class VirtioGpuFrontend {
     int exportFence(uint64_t fenceId, struct stream_renderer_handle* handle);
     int vulkanInfo(uint32_t res_handle, struct stream_renderer_vulkan_info* vulkan_info);
 
+#ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
+    int snapshot(gfxstream::host::snapshot::VirtioGpuFrontendSnapshot& outSnapshot);
+    int restore(const gfxstream::host::snapshot::VirtioGpuFrontendSnapshot& snapshot);
+#endif
+
 #ifdef CONFIG_AEMU
     void setServiceOps(const GoldfishPipeServiceOps* ops);
 #endif  // CONFIG_AEMU
 
    private:
+    int resetPipe(VirtioGpuContextId contextId, GoldfishHostPipe* hostPipe);
+
     void allocResource(VirtioGpuResource& entry, iovec* iov, int num_iovs);
     void detachResourceLocked(uint32_t ctxId, uint32_t toUnrefId);
 
@@ -152,16 +143,19 @@ class VirtioGpuFrontend {
 
     const GoldfishPipeServiceOps* mServiceOps = nullptr;
 
+    // State that is preserved across snapshots:
+    //
+    // LINT.IfChange(virtio_gpu_frontend)
     std::unordered_map<VirtioGpuContextId, VirtioGpuContext> mContexts;
     std::unordered_map<VirtioGpuResourceId, VirtioGpuResource> mResources;
     std::unordered_map<VirtioGpuContextId, std::vector<VirtioGpuResourceId>> mContextResources;
     std::unordered_map<VirtioGpuResourceId, std::vector<VirtioGpuContextId>> mResourceContexts;
     std::unordered_map<uint64_t, std::shared_ptr<SyncDescriptorInfo>> mSyncMap;
-
     // When we wait for gpu or wait for gpu vulkan, the next (and subsequent)
     // fences created for that context should not be signaled immediately.
     // Rather, they should get in line.
     std::unique_ptr<VirtioGpuTimelines> mVirtioGpuTimelines = nullptr;
+    // LINT.ThenChange(VirtioGpuFrontend.h:virtio_gpu_frontend)
 
     std::unique_ptr<CleanupThread> mCleanupThread;
 };
