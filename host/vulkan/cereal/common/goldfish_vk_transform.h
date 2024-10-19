@@ -2706,6 +2706,32 @@ void transform_fromhost_VkBufferUsageFlags2CreateInfoKHR(
     VkDecoderGlobalState* resourceTracker, VkBufferUsageFlags2CreateInfoKHR* toTransform);
 
 #endif
+#ifdef VK_KHR_line_rasterization
+void transform_tohost_VkPhysicalDeviceLineRasterizationFeaturesKHR(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceLineRasterizationFeaturesKHR* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceLineRasterizationFeaturesKHR(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceLineRasterizationFeaturesKHR* toTransform);
+
+void transform_tohost_VkPhysicalDeviceLineRasterizationPropertiesKHR(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceLineRasterizationPropertiesKHR* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceLineRasterizationPropertiesKHR(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceLineRasterizationPropertiesKHR* toTransform);
+
+void transform_tohost_VkPipelineRasterizationLineStateCreateInfoKHR(
+    VkDecoderGlobalState* resourceTracker,
+    VkPipelineRasterizationLineStateCreateInfoKHR* toTransform);
+
+void transform_fromhost_VkPipelineRasterizationLineStateCreateInfoKHR(
+    VkDecoderGlobalState* resourceTracker,
+    VkPipelineRasterizationLineStateCreateInfoKHR* toTransform);
+
+#endif
 #ifdef VK_ANDROID_native_buffer
 void transform_tohost_VkNativeBufferUsage2ANDROID(VkDecoderGlobalState* resourceTracker,
                                                   VkNativeBufferUsage2ANDROID* toTransform);
@@ -3064,32 +3090,6 @@ void transform_tohost_VkPipelineRasterizationProvokingVertexStateCreateInfoEXT(
 void transform_fromhost_VkPipelineRasterizationProvokingVertexStateCreateInfoEXT(
     VkDecoderGlobalState* resourceTracker,
     VkPipelineRasterizationProvokingVertexStateCreateInfoEXT* toTransform);
-
-#endif
-#ifdef VK_EXT_line_rasterization
-void transform_tohost_VkPhysicalDeviceLineRasterizationFeaturesEXT(
-    VkDecoderGlobalState* resourceTracker,
-    VkPhysicalDeviceLineRasterizationFeaturesEXT* toTransform);
-
-void transform_fromhost_VkPhysicalDeviceLineRasterizationFeaturesEXT(
-    VkDecoderGlobalState* resourceTracker,
-    VkPhysicalDeviceLineRasterizationFeaturesEXT* toTransform);
-
-void transform_tohost_VkPhysicalDeviceLineRasterizationPropertiesEXT(
-    VkDecoderGlobalState* resourceTracker,
-    VkPhysicalDeviceLineRasterizationPropertiesEXT* toTransform);
-
-void transform_fromhost_VkPhysicalDeviceLineRasterizationPropertiesEXT(
-    VkDecoderGlobalState* resourceTracker,
-    VkPhysicalDeviceLineRasterizationPropertiesEXT* toTransform);
-
-void transform_tohost_VkPipelineRasterizationLineStateCreateInfoEXT(
-    VkDecoderGlobalState* resourceTracker,
-    VkPipelineRasterizationLineStateCreateInfoEXT* toTransform);
-
-void transform_fromhost_VkPipelineRasterizationLineStateCreateInfoEXT(
-    VkDecoderGlobalState* resourceTracker,
-    VkPipelineRasterizationLineStateCreateInfoEXT* toTransform);
 
 #endif
 #ifdef VK_EXT_index_type_uint8

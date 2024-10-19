@@ -3085,6 +3085,32 @@ void unmarshal_VkBufferUsageFlags2CreateInfoKHR(VulkanStream* vkStream, VkStruct
                                                 VkBufferUsageFlags2CreateInfoKHR* forUnmarshaling);
 
 #endif
+#ifdef VK_KHR_line_rasterization
+void marshal_VkPhysicalDeviceLineRasterizationFeaturesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceLineRasterizationFeaturesKHR* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceLineRasterizationFeaturesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceLineRasterizationFeaturesKHR* forUnmarshaling);
+
+void marshal_VkPhysicalDeviceLineRasterizationPropertiesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceLineRasterizationPropertiesKHR* forMarshaling);
+
+void unmarshal_VkPhysicalDeviceLineRasterizationPropertiesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceLineRasterizationPropertiesKHR* forUnmarshaling);
+
+void marshal_VkPipelineRasterizationLineStateCreateInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPipelineRasterizationLineStateCreateInfoKHR* forMarshaling);
+
+void unmarshal_VkPipelineRasterizationLineStateCreateInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPipelineRasterizationLineStateCreateInfoKHR* forUnmarshaling);
+
+#endif
 #ifdef VK_ANDROID_native_buffer
 void marshal_VkNativeBufferUsage2ANDROID(VulkanStream* vkStream, VkStructureType rootType,
                                          const VkNativeBufferUsage2ANDROID* forMarshaling);
@@ -3496,33 +3522,6 @@ void unmarshal_VkPipelineRasterizationProvokingVertexStateCreateInfoEXT(
     VulkanStream* vkStream, VkStructureType rootType,
     VkPipelineRasterizationProvokingVertexStateCreateInfoEXT* forUnmarshaling);
 
-#endif
-#ifdef VK_EXT_line_rasterization
-void marshal_VkPhysicalDeviceLineRasterizationFeaturesEXT(
-    VulkanStream* vkStream, VkStructureType rootType,
-    const VkPhysicalDeviceLineRasterizationFeaturesEXT* forMarshaling);
-
-void unmarshal_VkPhysicalDeviceLineRasterizationFeaturesEXT(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkPhysicalDeviceLineRasterizationFeaturesEXT* forUnmarshaling);
-
-void marshal_VkPhysicalDeviceLineRasterizationPropertiesEXT(
-    VulkanStream* vkStream, VkStructureType rootType,
-    const VkPhysicalDeviceLineRasterizationPropertiesEXT* forMarshaling);
-
-void unmarshal_VkPhysicalDeviceLineRasterizationPropertiesEXT(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkPhysicalDeviceLineRasterizationPropertiesEXT* forUnmarshaling);
-
-void marshal_VkPipelineRasterizationLineStateCreateInfoEXT(
-    VulkanStream* vkStream, VkStructureType rootType,
-    const VkPipelineRasterizationLineStateCreateInfoEXT* forMarshaling);
-
-void unmarshal_VkPipelineRasterizationLineStateCreateInfoEXT(
-    VulkanStream* vkStream, VkStructureType rootType,
-    VkPipelineRasterizationLineStateCreateInfoEXT* forUnmarshaling);
-
-#define OP_vkCmdSetLineStippleEXT 263855692
 #endif
 #ifdef VK_EXT_index_type_uint8
 void marshal_VkPhysicalDeviceIndexTypeUint8FeaturesEXT(
