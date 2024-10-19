@@ -187,6 +187,7 @@ files_lib_gfxstream_backend = files(
   'FrameBuffer.cpp',
   'GfxStreamAgents.cpp',
   'virtio-gpu-gfxstream-renderer.cpp',
+  'VirtioGpuFrontend.cpp',
   'VirtioGpuTimelines.cpp',
   'VsyncThread.cpp',
 )

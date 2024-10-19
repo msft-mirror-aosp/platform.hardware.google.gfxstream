@@ -116,6 +116,7 @@ cc_defaults {
         "GfxStreamAgents.cpp",
         "virtio-gpu-gfxstream-renderer.cpp",
         "virtio-gpu-gfxstream-renderer-goldfish.cpp",
+        "VirtioGpuFrontend.cpp",
         "VirtioGpuTimelines.cpp",
         "VsyncThread.cpp",
     ],
