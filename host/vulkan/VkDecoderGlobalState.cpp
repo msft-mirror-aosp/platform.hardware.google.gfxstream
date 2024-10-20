@@ -470,7 +470,7 @@ class VkDecoderGlobalState::Impl {
     void save(android::base::Stream* stream) {
         mSnapshotState = SnapshotState::Saving;
 
-#ifdef GFXSTREAM_ENABLE_HOST_VK_SNAPSHOT
+#ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_SUPPORT
         if (!mInstanceInfo.empty()) {
             get_emugl_vm_operations().setStatSnapshotUseVulkan();
         }
@@ -889,7 +889,7 @@ class VkDecoderGlobalState::Impl {
             VulkanDispatch* dvk = dispatch_VkDevice(deviceInfo->boxed);
             dvk->vkResetFences(device, 1, &unboxedFence);
         }
-#ifdef GFXSTREAM_ENABLE_HOST_VK_SNAPSHOT
+#ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_SUPPORT
         if (!mInstanceInfo.empty()) {
             get_emugl_vm_operations().setStatSnapshotUseVulkan();
         }
@@ -1038,7 +1038,7 @@ class VkDecoderGlobalState::Impl {
         INFO("Created VkInstance:%p for application:%s engine:%s.", *pInstance,
              info.applicationName.c_str(), info.engineName.c_str());
 
-#ifdef GFXSTREAM_ENABLE_HOST_VK_SNAPSHOT
+#ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_SUPPORT
         // TODO: bug 129484301
         if (!m_emu->features.VulkanSnapshots.enabled ||
             (kSnapshotAppAllowList.find(info.applicationName) == kSnapshotAppAllowList.end() &&
@@ -2476,7 +2476,7 @@ class VkDecoderGlobalState::Impl {
     VkResult on_vkBindImageMemory2(android::base::BumpPool* pool, VkDevice boxed_device,
                                    uint32_t bindInfoCount,
                                    const VkBindImageMemoryInfo* pBindInfos) {
-#ifdef GFXSTREAM_ENABLE_HOST_VK_SNAPSHOT
+#ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_SUPPORT
         if (bindInfoCount > 1 && snapshotsEnabled()) {
             if (mVerbosePrints) {
                 fprintf(stderr,

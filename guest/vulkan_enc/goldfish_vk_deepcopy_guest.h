@@ -1589,6 +1589,23 @@ void deepcopy_VkBufferUsageFlags2CreateInfoKHR(Allocator* alloc, VkStructureType
                                                VkBufferUsageFlags2CreateInfoKHR* to);
 
 #endif
+#ifdef VK_KHR_line_rasterization
+void deepcopy_VkPhysicalDeviceLineRasterizationFeaturesKHR(
+    Allocator* alloc, VkStructureType rootType,
+    const VkPhysicalDeviceLineRasterizationFeaturesKHR* from,
+    VkPhysicalDeviceLineRasterizationFeaturesKHR* to);
+
+void deepcopy_VkPhysicalDeviceLineRasterizationPropertiesKHR(
+    Allocator* alloc, VkStructureType rootType,
+    const VkPhysicalDeviceLineRasterizationPropertiesKHR* from,
+    VkPhysicalDeviceLineRasterizationPropertiesKHR* to);
+
+void deepcopy_VkPipelineRasterizationLineStateCreateInfoKHR(
+    Allocator* alloc, VkStructureType rootType,
+    const VkPipelineRasterizationLineStateCreateInfoKHR* from,
+    VkPipelineRasterizationLineStateCreateInfoKHR* to);
+
+#endif
 #ifdef VK_ANDROID_native_buffer
 void deepcopy_VkNativeBufferUsage2ANDROID(Allocator* alloc, VkStructureType rootType,
                                           const VkNativeBufferUsage2ANDROID* from,
@@ -1768,17 +1785,6 @@ void deepcopy_VkPipelineRasterizationProvokingVertexStateCreateInfoEXT(
     Allocator* alloc, VkStructureType rootType,
     const VkPipelineRasterizationProvokingVertexStateCreateInfoEXT* from,
     VkPipelineRasterizationProvokingVertexStateCreateInfoEXT* to);
-
-#endif
-#ifdef VK_EXT_line_rasterization
-DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDeviceLineRasterizationFeaturesKHR,
-                      deepcopy_VkPhysicalDeviceLineRasterizationFeaturesEXT)
-
-DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDeviceLineRasterizationPropertiesKHR,
-                      deepcopy_VkPhysicalDeviceLineRasterizationPropertiesEXT)
-
-DEFINE_ALIAS_FUNCTION(deepcopy_VkPipelineRasterizationLineStateCreateInfoKHR,
-                      deepcopy_VkPipelineRasterizationLineStateCreateInfoEXT)
 
 #endif
 #ifdef VK_EXT_index_type_uint8
