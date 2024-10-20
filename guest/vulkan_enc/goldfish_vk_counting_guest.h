@@ -1453,6 +1453,20 @@ void count_VkBufferUsageFlags2CreateInfoKHR(uint32_t featureBits, VkStructureTyp
                                             size_t* count);
 
 #endif
+#ifdef VK_KHR_line_rasterization
+void count_VkPhysicalDeviceLineRasterizationFeaturesKHR(
+    uint32_t featureBits, VkStructureType rootType,
+    const VkPhysicalDeviceLineRasterizationFeaturesKHR* toCount, size_t* count);
+
+void count_VkPhysicalDeviceLineRasterizationPropertiesKHR(
+    uint32_t featureBits, VkStructureType rootType,
+    const VkPhysicalDeviceLineRasterizationPropertiesKHR* toCount, size_t* count);
+
+void count_VkPipelineRasterizationLineStateCreateInfoKHR(
+    uint32_t featureBits, VkStructureType rootType,
+    const VkPipelineRasterizationLineStateCreateInfoKHR* toCount, size_t* count);
+
+#endif
 #ifdef VK_ANDROID_native_buffer
 void count_VkNativeBufferUsage2ANDROID(uint32_t featureBits, VkStructureType rootType,
                                        const VkNativeBufferUsage2ANDROID* toCount, size_t* count);
@@ -1614,17 +1628,6 @@ void count_VkPhysicalDeviceProvokingVertexPropertiesEXT(
 void count_VkPipelineRasterizationProvokingVertexStateCreateInfoEXT(
     uint32_t featureBits, VkStructureType rootType,
     const VkPipelineRasterizationProvokingVertexStateCreateInfoEXT* toCount, size_t* count);
-
-#endif
-#ifdef VK_EXT_line_rasterization
-DEFINE_ALIAS_FUNCTION(count_VkPhysicalDeviceLineRasterizationFeaturesKHR,
-                      count_VkPhysicalDeviceLineRasterizationFeaturesEXT)
-
-DEFINE_ALIAS_FUNCTION(count_VkPhysicalDeviceLineRasterizationPropertiesKHR,
-                      count_VkPhysicalDeviceLineRasterizationPropertiesEXT)
-
-DEFINE_ALIAS_FUNCTION(count_VkPipelineRasterizationLineStateCreateInfoKHR,
-                      count_VkPipelineRasterizationLineStateCreateInfoEXT)
 
 #endif
 #ifdef VK_EXT_index_type_uint8
