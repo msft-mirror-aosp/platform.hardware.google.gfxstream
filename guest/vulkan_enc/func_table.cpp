@@ -3862,6 +3862,19 @@ void gfxstream_vk_GetImageSubresourceLayout2KHR(VkDevice device, VkImage image,
     }
 }
 #endif
+#ifdef VK_KHR_line_rasterization
+void gfxstream_vk_CmdSetLineStippleKHR(VkCommandBuffer commandBuffer, uint32_t lineStippleFactor,
+                                       uint16_t lineStipplePattern) {
+    MESA_TRACE_SCOPE("vkCmdSetLineStippleKHR");
+    VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
+    {
+        auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
+            gfxstream_commandBuffer->internal_object);
+        vkEnc->vkCmdSetLineStippleKHR(gfxstream_commandBuffer->internal_object, lineStippleFactor,
+                                      lineStipplePattern, true /* do lock */);
+    }
+}
+#endif
 #ifdef VK_ANDROID_native_buffer
 VkResult gfxstream_vk_GetSwapchainGrallocUsageANDROID(VkDevice device, VkFormat format,
                                                       VkImageUsageFlags imageUsage,
@@ -4077,19 +4090,6 @@ VkResult gfxstream_vk_GetPhysicalDeviceToolPropertiesEXT(
                                                         true /* do lock */);
     }
     return vkGetPhysicalDeviceToolPropertiesEXT_VkResult_return;
-}
-#endif
-#ifdef VK_EXT_line_rasterization
-void gfxstream_vk_CmdSetLineStippleEXT(VkCommandBuffer commandBuffer, uint32_t lineStippleFactor,
-                                       uint16_t lineStipplePattern) {
-    MESA_TRACE_SCOPE("vkCmdSetLineStippleEXT");
-    VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
-    {
-        auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
-            gfxstream_commandBuffer->internal_object);
-        vkEnc->vkCmdSetLineStippleEXT(gfxstream_commandBuffer->internal_object, lineStippleFactor,
-                                      lineStipplePattern, true /* do lock */);
-    }
 }
 #endif
 #ifdef VK_EXT_extended_dynamic_state
