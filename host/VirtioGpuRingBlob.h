@@ -17,11 +17,16 @@
 #include <memory>
 #include <variant>
 
+#ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
+#include "VirtioGpuResourceSnapshot.pb.h"
+#endif
 #include "aemu/base/AlignedBuf.h"
 #include "aemu/base/memory/SharedMemory.h"
 
 namespace gfxstream {
 namespace host {
+
+// LINT.IfChange(virtio_gpu_ring_blob)
 
 struct AlignedMemory {
     void* addr = nullptr;
@@ -42,25 +47,42 @@ struct AlignedMemory {
 };
 
 // Memory used as a ring buffer for communication between the guest and host.
-class RingBlob : public std::variant<std::unique_ptr<AlignedMemory>,
-                                     std::unique_ptr<android::base::SharedMemory>> {
+class RingBlob {
    public:
-    using BaseType =
-        std::variant<std::unique_ptr<AlignedMemory>, std::unique_ptr<android::base::SharedMemory>>;
-    // Inherit constructors.
-    using BaseType::BaseType;
+    static std::unique_ptr<RingBlob> CreateWithShmem(uint32_t id, uint64_t size);
+    static std::unique_ptr<RingBlob> CreateWithHostMemory(uint32_t, uint64_t size, uint64_t alignment);
 
-    bool isExportable() const {
-        return std::holds_alternative<std::unique_ptr<android::base::SharedMemory>>(*this);
-    }
+    bool isExportable() const;
 
-    android::base::SharedMemory::handle_type releaseHandle() {
-        if (!isExportable()) {
-            return android::base::SharedMemory::invalidHandle();
-        }
-        return std::get<std::unique_ptr<android::base::SharedMemory>>(*this)->releaseHandle();
-    }
+    // Only valid if `isExportable()` returns `true`.
+    android::base::SharedMemory::handle_type releaseHandle();
+
+    void* map();
+
+    uint64_t size() const { return mSize; }
+
+#ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
+    std::optional<gfxstream::host::snapshot::VirtioGpuRingBlobSnapshot> Snapshot();
+
+    static std::optional<std::unique_ptr<RingBlob>> Restore(
+        const gfxstream::host::snapshot::VirtioGpuRingBlobSnapshot& snapshot);
+#endif
+
+  private:
+    RingBlob(uint32_t id,
+             uint64_t size,
+             uint64_t alignment,
+             std::variant<std::unique_ptr<AlignedMemory>,
+                          std::unique_ptr<android::base::SharedMemory>> memory);
+
+    const uint64_t mId;
+    const uint64_t mSize;
+    const uint64_t mAlignment;
+    std::variant<std::unique_ptr<AlignedMemory>,
+                 std::unique_ptr<android::base::SharedMemory>> mMemory;
 };
+
+// LINT.ThenChange(VirtioGpuRingBlobSnapshot.h:virtio_gpu_ring_blob)
 
 }  // namespace host
 }  // namespace gfxstream
