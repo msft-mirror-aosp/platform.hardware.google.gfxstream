@@ -516,9 +516,11 @@ void VkReconstruction::forEachHandleAddModifyApi(const uint64_t* toProcess, uint
     if (!toProcess) return;
 
     for (uint32_t i = 0; i < count; ++i) {
-        mHandleModifications.add(toProcess[i], HandleModification());
-
         auto item = mHandleModifications.get(toProcess[i]);
+        if (!item) {
+            mHandleModifications.add(toProcess[i], HandleModification());
+            item = mHandleModifications.get(toProcess[i]);
+        }
 
         if (!item) continue;
 
@@ -530,8 +532,6 @@ void VkReconstruction::forEachHandleClearModifyApi(const uint64_t* toProcess, ui
     if (!toProcess) return;
 
     for (uint32_t i = 0; i < count; ++i) {
-        mHandleModifications.add(toProcess[i], HandleModification());
-
         auto item = mHandleModifications.get(toProcess[i]);
 
         if (!item) continue;

@@ -19,7 +19,7 @@ add_subdirectory(renderControl_dec)
 add_subdirectory(magma)
 
 if(CONFIG_AEMU)
-    add_compile_definitions(GFXSTREAM_ENABLE_HOST_VK_SNAPSHOT)
+    add_compile_definitions(GFXSTREAM_BUILD_WITH_SNAPSHOT_SUPPORT)
     add_compile_definitions(CONFIG_AEMU)
 endif()
 
@@ -29,7 +29,10 @@ set(stream-server-core-sources
     ExternalObjectManager.cpp
     ColorBuffer.cpp
     GfxStreamAgents.cpp
+    VirtioGpuContext.cpp
     VirtioGpuFrontend.cpp
+    VirtioGpuResource.cpp
+    VirtioGpuRingBlob.cpp
     VirtioGpuTimelines.cpp
     VsyncThread.cpp
     ChannelStream.cpp
