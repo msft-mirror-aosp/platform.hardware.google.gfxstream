@@ -149,7 +149,6 @@ class VirtioGpuFrontend {
     std::unordered_map<VirtioGpuContextId, VirtioGpuContext> mContexts;
     std::unordered_map<VirtioGpuResourceId, VirtioGpuResource> mResources;
     std::unordered_map<VirtioGpuContextId, std::vector<VirtioGpuResourceId>> mContextResources;
-    std::unordered_map<VirtioGpuResourceId, std::vector<VirtioGpuContextId>> mResourceContexts;
     std::unordered_map<uint64_t, std::shared_ptr<SyncDescriptorInfo>> mSyncMap;
     // When we wait for gpu or wait for gpu vulkan, the next (and subsequent)
     // fences created for that context should not be signaled immediately.
