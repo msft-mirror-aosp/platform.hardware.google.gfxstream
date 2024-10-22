@@ -582,11 +582,6 @@ void VirtioGpuFrontend::unrefResource(uint32_t toUnrefId) {
     auto it = mResources.find(toUnrefId);
     if (it == mResources.end()) return;
 
-    auto contextsIt = mResourceContexts.find(toUnrefId);
-    if (contextsIt != mResourceContexts.end()) {
-        mResourceContexts.erase(contextsIt->first);
-    }
-
     for (auto& ctxIdResources : mContextResources) {
         detachResourceLocked(ctxIdResources.first, toUnrefId);
     }
@@ -817,17 +812,6 @@ void VirtioGpuFrontend::attachResource(uint32_t ctxId, uint32_t resId) {
         auto& ids = resourcesIt->second;
         auto idIt = std::find(ids.begin(), ids.end(), resId);
         if (idIt == ids.end()) ids.push_back(resId);
-    }
-
-    auto contextsIt = mResourceContexts.find(resId);
-    if (contextsIt == mResourceContexts.end()) {
-        std::vector<VirtioGpuCtxId> ids;
-        ids.push_back(ctxId);
-        mResourceContexts[resId] = ids;
-    } else {
-        auto& ids = contextsIt->second;
-        auto idIt = std::find(ids.begin(), ids.end(), ctxId);
-        if (idIt == ids.end()) ids.push_back(ctxId);
     }
 
     // Associate the host pipe of the resource entry with the host pipe of
