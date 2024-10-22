@@ -6208,6 +6208,61 @@ void count_VkBufferUsageFlags2CreateInfoKHR(uint32_t featureBits, VkStructureTyp
 }
 
 #endif
+#ifdef VK_KHR_line_rasterization
+void count_VkPhysicalDeviceLineRasterizationFeaturesKHR(
+    uint32_t featureBits, VkStructureType rootType,
+    const VkPhysicalDeviceLineRasterizationFeaturesKHR* toCount, size_t* count) {
+    (void)featureBits;
+    (void)rootType;
+    (void)toCount;
+    (void)count;
+    *count += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = toCount->sType;
+    }
+    count_extension_struct(featureBits, rootType, toCount->pNext, count);
+    *count += sizeof(VkBool32);
+    *count += sizeof(VkBool32);
+    *count += sizeof(VkBool32);
+    *count += sizeof(VkBool32);
+    *count += sizeof(VkBool32);
+    *count += sizeof(VkBool32);
+}
+
+void count_VkPhysicalDeviceLineRasterizationPropertiesKHR(
+    uint32_t featureBits, VkStructureType rootType,
+    const VkPhysicalDeviceLineRasterizationPropertiesKHR* toCount, size_t* count) {
+    (void)featureBits;
+    (void)rootType;
+    (void)toCount;
+    (void)count;
+    *count += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = toCount->sType;
+    }
+    count_extension_struct(featureBits, rootType, toCount->pNext, count);
+    *count += sizeof(uint32_t);
+}
+
+void count_VkPipelineRasterizationLineStateCreateInfoKHR(
+    uint32_t featureBits, VkStructureType rootType,
+    const VkPipelineRasterizationLineStateCreateInfoKHR* toCount, size_t* count) {
+    (void)featureBits;
+    (void)rootType;
+    (void)toCount;
+    (void)count;
+    *count += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = toCount->sType;
+    }
+    count_extension_struct(featureBits, rootType, toCount->pNext, count);
+    *count += sizeof(VkLineRasterizationModeKHR);
+    *count += sizeof(VkBool32);
+    *count += sizeof(uint32_t);
+    *count += sizeof(uint16_t);
+}
+
+#endif
 #ifdef VK_ANDROID_native_buffer
 void count_VkNativeBufferUsage2ANDROID(uint32_t featureBits, VkStructureType rootType,
                                        const VkNativeBufferUsage2ANDROID* toCount, size_t* count) {
@@ -8175,6 +8230,32 @@ void count_extension_struct(uint32_t featureBits, VkStructureType rootType,
             count_VkBufferUsageFlags2CreateInfoKHR(
                 featureBits, rootType,
                 reinterpret_cast<const VkBufferUsageFlags2CreateInfoKHR*>(structExtension), count);
+            break;
+        }
+#endif
+#ifdef VK_KHR_line_rasterization
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_FEATURES_KHR: {
+            count_VkPhysicalDeviceLineRasterizationFeaturesKHR(
+                featureBits, rootType,
+                reinterpret_cast<const VkPhysicalDeviceLineRasterizationFeaturesKHR*>(
+                    structExtension),
+                count);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_PROPERTIES_KHR: {
+            count_VkPhysicalDeviceLineRasterizationPropertiesKHR(
+                featureBits, rootType,
+                reinterpret_cast<const VkPhysicalDeviceLineRasterizationPropertiesKHR*>(
+                    structExtension),
+                count);
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_LINE_STATE_CREATE_INFO_KHR: {
+            count_VkPipelineRasterizationLineStateCreateInfoKHR(
+                featureBits, rootType,
+                reinterpret_cast<const VkPipelineRasterizationLineStateCreateInfoKHR*>(
+                    structExtension),
+                count);
             break;
         }
 #endif
