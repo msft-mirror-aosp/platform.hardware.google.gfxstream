@@ -162,9 +162,9 @@ std::optional<VirtioGpuResource> VirtioGpuResource::Create(
             return std::nullopt;
         }
 
-        if (resourceType != VirtioGpuResourceType::BUFFER) {
+        if (resourceType == VirtioGpuResourceType::BUFFER) {
             descriptorInfoOpt = FrameBuffer::getFB()->exportBuffer(resourceId);
-        } else if (resourceType != VirtioGpuResourceType::BUFFER) {
+        } else if (resourceType == VirtioGpuResourceType::COLOR_BUFFER) {
             descriptorInfoOpt = FrameBuffer::getFB()->exportColorBuffer(resourceId);
         } else {
             stream_renderer_error("failed to create blob resource: unhandled type.");
