@@ -119,7 +119,6 @@ gfxstream_headers = files(
 
 inc_root = include_directories('../')
 inc_gfxstream_include = include_directories('../include')
-inc_include = include_directories('../guest/mesa/include')
 # Included by all host component builds. Leave empty for future build updates.
 inc_include = include_directories()
 inc_utils = include_directories('../utils/include')
@@ -153,15 +152,18 @@ inc_stream_servers = include_directories('.')
 inc_host_include = include_directories('include')
 
 subdir('features')
+subdir('tracing')
 
 subdir('apigen-codec-common')
 subdir('gl/gl-host-common')
 subdir('backend')
 
 inc_gfxstream_backend = [inc_root, inc_gfxstream_include, inc_include, inc_apigen_codec, inc_utils,
-                         inc_gl_host_common, inc_host_include, inc_common_utils, inc_host_backend, inc_host_features]
+                         inc_gl_host_common, inc_host_include, inc_common_utils, inc_host_backend,
+                         inc_host_features, inc_host_tracing]
 
-link_gfxstream_backend = [lib_gl_host_common, lib_apigen_codec, lib_common_utils, lib_host_backend, lib_host_features]
+link_gfxstream_backend = [lib_gl_host_common, lib_apigen_codec, lib_common_utils, lib_host_backend,
+                          lib_host_features, lib_host_tracing]
 
 files_lib_gfxstream_backend = files(
   'Buffer.cpp',
@@ -185,6 +187,9 @@ files_lib_gfxstream_backend = files(
   'FrameBuffer.cpp',
   'GfxStreamAgents.cpp',
   'virtio-gpu-gfxstream-renderer.cpp',
+  'VirtioGpuContext.cpp',
+  'VirtioGpuFrontend.cpp',
+  'VirtioGpuResource.cpp',
   'VirtioGpuTimelines.cpp',
   'VsyncThread.cpp',
 )

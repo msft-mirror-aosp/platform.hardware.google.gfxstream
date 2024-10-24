@@ -1,0 +1,7 @@
+cc_library(
+    name = "gfxstream_host_tracing",
+    srcs = ["Tracing.cpp"] + glob(["include/**/*.h"]),
+    copts = ["-fno-exceptions"],
+    includes = ["include"],
+    visibility = ["//visibility:public"],
+)
