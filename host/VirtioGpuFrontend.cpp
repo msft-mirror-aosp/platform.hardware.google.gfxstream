@@ -174,7 +174,6 @@ int VirtioGpuFrontend::createContext(VirtioGpuCtxId ctx_id, uint32_t nlen, const
         context_init,            // capsetId
         ctx_id,                  // ctxId
         hostPipe,                // hostPipe
-        0,                       // fence
         map,                     // resourceId --> ASG handle map
         blobMap,                 // blobId -> resource create args
     };
