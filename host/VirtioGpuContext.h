@@ -40,7 +40,6 @@ struct VirtioGpuContext {
     uint32_t capsetId;
     VirtioGpuContextId ctxId;
     GoldfishHostPipe* hostPipe;
-    int fence;
     std::unordered_map<VirtioGpuResourceId, uint32_t> addressSpaceHandles;
     std::unordered_map<uint32_t, struct stream_renderer_resource_create_args> blobMap;
     std::shared_ptr<gfxstream::SyncDescriptorInfo> latestFence;
