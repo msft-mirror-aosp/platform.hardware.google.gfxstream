@@ -18,6 +18,7 @@
 
 #include <memory>
 #include <optional>
+#include <unordered_set>
 
 extern "C" {
 #include "host-common/goldfish_pipe.h"
@@ -67,11 +68,14 @@ class VirtioGpuResource {
 
     int Destroy();
 
+    VirtioGpuResourceId GetId() const { return mId; }
+
     void AttachIov(struct iovec* iov, uint32_t num_iovs);
     void DetachIov();
 
     void AttachToContext(VirtioGpuContextId contextId);
-    void DetachFromContext();
+    void DetachFromContext(VirtioGpuContextId contextId);
+    std::unordered_set<VirtioGpuContextId> GetAttachedContexts() const;
 
     int Map(void** outAddress, uint64_t* outSize);
 
@@ -154,7 +158,8 @@ class VirtioGpuResource {
     std::vector<struct iovec> mIovs;
     std::vector<char> mLinear;
     GoldfishHostPipe* mHostPipe = nullptr;
-    std::optional<VirtioGpuContextId> mContextId;
+    std::optional<VirtioGpuContextId> mLatestAttachedContext;
+    std::unordered_set<VirtioGpuContextId> mAttachedToContexts;
 
     // If this resource is a blob resource, the source of the external memory.
     //
