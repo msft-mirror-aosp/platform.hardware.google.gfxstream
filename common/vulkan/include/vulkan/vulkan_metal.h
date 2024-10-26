@@ -191,12 +191,8 @@ VKAPI_ATTR void VKAPI_CALL vkExportMetalObjectsEXT(
 
 // VK_EXT_external_memory_metal is a preprocessor guard. Do not pass it to API calls.
 #define VK_EXT_external_memory_metal 1
-#ifdef __OBJC__
-@protocol MTLResource;
-typedef __unsafe_unretained id<MTLResource> MTLResource_id;
-#else
+
 typedef void* MTLResource_id;
-#endif
 
 #define VK_EXT_EXTERNAL_MEMORY_METAL_SPEC_VERSION 1
 #define VK_EXT_EXTERNAL_MEMORY_METAL_EXTENSION_NAME "VK_EXT_external_memory_metal"
