@@ -108,7 +108,7 @@ using gfxstream::VulkanInfo;
 #define VKDGS_DEBUG 0
 
 #if VKDGS_DEBUG
-#define VKDGS_LOG(fmt, ...) fprintf(stderr, "%s:%d " fmt "\n", __func__, __LINE__, ##__VA_ARGS__);
+#define VKDGS_LOG(fmt, ...) INFO
 #else
 #define VKDGS_LOG(fmt, ...)
 #endif
@@ -476,7 +476,24 @@ class VkDecoderGlobalState::Impl {
         }
 #endif
 
+        {
+            std::unordered_map<VkDevice, uint32_t> deviceToContextId;
+            for (const auto& [device, deviceInfo] : mDeviceInfo) {
+                if (!deviceInfo.virtioGpuContextId) {
+                    GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
+                        << "VkDevice" << device << " missing context id.";
+                }
+                deviceToContextId[deviceInfo.boxed] = *deviceInfo.virtioGpuContextId;
+            }
+            stream->putBe64(static_cast<uint64_t>(deviceToContextId.size()));
+            for (const auto [device, contextId] : deviceToContextId) {
+                stream->putBe64(reinterpret_cast<uint64_t>(device));
+                stream->putBe32(contextId);
+            }
+        }
+
         snapshot()->save(stream);
+
         // Save mapped memory
         uint32_t memoryCount = 0;
         for (const auto& it : mMemoryInfo) {
@@ -506,7 +523,11 @@ class VkDecoderGlobalState::Impl {
         // So sort them (by boxed handles) first.
         std::sort(sortedBoxedImages.begin(), sortedBoxedImages.end());
         for (const auto& boxedImage : sortedBoxedImages) {
-            auto unboxedImage = unbox_VkImage(boxedImage);
+            auto unboxedImage = try_unbox_VkImage(boxedImage);
+            if (unboxedImage == VK_NULL_HANDLE) {
+                //TODO(b/294277842): should return an error here.
+                continue;
+            }
             const ImageInfo& imageInfo = mImageInfo[unboxedImage];
             if (imageInfo.memory == VK_NULL_HANDLE) {
                 continue;
@@ -528,7 +549,11 @@ class VkDecoderGlobalState::Impl {
         }
         sort(sortedBoxedBuffers.begin(), sortedBoxedBuffers.end());
         for (const auto& boxedBuffer : sortedBoxedBuffers) {
-            auto unboxedBuffer = unbox_VkBuffer(boxedBuffer);
+            auto unboxedBuffer = try_unbox_VkBuffer(boxedBuffer);
+            if (unboxedBuffer == VK_NULL_HANDLE) {
+                //TODO(b/294277842): should return an error here.
+                continue;
+            }
             const BufferInfo& bufferInfo = mBufferInfo[unboxedBuffer];
             if (bufferInfo.memory == VK_NULL_HANDLE) {
                 continue;
@@ -703,6 +728,20 @@ class VkDecoderGlobalState::Impl {
         // destroy all current internal data structures
         clear();
         mSnapshotState = SnapshotState::Loading;
+
+        // This needs to happen before the replay in the decoder so that virtio gpu context ids
+        // are available for operations involving `ExternalObjectManager`.
+        {
+            mSnapshotLoadVkDeviceToVirtioCpuContextId.emplace();
+            const uint64_t count = stream->getBe64();
+            for (uint64_t i = 0; i < count; i++) {
+                const uint64_t device = stream->getBe64();
+                const uint32_t contextId = stream->getBe32();
+                (*mSnapshotLoadVkDeviceToVirtioCpuContextId)[reinterpret_cast<VkDevice>(device)] =
+                    contextId;
+            }
+        }
+
         android::base::BumpPool bumpPool;
         // this part will replay in the decoder
         snapshot()->load(stream, gfxLogger, healthMonitor);
@@ -933,6 +972,18 @@ class VkDecoderGlobalState::Impl {
         mCreatedHandlesForSnapshotLoadIndex = 0;
     }
 
+    std::optional<uint32_t> getContextIdForDeviceLocked(VkDevice device) {
+        auto deviceInfoIt = mDeviceInfo.find(device);
+        if (deviceInfoIt == mDeviceInfo.end()) {
+            return std::nullopt;
+        }
+        auto& deviceInfo = deviceInfoIt->second;
+        if (!deviceInfo.virtioGpuContextId) {
+            return std::nullopt;
+        }
+        return *deviceInfo.virtioGpuContextId;
+    }
+
     VkResult on_vkEnumerateInstanceVersion(android::base::BumpPool* pool, uint32_t* pApiVersion) {
         if (m_vk->vkEnumerateInstanceVersion) {
             VkResult res = m_vk->vkEnumerateInstanceVersion(pApiVersion);
@@ -1107,7 +1158,10 @@ class VkDecoderGlobalState::Impl {
 
     void on_vkDestroyInstance(android::base::BumpPool* pool, VkInstance boxed_instance,
                               const VkAllocationCallbacks* pAllocator) {
-        auto instance = unbox_VkInstance(boxed_instance);
+        auto instance = try_unbox_VkInstance(boxed_instance);
+        if (instance == VK_NULL_HANDLE) {
+            return;
+        }
 
         vkDestroyInstanceImpl(instance, pAllocator);
 
@@ -1907,6 +1961,22 @@ class VkDecoderGlobalState::Impl {
 
         deviceInfo.boxed = boxed;
 
+        if (mSnapshotState == SnapshotState::Loading) {
+            if (!mSnapshotLoadVkDeviceToVirtioCpuContextId) {
+                GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
+                    << "Missing device to context id map during snapshot load.";
+            }
+            auto contextIdIt = mSnapshotLoadVkDeviceToVirtioCpuContextId->find(boxed);
+            if (contextIdIt == mSnapshotLoadVkDeviceToVirtioCpuContextId->end()) {
+                GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
+                    << "Missing context id for VkDevice:" << boxed;
+            }
+            deviceInfo.virtioGpuContextId = contextIdIt->second;
+        } else {
+            auto* renderThreadInfo = RenderThreadInfoVk::get();
+            deviceInfo.virtioGpuContextId = renderThreadInfo->ctx_id;
+        }
+
         // Next, get information about the queue families used by this device.
         std::unordered_map<uint32_t, uint32_t> queueFamilyIndexCounts;
         for (uint32_t i = 0; i < pCreateInfo->queueCreateInfoCount; ++i) {
@@ -2259,24 +2329,6 @@ class VkDecoderGlobalState::Impl {
         std::unique_ptr<AndroidNativeBufferInfo> anbInfo = nullptr;
         const VkNativeBufferANDROID* nativeBufferANDROID =
             vk_find_struct<VkNativeBufferANDROID>(pCreateInfo);
-
-#if defined(__APPLE__)
-        VkExportMetalObjectCreateInfoEXT metalImageExportCI = {
-            VK_STRUCTURE_TYPE_EXPORT_METAL_OBJECT_CREATE_INFO_EXT, nullptr,
-            VK_EXPORT_METAL_OBJECT_TYPE_METAL_TEXTURE_BIT_EXT};
-
-        // Add VkExportMetalObjectCreateInfoEXT on MoltenVK
-        if (m_emu->instanceSupportsMoltenVK) {
-            const VkExternalMemoryImageCreateInfo* externalMemCI =
-                vk_find_struct<VkExternalMemoryImageCreateInfo>(pCreateInfo);
-            if (externalMemCI) {
-                // Insert metalImageExportCI to the chain
-                metalImageExportCI.pNext = externalMemCI->pNext;
-                const_cast<VkExternalMemoryImageCreateInfo*>(externalMemCI)->pNext =
-                    &metalImageExportCI;
-            }
-        }
-#endif
 
         VkResult createRes = VK_SUCCESS;
 
@@ -2999,18 +3051,16 @@ class VkDecoderGlobalState::Impl {
 
     VkResult on_vkGetSemaphoreGOOGLE(android::base::BumpPool* pool, VkDevice boxed_device,
                                      VkSemaphore semaphore, uint64_t syncId) {
-        VK_EXT_SYNC_HANDLE handle;
-        uint32_t streamHandleType = 0;
-        auto* tInfo = RenderThreadInfoVk::get();
-        auto vk = dispatch_VkDevice(boxed_device);
-        auto device = unbox_VkDevice(boxed_device);
-        VkExternalSemaphoreHandleTypeFlagBits flagBits =
-            static_cast<VkExternalSemaphoreHandleTypeFlagBits>(0);
-
         if (!m_emu->features.VulkanExternalSync.enabled) {
             return VK_ERROR_FEATURE_NOT_PRESENT;
         }
 
+        auto vk = dispatch_VkDevice(boxed_device);
+        auto device = unbox_VkDevice(boxed_device);
+
+        uint32_t virtioGpuContextId = 0;
+        VkExternalSemaphoreHandleTypeFlagBits flagBits =
+            static_cast<VkExternalSemaphoreHandleTypeFlagBits>(0);
         {
             std::lock_guard<std::recursive_mutex> lock(mLock);
             auto* deviceInfo = android::base::find(mDeviceInfo, device);
@@ -3029,8 +3079,15 @@ class VkDecoderGlobalState::Impl {
                        VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_FD_BIT) {
                 flagBits = VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_FD_BIT;
             }
+
+            if (!deviceInfo->virtioGpuContextId) {
+                ERR("VkDevice:%p is missing virtio gpu context id.", device);
+                return VK_ERROR_OUT_OF_HOST_MEMORY;
+            }
+            virtioGpuContextId = *deviceInfo->virtioGpuContextId;
         }
 
+        VK_EXT_SYNC_HANDLE handle;
         VkResult result =
             exportSemaphore(vk, device, semaphore, &handle,
                             std::make_optional<VkExternalSemaphoreHandleTypeFlagBits>(flagBits));
@@ -3040,7 +3097,7 @@ class VkDecoderGlobalState::Impl {
 
         ManagedDescriptor descriptor(handle);
         ExternalObjectManager::get()->addSyncDescriptorInfo(
-            tInfo->ctx_id, syncId, std::move(descriptor), streamHandleType);
+            virtioGpuContextId, syncId, std::move(descriptor), /*streamHandleType*/ 0);
         return VK_SUCCESS;
     }
 
@@ -4671,7 +4728,7 @@ class VkDecoderGlobalState::Impl {
 
         const VkMemoryDedicatedAllocateInfo* dedicatedAllocInfoPtr =
             vk_find_struct<VkMemoryDedicatedAllocateInfo>(pAllocateInfo);
-        VkMemoryDedicatedAllocateInfo localDedicatedAllocInfo;
+        VkMemoryDedicatedAllocateInfo localDedicatedAllocInfo = {};
 
         if (dedicatedAllocInfoPtr) {
             localDedicatedAllocInfo = vk_make_orphan_copy(*dedicatedAllocInfoPtr);
@@ -4735,14 +4792,16 @@ class VkDecoderGlobalState::Impl {
             VK_EXT_MEMORY_HANDLE_TYPE_BIT,
             VK_EXT_MEMORY_HANDLE_INVALID,
         };
-#endif
 
 #if defined(__APPLE__)
-        VkImportMetalBufferInfoEXT importInfoMetalBuffer = {
-            VK_STRUCTURE_TYPE_IMPORT_METAL_BUFFER_INFO_EXT,
+        VkImportMemoryMetalHandleInfoEXT importInfoMetalHandle = {
+            VK_STRUCTURE_TYPE_IMPORT_MEMORY_METAL_HANDLE_INFO_EXT,
             0,
+            VK_EXTERNAL_MEMORY_HANDLE_TYPE_MTLHEAP_BIT_EXT,
             nullptr,
         };
+#endif
+
 #endif
 
         void* mappedPtr = nullptr;
@@ -4770,23 +4829,28 @@ class VkDecoderGlobalState::Impl {
                     m_emu->callbacks.invalidateColorBuffer(importCbInfoPtr->colorBuffer);
                 }
 
+                bool opaqueFd = true;
+
 #if defined(__APPLE__)
                 // Use metal object extension on MoltenVK mode for color buffer import,
                 // non-moltenVK path on MacOS will use FD handles
                 if (m_emu->instanceSupportsMoltenVK) {
-                    // TODO(b/333460957): This is a temporary fix to get MoltenVK image memory
-                    // binding checks working as expected  based on dedicated memory checks. It's
-                    // not a valid usage of Vulkan as the device of the image is different than
-                    // what's being used here
-                    localDedicatedAllocInfo = {
+
+                    extern VkImage getColorBufferVkImage(uint32_t colorBufferHandle);
+                    if (dedicatedAllocInfoPtr == nullptr || localDedicatedAllocInfo.image == VK_NULL_HANDLE) {
+                        // TODO(b/351765838): This should not happen, but somehow the guest
+                        // is not providing us the necessary information for video rendering.
+                        localDedicatedAllocInfo = {
                         .sType = VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO,
                         .pNext = nullptr,
                         .image = getColorBufferVkImage(importCbInfoPtr->colorBuffer),
                         .buffer = VK_NULL_HANDLE,
-                    };
-                    shouldUseDedicatedAllocInfo = true;
+                        };
 
-                    MTLBufferRef cbExtMemoryHandle =
+                        shouldUseDedicatedAllocInfo = true;
+                    }
+
+                    MTLResource_id cbExtMemoryHandle =
                         getColorBufferMetalMemoryHandle(importCbInfoPtr->colorBuffer);
 
                     if (cbExtMemoryHandle == nullptr) {
@@ -4796,12 +4860,15 @@ class VkDecoderGlobalState::Impl {
                                 __func__, importCbInfoPtr->colorBuffer);
                         return VK_ERROR_OUT_OF_DEVICE_MEMORY;
                     }
+                    importInfoMetalHandle.handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_MTLHEAP_BIT_EXT;
+                    importInfoMetalHandle.handle = cbExtMemoryHandle;
 
-                    importInfoMetalBuffer.mtlBuffer = cbExtMemoryHandle;
-                    vk_append_struct(&structChainIter, &importInfoMetalBuffer);
-                } else
+                    vk_append_struct(&structChainIter, &importInfoMetalHandle);
+                    opaqueFd = false;
+                }
 #endif
-                if (m_emu->deviceInfo.supportsExternalMemoryImport) {
+
+                if (opaqueFd && m_emu->deviceInfo.supportsExternalMemoryImport) {
                     VK_EXT_MEMORY_HANDLE cbExtMemoryHandle =
                         getColorBufferExtMemoryHandle(importCbInfoPtr->colorBuffer);
 
@@ -4839,9 +4906,10 @@ class VkDecoderGlobalState::Impl {
 
             shouldUseDedicatedAllocInfo &= bufferMemoryUsesDedicatedAlloc;
 
+            bool opaqueFd = true;
 #ifdef __APPLE__
             if (m_emu->instanceSupportsMoltenVK) {
-                MTLBufferRef bufferMetalMemoryHandle =
+                MTLResource_id bufferMetalMemoryHandle =
                     getBufferMetalMemoryHandle(importBufferInfoPtr->buffer);
 
                 if (bufferMetalMemoryHandle == nullptr) {
@@ -4853,11 +4921,16 @@ class VkDecoderGlobalState::Impl {
                     return VK_ERROR_OUT_OF_DEVICE_MEMORY;
                 }
 
-                importInfoMetalBuffer.mtlBuffer = bufferMetalMemoryHandle;
-                vk_append_struct(&structChainIter, &importInfoMetalBuffer);
-            } else
+                importInfoMetalHandle.handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_MTLBUFFER_BIT_EXT;
+                importInfoMetalHandle.handle = bufferMetalMemoryHandle;
+
+                vk_append_struct(&structChainIter, &importInfoMetalHandle);
+
+                opaqueFd = false;
+            }
 #endif
-            if (m_emu->deviceInfo.supportsExternalMemoryImport) {
+
+            if (opaqueFd && m_emu->deviceInfo.supportsExternalMemoryImport) {
                 uint32_t outStreamHandleType;
                 VK_EXT_MEMORY_HANDLE bufferExtMemoryHandle =
                     getBufferExtMemoryHandle(importBufferInfoPtr->buffer, &outStreamHandleType);
@@ -4886,6 +4959,7 @@ class VkDecoderGlobalState::Impl {
             }
         }
 
+        uint32_t virtioGpuContextId = 0;
         VkMemoryPropertyFlags memoryPropertyFlags;
 
         // Map guest memory index to host memory index and lookup memory properties:
@@ -4914,6 +4988,13 @@ class VkDecoderGlobalState::Impl {
 
             localAllocInfo.memoryTypeIndex = hostMemoryInfo.index;
             memoryPropertyFlags = hostMemoryInfo.memoryType.propertyFlags;
+
+            auto virtioGpuContextIdOpt = getContextIdForDeviceLocked(device);
+            if (!virtioGpuContextIdOpt) {
+                ERR("VkDevice:%p missing context id for vkAllocateMemory().");
+                return VK_ERROR_DEVICE_LOST;
+            }
+            virtioGpuContextId = *virtioGpuContextIdOpt;
         }
 
         if (shouldUseDedicatedAllocInfo) {
@@ -4925,11 +5006,8 @@ class VkDecoderGlobalState::Impl {
         if (createBlobInfoPtr && createBlobInfoPtr->blobMem == STREAM_BLOB_MEM_GUEST &&
             (createBlobInfoPtr->blobFlags & STREAM_BLOB_FLAG_CREATE_GUEST_HANDLE)) {
             DescriptorType rawDescriptor;
-            uint32_t ctx_id = mSnapshotState == SnapshotState::Loading
-                                  ? kTemporaryContextIdForSnapshotLoading
-                                  : tInfo->ctx_id;
             auto descriptorInfoOpt = ExternalObjectManager::get()->removeBlobDescriptorInfo(
-                ctx_id, createBlobInfoPtr->blobId);
+                virtioGpuContextId, createBlobInfoPtr->blobId);
             if (descriptorInfoOpt) {
                 auto rawDescriptorOpt = (*descriptorInfoOpt).descriptor.release();
                 if (rawDescriptorOpt) {
@@ -5004,7 +5082,10 @@ class VkDecoderGlobalState::Impl {
 #if defined(__APPLE__)
                 if (m_emu->instanceSupportsMoltenVK) {
                     // Using a different handle type when in MoltenVK mode
-                    handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_MTLBUFFER_BIT_KHR;
+                    handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_MTLBUFFER_BIT_EXT|VK_EXTERNAL_MEMORY_HANDLE_TYPE_MTLTEXTURE_BIT_EXT;
+                }
+                else {
+                    handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT;
                 }
 #elif defined(_WIN32)
                 handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT;
@@ -5481,11 +5562,17 @@ class VkDecoderGlobalState::Impl {
     }
 
     VkResult vkGetBlobInternal(VkDevice boxed_device, VkDeviceMemory memory, uint64_t hostBlobId) {
+        auto device = unbox_VkDevice(boxed_device);
+        auto vk = dispatch_VkDevice(boxed_device);
+
         std::lock_guard<std::recursive_mutex> lock(mLock);
-        auto* tInfo = RenderThreadInfoVk::get();
-        uint32_t ctx_id = mSnapshotState == SnapshotState::Loading
-                              ? kTemporaryContextIdForSnapshotLoading
-                              : tInfo->ctx_id;
+
+        auto virtioGpuContextIdOpt = getContextIdForDeviceLocked(device);
+        if (!virtioGpuContextIdOpt) {
+            ERR("VkDevice:%p missing context id for vkAllocateMemory().");
+            return VK_ERROR_OUT_OF_HOST_MEMORY;
+        }
+        const uint32_t virtioGpuContextId = *virtioGpuContextIdOpt;
 
         auto* info = android::base::find(mMemoryInfo, memory);
         if (!info) return VK_ERROR_OUT_OF_HOST_MEMORY;
@@ -5498,12 +5585,11 @@ class VkDecoderGlobalState::Impl {
             // The memory itself is destroyed only when all processes unmap / release their
             // handles.
             ExternalObjectManager::get()->addBlobDescriptorInfo(
-                ctx_id, hostBlobId, info->sharedMemory->releaseHandle(), handleType, info->caching,
-                std::nullopt);
+                virtioGpuContextId, hostBlobId, info->sharedMemory->releaseHandle(), handleType,
+                info->caching, std::nullopt);
         } else if (m_emu->features.ExternalBlob.enabled) {
             VkResult result;
-            auto device = unbox_VkDevice(boxed_device);
-            auto vk = dispatch_VkDevice(boxed_device);
+
             DescriptorType handle;
             uint32_t handleType;
             struct VulkanInfo vulkanInfo = {
@@ -5574,7 +5660,7 @@ class VkDecoderGlobalState::Impl {
 
             ManagedDescriptor managedHandle(handle);
             ExternalObjectManager::get()->addBlobDescriptorInfo(
-                ctx_id, hostBlobId, std::move(managedHandle), handleType, info->caching,
+                virtioGpuContextId, hostBlobId, std::move(managedHandle), handleType, info->caching,
                 std::optional<VulkanInfo>(vulkanInfo));
         } else if (!info->needUnmap) {
             auto device = unbox_VkDevice(boxed_device);
@@ -5598,7 +5684,7 @@ class VkDecoderGlobalState::Impl {
                     "using this blob may be corrupted/offset.",
                     kPageSizeforBlob, hva, alignedHva);
             }
-            ExternalObjectManager::get()->addMapping(ctx_id, hostBlobId,
+            ExternalObjectManager::get()->addMapping(virtioGpuContextId, hostBlobId,
                                                      (void*)(uintptr_t)alignedHva, info->caching);
             info->virtioGpuMapped = true;
             info->hostmemId = hostBlobId;
@@ -7217,7 +7303,7 @@ class VkDecoderGlobalState::Impl {
     AsyncResult registerQsriCallback(VkImage boxed_image, VkQsriTimeline::Callback callback) {
         std::lock_guard<std::recursive_mutex> lock(mLock);
 
-        VkImage image = unbox_VkImage(boxed_image);
+        VkImage image = try_unbox_VkImage(boxed_image);
         if (image == VK_NULL_HANDLE) return AsyncResult::FAIL_AND_CALLBACK_NOT_SCHEDULED;
 
         auto imageInfoIt = mImageInfo.find(image);
@@ -7511,12 +7597,18 @@ class VkDecoderGlobalState::Impl {
     }                                                                                             \
     type unbox_##type(type boxed) {                                                               \
         auto elt = sBoxedHandleManager.get((uint64_t)(uintptr_t)boxed);                           \
-        if (!elt) return VK_NULL_HANDLE;                                                          \
+        if (!elt){                                                                                \
+            ERR("%s: Failed to unbox %p", __func__, boxed);                                       \
+            return VK_NULL_HANDLE;                                                                \
+        }                                                                                         \
         return (type)elt->underlying;                                                             \
     }                                                                                             \
     type try_unbox_##type(type boxed) {                                                           \
         auto elt = sBoxedHandleManager.get((uint64_t)(uintptr_t)boxed);                           \
-        if (!elt) return VK_NULL_HANDLE;                                                          \
+        if (!elt){                                                                                \
+            WARN("%s: Failed to unbox %p", __func__, boxed);                                      \
+            return VK_NULL_HANDLE;                                                                \
+        }                                                                                         \
         return (type)elt->underlying;                                                             \
     }                                                                                             \
     OrderMaintenanceInfo* ordmaint_##type(type boxed) {                                           \
@@ -7544,7 +7636,7 @@ class VkDecoderGlobalState::Impl {
     VulkanDispatch* dispatch_##type(type boxed) {                                                 \
         auto elt = sBoxedHandleManager.get((uint64_t)(uintptr_t)boxed);                           \
         if (!elt) {                                                                               \
-            fprintf(stderr, "%s: err not found boxed %p\n", __func__, boxed);                     \
+            ERR("%s: Failed to unbox %p", __func__, boxed);                                       \
             return nullptr;                                                                       \
         }                                                                                         \
         return elt->dispatch;                                                                     \
@@ -7586,6 +7678,7 @@ class VkDecoderGlobalState::Impl {
         AutoLock lock(sBoxedHandleManager.lock);                                                  \
         auto elt = sBoxedHandleManager.get((uint64_t)(uintptr_t)boxed);                           \
         if (!elt) {                                                                               \
+            WARN("%s: Failed to unbox %p", __func__, boxed);                                      \
             return VK_NULL_HANDLE;                                                                \
         }                                                                                         \
         return (type)elt->underlying;                                                             \
@@ -7698,6 +7791,9 @@ class VkDecoderGlobalState::Impl {
             }
             if (hasDeviceExtension(properties, VK_EXT_METAL_OBJECTS_EXTENSION_NAME)) {
                 res.push_back(VK_EXT_METAL_OBJECTS_EXTENSION_NAME);
+            }
+            if (hasDeviceExtension(properties, VK_EXT_EXTERNAL_MEMORY_METAL_EXTENSION_NAME)) {
+                res.push_back(VK_EXT_EXTERNAL_MEMORY_METAL_EXTENSION_NAME);
             }
         } else {
             // Non-MoltenVK path, use memory_fd
@@ -8538,6 +8634,12 @@ class VkDecoderGlobalState::Impl {
 
     std::vector<uint64_t> mCreatedHandlesForSnapshotLoad;
     size_t mCreatedHandlesForSnapshotLoadIndex = 0;
+
+    // NOTE: Only present during snapshot loading. This is needed to associate
+    // `VkDevice`s with Virtio GPU context ids because API calls are not currently
+    // replayed on the "same" RenderThread which originally made the API call so
+    // RenderThreadInfoVk::ctx_id is not available.
+    std::optional<std::unordered_map<VkDevice, uint32_t>> mSnapshotLoadVkDeviceToVirtioCpuContextId;
 
     Lock mOccupiedGpasLock;
     // Back-reference to the VkDeviceMemory that is occupying a particular
@@ -9804,13 +9906,16 @@ GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES(DEFINE_BOXED_NON_DISPATCHABLE_HAN
     }                                                                                             \
     type try_unbox_##type(type boxed) {                                                           \
         auto elt = sBoxedHandleManager.get((uint64_t)(uintptr_t)boxed);                           \
-        if (!elt) return VK_NULL_HANDLE;                                                          \
+        if (!elt) {                                                                               \
+            WARN("%s: Failed to unbox %p", __func__, boxed);                                      \
+            return VK_NULL_HANDLE;                                                                \
+        }                                                                                         \
         return (type)elt->underlying;                                                             \
     }                                                                                             \
     VulkanDispatch* dispatch_##type(type boxed) {                                                 \
         auto elt = sBoxedHandleManager.get((uint64_t)(uintptr_t)boxed);                           \
         if (!elt) {                                                                               \
-            fprintf(stderr, "%s: err not found boxed %p\n", __func__, boxed);                     \
+            ERR("%s: Failed to unbox %p", __func__, boxed);                                       \
             return nullptr;                                                                       \
         }                                                                                         \
         return elt->dispatch;                                                                     \
@@ -9856,6 +9961,7 @@ GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES(DEFINE_BOXED_NON_DISPATCHABLE_HAN
         if (!boxed) return boxed;                                                                 \
         auto elt = sBoxedHandleManager.get((uint64_t)(uintptr_t)boxed);                           \
         if (!elt) {                                                                               \
+            WARN("%s: Failed to unbox %p", __func__, boxed);                                      \
             return VK_NULL_HANDLE;                                                                \
         }                                                                                         \
         return (type)elt->underlying;                                                             \

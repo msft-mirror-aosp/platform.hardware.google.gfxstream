@@ -174,9 +174,6 @@ int VirtioGpuFrontend::createContext(VirtioGpuCtxId ctx_id, uint32_t nlen, const
         context_init,            // capsetId
         ctx_id,                  // ctxId
         hostPipe,                // hostPipe
-        0,                       // fence
-        0,                       // AS handle
-        false,                   // does not have an AS handle
         map,                     // resourceId --> ASG handle map
         blobMap,                 // blobId -> resource create args
     };
@@ -187,24 +184,23 @@ int VirtioGpuFrontend::createContext(VirtioGpuCtxId ctx_id, uint32_t nlen, const
     return 0;
 }
 
-int VirtioGpuFrontend::destroyContext(VirtioGpuCtxId handle) {
-    stream_renderer_debug("ctxid: %u", handle);
+int VirtioGpuFrontend::destroyContext(VirtioGpuCtxId contextId) {
+    stream_renderer_debug("ctxid: %u", contextId);
 
-    auto it = mContexts.find(handle);
-    if (it == mContexts.end()) {
-        stream_renderer_error("could not find context handle %u", handle);
+    auto contextIt = mContexts.find(contextId);
+    if (contextIt == mContexts.end()) {
+        stream_renderer_error("could not find context handle %u", contextId);
         return -EINVAL;
     }
+    auto& context = contextIt->second;
 
-    if (it->second.hasAddressSpaceHandle) {
-        for (auto const& [resourceId, handle] : it->second.addressSpaceHandles) {
-            // Note: this can hang as is but this has only been observed to
-            // happen during shutdown. See b/329287602#comment8.
-            mAddressSpaceDeviceControlOps->destroy_handle(handle);
-        }
+    for (auto const& [resourceId, handle] : context.addressSpaceHandles) {
+        // Note: this can hang as is but this has only been observed to
+        // happen during shutdown. See b/329287602#comment8.
+        mAddressSpaceDeviceControlOps->destroy_handle(handle);
     }
 
-    auto hostPipe = it->second.hostPipe;
+    auto hostPipe = context.hostPipe;
     if (!hostPipe) {
         stream_renderer_error("0 is not a valid hostpipe");
         return -EINVAL;
@@ -213,8 +209,8 @@ int VirtioGpuFrontend::destroyContext(VirtioGpuCtxId handle) {
     auto ops = ensureAndGetServiceOps();
     ops->guest_close(hostPipe, GOLDFISH_PIPE_CLOSE_GRACEFUL);
 
-    android_cleanupProcGLObjects(handle);
-    mContexts.erase(it);
+    android_cleanupProcGLObjects(contextId);
+    mContexts.erase(contextIt);
     return 0;
 }
 
@@ -227,8 +223,6 @@ int VirtioGpuFrontend::setContextAddressSpaceHandleLocked(VirtioGpuCtxId ctxId, 
     }
 
     auto& ctxEntry = ctxIt->second;
-    ctxEntry.addressSpaceHandle = handle;
-    ctxEntry.hasAddressSpaceHandle = true;
     ctxEntry.addressSpaceHandles[resourceId] = handle;
     return 0;
 }
