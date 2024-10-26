@@ -266,7 +266,7 @@ struct VkEmulation {
         VK_EXT_MEMORY_HANDLE externalHandle = VK_EXT_MEMORY_HANDLE_INVALID;
 #ifdef __APPLE__
         // This is used as an external handle when MoltenVK is enabled
-        MTLBufferRef externalMetalHandle = nullptr;
+        MTLResource_id externalMetalHandle = nullptr;
 #endif
         uint32_t streamHandleType;
 
@@ -350,10 +350,6 @@ struct VkEmulation {
         bool externalMemoryCompatible = false;
 
         VulkanMode vulkanMode = VulkanMode::Default;
-
-#if defined(__APPLE__)
-        MTLTextureRef mtlTexture = nullptr;
-#endif
 
         std::optional<DeviceOpWaitable> latestUse;
         DeviceOpTrackerPtr latestUseTracker = nullptr;
@@ -515,8 +511,7 @@ bool importExtMemoryHandleToVkColorBuffer(uint32_t colorBufferHandle, uint32_t t
 VkEmulation::ColorBufferInfo getColorBufferInfo(uint32_t colorBufferHandle);
 VK_EXT_MEMORY_HANDLE getColorBufferExtMemoryHandle(uint32_t colorBufferHandle);
 #ifdef __APPLE__
-MTLBufferRef getColorBufferMetalMemoryHandle(uint32_t colorBufferHandle);
-MTLTextureRef getColorBufferMTLTexture(uint32_t colorBufferHandle);
+MTLResource_id getColorBufferMetalMemoryHandle(uint32_t colorBufferHandle);
 VkImage getColorBufferVkImage(uint32_t colorBufferHandle);
 #endif
 
@@ -554,7 +549,7 @@ bool teardownVkBuffer(uint32_t bufferHandle);
 
 VK_EXT_MEMORY_HANDLE getBufferExtMemoryHandle(uint32_t bufferHandle, uint32_t* outStreamHandleType);
 #ifdef __APPLE__
-MTLBufferRef getBufferMetalMemoryHandle(uint32_t bufferHandle);
+MTLResource_id getBufferMetalMemoryHandle(uint32_t bufferHandle);
 #endif
 
 bool readBufferToBytes(uint32_t bufferHandle, uint64_t offset, uint64_t size, void* outBytes);
