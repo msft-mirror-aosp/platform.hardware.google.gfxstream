@@ -2330,24 +2330,6 @@ class VkDecoderGlobalState::Impl {
         const VkNativeBufferANDROID* nativeBufferANDROID =
             vk_find_struct<VkNativeBufferANDROID>(pCreateInfo);
 
-#if defined(__APPLE__)
-        VkExportMetalObjectCreateInfoEXT metalImageExportCI = {
-            VK_STRUCTURE_TYPE_EXPORT_METAL_OBJECT_CREATE_INFO_EXT, nullptr,
-            VK_EXPORT_METAL_OBJECT_TYPE_METAL_TEXTURE_BIT_EXT};
-
-        // Add VkExportMetalObjectCreateInfoEXT on MoltenVK
-        if (m_emu->instanceSupportsMoltenVK) {
-            const VkExternalMemoryImageCreateInfo* externalMemCI =
-                vk_find_struct<VkExternalMemoryImageCreateInfo>(pCreateInfo);
-            if (externalMemCI) {
-                // Insert metalImageExportCI to the chain
-                metalImageExportCI.pNext = externalMemCI->pNext;
-                const_cast<VkExternalMemoryImageCreateInfo*>(externalMemCI)->pNext =
-                    &metalImageExportCI;
-            }
-        }
-#endif
-
         VkResult createRes = VK_SUCCESS;
 
         if (nativeBufferANDROID) {
@@ -4746,7 +4728,7 @@ class VkDecoderGlobalState::Impl {
 
         const VkMemoryDedicatedAllocateInfo* dedicatedAllocInfoPtr =
             vk_find_struct<VkMemoryDedicatedAllocateInfo>(pAllocateInfo);
-        VkMemoryDedicatedAllocateInfo localDedicatedAllocInfo;
+        VkMemoryDedicatedAllocateInfo localDedicatedAllocInfo = {};
 
         if (dedicatedAllocInfoPtr) {
             localDedicatedAllocInfo = vk_make_orphan_copy(*dedicatedAllocInfoPtr);
@@ -4810,14 +4792,16 @@ class VkDecoderGlobalState::Impl {
             VK_EXT_MEMORY_HANDLE_TYPE_BIT,
             VK_EXT_MEMORY_HANDLE_INVALID,
         };
-#endif
 
 #if defined(__APPLE__)
-        VkImportMetalBufferInfoEXT importInfoMetalBuffer = {
-            VK_STRUCTURE_TYPE_IMPORT_METAL_BUFFER_INFO_EXT,
+        VkImportMemoryMetalHandleInfoEXT importInfoMetalHandle = {
+            VK_STRUCTURE_TYPE_IMPORT_MEMORY_METAL_HANDLE_INFO_EXT,
             0,
+            VK_EXTERNAL_MEMORY_HANDLE_TYPE_MTLHEAP_BIT_EXT,
             nullptr,
         };
+#endif
+
 #endif
 
         void* mappedPtr = nullptr;
@@ -4845,23 +4829,28 @@ class VkDecoderGlobalState::Impl {
                     m_emu->callbacks.invalidateColorBuffer(importCbInfoPtr->colorBuffer);
                 }
 
+                bool opaqueFd = true;
+
 #if defined(__APPLE__)
                 // Use metal object extension on MoltenVK mode for color buffer import,
                 // non-moltenVK path on MacOS will use FD handles
                 if (m_emu->instanceSupportsMoltenVK) {
-                    // TODO(b/333460957): This is a temporary fix to get MoltenVK image memory
-                    // binding checks working as expected  based on dedicated memory checks. It's
-                    // not a valid usage of Vulkan as the device of the image is different than
-                    // what's being used here
-                    localDedicatedAllocInfo = {
+
+                    extern VkImage getColorBufferVkImage(uint32_t colorBufferHandle);
+                    if (dedicatedAllocInfoPtr == nullptr || localDedicatedAllocInfo.image == VK_NULL_HANDLE) {
+                        // TODO(b/351765838): This should not happen, but somehow the guest
+                        // is not providing us the necessary information for video rendering.
+                        localDedicatedAllocInfo = {
                         .sType = VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO,
                         .pNext = nullptr,
                         .image = getColorBufferVkImage(importCbInfoPtr->colorBuffer),
                         .buffer = VK_NULL_HANDLE,
-                    };
-                    shouldUseDedicatedAllocInfo = true;
+                        };
 
-                    MTLBufferRef cbExtMemoryHandle =
+                        shouldUseDedicatedAllocInfo = true;
+                    }
+
+                    MTLResource_id cbExtMemoryHandle =
                         getColorBufferMetalMemoryHandle(importCbInfoPtr->colorBuffer);
 
                     if (cbExtMemoryHandle == nullptr) {
@@ -4871,12 +4860,15 @@ class VkDecoderGlobalState::Impl {
                                 __func__, importCbInfoPtr->colorBuffer);
                         return VK_ERROR_OUT_OF_DEVICE_MEMORY;
                     }
+                    importInfoMetalHandle.handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_MTLHEAP_BIT_EXT;
+                    importInfoMetalHandle.handle = cbExtMemoryHandle;
 
-                    importInfoMetalBuffer.mtlBuffer = cbExtMemoryHandle;
-                    vk_append_struct(&structChainIter, &importInfoMetalBuffer);
-                } else
+                    vk_append_struct(&structChainIter, &importInfoMetalHandle);
+                    opaqueFd = false;
+                }
 #endif
-                if (m_emu->deviceInfo.supportsExternalMemoryImport) {
+
+                if (opaqueFd && m_emu->deviceInfo.supportsExternalMemoryImport) {
                     VK_EXT_MEMORY_HANDLE cbExtMemoryHandle =
                         getColorBufferExtMemoryHandle(importCbInfoPtr->colorBuffer);
 
@@ -4914,9 +4906,10 @@ class VkDecoderGlobalState::Impl {
 
             shouldUseDedicatedAllocInfo &= bufferMemoryUsesDedicatedAlloc;
 
+            bool opaqueFd = true;
 #ifdef __APPLE__
             if (m_emu->instanceSupportsMoltenVK) {
-                MTLBufferRef bufferMetalMemoryHandle =
+                MTLResource_id bufferMetalMemoryHandle =
                     getBufferMetalMemoryHandle(importBufferInfoPtr->buffer);
 
                 if (bufferMetalMemoryHandle == nullptr) {
@@ -4928,11 +4921,16 @@ class VkDecoderGlobalState::Impl {
                     return VK_ERROR_OUT_OF_DEVICE_MEMORY;
                 }
 
-                importInfoMetalBuffer.mtlBuffer = bufferMetalMemoryHandle;
-                vk_append_struct(&structChainIter, &importInfoMetalBuffer);
-            } else
+                importInfoMetalHandle.handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_MTLBUFFER_BIT_EXT;
+                importInfoMetalHandle.handle = bufferMetalMemoryHandle;
+
+                vk_append_struct(&structChainIter, &importInfoMetalHandle);
+
+                opaqueFd = false;
+            }
 #endif
-            if (m_emu->deviceInfo.supportsExternalMemoryImport) {
+
+            if (opaqueFd && m_emu->deviceInfo.supportsExternalMemoryImport) {
                 uint32_t outStreamHandleType;
                 VK_EXT_MEMORY_HANDLE bufferExtMemoryHandle =
                     getBufferExtMemoryHandle(importBufferInfoPtr->buffer, &outStreamHandleType);
@@ -5084,7 +5082,10 @@ class VkDecoderGlobalState::Impl {
 #if defined(__APPLE__)
                 if (m_emu->instanceSupportsMoltenVK) {
                     // Using a different handle type when in MoltenVK mode
-                    handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_MTLBUFFER_BIT_KHR;
+                    handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_MTLBUFFER_BIT_EXT|VK_EXTERNAL_MEMORY_HANDLE_TYPE_MTLTEXTURE_BIT_EXT;
+                }
+                else {
+                    handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT;
                 }
 #elif defined(_WIN32)
                 handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT;
@@ -7790,6 +7791,9 @@ class VkDecoderGlobalState::Impl {
             }
             if (hasDeviceExtension(properties, VK_EXT_METAL_OBJECTS_EXTENSION_NAME)) {
                 res.push_back(VK_EXT_METAL_OBJECTS_EXTENSION_NAME);
+            }
+            if (hasDeviceExtension(properties, VK_EXT_EXTERNAL_MEMORY_METAL_EXTENSION_NAME)) {
+                res.push_back(VK_EXT_EXTERNAL_MEMORY_METAL_EXTENSION_NAME);
             }
         } else {
             // Non-MoltenVK path, use memory_fd

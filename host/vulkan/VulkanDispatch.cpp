@@ -109,6 +109,9 @@ static void initIcdPaths(bool forTesting) {
         // MVK_CONFIG_USE_METAL_ARGUMENT_BUFFERS is not working correctly
         android::base::setEnvironmentVariable("MVK_CONFIG_USE_METAL_ARGUMENT_BUFFERS", "0");
 
+        // MVK_CONFIG_USE_MTLHEAP is required for VK_EXT_external_memory_metal
+        android::base::setEnvironmentVariable("MVK_CONFIG_USE_MTLHEAP", "1");
+
         // TODO(b/351765838): VVL won't work with MoltenVK due to the current
         //  way of external memory handling, add it into disable list to
         //  avoid users enabling it implicitly (i.e. via vkconfig).
