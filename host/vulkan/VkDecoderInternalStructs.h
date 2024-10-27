@@ -22,6 +22,7 @@
 
 #include <stdlib.h>
 
+#include <optional>
 #include <set>
 #include <string>
 #include <unordered_map>
@@ -209,6 +210,7 @@ struct DeviceInfo {
     std::set<VkFormat> imageFormats = {};  // image formats used on this device
     std::unique_ptr<GpuDecompressionPipelineManager> decompPipelines = nullptr;
     DeviceOpTrackerPtr deviceOpTracker = nullptr;
+    std::optional<uint32_t> virtioGpuContextId;
 
     // True if this is a compressed image that needs to be decompressed on the GPU (with our
     // compute shader)
