@@ -433,7 +433,7 @@ static const QAndroidVmOperations sQAndroidVmOperations =
         .hostmemRegister = android_emulation_hostmem_register,
         .hostmemUnregister = android_emulation_hostmem_unregister,
         .hostmemGetInfo = android_emulation_hostmem_get_info,
-#ifdef GFXSTREAM_ENABLE_HOST_VK_SNAPSHOT
+#ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_SUPPORT
         .setSkipSnapshotSaveReason =
             [](SnapshotSkipReason reason) {
                 DEBUG_LOG(stderr,

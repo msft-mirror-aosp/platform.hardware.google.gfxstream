@@ -23,6 +23,9 @@ cc_library_static {
     whole_static_libs: [
         "libgfxstream_host_tracing",
     ],
+    shared_libs: [
+        "liblog",
+    ],
     static_libs: [
         "gfxstream_base",
         "gfxstream_host_common",
