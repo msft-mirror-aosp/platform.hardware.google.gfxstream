@@ -1804,6 +1804,17 @@ void reservedmarshal_VkPipelineRasterizationProvokingVertexStateCreateInfoEXT(
     const VkPipelineRasterizationProvokingVertexStateCreateInfoEXT* forMarshaling, uint8_t** ptr);
 
 #endif
+#ifdef VK_EXT_line_rasterization
+DEFINE_ALIAS_FUNCTION(reservedmarshal_VkPhysicalDeviceLineRasterizationFeaturesKHR,
+                      reservedmarshal_VkPhysicalDeviceLineRasterizationFeaturesEXT)
+
+DEFINE_ALIAS_FUNCTION(reservedmarshal_VkPhysicalDeviceLineRasterizationPropertiesKHR,
+                      reservedmarshal_VkPhysicalDeviceLineRasterizationPropertiesEXT)
+
+DEFINE_ALIAS_FUNCTION(reservedmarshal_VkPipelineRasterizationLineStateCreateInfoKHR,
+                      reservedmarshal_VkPipelineRasterizationLineStateCreateInfoEXT)
+
+#endif
 #ifdef VK_EXT_index_type_uint8
 DEFINE_ALIAS_FUNCTION(reservedmarshal_VkPhysicalDeviceIndexTypeUint8FeaturesKHR,
                       reservedmarshal_VkPhysicalDeviceIndexTypeUint8FeaturesEXT)

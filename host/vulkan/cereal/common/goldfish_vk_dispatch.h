@@ -483,6 +483,9 @@ struct VulkanDispatch {
 #ifdef VK_EXT_tooling_info
     PFN_vkGetPhysicalDeviceToolPropertiesEXT vkGetPhysicalDeviceToolPropertiesEXT;
 #endif
+#ifdef VK_EXT_line_rasterization
+    PFN_vkCmdSetLineStippleEXT vkCmdSetLineStippleEXT;
+#endif
 #ifdef VK_EXT_extended_dynamic_state
     PFN_vkCmdSetCullModeEXT vkCmdSetCullModeEXT;
     PFN_vkCmdSetFrontFaceEXT vkCmdSetFrontFaceEXT;

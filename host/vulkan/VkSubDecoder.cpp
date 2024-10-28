@@ -2689,6 +2689,21 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 break;
             }
 #endif
+#ifdef VK_EXT_line_rasterization
+            case OP_vkCmdSetLineStippleEXT: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkSubDecoder vkCmdSetLineStippleEXT");
+                uint32_t lineStippleFactor;
+                uint16_t lineStipplePattern;
+                memcpy((uint32_t*)&lineStippleFactor, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                memcpy((uint16_t*)&lineStipplePattern, *readStreamPtrPtr, sizeof(uint16_t));
+                *readStreamPtrPtr += sizeof(uint16_t);
+                vk->vkCmdSetLineStippleEXT((VkCommandBuffer)dispatchHandle, lineStippleFactor,
+                                           lineStipplePattern);
+                break;
+            }
+#endif
 #ifdef VK_EXT_extended_dynamic_state
             case OP_vkCmdSetCullModeEXT: {
                 GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
