@@ -619,6 +619,10 @@ void init_vulkan_dispatch_from_system_loader(DlOpenFunc dlOpenFunc, DlSymFunc dl
     out->vkGetImageSubresourceLayout2KHR =
         (PFN_vkGetImageSubresourceLayout2KHR)dlSymFunc(lib, "vkGetImageSubresourceLayout2KHR");
 #endif
+#ifdef VK_KHR_line_rasterization
+    out->vkCmdSetLineStippleKHR =
+        (PFN_vkCmdSetLineStippleKHR)dlSymFunc(lib, "vkCmdSetLineStippleKHR");
+#endif
 #ifdef VK_ANDROID_native_buffer
     out->vkGetSwapchainGrallocUsageANDROID =
         (PFN_vkGetSwapchainGrallocUsageANDROID)dlSymFunc(lib, "vkGetSwapchainGrallocUsageANDROID");
@@ -1582,6 +1586,10 @@ void init_vulkan_dispatch_from_instance(VulkanDispatch* vk, VkInstance instance,
     out->vkGetImageSubresourceLayout2KHR =
         (PFN_vkGetImageSubresourceLayout2KHR)vk->vkGetInstanceProcAddr(
             instance, "vkGetImageSubresourceLayout2KHR");
+#endif
+#ifdef VK_KHR_line_rasterization
+    out->vkCmdSetLineStippleKHR =
+        (PFN_vkCmdSetLineStippleKHR)vk->vkGetInstanceProcAddr(instance, "vkCmdSetLineStippleKHR");
 #endif
 #ifdef VK_ANDROID_native_buffer
     out->vkGetSwapchainGrallocUsageANDROID =
@@ -2568,6 +2576,10 @@ void init_vulkan_dispatch_from_device(VulkanDispatch* vk, VkDevice device, Vulka
     out->vkGetImageSubresourceLayout2KHR =
         (PFN_vkGetImageSubresourceLayout2KHR)vk->vkGetDeviceProcAddr(
             device, "vkGetImageSubresourceLayout2KHR");
+#endif
+#ifdef VK_KHR_line_rasterization
+    out->vkCmdSetLineStippleKHR =
+        (PFN_vkCmdSetLineStippleKHR)vk->vkGetDeviceProcAddr(device, "vkCmdSetLineStippleKHR");
 #endif
 #ifdef VK_ANDROID_native_buffer
     out->vkGetSwapchainGrallocUsageANDROID =
