@@ -17,6 +17,26 @@ package {
     default_applicable_licenses: ["hardware_google_gfxstream_license"],
 }
 
+cc_library_host_static {
+    name: "libgfxstream_backend_proto",
+    defaults: [
+        "gfxstream_defaults",
+        "gfxstream_host_cc_defaults",
+    ],
+    proto: {
+        canonical_path_from_root: false,
+        export_proto_headers: true,
+        type: "full",
+        static: true,
+    },
+    srcs: [
+        "VirtioGpuContextSnapshot.proto",
+        "VirtioGpuFrontendSnapshot.proto",
+        "VirtioGpuRingBlobSnapshot.proto",
+        "VirtioGpuResourceSnapshot.proto",
+    ],
+}
+
 gfxstream_backend_static_deps = [
     "gfxstream_base",
     "gfxstream_host_common",
@@ -42,6 +62,12 @@ gfxstream_backend_static_deps = [
     "libgfxstream_host_vulkan_emulatedtextures",
     "libgfxstream_host_vulkan_server",
     "libgfxstream_thirdparty_glm",
+]
+
+gfxstream_backend_snapshot_static_deps = [
+    "libgfxstream_backend_proto",
+    "libprotobuf-cpp-full",
+    "libz",
 ]
 
 gfxstream_backend_magma_static_deps = [
@@ -116,6 +142,10 @@ cc_defaults {
         "GfxStreamAgents.cpp",
         "virtio-gpu-gfxstream-renderer.cpp",
         "virtio-gpu-gfxstream-renderer-goldfish.cpp",
+        "VirtioGpuContext.cpp",
+        "VirtioGpuFrontend.cpp",
+        "VirtioGpuResource.cpp",
+        "VirtioGpuRingBlob.cpp",
         "VirtioGpuTimelines.cpp",
         "VsyncThread.cpp",
     ],
@@ -125,6 +155,8 @@ cc_defaults {
     target: {
         host: {
             srcs: ["NativeSubWindow_x11.cpp"],
+            static_libs: gfxstream_backend_snapshot_static_deps,
+            whole_static_libs: gfxstream_backend_snapshot_static_deps,
         },
         android: {
             srcs: ["NativeSubWindow_android.cpp"],
