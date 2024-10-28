@@ -32,15 +32,15 @@
 namespace gfxstream {
 namespace vk {
 
-#define VK_ANB_ERR(fmt, ...) fprintf(stderr, "%s:%d " fmt "\n", __func__, __LINE__, ##__VA_ARGS__);
+#define VK_ANB_ERR(fmt, ...) INFO(fmt, ##__VA_ARGS__);
 
 #define ENABLE_VK_ANB_DEBUG 0
 
 #if ENABLE_VK_ANB_DEBUG
 #define VK_ANB_DEBUG(fmt, ...) \
-    fprintf(stderr, "vk-anb-debug: %s:%d " fmt "\n", __func__, __LINE__, ##__VA_ARGS__);
+    INFO("vk-anb-debug: " fmt, ##__VA_ARGS__);
 #define VK_ANB_DEBUG_OBJ(obj, fmt, ...) \
-    fprintf(stderr, "vk-anb-debug: %s:%d:%p " fmt "\n", __func__, __LINE__, obj, ##__VA_ARGS__);
+    INFO("vk-anb-debug: %p " fmt, obj, ##__VA_ARGS__);
 #else
 #define VK_ANB_DEBUG(fmt, ...)
 #define VK_ANB_DEBUG_OBJ(obj, fmt, ...)
