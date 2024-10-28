@@ -25,8 +25,6 @@
 #include "gfxstream/host/Features.h"
 #include "goldfish_vk_private_defs.h"
 
-#define E(fmt, ...) fprintf(stderr, fmt "\n", ##__VA_ARGS__)
-
 namespace android {
 namespace base {
 class BumpPool;
