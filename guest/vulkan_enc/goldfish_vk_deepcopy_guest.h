@@ -1786,6 +1786,17 @@ void deepcopy_VkPipelineRasterizationProvokingVertexStateCreateInfoEXT(
     VkPipelineRasterizationProvokingVertexStateCreateInfoEXT* to);
 
 #endif
+#ifdef VK_EXT_line_rasterization
+DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDeviceLineRasterizationFeaturesKHR,
+                      deepcopy_VkPhysicalDeviceLineRasterizationFeaturesEXT)
+
+DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDeviceLineRasterizationPropertiesKHR,
+                      deepcopy_VkPhysicalDeviceLineRasterizationPropertiesEXT)
+
+DEFINE_ALIAS_FUNCTION(deepcopy_VkPipelineRasterizationLineStateCreateInfoKHR,
+                      deepcopy_VkPipelineRasterizationLineStateCreateInfoEXT)
+
+#endif
 #ifdef VK_EXT_index_type_uint8
 DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDeviceIndexTypeUint8FeaturesKHR,
                       deepcopy_VkPhysicalDeviceIndexTypeUint8FeaturesEXT)
