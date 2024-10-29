@@ -17234,6 +17234,11 @@ const char* api_opcode_to_string(const uint32_t opcode) {
             return "OP_vkCmdSetPrimitiveTopology";
         }
 #endif
+#ifdef VK_EXT_line_rasterization
+        case OP_vkCmdSetLineStippleEXT: {
+            return "OP_vkCmdSetLineStippleEXT";
+        }
+#endif
 #ifdef VK_EXT_extended_dynamic_state
         case OP_vkCmdSetCullModeEXT: {
             return "OP_vkCmdSetCullModeEXT";
