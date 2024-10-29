@@ -3017,6 +3017,22 @@ class VkDecoderSnapshot::Impl {
                                          const VkImageSubresource2KHR* pSubresource,
                                          VkSubresourceLayout2KHR* pLayout) {}
 #endif
+#ifdef VK_KHR_line_rasterization
+    void vkCmdSetLineStippleKHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
+                                android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
+                                uint32_t lineStippleFactor, uint16_t lineStipplePattern) {
+        android::base::AutoLock lock(mLock);
+        // commandBuffer modify
+        auto apiHandle = mReconstruction.createApiInfo();
+        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
+        mReconstruction.setApiTrace(apiInfo, OP_vkCmdSetLineStippleKHR, snapshotTraceBegin,
+                                    snapshotTraceBytes);
+        for (uint32_t i = 0; i < 1; ++i) {
+            VkCommandBuffer boxed = unboxed_to_boxed_VkCommandBuffer((&commandBuffer)[i]);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+        }
+    }
+#endif
 #ifdef VK_ANDROID_native_buffer
     void vkGetSwapchainGrallocUsageANDROID(const uint8_t* snapshotTraceBegin,
                                            size_t snapshotTraceBytes, android::base::BumpPool* pool,
@@ -6594,6 +6610,14 @@ void VkDecoderSnapshot::vkGetImageSubresourceLayout2KHR(const uint8_t* snapshotT
                                                         VkSubresourceLayout2KHR* pLayout) {
     mImpl->vkGetImageSubresourceLayout2KHR(snapshotTraceBegin, snapshotTraceBytes, pool, device,
                                            image, pSubresource, pLayout);
+}
+#endif
+#ifdef VK_KHR_line_rasterization
+void VkDecoderSnapshot::vkCmdSetLineStippleKHR(
+    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
+    VkCommandBuffer commandBuffer, uint32_t lineStippleFactor, uint16_t lineStipplePattern) {
+    mImpl->vkCmdSetLineStippleKHR(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
+                                  lineStippleFactor, lineStipplePattern);
 }
 #endif
 #ifdef VK_ANDROID_native_buffer
