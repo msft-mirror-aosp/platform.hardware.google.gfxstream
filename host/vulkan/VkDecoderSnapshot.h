@@ -1215,6 +1215,11 @@ class VkDecoderSnapshot {
                                          const VkImageSubresource2KHR* pSubresource,
                                          VkSubresourceLayout2KHR* pLayout);
 #endif
+#ifdef VK_KHR_line_rasterization
+    void vkCmdSetLineStippleKHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
+                                android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
+                                uint32_t lineStippleFactor, uint16_t lineStipplePattern);
+#endif
 #ifdef VK_ANDROID_native_buffer
     void vkGetSwapchainGrallocUsageANDROID(const uint8_t* snapshotTraceBegin,
                                            size_t snapshotTraceBytes, android::base::BumpPool* pool,
@@ -1340,6 +1345,11 @@ class VkDecoderSnapshot {
                                               android::base::BumpPool* pool, VkResult input_result,
                                               VkPhysicalDevice physicalDevice, uint32_t* pToolCount,
                                               VkPhysicalDeviceToolProperties* pToolProperties);
+#endif
+#ifdef VK_EXT_line_rasterization
+    void vkCmdSetLineStippleEXT(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
+                                android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
+                                uint32_t lineStippleFactor, uint16_t lineStipplePattern);
 #endif
 #ifdef VK_EXT_extended_dynamic_state
     void vkCmdSetCullModeEXT(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,

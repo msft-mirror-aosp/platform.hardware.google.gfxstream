@@ -4091,6 +4091,19 @@ VkResult gfxstream_vk_GetPhysicalDeviceToolPropertiesEXT(
     return vkGetPhysicalDeviceToolPropertiesEXT_VkResult_return;
 }
 #endif
+#ifdef VK_EXT_line_rasterization
+void gfxstream_vk_CmdSetLineStippleEXT(VkCommandBuffer commandBuffer, uint32_t lineStippleFactor,
+                                       uint16_t lineStipplePattern) {
+    MESA_TRACE_SCOPE("vkCmdSetLineStippleEXT");
+    VK_FROM_HANDLE(gfxstream_vk_command_buffer, gfxstream_commandBuffer, commandBuffer);
+    {
+        auto vkEnc = gfxstream::vk::ResourceTracker::getCommandBufferEncoder(
+            gfxstream_commandBuffer->internal_object);
+        vkEnc->vkCmdSetLineStippleEXT(gfxstream_commandBuffer->internal_object, lineStippleFactor,
+                                      lineStipplePattern, true /* do lock */);
+    }
+}
+#endif
 #ifdef VK_EXT_extended_dynamic_state
 void gfxstream_vk_CmdSetCullModeEXT(VkCommandBuffer commandBuffer, VkCullModeFlags cullMode) {
     MESA_TRACE_SCOPE("vkCmdSetCullModeEXT");
