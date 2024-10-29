@@ -678,6 +678,10 @@ void init_vulkan_dispatch_from_system_loader(DlOpenFunc dlOpenFunc, DlSymFunc dl
     out->vkGetPhysicalDeviceToolPropertiesEXT = (PFN_vkGetPhysicalDeviceToolPropertiesEXT)dlSymFunc(
         lib, "vkGetPhysicalDeviceToolPropertiesEXT");
 #endif
+#ifdef VK_EXT_line_rasterization
+    out->vkCmdSetLineStippleEXT =
+        (PFN_vkCmdSetLineStippleEXT)dlSymFunc(lib, "vkCmdSetLineStippleEXT");
+#endif
 #ifdef VK_EXT_extended_dynamic_state
     out->vkCmdSetCullModeEXT = (PFN_vkCmdSetCullModeEXT)dlSymFunc(lib, "vkCmdSetCullModeEXT");
     out->vkCmdSetFrontFaceEXT = (PFN_vkCmdSetFrontFaceEXT)dlSymFunc(lib, "vkCmdSetFrontFaceEXT");
@@ -1650,6 +1654,10 @@ void init_vulkan_dispatch_from_instance(VulkanDispatch* vk, VkInstance instance,
     out->vkGetPhysicalDeviceToolPropertiesEXT =
         (PFN_vkGetPhysicalDeviceToolPropertiesEXT)vk->vkGetInstanceProcAddr(
             instance, "vkGetPhysicalDeviceToolPropertiesEXT");
+#endif
+#ifdef VK_EXT_line_rasterization
+    out->vkCmdSetLineStippleEXT =
+        (PFN_vkCmdSetLineStippleEXT)vk->vkGetInstanceProcAddr(instance, "vkCmdSetLineStippleEXT");
 #endif
 #ifdef VK_EXT_extended_dynamic_state
     out->vkCmdSetCullModeEXT =
@@ -2630,6 +2638,10 @@ void init_vulkan_dispatch_from_device(VulkanDispatch* vk, VkDevice device, Vulka
     out->vkGetPhysicalDeviceToolPropertiesEXT =
         (PFN_vkGetPhysicalDeviceToolPropertiesEXT)vk->vkGetDeviceProcAddr(
             device, "vkGetPhysicalDeviceToolPropertiesEXT");
+#endif
+#ifdef VK_EXT_line_rasterization
+    out->vkCmdSetLineStippleEXT =
+        (PFN_vkCmdSetLineStippleEXT)vk->vkGetDeviceProcAddr(device, "vkCmdSetLineStippleEXT");
 #endif
 #ifdef VK_EXT_extended_dynamic_state
     out->vkCmdSetCullModeEXT =
