@@ -1629,6 +1629,17 @@ void count_VkPipelineRasterizationProvokingVertexStateCreateInfoEXT(
     const VkPipelineRasterizationProvokingVertexStateCreateInfoEXT* toCount, size_t* count);
 
 #endif
+#ifdef VK_EXT_line_rasterization
+DEFINE_ALIAS_FUNCTION(count_VkPhysicalDeviceLineRasterizationFeaturesKHR,
+                      count_VkPhysicalDeviceLineRasterizationFeaturesEXT)
+
+DEFINE_ALIAS_FUNCTION(count_VkPhysicalDeviceLineRasterizationPropertiesKHR,
+                      count_VkPhysicalDeviceLineRasterizationPropertiesEXT)
+
+DEFINE_ALIAS_FUNCTION(count_VkPipelineRasterizationLineStateCreateInfoKHR,
+                      count_VkPipelineRasterizationLineStateCreateInfoEXT)
+
+#endif
 #ifdef VK_EXT_index_type_uint8
 DEFINE_ALIAS_FUNCTION(count_VkPhysicalDeviceIndexTypeUint8FeaturesKHR,
                       count_VkPhysicalDeviceIndexTypeUint8FeaturesEXT)
