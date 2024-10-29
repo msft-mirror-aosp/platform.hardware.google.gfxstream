@@ -764,7 +764,7 @@ int parseGfxstreamFeatures(const int renderer_flags,
         &features, Vulkan,
         renderer_flags & STREAM_RENDERER_FLAGS_USE_VK_BIT);
     GFXSTREAM_SET_FEATURE_ON_CONDITION(
-        &features, VulkanBatchedDescriptorSetUpdate, true);
+        &features, VulkanBatchedDescriptorSetUpdate, features.VulkanBatchedDescriptorSetUpdate.enabled);
     GFXSTREAM_SET_FEATURE_ON_CONDITION(
         &features, VulkanIgnoredHandles, true);
     GFXSTREAM_SET_FEATURE_ON_CONDITION(
