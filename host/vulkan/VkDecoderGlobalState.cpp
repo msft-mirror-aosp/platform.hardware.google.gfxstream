@@ -3597,8 +3597,10 @@ class VkDecoderGlobalState::Impl {
                     entry.bufferView = descriptorWrite.pTexelBufferView[writeElemIdx];
                     entry.writeType = DescriptorSetInfo::DescriptorWriteType::BufferView;
                     entry.descriptorType = descType;
-                    // TODO: check alive
-                    ERR("%s: Snapshot for texel buffer view is incomplete.\n", __func__);
+                    if (snapshotsEnabled()) {
+                        // TODO: check alive
+                        ERR("%s: Snapshot for texel buffer view is incomplete.\n", __func__);
+                    }
                 }
             } else if (isDescriptorTypeInlineUniformBlock(descType)) {
                 const VkWriteDescriptorSetInlineUniformBlock* descInlineUniformBlock =
@@ -3629,8 +3631,10 @@ class VkDecoderGlobalState::Impl {
                 // TODO
                 // Look for pNext inline uniform block or acceleration structure.
                 // Append new DescriptorWrite entry that holds the buffer
-                ERR("%s: Ignoring Snapshot for emulated write for descriptor type 0x%x\n", __func__,
-                    descType);
+                if (snapshotsEnabled()) {
+                    ERR("%s: Ignoring Snapshot for emulated write for descriptor type 0x%x\n",
+                        __func__, descType);
+                }
             }
         }
         // TODO: bookkeep pDescriptorCopies
