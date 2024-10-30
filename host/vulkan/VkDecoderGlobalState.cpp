@@ -3880,6 +3880,35 @@ class VkDecoderGlobalState::Impl {
         return result;
     }
 
+    VkResult on_vkCreateComputePipelines(android::base::BumpPool* pool, VkDevice boxed_device,
+                                          VkPipelineCache pipelineCache, uint32_t createInfoCount,
+                                          const VkComputePipelineCreateInfo* pCreateInfos,
+                                          const VkAllocationCallbacks* pAllocator,
+                                          VkPipeline* pPipelines) {
+        auto device = unbox_VkDevice(boxed_device);
+        auto deviceDispatch = dispatch_VkDevice(boxed_device);
+
+        VkResult result = deviceDispatch->vkCreateComputePipelines(
+            device, pipelineCache, createInfoCount, pCreateInfos, pAllocator, pPipelines);
+        if (result != VK_SUCCESS && result != VK_PIPELINE_COMPILE_REQUIRED) {
+            return result;
+        }
+
+        std::lock_guard<std::recursive_mutex> lock(mLock);
+
+        for (uint32_t i = 0; i < createInfoCount; i++) {
+            if (!pPipelines[i]) {
+                continue;
+            }
+            auto& pipelineInfo = mPipelineInfo[pPipelines[i]];
+            pipelineInfo.device = device;
+
+            pPipelines[i] = new_boxed_non_dispatchable_VkPipeline(pPipelines[i]);
+        }
+
+        return result;
+    }
+
     void destroyPipelineWithExclusiveInfo(VkDevice device, VulkanDispatch* deviceDispatch,
                                           VkPipeline pipeline, PipelineInfo& pipelineInfo,
                                           const VkAllocationCallbacks* pAllocator) {
@@ -9144,6 +9173,14 @@ VkResult VkDecoderGlobalState::on_vkCreateGraphicsPipelines(
     uint32_t createInfoCount, const VkGraphicsPipelineCreateInfo* pCreateInfos,
     const VkAllocationCallbacks* pAllocator, VkPipeline* pPipelines) {
     return mImpl->on_vkCreateGraphicsPipelines(pool, boxed_device, pipelineCache, createInfoCount,
+                                               pCreateInfos, pAllocator, pPipelines);
+}
+
+VkResult VkDecoderGlobalState::on_vkCreateComputePipelines(
+    android::base::BumpPool* pool, VkDevice boxed_device, VkPipelineCache pipelineCache,
+    uint32_t createInfoCount, const VkComputePipelineCreateInfo* pCreateInfos,
+    const VkAllocationCallbacks* pAllocator, VkPipeline* pPipelines) {
+    return mImpl->on_vkCreateComputePipelines(pool, boxed_device, pipelineCache, createInfoCount,
                                                pCreateInfos, pAllocator, pPipelines);
 }
 
