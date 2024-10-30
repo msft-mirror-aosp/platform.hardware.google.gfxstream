@@ -980,8 +980,9 @@ inline const GoldfishPipeServiceOps* VirtioGpuFrontend::ensureAndGetServiceOps()
 #ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
 
 // Work in progress. Disabled for now but code is present to get build CI.
-static constexpr const bool kEnableFrontendSnapshots = false;
+static constexpr const bool kEnableFrontendAndAsgSnapshots = false;
 
+static constexpr const char kSnapshotBasenameAsg[] = "gfxstream_asg.bin";
 static constexpr const char kSnapshotBasenameFrontend[] = "gfxstream_frontend.txtproto";
 static constexpr const char kSnapshotBasenameRenderer[] = "gfxstream_renderer.bin";
 
@@ -1036,6 +1037,24 @@ int VirtioGpuFrontend::snapshotFrontend(const char* directory) {
     return 0;
 }
 
+int VirtioGpuFrontend::snapshotAsg(const char* directory) {
+    const std::filesystem::path snapshotDirectory = std::string(directory);
+    const std::filesystem::path snapshotPath = snapshotDirectory / kSnapshotBasenameAsg;
+
+    android::base::StdioStream stream(fopen(snapshotPath.c_str(), "wb"),
+                                      android::base::StdioStream::kOwner);
+    android::snapshot::SnapshotLoadStream saveStream{
+        .stream = &stream,
+    };
+
+    int ret = android::emulation::goldfish_address_space_memory_state_save(saveStream.stream);
+    if (ret) {
+        stream_renderer_error("Failed to save snapshot: failed to save ASG state.");
+        return ret;
+    }
+    return 0;
+}
+
 int VirtioGpuFrontend::snapshot(const char* directory) {
     stream_renderer_debug("directory:%s", directory);
 
@@ -1047,10 +1066,16 @@ int VirtioGpuFrontend::snapshot(const char* directory) {
         return ret;
     }
 
-    if (kEnableFrontendSnapshots) {
+    if (kEnableFrontendAndAsgSnapshots) {
         ret = snapshotFrontend(directory);
         if (ret) {
             stream_renderer_error("Failed to save snapshot: failed to snapshot frontend.");
+            return ret;
+        }
+
+        ret = snapshotAsg(directory);
+        if (ret) {
+            stream_renderer_error("Failed to save snapshot: failed to snapshot ASG device.");
             return ret;
         }
     }
@@ -1115,6 +1140,24 @@ int VirtioGpuFrontend::restoreFrontend(const char* directory) {
     return 0;
 }
 
+int VirtioGpuFrontend::restoreAsg(const char* directory) {
+    const std::filesystem::path snapshotDirectory = std::string(directory);
+    const std::filesystem::path snapshotPath = snapshotDirectory / kSnapshotBasenameAsg;
+
+    android::base::StdioStream stream(fopen(snapshotPath.c_str(), "rb"),
+                                      android::base::StdioStream::kOwner);
+    android::snapshot::SnapshotLoadStream loadStream{
+        .stream = &stream,
+    };
+
+    int ret = android::emulation::goldfish_address_space_memory_state_load(loadStream.stream);
+    if (ret) {
+        stream_renderer_error("Failed to restore snapshot: failed to restore ASG state.");
+        return ret;
+    }
+    return 0;
+}
+
 int VirtioGpuFrontend::restore(const char* directory) {
     stream_renderer_debug("directory:%s", directory);
 
@@ -1126,10 +1169,16 @@ int VirtioGpuFrontend::restore(const char* directory) {
         return ret;
     }
 
-    if (kEnableFrontendSnapshots) {
+    if (kEnableFrontendAndAsgSnapshots) {
         ret = restoreFrontend(directory);
         if (ret) {
             stream_renderer_error("Failed to load snapshot: failed to load frontend.");
+            return ret;
+        }
+
+        ret = restoreAsg(directory);
+        if (ret) {
+            stream_renderer_error("Failed to load snapshot: failed to load ASG device.");
             return ret;
         }
     }
