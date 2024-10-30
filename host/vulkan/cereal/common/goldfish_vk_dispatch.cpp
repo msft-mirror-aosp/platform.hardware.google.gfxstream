@@ -619,6 +619,10 @@ void init_vulkan_dispatch_from_system_loader(DlOpenFunc dlOpenFunc, DlSymFunc dl
     out->vkGetImageSubresourceLayout2KHR =
         (PFN_vkGetImageSubresourceLayout2KHR)dlSymFunc(lib, "vkGetImageSubresourceLayout2KHR");
 #endif
+#ifdef VK_KHR_line_rasterization
+    out->vkCmdSetLineStippleKHR =
+        (PFN_vkCmdSetLineStippleKHR)dlSymFunc(lib, "vkCmdSetLineStippleKHR");
+#endif
 #ifdef VK_ANDROID_native_buffer
     out->vkGetSwapchainGrallocUsageANDROID =
         (PFN_vkGetSwapchainGrallocUsageANDROID)dlSymFunc(lib, "vkGetSwapchainGrallocUsageANDROID");
@@ -677,6 +681,10 @@ void init_vulkan_dispatch_from_system_loader(DlOpenFunc dlOpenFunc, DlSymFunc dl
 #ifdef VK_EXT_tooling_info
     out->vkGetPhysicalDeviceToolPropertiesEXT = (PFN_vkGetPhysicalDeviceToolPropertiesEXT)dlSymFunc(
         lib, "vkGetPhysicalDeviceToolPropertiesEXT");
+#endif
+#ifdef VK_EXT_line_rasterization
+    out->vkCmdSetLineStippleEXT =
+        (PFN_vkCmdSetLineStippleEXT)dlSymFunc(lib, "vkCmdSetLineStippleEXT");
 #endif
 #ifdef VK_EXT_extended_dynamic_state
     out->vkCmdSetCullModeEXT = (PFN_vkCmdSetCullModeEXT)dlSymFunc(lib, "vkCmdSetCullModeEXT");
@@ -1579,6 +1587,10 @@ void init_vulkan_dispatch_from_instance(VulkanDispatch* vk, VkInstance instance,
         (PFN_vkGetImageSubresourceLayout2KHR)vk->vkGetInstanceProcAddr(
             instance, "vkGetImageSubresourceLayout2KHR");
 #endif
+#ifdef VK_KHR_line_rasterization
+    out->vkCmdSetLineStippleKHR =
+        (PFN_vkCmdSetLineStippleKHR)vk->vkGetInstanceProcAddr(instance, "vkCmdSetLineStippleKHR");
+#endif
 #ifdef VK_ANDROID_native_buffer
     out->vkGetSwapchainGrallocUsageANDROID =
         (PFN_vkGetSwapchainGrallocUsageANDROID)vk->vkGetInstanceProcAddr(
@@ -1650,6 +1662,10 @@ void init_vulkan_dispatch_from_instance(VulkanDispatch* vk, VkInstance instance,
     out->vkGetPhysicalDeviceToolPropertiesEXT =
         (PFN_vkGetPhysicalDeviceToolPropertiesEXT)vk->vkGetInstanceProcAddr(
             instance, "vkGetPhysicalDeviceToolPropertiesEXT");
+#endif
+#ifdef VK_EXT_line_rasterization
+    out->vkCmdSetLineStippleEXT =
+        (PFN_vkCmdSetLineStippleEXT)vk->vkGetInstanceProcAddr(instance, "vkCmdSetLineStippleEXT");
 #endif
 #ifdef VK_EXT_extended_dynamic_state
     out->vkCmdSetCullModeEXT =
@@ -2561,6 +2577,10 @@ void init_vulkan_dispatch_from_device(VulkanDispatch* vk, VkDevice device, Vulka
         (PFN_vkGetImageSubresourceLayout2KHR)vk->vkGetDeviceProcAddr(
             device, "vkGetImageSubresourceLayout2KHR");
 #endif
+#ifdef VK_KHR_line_rasterization
+    out->vkCmdSetLineStippleKHR =
+        (PFN_vkCmdSetLineStippleKHR)vk->vkGetDeviceProcAddr(device, "vkCmdSetLineStippleKHR");
+#endif
 #ifdef VK_ANDROID_native_buffer
     out->vkGetSwapchainGrallocUsageANDROID =
         (PFN_vkGetSwapchainGrallocUsageANDROID)vk->vkGetDeviceProcAddr(
@@ -2630,6 +2650,10 @@ void init_vulkan_dispatch_from_device(VulkanDispatch* vk, VkDevice device, Vulka
     out->vkGetPhysicalDeviceToolPropertiesEXT =
         (PFN_vkGetPhysicalDeviceToolPropertiesEXT)vk->vkGetDeviceProcAddr(
             device, "vkGetPhysicalDeviceToolPropertiesEXT");
+#endif
+#ifdef VK_EXT_line_rasterization
+    out->vkCmdSetLineStippleEXT =
+        (PFN_vkCmdSetLineStippleEXT)vk->vkGetDeviceProcAddr(device, "vkCmdSetLineStippleEXT");
 #endif
 #ifdef VK_EXT_extended_dynamic_state
     out->vkCmdSetCullModeEXT =
