@@ -1380,20 +1380,24 @@ class VkDecoderGlobalState::Impl {
                 privateDataFeatures->privateData = VK_FALSE;
             }
 
-            VkPhysicalDeviceInlineUniformBlockFeatures* iubFeatures =
-                vk_find_struct<VkPhysicalDeviceInlineUniformBlockFeatures>(pFeatures);
-            if (iubFeatures != nullptr) {
-                // Currently not supporting iub due to descriptor set optimization.
-                // TODO: fix the non-optimized descriptor set path and re-enable the features afterwads.
-                // b/372217918
-                iubFeatures->inlineUniformBlock = VK_FALSE;
-            }
-
             VkPhysicalDeviceVulkan13Features* vulkan13Features =
                 vk_find_struct<VkPhysicalDeviceVulkan13Features>(pFeatures);
             if (vulkan13Features != nullptr) {
                 vulkan13Features->privateData = VK_FALSE;
-                vulkan13Features->inlineUniformBlock = VK_FALSE;
+            }
+
+            if (m_emu->features.VulkanBatchedDescriptorSetUpdate.enabled) {
+                // Currently not supporting iub due to descriptor set optimization.
+                // TODO: fix the non-optimized descriptor set path and re-enable the features afterwads.
+                // b/372217918
+                VkPhysicalDeviceInlineUniformBlockFeatures* iubFeatures =
+                    vk_find_struct<VkPhysicalDeviceInlineUniformBlockFeatures>(pFeatures);
+                if (iubFeatures != nullptr) {
+                    iubFeatures->inlineUniformBlock = VK_FALSE;
+                }
+                if (vulkan13Features != nullptr) {
+                    vulkan13Features->inlineUniformBlock = VK_FALSE;
+                }
             }
         }
     }
