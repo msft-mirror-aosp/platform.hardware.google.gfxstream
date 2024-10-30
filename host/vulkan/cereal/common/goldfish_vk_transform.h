@@ -3093,6 +3093,26 @@ void transform_fromhost_VkPipelineRasterizationProvokingVertexStateCreateInfoEXT
     VkPipelineRasterizationProvokingVertexStateCreateInfoEXT* toTransform);
 
 #endif
+#ifdef VK_EXT_line_rasterization
+DEFINE_ALIAS_FUNCTION(transform_tohost_VkPhysicalDeviceLineRasterizationFeaturesKHR,
+                      transform_tohost_VkPhysicalDeviceLineRasterizationFeaturesEXT)
+
+DEFINE_ALIAS_FUNCTION(transform_fromhost_VkPhysicalDeviceLineRasterizationFeaturesKHR,
+                      transform_fromhost_VkPhysicalDeviceLineRasterizationFeaturesEXT)
+
+DEFINE_ALIAS_FUNCTION(transform_tohost_VkPhysicalDeviceLineRasterizationPropertiesKHR,
+                      transform_tohost_VkPhysicalDeviceLineRasterizationPropertiesEXT)
+
+DEFINE_ALIAS_FUNCTION(transform_fromhost_VkPhysicalDeviceLineRasterizationPropertiesKHR,
+                      transform_fromhost_VkPhysicalDeviceLineRasterizationPropertiesEXT)
+
+DEFINE_ALIAS_FUNCTION(transform_tohost_VkPipelineRasterizationLineStateCreateInfoKHR,
+                      transform_tohost_VkPipelineRasterizationLineStateCreateInfoEXT)
+
+DEFINE_ALIAS_FUNCTION(transform_fromhost_VkPipelineRasterizationLineStateCreateInfoKHR,
+                      transform_fromhost_VkPipelineRasterizationLineStateCreateInfoEXT)
+
+#endif
 #ifdef VK_EXT_index_type_uint8
 void transform_tohost_VkPhysicalDeviceIndexTypeUint8FeaturesEXT(
     VkDecoderGlobalState* resourceTracker, VkPhysicalDeviceIndexTypeUint8FeaturesEXT* toTransform);

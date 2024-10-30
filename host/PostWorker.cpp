@@ -28,21 +28,6 @@
 #include "host-common/misc.h"
 #include "vulkan/VkCommonOperations.h"
 
-#define POST_DEBUG 0
-#if POST_DEBUG >= 1
-#define DD(fmt, ...) \
-    fprintf(stderr, "%s:%d| " fmt, __func__, __LINE__, ##__VA_ARGS__)
-#else
-#define DD(fmt, ...) (void)0
-#endif
-
-#define POST_ERROR(fmt, ...)                                                  \
-    do {                                                                      \
-        fprintf(stderr, "%s(%s:%d): " fmt "\n", __func__, __FILE__, __LINE__, \
-                ##__VA_ARGS__);                                               \
-        fflush(stderr);                                                       \
-    } while (0)
-
 static void sDefaultRunOnUiThread(UiUpdateFunc f, void* data, bool wait) {
     (void)f;
     (void)data;

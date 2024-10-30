@@ -394,15 +394,7 @@ bool RendererImpl::load(android::base::Stream* stream,
     }
     auto fb = FrameBuffer::getFB();
     assert(fb);
-
-    bool res = true;
-
-    res = fb->onLoad(stream, textureLoader);
-#if GFXSTREAM_ENABLE_HOST_GLES
-    gl::EmulatedEglFenceSync::onLoad(stream);
-#endif
-
-    return res;
+    return fb->onLoad(stream, textureLoader);
 }
 
 void RendererImpl::fillGLESUsages(android_studio::EmulatorGLESUsages* usages) {
