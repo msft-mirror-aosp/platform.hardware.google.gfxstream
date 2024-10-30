@@ -314,6 +314,12 @@ class VkDecoderGlobalState {
                                           const VkAllocationCallbacks* pAllocator,
                                           VkPipeline* pPipelines);
 
+    VkResult on_vkCreateComputePipelines(android::base::BumpPool* pool, VkDevice device,
+                                          VkPipelineCache pipelineCache, uint32_t createInfoCount,
+                                          const VkComputePipelineCreateInfo* pCreateInfos,
+                                          const VkAllocationCallbacks* pAllocator,
+                                          VkPipeline* pPipelines);
+
     void on_vkDestroyPipeline(android::base::BumpPool* pool, VkDevice device, VkPipeline pipeline,
                               const VkAllocationCallbacks* pAllocator);
 
