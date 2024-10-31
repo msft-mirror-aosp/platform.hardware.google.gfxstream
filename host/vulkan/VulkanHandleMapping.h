@@ -59,6 +59,7 @@ class DefaultHandleMapping : public VulkanHandleMapping {
 
 #define DEFINE_BOXED_DISPATCHABLE_HANDLE_GLOBAL_API_DECL(type) \
     type unbox_##type(type boxed);                             \
+    type try_unbox_##type(type boxed);                         \
     type unboxed_to_boxed_##type(type boxed);                  \
     void delete_##type(type boxed);                            \
     VulkanDispatch* dispatch_##type(type boxed);
@@ -71,6 +72,7 @@ GOLDFISH_VK_LIST_DISPATCHABLE_HANDLE_TYPES(DEFINE_BOXED_DISPATCHABLE_HANDLE_GLOB
     void delayed_delete_##type(type boxed, VkDevice device, std::function<void()> callback); \
     void set_boxed_non_dispatchable_##type(type boxed, type underlying);                     \
     type unbox_##type(type boxed);                                                           \
+    type try_unbox_##type(type boxed);                                                       \
     type unboxed_to_boxed_non_dispatchable_##type(type boxed);
 
 GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES(DEFINE_BOXED_NON_DISPATCHABLE_HANDLE_GLOBAL_API_DECL)

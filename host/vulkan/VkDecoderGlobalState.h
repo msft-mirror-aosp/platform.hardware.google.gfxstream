@@ -314,6 +314,12 @@ class VkDecoderGlobalState {
                                           const VkAllocationCallbacks* pAllocator,
                                           VkPipeline* pPipelines);
 
+    VkResult on_vkCreateComputePipelines(android::base::BumpPool* pool, VkDevice device,
+                                          VkPipelineCache pipelineCache, uint32_t createInfoCount,
+                                          const VkComputePipelineCreateInfo* pCreateInfos,
+                                          const VkAllocationCallbacks* pAllocator,
+                                          VkPipeline* pPipelines);
+
     void on_vkDestroyPipeline(android::base::BumpPool* pool, VkDevice device, VkPipeline pipeline,
                               const VkAllocationCallbacks* pAllocator);
 
@@ -755,6 +761,7 @@ class VkDecoderGlobalState {
     type new_boxed_##type(type underlying, VulkanDispatch* dispatch, bool ownDispatch); \
     void delete_##type(type boxed);                                                     \
     type unbox_##type(type boxed);                                                      \
+    type try_unbox_##type(type boxed);                                                  \
     type unboxed_to_boxed_##type(type boxed);                                           \
     VulkanDispatch* dispatch_##type(type boxed);
 
@@ -762,6 +769,7 @@ class VkDecoderGlobalState {
     type new_boxed_non_dispatchable_##type(type underlying); \
     void delete_##type(type boxed);                          \
     type unbox_##type(type boxed);                           \
+    type try_unbox_##type(type boxed);                       \
     type unboxed_to_boxed_non_dispatchable_##type(type boxed);
 
     GOLDFISH_VK_LIST_DISPATCHABLE_HANDLE_TYPES(DEFINE_BOXED_DISPATCHABLE_HANDLE_API_DECL)
