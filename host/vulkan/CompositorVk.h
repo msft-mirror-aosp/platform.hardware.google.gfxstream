@@ -25,12 +25,12 @@
 namespace gfxstream {
 namespace vk {
 
-// We do see a composition requests with 12 layers. (b/222700096)
+// We do see a composition requests with 33 layers. (b/365603234)
 // Inside hwc2, we will ask for surfaceflinger to
-// do the composition, if the layers more than 16.
+// do the composition, if the layers more than 48.
 // If we see rendering error or significant time spent on updating
 // descriptors in setComposition, we should tune this number.
-static constexpr const uint32_t kMaxLayersPerFrame = 16;
+static constexpr const uint32_t kMaxLayersPerFrame = 48;
 static const uint64_t kVkWaitForFencesTimeoutNsecs = 5ULL * 1000ULL * 1000ULL * 1000ULL;
 
 // Base used to grant visibility to members to the vk_util::* helper classes.
