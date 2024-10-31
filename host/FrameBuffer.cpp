@@ -52,7 +52,7 @@
 #include "gl/gles2_dec/gles2_dec.h"
 #include "gl/glestranslator/EGL/EglGlobalInfo.h"
 #endif
-
+#include "gfxstream/host/Tracing.h"
 #include "host-common/GfxstreamFatalError.h"
 #include "host-common/crash_reporter.h"
 #include "host-common/feature_control.h"
@@ -275,6 +275,7 @@ bool FrameBuffer::initialize(int width, int height, gfxstream::host::FeatureSet 
     MaybeIncreaseFileDescriptorSoftLimit();
 
     android::base::initializeTracing();
+    gfxstream::host::InitializeTracing();
 
     //
     // allocate space for the FrameBuffer object
@@ -285,6 +286,8 @@ bool FrameBuffer::initialize(int width, int height, gfxstream::host::FeatureSet 
         ERR("Failed to create fb\n");
         return false;
     }
+
+    GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DEFAULT_CATEGORY, "FrameBuffer::Init()");
 
     std::unique_ptr<emugl::RenderDocWithMultipleVkInstances> renderDocMultipleVkInstances = nullptr;
     if (!android::base::getEnvironmentVariable("ANDROID_EMU_RENDERDOC").empty()) {
@@ -335,7 +338,20 @@ bool FrameBuffer::initialize(int width, int height, gfxstream::host::FeatureSet 
             .flushColorBufferFromBytes =
                 [fb = fb.get()](uint32_t colorBufferHandle, const void* bytes, size_t bytesSize) {
                     fb->flushColorBufferFromVkBytes(colorBufferHandle, bytes, bytesSize);
-                }};
+                },
+            .scheduleAsyncWork =
+                [fb = fb.get()](std::function<void()> work, std::string description) {
+                    auto promise = std::make_shared<AutoCancelingPromise>();
+                    auto future = promise->GetFuture();
+                    SyncThread::get()->triggerGeneral(
+                        [promise = std::move(promise), work = std::move(work)]() mutable {
+                            work();
+                            promise->MarkComplete();
+                        },
+                        description);
+                    return future;
+                },
+        };
         vkEmu = vk::createGlobalVkEmulation(vkDispatch, callbacks, fb->m_features);
         if (!vkEmu) {
             ERR("Failed to initialize global Vulkan emulation. Disable the Vulkan support.");
@@ -348,12 +364,10 @@ bool FrameBuffer::initialize(int width, int height, gfxstream::host::FeatureSet 
             fb->m_vkInstance = vkEmu->instance;
         }
         if (vkEmu->instanceSupportsPhysicalDeviceIDProperties) {
-            GL_LOG("Supports id properties, got a vulkan device UUID");
-            fprintf(stderr, "%s: Supports id properties, got a vulkan device UUID\n", __func__);
+            INFO("Supports id properties, got a vulkan device UUID");
             memcpy(fb->m_vulkanUUID.data(), vkEmu->deviceInfo.idProps.deviceUUID, VK_UUID_SIZE);
         } else {
-            GL_LOG("Doesn't support id properties, no vulkan device UUID");
-            fprintf(stderr, "%s: Doesn't support id properties, no vulkan device UUID\n", __func__);
+            WARN("Doesn't support id properties, no vulkan device UUID");
         }
     }
 
@@ -596,7 +610,7 @@ FrameBuffer::FrameBuffer(int p_width, int p_height, gfxstream::host::FeatureSet 
     mDisplayConfigs[0] = {p_width, p_height, 160, 160};
     uint32_t displayId = 0;
     if (createDisplay(&displayId) < 0) {
-        fprintf(stderr, "Failed to create default display\n");
+        ERR( "Failed to create default display");
     }
 
     setDisplayPose(displayId, 0, 0, getWidth(), getHeight(), 0);
@@ -1616,6 +1630,9 @@ void FrameBuffer::readBuffer(HandleType handle, uint64_t offset, uint64_t size, 
 
 void FrameBuffer::readColorBuffer(HandleType p_colorbuffer, int x, int y, int width, int height,
                                   GLenum format, GLenum type, void* pixels) {
+    GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DEFAULT_CATEGORY, "FrameBuffer::readColorBuffer()",
+                          "ColorBuffer", p_colorbuffer);
+
     AutoLock mutex(m_lock);
 
     ColorBufferPtr colorBuffer = findColorBuffer(p_colorbuffer);
@@ -1660,6 +1677,9 @@ bool FrameBuffer::updateColorBuffer(HandleType p_colorbuffer,
                                     GLenum format,
                                     GLenum type,
                                     void* pixels) {
+    GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DEFAULT_CATEGORY, "FrameBuffer::updateColorBuffer()",
+                          "ColorBuffer", p_colorbuffer);
+
     if (width == 0 || height == 0) {
         return false;
     }
@@ -2882,7 +2902,7 @@ void FrameBuffer::setVsyncHz(int vsyncHz) {
 
 void FrameBuffer::scheduleVsyncTask(VsyncThread::VsyncTask task) {
     if (!m_vsyncThread) {
-        fprintf(stderr, "%s: warning: no vsync thread exists\n", __func__);
+        ERR("%s: warning: no vsync thread exists", __func__);
         task(0);
         return;
     }
