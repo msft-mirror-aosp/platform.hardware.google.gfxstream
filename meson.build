@@ -37,6 +37,9 @@ use_magma = decoders.contains('magma') and with_host
 use_composer = decoders.contains('composer') and with_host
 
 if with_guest or with_guest_test
+  genvk = files('codegen/vulkan/vulkan-docs-next/scripts/genvk.py')
+  vk_xml_gfxstream = files('codegen/vulkan/vulkan-docs-next/xml/vk.xml')
+  vk_gfxstream_xml = files('codegen/vulkan/vulkan-docs-next/xml/vk_gfxstream.xml')
   subdir('guest')
 endif
 if with_host and not with_guest_test

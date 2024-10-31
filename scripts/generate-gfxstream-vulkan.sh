@@ -13,32 +13,37 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 export GFXSTREAM_DIR=$(pwd)
-
 if [ -z "$1" ];
 then
-    export GFXSTREAM_GUEST_DIR=$GFXSTREAM_DIR/guest
+    export MESA_DIR=$(pwd)/../../../external/mesa3d
 else
-    export GFXSTREAM_GUEST_DIR=$1
+    export MESA_DIR=$1
 fi
 
-# Detect clang-format
-#if ! $WHICH clang-format > /dev/null; then
-#    echo "Failed to find clang-format." 1>&2
-#    exit 1
-#fi
+export PREFIX_DIR=src/gfxstream
 
-export GFXSTREAM_GUEST_ENCODER_DIR=$GFXSTREAM_GUEST_DIR/vulkan_enc
+# We should use just use one vk.xml eventually..
+export VK_MESA_XML=$MESA_DIR/src/vulkan/registry/vk.xml
+export VK_XML=$GFXSTREAM_DIR/codegen/vulkan/vulkan-docs-next/xml/vk.xml
+
+export GFXSTREAM_GUEST_ENCODER_DIR=/tmp/
 export GFXSTREAM_HOST_DECODER_DIR=$GFXSTREAM_DIR/host/vulkan
 export GFXSTREAM_OUTPUT_DIR=$GFXSTREAM_HOST_DECODER_DIR/cereal
 export GFXSTREAM_SCRIPTS_DIR=$GFXSTREAM_DIR/scripts
 
-export GEN_VK=$GFXSTREAM_DIR/codegen/vulkan/vulkan-docs-next/scripts/genvk.py
-export VK_XML=$GFXSTREAM_DIR/codegen/vulkan/vulkan-docs-next/xml/vk.xml
-export CUSTOM_XML=$GFXSTREAM_DIR/codegen/vulkan/vulkan-docs-next/xml/vk_gfxstream.xml
+export GEN_VK=$GFXSTREAM_DIR/$PREFIX_DIR/codegen/scripts/genvk.py
+export CUSTOM_XML=$GFXSTREAM_DIR/$PREFIX_DIR/codegen/xml/vk_gfxstream.xml
+
+# For testing Mesa codegen copy only
+#export GEN_VK=$MESA_DIR/$PREFIX_DIR/codegen/scripts/genvk.py
+#export CUSTOM_XML=$MESA_DIR/$PREFIX_DIR/codegen/xml/vk_gfxstream.xml
 
 python3 $GEN_VK -registry $VK_XML -registryGfxstream $CUSTOM_XML cereal -o $GFXSTREAM_OUTPUT_DIR
+
+export CEREAL_VARIANT=guest
+export GFXSTREAM_GUEST_ENCODER_DIR=$GFXSTREAM_DIR/guest/vulkan_enc
+python3 $GEN_VK -registry $VK_MESA_XML -registryGfxstream $CUSTOM_XML cereal -o /tmp/
 
 # Should have a unified headers dir here:
 python3 $GEN_VK -registry $CUSTOM_XML vulkan_gfxstream.h -o $GFXSTREAM_GUEST_ENCODER_DIR

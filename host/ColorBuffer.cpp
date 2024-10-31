@@ -22,6 +22,7 @@
 #include "host-common/logging.h"
 #include "vulkan/ColorBufferVk.h"
 #include "vulkan/VkCommonOperations.h"
+#include "FrameBuffer.h"
 
 using android::base::ManagedDescriptor;
 using emugl::ABORT_REASON_OTHER;

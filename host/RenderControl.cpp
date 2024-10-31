@@ -32,11 +32,12 @@
 #include "RenderThreadInfoGl.h"
 #include "SyncThread.h"
 #include "aemu/base/Tracing.h"
+#include "compressedTextureFormats/AstcCpuDecompressor.h"
+#include "gfxstream/host/Tracing.h"
 #include "host-common/logging.h"
 #include "host-common/misc.h"
 #include "host-common/opengl/misc.h"
 #include "host-common/sync_device.h"
-#include "compressedTextureFormats/AstcCpuDecompressor.h"
 #include "vulkan/VkCommonOperations.h"
 #include "vulkan/VkDecoderGlobalState.h"
 
@@ -407,7 +408,7 @@ std::string replaceESVersionString(const std::string& prev,
     if (esStart == std::string::npos ||
         esEnd == std::string::npos) {
         // Account for out-of-spec version strings.
-        fprintf(stderr, "%s: Error: invalid OpenGL ES version string %s\n",
+        ERR("%s: Error: unexpected OpenGL ES version string %s",
                 __func__, prev.c_str());
         return prev;
     }
@@ -1538,6 +1539,9 @@ static void rcSetProcessMetadata(char* key, RenderControlByte* valuePtr, uint32_
     if (strcmp(key, "process_name") == 0) {
         // We know this is a c formatted string
         tInfo->m_processName = std::string((char*) valuePtr);
+
+        GFXSTREAM_TRACE_NAME_TRACK(GFXSTREAM_TRACE_TRACK_FOR_CURRENT_THREAD(),
+                                   *tInfo->m_processName);
     }
 }
 

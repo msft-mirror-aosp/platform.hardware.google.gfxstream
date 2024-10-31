@@ -6,6 +6,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <optional>
 
+#include "gfxstream/host/Tracing.h"
 #include "host-common/logging.h"
 #include "vulkan/vk_enum_string_helper.h"
 #include "vulkan/vk_util.h"
@@ -1081,6 +1082,14 @@ void CompositorVk::buildCompositionVk(const CompositionRequest& compositionReque
 
 CompositorVk::CompositionFinishedWaitable CompositorVk::compose(
     const CompositionRequest& compositionRequest) {
+    static uint32_t sCompositionNumber = 0;
+    const uint32_t thisCompositionNumber = sCompositionNumber++;
+
+    const uint64_t traceId = gfxstream::host::GetUniqueTracingId();
+    GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DEFAULT_CATEGORY, "CompositorVk::compose()",
+                          GFXSTREAM_TRACE_FLOW(traceId), "Composition Number",
+                          thisCompositionNumber);
+
     CompositionVk compositionVk;
     buildCompositionVk(compositionRequest, &compositionVk);
 
@@ -1111,9 +1120,6 @@ CompositorVk::CompositionFinishedWaitable CompositorVk::compose(
             &preCompositionQueueTransferBarriers, &preCompositionLayoutTransitionBarriers,
             &postCompositionLayoutTransitionBarriers, &postCompositionQueueTransferBarriers);
     }
-
-    static uint32_t sCompositionNumber = 0;
-    const uint32_t thisCompositionNumber = sCompositionNumber++;
 
     VkCommandBuffer& commandBuffer = frameResources->m_vkCommandBuffer;
     if (commandBuffer != VK_NULL_HANDLE) {
@@ -1311,7 +1317,11 @@ CompositorVk::CompositionFinishedWaitable CompositorVk::compose(
     // iteration of CompostiorVk::compose() once this current composition
     // completes.
     std::shared_future<PerFrameResources*> composeCompleteFutureForResources =
-        std::async(std::launch::deferred, [composeCompleteFence, frameResources, this]() mutable {
+        std::async(std::launch::deferred, [composeCompleteFence, frameResources, traceId,
+                                           this]() mutable {
+            GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DEFAULT_CATEGORY, "Wait for compose fence",
+                                  GFXSTREAM_TRACE_FLOW(traceId));
+
             VkResult res = m_vk.vkWaitForFences(m_vkDevice, 1, &composeCompleteFence, VK_TRUE,
                                                 kVkWaitForFencesTimeoutNsecs);
             if (res == VK_SUCCESS) {

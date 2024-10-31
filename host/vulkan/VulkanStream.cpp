@@ -25,8 +25,6 @@
 namespace gfxstream {
 namespace vk {
 
-#define E(fmt, ...) fprintf(stderr, fmt "\n", ##__VA_ARGS__)
-
 using emugl::ABORT_REASON_OTHER;
 using emugl::FatalError;
 
