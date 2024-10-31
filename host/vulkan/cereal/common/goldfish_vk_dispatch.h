@@ -435,6 +435,9 @@ struct VulkanDispatch {
     PFN_vkGetDeviceImageSubresourceLayoutKHR vkGetDeviceImageSubresourceLayoutKHR;
     PFN_vkGetImageSubresourceLayout2KHR vkGetImageSubresourceLayout2KHR;
 #endif
+#ifdef VK_KHR_line_rasterization
+    PFN_vkCmdSetLineStippleKHR vkCmdSetLineStippleKHR;
+#endif
 #ifdef VK_ANDROID_native_buffer
     PFN_vkGetSwapchainGrallocUsageANDROID vkGetSwapchainGrallocUsageANDROID;
     PFN_vkAcquireImageANDROID vkAcquireImageANDROID;

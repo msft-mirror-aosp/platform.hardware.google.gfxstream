@@ -3111,6 +3111,7 @@ void unmarshal_VkPipelineRasterizationLineStateCreateInfoKHR(
     VulkanStream* vkStream, VkStructureType rootType,
     VkPipelineRasterizationLineStateCreateInfoKHR* forUnmarshaling);
 
+#define OP_vkCmdSetLineStippleKHR 219923286
 #endif
 #ifdef VK_ANDROID_native_buffer
 void marshal_VkNativeBufferUsage2ANDROID(VulkanStream* vkStream, VkStructureType rootType,
