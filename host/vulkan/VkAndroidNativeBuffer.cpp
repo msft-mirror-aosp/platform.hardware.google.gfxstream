@@ -32,15 +32,15 @@
 namespace gfxstream {
 namespace vk {
 
-#define VK_ANB_ERR(fmt, ...) fprintf(stderr, "%s:%d " fmt "\n", __func__, __LINE__, ##__VA_ARGS__);
+#define VK_ANB_ERR(fmt, ...) INFO(fmt, ##__VA_ARGS__);
 
 #define ENABLE_VK_ANB_DEBUG 0
 
 #if ENABLE_VK_ANB_DEBUG
 #define VK_ANB_DEBUG(fmt, ...) \
-    fprintf(stderr, "vk-anb-debug: %s:%d " fmt "\n", __func__, __LINE__, ##__VA_ARGS__);
+    INFO("vk-anb-debug: " fmt, ##__VA_ARGS__);
 #define VK_ANB_DEBUG_OBJ(obj, fmt, ...) \
-    fprintf(stderr, "vk-anb-debug: %s:%d:%p " fmt "\n", __func__, __LINE__, obj, ##__VA_ARGS__);
+    INFO("vk-anb-debug: %p " fmt, obj, ##__VA_ARGS__);
 #else
 #define VK_ANB_DEBUG(fmt, ...)
 #define VK_ANB_DEBUG_OBJ(obj, fmt, ...)
@@ -185,22 +185,9 @@ VkResult prepareAndroidNativeBufferImage(VulkanDispatch* vk, VkDevice device,
         };
 
 #if defined(__APPLE__)
-        VkImportMetalTextureInfoEXT metalImageImport = {
-            VK_STRUCTURE_TYPE_IMPORT_METAL_TEXTURE_INFO_EXT};
-
         if (emu->instanceSupportsMoltenVK) {
-            // Change handle type requested to mtltexture
-            extImageCi.handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_MTLTEXTURE_BIT_KHR;
-
-            if (out->colorBufferHandle) {
-                // TODO(b/333460957): External memory is not properly supported on MoltenVK
-                // and although this works fine, it's not valid and causing validation layer issues
-                metalImageImport.plane = VK_IMAGE_ASPECT_PLANE_0_BIT;
-                metalImageImport.mtlTexture = getColorBufferMTLTexture(out->colorBufferHandle);
-
-                // Insert metalImageImport to the chain
-                vk_insert_struct(createImageCi, metalImageImport);
-            }
+            // Change handle type requested to metal handle
+            extImageCi.handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_MTLHEAP_BIT_EXT;
         }
 #endif
 

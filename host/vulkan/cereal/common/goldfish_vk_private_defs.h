@@ -20,21 +20,13 @@
 #include <algorithm>
 #endif
 
-// TODO(b/349066492): this is used as a placeholder extension to inform guest side
-// that host is using MoltenVK, it should be removed after external_memory_metal
-// extension is implemented.
+// We keep advertising VK_MVK_moltenvk on MacOS for backwards compatibility, since in the older
+// guest images the checks for the external memory support is done via this extension.
 #ifndef VK_MVK_moltenvk
 #define VK_MVK_moltenvk 1
 #define VK_MVK_MOLTENVK_SPEC_VERSION 3
 #define VK_MVK_MOLTENVK_EXTENSION_NAME "VK_MVK_moltenvk"
 #endif  // VK_MVK_moltenvk
-
-// These are internally defined MoltenVK flags for external memory usage
-// TODO(b/349066492): They should be removed after being ratified and put under the headers
-static const VkExternalMemoryHandleTypeFlagBits VK_EXTERNAL_MEMORY_HANDLE_TYPE_MTLBUFFER_BIT_KHR =
-    VK_EXTERNAL_MEMORY_HANDLE_TYPE_FLAG_BITS_MAX_ENUM;
-static const VkExternalMemoryHandleTypeFlagBits VK_EXTERNAL_MEMORY_HANDLE_TYPE_MTLTEXTURE_BIT_KHR =
-    VK_EXTERNAL_MEMORY_HANDLE_TYPE_FLAG_BITS_MAX_ENUM;
 
 // VulkanStream features
 #define VULKAN_STREAM_FEATURE_NULL_OPTIONAL_STRINGS_BIT (1 << 0)
@@ -46,16 +38,16 @@ static const VkExternalMemoryHandleTypeFlagBits VK_EXTERNAL_MEMORY_HANDLE_TYPE_M
 
 #ifdef __cplusplus
 
-template<class T, typename F>
+template <class T, typename F>
 bool arrayany(const T* arr, uint32_t begin, uint32_t end, const F& func) {
     const T* e = arr + end;
     return std::find_if(arr + begin, e, func) != e;
 }
 
-#define DEFINE_ALIAS_FUNCTION(ORIGINAL_FN, ALIAS_FN) \
-template <typename... Args> \
-inline auto ALIAS_FN(Args&&... args) -> decltype(ORIGINAL_FN(std::forward<Args>(args)...)) { \
-  return ORIGINAL_FN(std::forward<Args>(args)...); \
-}
+#define DEFINE_ALIAS_FUNCTION(ORIGINAL_FN, ALIAS_FN)                                             \
+    template <typename... Args>                                                                  \
+    inline auto ALIAS_FN(Args&&... args) -> decltype(ORIGINAL_FN(std::forward<Args>(args)...)) { \
+        return ORIGINAL_FN(std::forward<Args>(args)...);                                         \
+    }
 
 #endif

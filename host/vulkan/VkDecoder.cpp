@@ -4621,14 +4621,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 const VkComputePipelineCreateInfo* pCreateInfos;
                 const VkAllocationCallbacks* pAllocator;
                 VkPipeline* pPipelines;
-                // Begin non wrapped dispatchable handle unboxing for device;
+                // Begin global wrapped dispatchable handle unboxing for device;
                 uint64_t cgen_var_0;
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
                 *(VkDevice*)&device = (VkDevice)(VkDevice)((VkDevice)(*&cgen_var_0));
-                auto unboxed_device = unbox_VkDevice(device);
-                auto vk = dispatch_VkDevice(device);
-                // End manual dispatchable handle unboxing for device;
                 uint64_t cgen_var_1;
                 memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
@@ -4686,17 +4683,16 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                             (unsigned long long)pAllocator, (unsigned long long)pPipelines);
                 }
                 VkResult vkCreateComputePipelines_VkResult_return = (VkResult)0;
-                vkCreateComputePipelines_VkResult_return =
-                    vk->vkCreateComputePipelines(unboxed_device, pipelineCache, createInfoCount,
-                                                 pCreateInfos, pAllocator, pPipelines);
+                vkCreateComputePipelines_VkResult_return = m_state->on_vkCreateComputePipelines(
+                    &m_pool, device, pipelineCache, createInfoCount, pCreateInfos, pAllocator,
+                    pPipelines);
                 if ((vkCreateComputePipelines_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
                 m_state->on_CheckOutOfMemory(vkCreateComputePipelines_VkResult_return, opcode,
                                              context);
                 vkStream->unsetHandleMapping();
-                // Begin auto non dispatchable handle create for pPipelines;
-                if (vkCreateComputePipelines_VkResult_return == VK_SUCCESS)
-                    vkStream->setHandleMapping(&m_boxedHandleCreateMapping);
+                // Begin manual non dispatchable handle create for pPipelines;
+                vkStream->unsetHandleMapping();
                 if (((createInfoCount))) {
                     uint64_t* cgen_var_4;
                     vkStream->alloc((void**)&cgen_var_4, ((createInfoCount)) * 8);
@@ -4706,7 +4702,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                                      ((createInfoCount)));
                     vkStream->write((VkPipeline*)pPipelines, 8 * ((createInfoCount)));
                 }
-                // Begin auto non dispatchable handle create for pPipelines;
+                // Begin manual non dispatchable handle create for pPipelines;
                 vkStream->setHandleMapping(&m_boxedHandleUnwrapMapping);
                 vkStream->write(&vkCreateComputePipelines_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
@@ -17565,6 +17561,50 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 break;
             }
 #endif
+#ifdef VK_KHR_line_rasterization
+            case OP_vkCmdSetLineStippleKHR: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkDecoder vkCmdSetLineStippleKHR");
+                VkCommandBuffer commandBuffer;
+                uint32_t lineStippleFactor;
+                uint16_t lineStipplePattern;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((uint32_t*)&lineStippleFactor, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                memcpy((uint16_t*)&lineStipplePattern, *readStreamPtrPtr, sizeof(uint16_t));
+                *readStreamPtrPtr += sizeof(uint16_t);
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkCmdSetLineStippleKHR 0x%llx 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)lineStippleFactor,
+                            (unsigned long long)lineStipplePattern);
+                }
+                vk->vkCmdSetLineStippleKHR(unboxed_commandBuffer, lineStippleFactor,
+                                           lineStipplePattern);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdSetLineStippleKHR(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
+                        lineStippleFactor, lineStipplePattern);
+                }
+                vkReadStream->clearPool();
+                if (m_queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                break;
+            }
+#endif
 #ifdef VK_ANDROID_native_buffer
             case OP_vkGetSwapchainGrallocUsageANDROID: {
                 GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
@@ -19222,6 +19262,50 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                         snapshotTraceBegin, snapshotTraceBytes, &m_pool,
                         vkGetPhysicalDeviceToolPropertiesEXT_VkResult_return, physicalDevice,
                         pToolCount, pToolProperties);
+                }
+                vkReadStream->clearPool();
+                if (m_queueSubmitWithCommandsEnabled)
+                    seqnoPtr->fetch_add(1, std::memory_order_seq_cst);
+                break;
+            }
+#endif
+#ifdef VK_EXT_line_rasterization
+            case OP_vkCmdSetLineStippleEXT: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkDecoder vkCmdSetLineStippleEXT");
+                VkCommandBuffer commandBuffer;
+                uint32_t lineStippleFactor;
+                uint16_t lineStipplePattern;
+                // Begin non wrapped dispatchable handle unboxing for commandBuffer;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_0));
+                auto unboxed_commandBuffer = unbox_VkCommandBuffer(commandBuffer);
+                auto vk = dispatch_VkCommandBuffer(commandBuffer);
+                // End manual dispatchable handle unboxing for commandBuffer;
+                memcpy((uint32_t*)&lineStippleFactor, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                memcpy((uint16_t*)&lineStipplePattern, *readStreamPtrPtr, sizeof(uint16_t));
+                *readStreamPtrPtr += sizeof(uint16_t);
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkCmdSetLineStippleEXT 0x%llx 0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)commandBuffer,
+                            (unsigned long long)lineStippleFactor,
+                            (unsigned long long)lineStipplePattern);
+                }
+                vk->vkCmdSetLineStippleEXT(unboxed_commandBuffer, lineStippleFactor,
+                                           lineStipplePattern);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkCmdSetLineStippleEXT(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
+                        lineStippleFactor, lineStipplePattern);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
