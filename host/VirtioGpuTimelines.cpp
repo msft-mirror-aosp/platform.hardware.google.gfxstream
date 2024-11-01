@@ -26,12 +26,16 @@ using AutoLock = android::base::AutoLock;
 using emugl::ABORT_REASON_OTHER;
 using emugl::FatalError;
 
-std::unique_ptr<VirtioGpuTimelines> VirtioGpuTimelines::create(bool withAsyncCallback) {
-    return std::unique_ptr<VirtioGpuTimelines>(new VirtioGpuTimelines(withAsyncCallback));
+std::unique_ptr<VirtioGpuTimelines> VirtioGpuTimelines::create(bool withAsyncCallback,
+                                                               FenceCompletionCallback callback) {
+    return std::unique_ptr<VirtioGpuTimelines>(
+        new VirtioGpuTimelines(withAsyncCallback, std::move(callback)));
 }
 
-VirtioGpuTimelines::VirtioGpuTimelines(bool withAsyncCallback)
-    : mNextId(0), mWithAsyncCallback(withAsyncCallback) {}
+VirtioGpuTimelines::VirtioGpuTimelines(bool withAsyncCallback, FenceCompletionCallback callback)
+    : mNextId(0),
+      mWithAsyncCallback(withAsyncCallback),
+      mFenceCompletionCallback(std::move(callback)) {}
 
 TaskId VirtioGpuTimelines::enqueueTask(const Ring& ring) {
     AutoLock lock(mLock);
@@ -54,14 +58,11 @@ TaskId VirtioGpuTimelines::enqueueTask(const Ring& ring) {
     return id;
 }
 
-void VirtioGpuTimelines::enqueueFence(const Ring& ring, FenceId fenceId,
-                                      FenceCompletionCallback fenceCompletionCallback) {
+void VirtioGpuTimelines::enqueueFence(const Ring& ring, FenceId fenceId) {
     AutoLock lock(mLock);
 
-    auto fence = std::make_unique<Fence>(fenceId, std::move(fenceCompletionCallback));
-
     Timeline& timeline = GetOrCreateTimelineLocked(ring);
-    timeline.mQueue.emplace_back(std::move(fence));
+    timeline.mQueue.emplace_back(fenceId);
     if (mWithAsyncCallback) {
         poll_locked(ring);
     }
@@ -141,14 +142,14 @@ void VirtioGpuTimelines::poll_locked(const Ring& ring) {
         bool shouldStop = std::visit(
             [&](auto& arg) {
                 using T = std::decay_t<decltype(arg)>;
-                if constexpr (std::is_same_v<T, std::unique_ptr<Fence>>) {
-                    auto& fence = arg;
+                if constexpr (std::is_same_v<T, FenceId>) {
+                    auto& fenceId = arg;
 
                     GFXSTREAM_TRACE_EVENT_INSTANT(
                         GFXSTREAM_TRACE_VIRTIO_GPU_TIMELINE_CATEGORY, "Signal Virtio Gpu Fence",
-                        GFXSTREAM_TRACE_TRACK(timeline.mTraceTrackId), "Fence", fence->mId);
+                        GFXSTREAM_TRACE_TRACK(timeline.mTraceTrackId), "Fence", fenceId);
 
-                    fence->mCompletionCallback();
+                    mFenceCompletionCallback(ring, fenceId);
 
                     return false;
                 } else if constexpr (std::is_same_v<T, std::shared_ptr<Task>>) {
