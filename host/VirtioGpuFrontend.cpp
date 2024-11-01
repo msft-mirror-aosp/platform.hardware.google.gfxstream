@@ -140,7 +140,7 @@ int VirtioGpuFrontend::init(void* cookie, gfxstream::host::FeatureSet features,
         }
         mFenceCallback(mCookie, &fence);
     };
-    mVirtioGpuTimelines = VirtioGpuTimelines::create(true, std::move(fenceCompletionCallback));
+    mVirtioGpuTimelines = VirtioGpuTimelines::create(std::move(fenceCompletionCallback));
 
 #if !defined(_WIN32)
     mPageSize = getpagesize();

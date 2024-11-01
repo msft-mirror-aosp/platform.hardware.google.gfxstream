@@ -22,23 +22,18 @@
 using TaskId = VirtioGpuTimelines::TaskId;
 using Ring = VirtioGpuTimelines::Ring;
 using FenceId = VirtioGpuTimelines::FenceId;
-using AutoLock = android::base::AutoLock;
 using emugl::ABORT_REASON_OTHER;
 using emugl::FatalError;
 
-std::unique_ptr<VirtioGpuTimelines> VirtioGpuTimelines::create(bool withAsyncCallback,
-                                                               FenceCompletionCallback callback) {
-    return std::unique_ptr<VirtioGpuTimelines>(
-        new VirtioGpuTimelines(withAsyncCallback, std::move(callback)));
+std::unique_ptr<VirtioGpuTimelines> VirtioGpuTimelines::create(FenceCompletionCallback callback) {
+    return std::unique_ptr<VirtioGpuTimelines>(new VirtioGpuTimelines(std::move(callback)));
 }
 
-VirtioGpuTimelines::VirtioGpuTimelines(bool withAsyncCallback, FenceCompletionCallback callback)
-    : mNextId(0),
-      mWithAsyncCallback(withAsyncCallback),
-      mFenceCompletionCallback(std::move(callback)) {}
+VirtioGpuTimelines::VirtioGpuTimelines(FenceCompletionCallback callback)
+    : mNextId(0), mFenceCompletionCallback(std::move(callback)) {}
 
 TaskId VirtioGpuTimelines::enqueueTask(const Ring& ring) {
-    AutoLock lock(mLock);
+    std::lock_guard<std::mutex> lock(mTimelinesMutex);
 
     TaskId id = mNextId++;
 
@@ -59,17 +54,16 @@ TaskId VirtioGpuTimelines::enqueueTask(const Ring& ring) {
 }
 
 void VirtioGpuTimelines::enqueueFence(const Ring& ring, FenceId fenceId) {
-    AutoLock lock(mLock);
+    std::lock_guard<std::mutex> lock(mTimelinesMutex);
 
     Timeline& timeline = GetOrCreateTimelineLocked(ring);
     timeline.mQueue.emplace_back(fenceId);
-    if (mWithAsyncCallback) {
-        poll_locked(ring);
-    }
+
+    poll_locked(ring);
 }
 
 void VirtioGpuTimelines::notifyTaskCompletion(TaskId taskId) {
-    AutoLock lock(mLock);
+    std::lock_guard<std::mutex> lock(mTimelinesMutex);
     auto iTask = mTaskIdToTask.find(taskId);
     if (iTask == mTaskIdToTask.end()) {
         GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
@@ -95,9 +89,8 @@ void VirtioGpuTimelines::notifyTaskCompletion(TaskId taskId) {
                                   GFXSTREAM_TRACE_FLOW(task->mTraceId), "Task ID", task->mId);
 
     task->mHasCompleted = true;
-    if (mWithAsyncCallback) {
-        poll_locked(task->mRing);
-    }
+
+    poll_locked(task->mRing);
 }
 
 VirtioGpuTimelines::Timeline& VirtioGpuTimelines::GetOrCreateTimelineLocked(const Ring& ring) {
@@ -119,11 +112,7 @@ VirtioGpuTimelines::Timeline& VirtioGpuTimelines::GetOrCreateTimelineLocked(cons
 }
 
 void VirtioGpuTimelines::poll() {
-    if (mWithAsyncCallback) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-            << "Can't call poll with async callback enabled.";
-    }
-    AutoLock lock(mLock);
+    std::lock_guard<std::mutex> lock(mTimelinesMutex);
     for (const auto& [ring, timeline] : mTimelineQueues) {
         poll_locked(ring);
     }

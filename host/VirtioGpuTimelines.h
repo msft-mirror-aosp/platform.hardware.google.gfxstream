@@ -18,12 +18,12 @@
 #include <functional>
 #include <list>
 #include <memory>
+#include <mutex>
 #include <sstream>
 #include <string>
 #include <unordered_map>
 #include <variant>
 
-#include "aemu/base/synchronization/Lock.h"
 #include "gfxstream/virtio-gpu-gfxstream-renderer.h"
 
 typedef uint32_t VirtioGpuCtxId;
@@ -81,8 +81,7 @@ class VirtioGpuTimelines {
     using TaskId = uint64_t;
     using FenceCompletionCallback = std::function<void(const Ring&, FenceId)>;
 
-    static std::unique_ptr<VirtioGpuTimelines> create(bool withAsyncCallback,
-                                                      FenceCompletionCallback callback);
+    static std::unique_ptr<VirtioGpuTimelines> create(FenceCompletionCallback callback);
 
     TaskId enqueueTask(const Ring&);
     void enqueueFence(const Ring&, FenceId);
@@ -90,7 +89,7 @@ class VirtioGpuTimelines {
     void poll();
 
    private:
-    VirtioGpuTimelines(bool withAsyncCallback, FenceCompletionCallback callback);
+    VirtioGpuTimelines(FenceCompletionCallback callback);
 
     struct Task {
         TaskId mId;
@@ -113,15 +112,14 @@ class VirtioGpuTimelines {
     // timeline items that are no longer needed.
     void poll_locked(const Ring&);
 
-    android::base::Lock mLock;
     std::atomic<TaskId> mNextId;
+    FenceCompletionCallback mFenceCompletionCallback;
+    std::mutex mTimelinesMutex;
     // The mTaskIdToTask cache must be destroyed after the actual owner of Task,
     // mTimelineQueues, is destroyed, because the deleter of Task will
     // automatically remove the entry in mTaskIdToTask.
     std::unordered_map<TaskId, std::weak_ptr<Task>> mTaskIdToTask;
     std::unordered_map<Ring, Timeline> mTimelineQueues;
-    const bool mWithAsyncCallback;
-    FenceCompletionCallback mFenceCompletionCallback;
 };
 
 #endif  // VIRTIO_GPU_TIMELINES_H
