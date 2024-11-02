@@ -1380,20 +1380,24 @@ class VkDecoderGlobalState::Impl {
                 privateDataFeatures->privateData = VK_FALSE;
             }
 
-            VkPhysicalDeviceInlineUniformBlockFeatures* iubFeatures =
-                vk_find_struct<VkPhysicalDeviceInlineUniformBlockFeatures>(pFeatures);
-            if (iubFeatures != nullptr) {
-                // Currently not supporting iub due to descriptor set optimization.
-                // TODO: fix the non-optimized descriptor set path and re-enable the features afterwads.
-                // b/372217918
-                iubFeatures->inlineUniformBlock = VK_FALSE;
-            }
-
             VkPhysicalDeviceVulkan13Features* vulkan13Features =
                 vk_find_struct<VkPhysicalDeviceVulkan13Features>(pFeatures);
             if (vulkan13Features != nullptr) {
                 vulkan13Features->privateData = VK_FALSE;
-                vulkan13Features->inlineUniformBlock = VK_FALSE;
+            }
+
+            if (m_emu->features.VulkanBatchedDescriptorSetUpdate.enabled) {
+                // Currently not supporting iub due to descriptor set optimization.
+                // TODO: fix the non-optimized descriptor set path and re-enable the features afterwads.
+                // b/372217918
+                VkPhysicalDeviceInlineUniformBlockFeatures* iubFeatures =
+                    vk_find_struct<VkPhysicalDeviceInlineUniformBlockFeatures>(pFeatures);
+                if (iubFeatures != nullptr) {
+                    iubFeatures->inlineUniformBlock = VK_FALSE;
+                }
+                if (vulkan13Features != nullptr) {
+                    vulkan13Features->inlineUniformBlock = VK_FALSE;
+                }
             }
         }
     }
@@ -3597,8 +3601,10 @@ class VkDecoderGlobalState::Impl {
                     entry.bufferView = descriptorWrite.pTexelBufferView[writeElemIdx];
                     entry.writeType = DescriptorSetInfo::DescriptorWriteType::BufferView;
                     entry.descriptorType = descType;
-                    // TODO: check alive
-                    ERR("%s: Snapshot for texel buffer view is incomplete.\n", __func__);
+                    if (snapshotsEnabled()) {
+                        // TODO: check alive
+                        ERR("%s: Snapshot for texel buffer view is incomplete.\n", __func__);
+                    }
                 }
             } else if (isDescriptorTypeInlineUniformBlock(descType)) {
                 const VkWriteDescriptorSetInlineUniformBlock* descInlineUniformBlock =
@@ -3629,8 +3635,10 @@ class VkDecoderGlobalState::Impl {
                 // TODO
                 // Look for pNext inline uniform block or acceleration structure.
                 // Append new DescriptorWrite entry that holds the buffer
-                ERR("%s: Ignoring Snapshot for emulated write for descriptor type 0x%x\n", __func__,
-                    descType);
+                if (snapshotsEnabled()) {
+                    ERR("%s: Ignoring Snapshot for emulated write for descriptor type 0x%x\n",
+                        __func__, descType);
+                }
             }
         }
         // TODO: bookkeep pDescriptorCopies
@@ -3860,6 +3868,35 @@ class VkDecoderGlobalState::Impl {
         auto deviceDispatch = dispatch_VkDevice(boxed_device);
 
         VkResult result = deviceDispatch->vkCreateGraphicsPipelines(
+            device, pipelineCache, createInfoCount, pCreateInfos, pAllocator, pPipelines);
+        if (result != VK_SUCCESS && result != VK_PIPELINE_COMPILE_REQUIRED) {
+            return result;
+        }
+
+        std::lock_guard<std::recursive_mutex> lock(mLock);
+
+        for (uint32_t i = 0; i < createInfoCount; i++) {
+            if (!pPipelines[i]) {
+                continue;
+            }
+            auto& pipelineInfo = mPipelineInfo[pPipelines[i]];
+            pipelineInfo.device = device;
+
+            pPipelines[i] = new_boxed_non_dispatchable_VkPipeline(pPipelines[i]);
+        }
+
+        return result;
+    }
+
+    VkResult on_vkCreateComputePipelines(android::base::BumpPool* pool, VkDevice boxed_device,
+                                          VkPipelineCache pipelineCache, uint32_t createInfoCount,
+                                          const VkComputePipelineCreateInfo* pCreateInfos,
+                                          const VkAllocationCallbacks* pAllocator,
+                                          VkPipeline* pPipelines) {
+        auto device = unbox_VkDevice(boxed_device);
+        auto deviceDispatch = dispatch_VkDevice(boxed_device);
+
+        VkResult result = deviceDispatch->vkCreateComputePipelines(
             device, pipelineCache, createInfoCount, pCreateInfos, pAllocator, pPipelines);
         if (result != VK_SUCCESS && result != VK_PIPELINE_COMPILE_REQUIRED) {
             return result;
@@ -9144,6 +9181,14 @@ VkResult VkDecoderGlobalState::on_vkCreateGraphicsPipelines(
     uint32_t createInfoCount, const VkGraphicsPipelineCreateInfo* pCreateInfos,
     const VkAllocationCallbacks* pAllocator, VkPipeline* pPipelines) {
     return mImpl->on_vkCreateGraphicsPipelines(pool, boxed_device, pipelineCache, createInfoCount,
+                                               pCreateInfos, pAllocator, pPipelines);
+}
+
+VkResult VkDecoderGlobalState::on_vkCreateComputePipelines(
+    android::base::BumpPool* pool, VkDevice boxed_device, VkPipelineCache pipelineCache,
+    uint32_t createInfoCount, const VkComputePipelineCreateInfo* pCreateInfos,
+    const VkAllocationCallbacks* pAllocator, VkPipeline* pPipelines) {
+    return mImpl->on_vkCreateComputePipelines(pool, boxed_device, pipelineCache, createInfoCount,
                                                pCreateInfos, pAllocator, pPipelines);
 }
 
