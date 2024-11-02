@@ -71,9 +71,10 @@
 #endif
 
 #ifndef VERBOSE
-#define VERBOSE(fmt, ...)        \
-    if (android::base::isVerboseLogging()) \
-        fprintf(stderr, "%s:%d " fmt "\n", __func__, __LINE__, ##__VA_ARGS__);
+#define VERBOSE(fmt, ...)                    \
+    if (android::base::isVerboseLogging()) { \
+        INFO(fmt, ##__VA_ARGS__);            \
+    }
 #endif
 
 #include <climits>
@@ -1056,7 +1057,7 @@ class VkDecoderGlobalState::Impl {
 
         if (swiftshader) {
             if (mLogging) {
-                fprintf(stderr, "%s: acquire lock\n", __func__);
+                INFO("%s: acquire lock", __func__);
             }
             lock = std::make_unique<std::lock_guard<std::recursive_mutex>>(mLock);
         }
@@ -1379,20 +1380,24 @@ class VkDecoderGlobalState::Impl {
                 privateDataFeatures->privateData = VK_FALSE;
             }
 
-            VkPhysicalDeviceInlineUniformBlockFeatures* iubFeatures =
-                vk_find_struct<VkPhysicalDeviceInlineUniformBlockFeatures>(pFeatures);
-            if (iubFeatures != nullptr) {
-                // Currently not supporting iub due to descriptor set optimization.
-                // TODO: fix the non-optimized descriptor set path and re-enable the features afterwads.
-                // b/372217918
-                iubFeatures->inlineUniformBlock = VK_FALSE;
-            }
-
             VkPhysicalDeviceVulkan13Features* vulkan13Features =
                 vk_find_struct<VkPhysicalDeviceVulkan13Features>(pFeatures);
             if (vulkan13Features != nullptr) {
                 vulkan13Features->privateData = VK_FALSE;
-                vulkan13Features->inlineUniformBlock = VK_FALSE;
+            }
+
+            if (m_emu->features.VulkanBatchedDescriptorSetUpdate.enabled) {
+                // Currently not supporting iub due to descriptor set optimization.
+                // TODO: fix the non-optimized descriptor set path and re-enable the features afterwads.
+                // b/372217918
+                VkPhysicalDeviceInlineUniformBlockFeatures* iubFeatures =
+                    vk_find_struct<VkPhysicalDeviceInlineUniformBlockFeatures>(pFeatures);
+                if (iubFeatures != nullptr) {
+                    iubFeatures->inlineUniformBlock = VK_FALSE;
+                }
+                if (vulkan13Features != nullptr) {
+                    vulkan13Features->inlineUniformBlock = VK_FALSE;
+                }
             }
         }
     }
@@ -1941,7 +1946,7 @@ class VkDecoderGlobalState::Impl {
         VkDevice boxed = new_boxed_VkDevice(*pDevice, nullptr, true /* own dispatch */);
 
         if (mLogging) {
-            fprintf(stderr, "%s: init vulkan dispatch from device\n", __func__);
+            INFO("%s: init vulkan dispatch from device", __func__);
         }
 
         VulkanDispatch* dispatch = dispatch_VkDevice(boxed);
@@ -1956,7 +1961,7 @@ class VkDecoderGlobalState::Impl {
         deviceInfo.deviceOpTracker = std::make_shared<DeviceOpTracker>(*pDevice, dispatch);
 
         if (mLogging) {
-            fprintf(stderr, "%s: init vulkan dispatch from device (end)\n", __func__);
+            INFO("%s: init vulkan dispatch from device (end)", __func__);
         }
 
         deviceInfo.boxed = boxed;
@@ -1998,13 +2003,13 @@ class VkDecoderGlobalState::Impl {
                 VkQueue queueOut;
 
                 if (mLogging) {
-                    fprintf(stderr, "%s: get device queue (begin)\n", __func__);
+                    INFO("%s: get device queue (begin)", __func__);
                 }
 
                 vk->vkGetDeviceQueue(*pDevice, index, i, &queueOut);
 
                 if (mLogging) {
-                    fprintf(stderr, "%s: get device queue (end)\n", __func__);
+                    INFO("%s: get device queue (end)", __func__);
                 }
                 queues.push_back(queueOut);
                 mQueueInfo[queueOut].device = *pDevice;
@@ -2025,7 +2030,7 @@ class VkDecoderGlobalState::Impl {
         *pDevice = (VkDevice)deviceInfo.boxed;
 
         if (mLogging) {
-            fprintf(stderr, "%s: (end)\n", __func__);
+            INFO("%s: (end)", __func__);
         }
 
         return VK_SUCCESS;
@@ -2063,7 +2068,7 @@ class VkDecoderGlobalState::Impl {
         // queue. See b/328436383.
         if (pQueueInfo->flags & VK_DEVICE_QUEUE_CREATE_PROTECTED_BIT) {
             *pQueue = VK_NULL_HANDLE;
-            fprintf(stderr, "%s: Cannot get protected Vulkan device queue\n", __func__);
+            INFO("%s: Cannot get protected Vulkan device queue", __func__);
             return;
         }
         uint32_t queueFamilyIndex = pQueueInfo->queueFamilyIndex;
@@ -3596,8 +3601,10 @@ class VkDecoderGlobalState::Impl {
                     entry.bufferView = descriptorWrite.pTexelBufferView[writeElemIdx];
                     entry.writeType = DescriptorSetInfo::DescriptorWriteType::BufferView;
                     entry.descriptorType = descType;
-                    // TODO: check alive
-                    ERR("%s: Snapshot for texel buffer view is incomplete.\n", __func__);
+                    if (snapshotsEnabled()) {
+                        // TODO: check alive
+                        ERR("%s: Snapshot for texel buffer view is incomplete.\n", __func__);
+                    }
                 }
             } else if (isDescriptorTypeInlineUniformBlock(descType)) {
                 const VkWriteDescriptorSetInlineUniformBlock* descInlineUniformBlock =
@@ -3628,8 +3635,10 @@ class VkDecoderGlobalState::Impl {
                 // TODO
                 // Look for pNext inline uniform block or acceleration structure.
                 // Append new DescriptorWrite entry that holds the buffer
-                ERR("%s: Ignoring Snapshot for emulated write for descriptor type 0x%x\n", __func__,
-                    descType);
+                if (snapshotsEnabled()) {
+                    ERR("%s: Ignoring Snapshot for emulated write for descriptor type 0x%x\n",
+                        __func__, descType);
+                }
             }
         }
         // TODO: bookkeep pDescriptorCopies
@@ -3859,6 +3868,35 @@ class VkDecoderGlobalState::Impl {
         auto deviceDispatch = dispatch_VkDevice(boxed_device);
 
         VkResult result = deviceDispatch->vkCreateGraphicsPipelines(
+            device, pipelineCache, createInfoCount, pCreateInfos, pAllocator, pPipelines);
+        if (result != VK_SUCCESS && result != VK_PIPELINE_COMPILE_REQUIRED) {
+            return result;
+        }
+
+        std::lock_guard<std::recursive_mutex> lock(mLock);
+
+        for (uint32_t i = 0; i < createInfoCount; i++) {
+            if (!pPipelines[i]) {
+                continue;
+            }
+            auto& pipelineInfo = mPipelineInfo[pPipelines[i]];
+            pipelineInfo.device = device;
+
+            pPipelines[i] = new_boxed_non_dispatchable_VkPipeline(pPipelines[i]);
+        }
+
+        return result;
+    }
+
+    VkResult on_vkCreateComputePipelines(android::base::BumpPool* pool, VkDevice boxed_device,
+                                          VkPipelineCache pipelineCache, uint32_t createInfoCount,
+                                          const VkComputePipelineCreateInfo* pCreateInfos,
+                                          const VkAllocationCallbacks* pAllocator,
+                                          VkPipeline* pPipelines) {
+        auto device = unbox_VkDevice(boxed_device);
+        auto deviceDispatch = dispatch_VkDevice(boxed_device);
+
+        VkResult result = deviceDispatch->vkCreateComputePipelines(
             device, pipelineCache, createInfoCount, pCreateInfos, pAllocator, pPipelines);
         if (result != VK_SUCCESS && result != VK_PIPELINE_COMPILE_REQUIRED) {
             return result;
@@ -4613,8 +4651,8 @@ class VkDecoderGlobalState::Impl {
                                                           uint64_t physAddr) {
         if (!m_emu->features.GlDirectMem.enabled &&
             !m_emu->features.VirtioGpuNext.enabled) {
-            // fprintf(stderr, "%s: Tried to use direct mapping "
-            // "while GlDirectMem is not enabled!\n");
+            // INFO("%s: Tried to use direct mapping "
+            // "while GlDirectMem is not enabled!");
         }
 
         auto* info = android::base::find(mMemoryInfo, memory);
@@ -4633,7 +4671,7 @@ class VkDecoderGlobalState::Impl {
         info->sizeToPage = ((info->size + pageOffset + kPageSize - 1) >> kPageBits) << kPageBits;
 
         if (mLogging) {
-            fprintf(stderr, "%s: map: %p, %p -> [0x%llx 0x%llx]\n", __func__, info->ptr,
+            INFO("%s: map: %p, %p -> [0x%llx 0x%llx]", __func__, info->ptr,
                     info->pageAlignedHva, (unsigned long long)info->guestPhysAddr,
                     (unsigned long long)info->guestPhysAddr + info->sizeToPage);
         }
@@ -4647,7 +4685,7 @@ class VkDecoderGlobalState::Impl {
 
         auto* existingMemoryInfo = android::base::find(mOccupiedGpas, gpa);
         if (existingMemoryInfo) {
-            fprintf(stderr, "%s: WARNING: already mapped gpa 0x%llx, replacing", __func__,
+            INFO("%s: WARNING: already mapped gpa 0x%llx, replacing", __func__,
                     (unsigned long long)gpa);
 
             get_emugl_vm_operations().unmapUserBackedRam(existingMemoryInfo->gpa,
@@ -4659,7 +4697,7 @@ class VkDecoderGlobalState::Impl {
         get_emugl_vm_operations().mapUserBackedRam(gpa, hva, sizeToPage);
 
         if (mVerbosePrints) {
-            fprintf(stderr, "VERBOSE:%s: registering gpa 0x%llx to mOccupiedGpas\n", __func__,
+            INFO("VERBOSE:%s: registering gpa 0x%llx to mOccupiedGpas", __func__,
                     (unsigned long long)gpa);
         }
 
@@ -4685,7 +4723,7 @@ class VkDecoderGlobalState::Impl {
         AutoLock lock(mOccupiedGpasLock);
 
         if (mVerbosePrints) {
-            fprintf(stderr, "VERBOSE:%s: deallocation callback for gpa 0x%llx\n", __func__,
+            INFO("VERBOSE:%s: deallocation callback for gpa 0x%llx", __func__,
                     (unsigned long long)gpa);
         }
 
@@ -5452,7 +5490,7 @@ class VkDecoderGlobalState::Impl {
         Lock* defaultQueueLock;
         if (!getDefaultQueueForDeviceLocked(device, &defaultQueue, &defaultQueueFamilyIndex,
                                             &defaultQueueLock)) {
-            fprintf(stderr, "%s: cant get the default q\n", __func__);
+            INFO("%s: can't get the default q", __func__);
             return VK_ERROR_INITIALIZATION_FAILED;
         }
 
@@ -5545,7 +5583,7 @@ class VkDecoderGlobalState::Impl {
         std::lock_guard<std::recursive_mutex> lock(mLock);
 
         if (mLogging) {
-            fprintf(stderr, "%s: deviceMemory: 0x%llx pAddress: 0x%llx\n", __func__,
+            INFO("%s: deviceMemory: 0x%llx pAddress: 0x%llx", __func__,
                     (unsigned long long)memory, (unsigned long long)(*pAddress));
         }
 
@@ -6930,7 +6968,7 @@ class VkDecoderGlobalState::Impl {
             VkImageCreateInfo defaultVkImageCreateInfo = linearImageCreateInfo.toDefaultVk();
             VkResult result = vk->vkCreateImage(device, &defaultVkImageCreateInfo, nullptr, &image);
             if (result != VK_SUCCESS) {
-                fprintf(stderr, "vkCreateImage failed. size: (%u x %u) result: %d\n",
+                INFO("vkCreateImage failed. size: (%u x %u) result: %d",
                         linearImageCreateInfo.extent.width, linearImageCreateInfo.extent.height,
                         result);
                 return;
@@ -9143,6 +9181,14 @@ VkResult VkDecoderGlobalState::on_vkCreateGraphicsPipelines(
     uint32_t createInfoCount, const VkGraphicsPipelineCreateInfo* pCreateInfos,
     const VkAllocationCallbacks* pAllocator, VkPipeline* pPipelines) {
     return mImpl->on_vkCreateGraphicsPipelines(pool, boxed_device, pipelineCache, createInfoCount,
+                                               pCreateInfos, pAllocator, pPipelines);
+}
+
+VkResult VkDecoderGlobalState::on_vkCreateComputePipelines(
+    android::base::BumpPool* pool, VkDevice boxed_device, VkPipelineCache pipelineCache,
+    uint32_t createInfoCount, const VkComputePipelineCreateInfo* pCreateInfos,
+    const VkAllocationCallbacks* pAllocator, VkPipeline* pPipelines) {
+    return mImpl->on_vkCreateComputePipelines(pool, boxed_device, pipelineCache, createInfoCount,
                                                pCreateInfos, pAllocator, pPipelines);
 }
 

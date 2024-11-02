@@ -180,7 +180,8 @@ void stream_renderer_log(uint32_t type, const char* file, int line, const char* 
         debug.message = &printbuf[0];
         globalDebugCallback(globalUserData, &debug);
     } else {
-        fprintf(stderr, "%s\n", printbuf);
+        // Cannot use logging routines, fallback to stderr
+        fprintf(stderr, "stream_renderer_log error: %s\n", printbuf);
     }
 }
 
@@ -763,7 +764,7 @@ int parseGfxstreamFeatures(const int renderer_flags,
         &features, Vulkan,
         renderer_flags & STREAM_RENDERER_FLAGS_USE_VK_BIT);
     GFXSTREAM_SET_FEATURE_ON_CONDITION(
-        &features, VulkanBatchedDescriptorSetUpdate, true);
+        &features, VulkanBatchedDescriptorSetUpdate, features.VulkanBatchedDescriptorSetUpdate.enabled);
     GFXSTREAM_SET_FEATURE_ON_CONDITION(
         &features, VulkanIgnoredHandles, true);
     GFXSTREAM_SET_FEATURE_ON_CONDITION(

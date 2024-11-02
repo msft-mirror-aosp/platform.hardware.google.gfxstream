@@ -408,7 +408,7 @@ std::string replaceESVersionString(const std::string& prev,
     if (esStart == std::string::npos ||
         esEnd == std::string::npos) {
         // Account for out-of-spec version strings.
-        fprintf(stderr, "%s: Error: invalid OpenGL ES version string %s\n",
+        ERR("%s: Error: unexpected OpenGL ES version string %s",
                 __func__, prev.c_str());
         return prev;
     }

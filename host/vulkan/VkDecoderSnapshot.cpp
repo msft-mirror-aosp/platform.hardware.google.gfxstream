@@ -3017,6 +3017,22 @@ class VkDecoderSnapshot::Impl {
                                          const VkImageSubresource2KHR* pSubresource,
                                          VkSubresourceLayout2KHR* pLayout) {}
 #endif
+#ifdef VK_KHR_line_rasterization
+    void vkCmdSetLineStippleKHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
+                                android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
+                                uint32_t lineStippleFactor, uint16_t lineStipplePattern) {
+        android::base::AutoLock lock(mLock);
+        // commandBuffer modify
+        auto apiHandle = mReconstruction.createApiInfo();
+        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
+        mReconstruction.setApiTrace(apiInfo, OP_vkCmdSetLineStippleKHR, snapshotTraceBegin,
+                                    snapshotTraceBytes);
+        for (uint32_t i = 0; i < 1; ++i) {
+            VkCommandBuffer boxed = unboxed_to_boxed_VkCommandBuffer((&commandBuffer)[i]);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+        }
+    }
+#endif
 #ifdef VK_ANDROID_native_buffer
     void vkGetSwapchainGrallocUsageANDROID(const uint8_t* snapshotTraceBegin,
                                            size_t snapshotTraceBytes, android::base::BumpPool* pool,
@@ -3274,6 +3290,22 @@ class VkDecoderSnapshot::Impl {
                                               android::base::BumpPool* pool, VkResult input_result,
                                               VkPhysicalDevice physicalDevice, uint32_t* pToolCount,
                                               VkPhysicalDeviceToolProperties* pToolProperties) {}
+#endif
+#ifdef VK_EXT_line_rasterization
+    void vkCmdSetLineStippleEXT(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
+                                android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
+                                uint32_t lineStippleFactor, uint16_t lineStipplePattern) {
+        android::base::AutoLock lock(mLock);
+        // commandBuffer modify
+        auto apiHandle = mReconstruction.createApiInfo();
+        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
+        mReconstruction.setApiTrace(apiInfo, OP_vkCmdSetLineStippleEXT, snapshotTraceBegin,
+                                    snapshotTraceBytes);
+        for (uint32_t i = 0; i < 1; ++i) {
+            VkCommandBuffer boxed = unboxed_to_boxed_VkCommandBuffer((&commandBuffer)[i]);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+        }
+    }
 #endif
 #ifdef VK_EXT_extended_dynamic_state
     void vkCmdSetCullModeEXT(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
@@ -6580,6 +6612,14 @@ void VkDecoderSnapshot::vkGetImageSubresourceLayout2KHR(const uint8_t* snapshotT
                                            image, pSubresource, pLayout);
 }
 #endif
+#ifdef VK_KHR_line_rasterization
+void VkDecoderSnapshot::vkCmdSetLineStippleKHR(
+    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
+    VkCommandBuffer commandBuffer, uint32_t lineStippleFactor, uint16_t lineStipplePattern) {
+    mImpl->vkCmdSetLineStippleKHR(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
+                                  lineStippleFactor, lineStipplePattern);
+}
+#endif
 #ifdef VK_ANDROID_native_buffer
 void VkDecoderSnapshot::vkGetSwapchainGrallocUsageANDROID(
     const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
@@ -6845,6 +6885,14 @@ void VkDecoderSnapshot::vkGetPhysicalDeviceToolPropertiesEXT(
     mImpl->vkGetPhysicalDeviceToolPropertiesEXT(snapshotTraceBegin, snapshotTraceBytes, pool,
                                                 input_result, physicalDevice, pToolCount,
                                                 pToolProperties);
+}
+#endif
+#ifdef VK_EXT_line_rasterization
+void VkDecoderSnapshot::vkCmdSetLineStippleEXT(
+    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
+    VkCommandBuffer commandBuffer, uint32_t lineStippleFactor, uint16_t lineStipplePattern) {
+    mImpl->vkCmdSetLineStippleEXT(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
+                                  lineStippleFactor, lineStipplePattern);
 }
 #endif
 #ifdef VK_EXT_extended_dynamic_state
