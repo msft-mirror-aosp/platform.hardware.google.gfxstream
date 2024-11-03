@@ -19,17 +19,11 @@ using gfxstream::vk::formatIsSInt;
 using gfxstream::vk::formatIsUInt;
 using gfxstream::vk::formatRequiresSamplerYcbcrConversion;
 
-#define DISPLAY_VK_ERROR(fmt, ...)                                                            \
-    do {                                                                                      \
-        fprintf(stderr, "%s(%s:%d): " fmt "\n", __func__, __FILE__, __LINE__, ##__VA_ARGS__); \
-        fflush(stderr);                                                                       \
-    } while (0)
-
-#define DISPLAY_VK_ERROR_ONCE(fmt, ...)              \
+#define ERR_ONCE(fmt, ...)              \
     do {                                             \
         static bool displayVkInternalLogged = false; \
         if (!displayVkInternalLogged) {              \
-            DISPLAY_VK_ERROR(fmt, ##__VA_ARGS__);    \
+            ERR(fmt, ##__VA_ARGS__);                 \
             displayVkInternalLogged = true;          \
         }                                            \
     } while (0)
@@ -352,12 +346,12 @@ DisplayVk::PostResult DisplayVk::postImpl(const BorrowedImageInfo* sourceImageIn
 
     const auto* surface = getBoundSurface();
     if (!m_swapChainStateVk || !surface) {
-        DISPLAY_VK_ERROR("Haven't bound to a surface, can't post ColorBuffer.");
+        ERR("Cannot post ColorBuffer: No surface bound.");
         return PostResult{true, std::move(completedFuture)};
     }
 
     if (!canPost(sourceImageInfoVk->imageCreateInfo)) {
-        DISPLAY_VK_ERROR("Can't post ColorBuffer.");
+        ERR("Can't post ColorBuffer.");
         return PostResult{true, std::move(completedFuture)};
     }
 
@@ -464,13 +458,13 @@ DisplayVk::PostResult DisplayVk::postImpl(const BorrowedImageInfo* sourceImageIn
     VkFormatFeatureFlags displayBufferFormatFeatures =
         getFormatFeatures(displayBufferFormat, displayBufferTiling);
     if (formatIsDepthOrStencil(displayBufferFormat)) {
-        DISPLAY_VK_ERROR_ONCE(
+        ERR_ONCE(
             "The format of the display buffer, %s, is a depth/stencil format, we can only use the "
             "VK_FILTER_NEAREST filter according to VUID-vkCmdBlitImage-srcImage-00232.",
             string_VkFormat(displayBufferFormat));
         filter = VK_FILTER_NEAREST;
     } else if (!(displayBufferFormatFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT)) {
-        DISPLAY_VK_ERROR_ONCE(
+        ERR_ONCE(
             "The format of the display buffer, %s, with the tiling, %s, doesn't support "
             "VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT, so we can only use the "
             "VK_FILTER_NEAREST filter according VUID-vkCmdBlitImage-filter-02001. The supported "
@@ -583,7 +577,7 @@ VkFormatFeatureFlags DisplayVk::getFormatFeatures(VkFormat format, VkImageTiling
     } else if (tiling == VK_IMAGE_TILING_OPTIMAL) {
         formatFeatures = formatProperties.optimalTilingFeatures;
     } else {
-        DISPLAY_VK_ERROR("Unknown tiling %#" PRIx64 ".", static_cast<uint64_t>(tiling));
+        ERR("Unknown tiling %#" PRIx64 ".", static_cast<uint64_t>(tiling));
     }
     return formatFeatures;
 }
@@ -593,7 +587,7 @@ bool DisplayVk::canPost(const VkImageCreateInfo& postImageCi) {
     // VK_FORMAT_FEATURE_BLIT_SRC_BIT.
     VkFormatFeatureFlags formatFeatures = getFormatFeatures(postImageCi.format, postImageCi.tiling);
     if (!(formatFeatures & VK_FORMAT_FEATURE_BLIT_SRC_BIT)) {
-        DISPLAY_VK_ERROR(
+        ERR(
             "VK_FORMAT_FEATURE_BLIT_SRC_BLIT is not supported for VkImage with format %s, tilling "
             "%s. Supported features are %s.",
             string_VkFormat(postImageCi.format), string_VkImageTiling(postImageCi.tiling),
@@ -604,7 +598,7 @@ bool DisplayVk::canPost(const VkImageCreateInfo& postImageCi) {
     // According to VUID-vkCmdBlitImage-srcImage-06421, srcImage must not use a format that requires
     // a sampler Y’CBCR conversion.
     if (formatRequiresSamplerYcbcrConversion(postImageCi.format)) {
-        DISPLAY_VK_ERROR("Format %s requires a sampler Y'CbCr conversion. Can't be used to post.",
+        ERR("Format %s requires a sampler Y'CbCr conversion. Can't be used to post.",
                          string_VkFormat(postImageCi.format));
         return false;
     }
@@ -612,7 +606,7 @@ bool DisplayVk::canPost(const VkImageCreateInfo& postImageCi) {
     if (!(postImageCi.usage & VK_IMAGE_USAGE_TRANSFER_SRC_BIT)) {
         // According to VUID-vkCmdBlitImage-srcImage-00219, srcImage must have been created with
         // VK_IMAGE_USAGE_TRANSFER_SRC_BIT usage flag.
-        DISPLAY_VK_ERROR(
+        ERR(
             "The VkImage is not created with the VK_IMAGE_USAGE_TRANSFER_SRC_BIT usage flag. The "
             "usage flags are %s.",
             string_VkImageUsageFlags(postImageCi.usage).c_str());
@@ -625,7 +619,7 @@ bool DisplayVk::canPost(const VkImageCreateInfo& postImageCi) {
         // created with a signed integer VkFormat, the other must also have been created with a
         // signed integer VkFormat.
         if (!(formatIsSInt(postImageCi.format) && formatIsSInt(m_swapChainStateVk->getFormat()))) {
-            DISPLAY_VK_ERROR(
+            ERR(
                 "The format(%s) doesn't match with the format of the presentable image(%s): either "
                 "of the formats is a signed integer VkFormat, but the other is not.",
                 string_VkFormat(postImageCi.format), string_VkFormat(swapChainFormat));
@@ -638,7 +632,7 @@ bool DisplayVk::canPost(const VkImageCreateInfo& postImageCi) {
         // created with an unsigned integer VkFormat, the other must also have been created with an
         // unsigned integer VkFormat.
         if (!(formatIsUInt(postImageCi.format) && formatIsUInt(swapChainFormat))) {
-            DISPLAY_VK_ERROR(
+            ERR(
                 "The format(%s) doesn't match with the format of the presentable image(%s): either "
                 "of the formats is an unsigned integer VkFormat, but the other is not.",
                 string_VkFormat(postImageCi.format), string_VkFormat(swapChainFormat));
@@ -650,7 +644,7 @@ bool DisplayVk::canPost(const VkImageCreateInfo& postImageCi) {
         // According to VUID-vkCmdBlitImage-srcImage-00231, if either of srcImage or dstImage was
         // created with a depth/stencil format, the other must have exactly the same format.
         if (postImageCi.format != swapChainFormat) {
-            DISPLAY_VK_ERROR(
+            ERR(
                 "The format(%s) doesn't match with the format of the presentable image(%s): either "
                 "of the formats is a depth/stencil VkFormat, but the other is not the same format.",
                 string_VkFormat(postImageCi.format), string_VkFormat(swapChainFormat));
@@ -661,7 +655,7 @@ bool DisplayVk::canPost(const VkImageCreateInfo& postImageCi) {
     if (postImageCi.samples != VK_SAMPLE_COUNT_1_BIT) {
         // According to VUID-vkCmdBlitImage-srcImage-00233, srcImage must have been created with a
         // samples value of VK_SAMPLE_COUNT_1_BIT.
-        DISPLAY_VK_ERROR(
+        ERR(
             "The VkImage is not created with the VK_SAMPLE_COUNT_1_BIT samples value. The samples "
             "value is %s.",
             string_VkSampleCountFlagBits(postImageCi.samples));
@@ -670,7 +664,7 @@ bool DisplayVk::canPost(const VkImageCreateInfo& postImageCi) {
     if (postImageCi.flags & VK_IMAGE_CREATE_SUBSAMPLED_BIT_EXT) {
         // According to VUID-vkCmdBlitImage-dstImage-02545, dstImage and srcImage must not have been
         // created with flags containing VK_IMAGE_CREATE_SUBSAMPLED_BIT_EXT.
-        DISPLAY_VK_ERROR(
+        ERR(
             "The VkImage can't be created with flags containing "
             "VK_IMAGE_CREATE_SUBSAMPLED_BIT_EXT. The flags are %s.",
             string_VkImageCreateFlags(postImageCi.flags).c_str());
