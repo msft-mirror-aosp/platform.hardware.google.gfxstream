@@ -697,6 +697,9 @@ void VirtioGpuFrontend::fillCaps(uint32_t set, void* caps) {
                     vk_emu->representativeColorBufferMemoryTypeInfo->guestMemoryTypeIndex;
             }
 
+            if (mFeatures.VulkanBatchedDescriptorSetUpdate.enabled) {
+                capset->vulkanBatchedDescriptorSetUpdate=1;
+            }
             capset->noRenderControlEnc = 1;
             capset->blobAlignment = mPageSize;
             if (vk_emu && vk_emu->live) {

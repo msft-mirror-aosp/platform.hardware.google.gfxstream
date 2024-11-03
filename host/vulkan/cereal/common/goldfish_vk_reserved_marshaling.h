@@ -1855,6 +1855,17 @@ void reservedunmarshal_VkPipelineRasterizationProvokingVertexStateCreateInfoEXT(
     VkPipelineRasterizationProvokingVertexStateCreateInfoEXT* forUnmarshaling, uint8_t** ptr);
 
 #endif
+#ifdef VK_EXT_line_rasterization
+DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkPhysicalDeviceLineRasterizationFeaturesKHR,
+                      reservedunmarshal_VkPhysicalDeviceLineRasterizationFeaturesEXT)
+
+DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkPhysicalDeviceLineRasterizationPropertiesKHR,
+                      reservedunmarshal_VkPhysicalDeviceLineRasterizationPropertiesEXT)
+
+DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkPipelineRasterizationLineStateCreateInfoKHR,
+                      reservedunmarshal_VkPipelineRasterizationLineStateCreateInfoEXT)
+
+#endif
 #ifdef VK_EXT_index_type_uint8
 void reservedunmarshal_VkPhysicalDeviceIndexTypeUint8FeaturesEXT(
     VulkanStream* vkStream, VkStructureType rootType,
