@@ -877,6 +877,10 @@ class VkEncoder {
                                                   VkPhysicalDeviceToolProperties* pToolProperties,
                                                   uint32_t doLock);
 #endif
+#ifdef VK_EXT_line_rasterization
+    void vkCmdSetLineStippleEXT(VkCommandBuffer commandBuffer, uint32_t lineStippleFactor,
+                                uint16_t lineStipplePattern, uint32_t doLock);
+#endif
 #ifdef VK_EXT_extended_dynamic_state
     void vkCmdSetCullModeEXT(VkCommandBuffer commandBuffer, VkCullModeFlags cullMode,
                              uint32_t doLock);
