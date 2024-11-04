@@ -7419,7 +7419,7 @@ class VkDecoderGlobalState::Impl {
             // written to one alias can be read by the other alias. Otherwise, the aliases interpret
             // the contents of the memory differently, ...
             std::unique_ptr<VkImageCreateInfo> colorBufferVkImageCi = nullptr;
-            std::string importSource;
+            const char* importSourceDebug = "";
             VkFormat resolvedFormat = VK_FORMAT_UNDEFINED;
             // Use UNORM formats for SRGB format requests.
             switch (imageCreateInfo.format) {
@@ -7445,7 +7445,7 @@ class VkDecoderGlobalState::Impl {
                 colorBufferVkImageCi = generateColorBufferVkImageCreateInfo(
                     resolvedFormat, imageCreateInfo.extent.width, imageCreateInfo.extent.height,
                     imageCreateInfo.tiling);
-                importSource = "AHardwareBuffer";
+                importSourceDebug = "AHardwareBuffer";
             } else if (pNativeBufferANDROID) {
                 // For native buffer binding, we can query the creation parameters from handle.
                 uint32_t cbHandle = *static_cast<const uint32_t*>(pNativeBufferANDROID->handle);
@@ -7456,7 +7456,7 @@ class VkDecoderGlobalState::Impl {
                 } else {
                     ERR("Unknown ColorBuffer handle: %" PRIu32 ".", cbHandle);
                 }
-                importSource = "NativeBufferANDROID";
+                importSourceDebug = "NativeBufferANDROID";
             }
             if (!colorBufferVkImageCi) {
                 continue;
@@ -7466,7 +7466,7 @@ class VkDecoderGlobalState::Impl {
                 ERR("The VkImageCreateInfo to import %s contains unsupported VkImageCreateFlags. "
                     "All supported VkImageCreateFlags are %s, the input VkImageCreateInfo requires "
                     "support for %s.",
-                    importSource.c_str()?:"",
+                    importSourceDebug,
                     string_VkImageCreateFlags(colorBufferVkImageCi->flags).c_str()?:"",
                     string_VkImageCreateFlags(imageCreateInfo.flags).c_str()?:"");
             }
@@ -7474,38 +7474,38 @@ class VkDecoderGlobalState::Impl {
             if (imageCreateInfo.imageType != colorBufferVkImageCi->imageType) {
                 ERR("The VkImageCreateInfo to import %s has an unexpected VkImageType: %s, %s "
                     "expected.",
-                    importSource.c_str()?:"", string_VkImageType(imageCreateInfo.imageType),
+                    importSourceDebug, string_VkImageType(imageCreateInfo.imageType),
                     string_VkImageType(colorBufferVkImageCi->imageType));
             }
             if (imageCreateInfo.extent.depth != colorBufferVkImageCi->extent.depth) {
                 ERR("The VkImageCreateInfo to import %s has an unexpected VkExtent::depth: %" PRIu32
                     ", %" PRIu32 " expected.",
-                    importSource.c_str()?:"", imageCreateInfo.extent.depth,
+                    importSourceDebug, imageCreateInfo.extent.depth,
                     colorBufferVkImageCi->extent.depth);
             }
             if (imageCreateInfo.mipLevels != colorBufferVkImageCi->mipLevels) {
                 ERR("The VkImageCreateInfo to import %s has an unexpected mipLevels: %" PRIu32
                     ", %" PRIu32 " expected.",
-                    importSource.c_str()?:"", imageCreateInfo.mipLevels,
+                    importSourceDebug, imageCreateInfo.mipLevels,
                     colorBufferVkImageCi->mipLevels);
             }
             if (imageCreateInfo.arrayLayers != colorBufferVkImageCi->arrayLayers) {
                 ERR("The VkImageCreateInfo to import %s has an unexpected arrayLayers: %" PRIu32
                     ", %" PRIu32 " expected.",
-                    importSource.c_str()?:"", imageCreateInfo.arrayLayers,
+                    importSourceDebug, imageCreateInfo.arrayLayers,
                     colorBufferVkImageCi->arrayLayers);
             }
             if (imageCreateInfo.samples != colorBufferVkImageCi->samples) {
                 ERR("The VkImageCreateInfo to import %s has an unexpected VkSampleCountFlagBits: "
                     "%s, %s expected.",
-                    importSource.c_str()?:"", string_VkSampleCountFlagBits(imageCreateInfo.samples),
+                    importSourceDebug, string_VkSampleCountFlagBits(imageCreateInfo.samples),
                     string_VkSampleCountFlagBits(colorBufferVkImageCi->samples));
             }
             if (imageCreateInfo.usage & (~colorBufferVkImageCi->usage)) {
                 ERR("The VkImageCreateInfo to import %s contains unsupported VkImageUsageFlags. "
                     "All supported VkImageUsageFlags are %s, the input VkImageCreateInfo requires "
                     "support for %s.",
-                    importSource.c_str()?:"",
+                    importSourceDebug,
                     string_VkImageUsageFlags(colorBufferVkImageCi->usage).c_str()?:"",
                     string_VkImageUsageFlags(imageCreateInfo.usage).c_str()?:"");
             }
@@ -7519,32 +7519,32 @@ class VkDecoderGlobalState::Impl {
             if (resolvedFormat != colorBufferVkImageCi->format) {
                 ERR("The VkImageCreateInfo to import %s contains unexpected VkFormat:"
                     "%s [%d]. %s [%d] expected.",
-                    importSource.c_str() ?: "", string_VkFormat(imageCreateInfo.format),
+                    importSourceDebug, string_VkFormat(imageCreateInfo.format),
                     imageCreateInfo.format, string_VkFormat(colorBufferVkImageCi->format),
                     colorBufferVkImageCi->format);
             }
             if (imageCreateInfo.extent.width != colorBufferVkImageCi->extent.width) {
                 ERR("The VkImageCreateInfo to import %s contains unexpected VkExtent::width: "
                     "%" PRIu32 ". %" PRIu32 " expected.",
-                    importSource.c_str()?:"", imageCreateInfo.extent.width,
+                    importSourceDebug, imageCreateInfo.extent.width,
                     colorBufferVkImageCi->extent.width);
             }
             if (imageCreateInfo.extent.height != colorBufferVkImageCi->extent.height) {
                 ERR("The VkImageCreateInfo to import %s contains unexpected VkExtent::height: "
                     "%" PRIu32 ". %" PRIu32 " expected.",
-                    importSource.c_str()?:"", imageCreateInfo.extent.height,
+                    importSourceDebug, imageCreateInfo.extent.height,
                     colorBufferVkImageCi->extent.height);
             }
             if (imageCreateInfo.tiling != colorBufferVkImageCi->tiling) {
                 ERR("The VkImageCreateInfo to import %s contains unexpected VkImageTiling: %s. %s "
                     "expected.",
-                    importSource.c_str()?:"", string_VkImageTiling(imageCreateInfo.tiling),
+                    importSourceDebug, string_VkImageTiling(imageCreateInfo.tiling),
                     string_VkImageTiling(colorBufferVkImageCi->tiling));
             }
             if (imageCreateInfo.sharingMode != colorBufferVkImageCi->sharingMode) {
                 ERR("The VkImageCreateInfo to import %s contains unexpected VkSharingMode: %s. %s "
                     "expected.",
-                    importSource.c_str()?:"", string_VkSharingMode(imageCreateInfo.sharingMode),
+                    importSourceDebug, string_VkSharingMode(imageCreateInfo.sharingMode),
                     string_VkSharingMode(colorBufferVkImageCi->sharingMode));
             }
         }
