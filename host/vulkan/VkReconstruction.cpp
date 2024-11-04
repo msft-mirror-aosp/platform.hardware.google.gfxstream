@@ -29,7 +29,7 @@ namespace vk {
 
 #if DEBUG_RECONSTRUCTION
 
-#define DEBUG_RECON(fmt, ...) fprintf(stderr, "%s:%d " fmt "\n", __func__, __LINE__, ##__VA_ARGS__);
+#define DEBUG_RECON(fmt, ...) INFO(fmt, ##__VA_ARGS__);
 
 #else
 
@@ -64,6 +64,8 @@ void VkReconstruction::save(android::base::Stream* stream) {
 #if DEBUG_RECONSTRUCTION
     dump();
 #endif
+
+    std::unordered_set<uint64_t> savedApis;
 
     std::unordered_map<HandleWithState, int, HandleWithStateHash> totalParents;
     std::vector<HandleWithState> next;
@@ -104,9 +106,12 @@ void VkReconstruction::save(android::base::Stream* stream) {
         for (const auto& handle : handles) {
             auto item = mHandleReconstructions.get(handle.first)->states[handle.second];
             for (uint64_t apiRef : item.apiRefs) {
-#if DEBUG_RECONSTRUCTION
                 auto apiItem = mApiTrace.get(apiRef);
-                DEBUG_RECON("adding handle 0x%lx API 0x%lx op code %d\n", handle.first, apiRef,
+                if (!apiItem) continue;
+                if (savedApis.find(apiRef) != savedApis.end()) continue;
+                savedApis.insert(apiRef);
+#if DEBUG_RECONSTRUCTION
+                DEBUG_RECON("adding handle 0x%lx API 0x%lx op code %d", handle.first, apiRef,
                             apiItem->opCode);
 #endif
                 nextApis.push_back(apiRef);
@@ -136,7 +141,7 @@ void VkReconstruction::save(android::base::Stream* stream) {
         for (auto apiHandle : uniqApiRefsByTopoOrder[i]) {
             auto item = mApiTrace.get(apiHandle);
             for (auto createdHandle : item->createdHandles) {
-                DEBUG_RECON("save handle: 0x%lx\n", createdHandle);
+                DEBUG_RECON("save handle: 0x%lx", createdHandle);
                 createdHandleBuffer.push_back(createdHandle);
             }
         }
@@ -151,7 +156,7 @@ void VkReconstruction::save(android::base::Stream* stream) {
         for (auto apiHandle : uniqApiRefsByTopoOrder[i]) {
             auto item = mApiTrace.get(apiHandle);
             // 4 bytes for opcode, and 4 bytes for saveBufferRaw's size field
-            DEBUG_RECON("saving api handle 0x%lx op code %d\n", apiHandle, item->opCode);
+            DEBUG_RECON("saving api handle 0x%lx op code %d", apiHandle, item->opCode);
             memcpy(apiTracePtr, &item->opCode, sizeof(uint32_t));
             apiTracePtr += 4;
             uint32_t traceBytesForSnapshot = item->traceBytes + 8;
@@ -187,7 +192,7 @@ class TrivialStream : public IOStream {
                 m_buf = p;
                 m_bufsize = allocSize;
             } else {
-                ERR("realloc (%zu) failed\n", allocSize);
+                ERR("realloc (%zu) failed", allocSize);
                 free(m_buf);
                 m_buf = NULL;
                 m_bufsize = 0;
@@ -267,10 +272,28 @@ VkReconstruction::ApiHandle VkReconstruction::createApiInfo() {
     return handle;
 }
 
+void VkReconstruction::removeHandleFromApiInfo(VkReconstruction::ApiHandle h, uint64_t toRemove) {
+    auto vk_item = mHandleReconstructions.get(toRemove);
+    if (!vk_item) return;
+    auto apiInfo = mApiTrace.get(h);
+    if (!apiInfo) return;
+
+    auto& handles = apiInfo->createdHandles;
+    auto it = std::find(handles.begin(), handles.end(), toRemove);
+
+    if (it != handles.end()) {
+        handles.erase(it);
+    }
+    DEBUG_RECON("removed 1 vk handle  0x%llx from apiInfo  0x%llx, now it has %d left",
+                (unsigned long long)toRemove, (unsigned long long)h, (int)handles.size());
+}
+
 void VkReconstruction::destroyApiInfo(VkReconstruction::ApiHandle h) {
     auto item = mApiTrace.get(h);
 
     if (!item) return;
+
+    if (!item->createdHandles.empty()) return;
 
     item->traceBytes = 0;
     item->createdHandles.clear();
@@ -291,13 +314,13 @@ void VkReconstruction::setApiTrace(VkReconstruction::ApiInfo* apiInfo, uint32_t 
 }
 
 void VkReconstruction::dump() {
-    fprintf(stderr, "%s: api trace dump\n", __func__);
+    INFO("%s: api trace dump", __func__);
 
     size_t traceBytesTotal = 0;
 
     mApiTrace.forEachLiveEntry_const(
         [&traceBytesTotal](bool live, uint64_t handle, const ApiInfo& info) {
-            fprintf(stderr, "VkReconstruction::%s: api handle 0x%llx: %s\n", __func__,
+            INFO("VkReconstruction::%s: api handle 0x%llx: %s", __func__,
                     (unsigned long long)handle, api_opcode_to_string(info.opCode));
             traceBytesTotal += info.traceBytes;
         });
@@ -305,17 +328,17 @@ void VkReconstruction::dump() {
     mHandleReconstructions.forEachLiveComponent_const(
         [this](bool live, uint64_t componentHandle, uint64_t entityHandle,
                const HandleWithStateReconstruction& reconstruction) {
-            fprintf(stderr, "VkReconstruction::%s: %p handle 0x%llx api refs:\n", __func__, this,
+            INFO("VkReconstruction::%s: %p handle 0x%llx api refs:", __func__, this,
                     (unsigned long long)entityHandle);
             for (const auto& state : reconstruction.states) {
                 for (auto apiHandle : state.apiRefs) {
                     auto apiInfo = mApiTrace.get(apiHandle);
                     const char* apiName =
                         apiInfo ? api_opcode_to_string(apiInfo->opCode) : "unalloced";
-                    fprintf(stderr, "VkReconstruction::%s:     0x%llx: %s\n", __func__,
+                    INFO("VkReconstruction::%s:     0x%llx: %s", __func__,
                             (unsigned long long)apiHandle, apiName);
                     for (auto createdHandle : apiInfo->createdHandles) {
-                        fprintf(stderr, "VkReconstruction::%s:         created 0x%llx\n", __func__,
+                        INFO("VkReconstruction::%s:         created 0x%llx", __func__,
                                 (unsigned long long)createdHandle);
                     }
                 }
@@ -325,17 +348,17 @@ void VkReconstruction::dump() {
     mHandleModifications.forEachLiveComponent_const([this](bool live, uint64_t componentHandle,
                                                            uint64_t entityHandle,
                                                            const HandleModification& modification) {
-        fprintf(stderr, "VkReconstruction::%s: mod: %p handle 0x%llx api refs:\n", __func__, this,
+        INFO("VkReconstruction::%s: mod: %p handle 0x%llx api refs:", __func__, this,
                 (unsigned long long)entityHandle);
         for (auto apiHandle : modification.apiRefs) {
             auto apiInfo = mApiTrace.get(apiHandle);
             const char* apiName = apiInfo ? api_opcode_to_string(apiInfo->opCode) : "unalloced";
-            fprintf(stderr, "VkReconstruction::%s: mod:     0x%llx: %s\n", __func__,
+            INFO("VkReconstruction::%s: mod:     0x%llx: %s", __func__,
                     (unsigned long long)apiHandle, apiName);
         }
     });
 
-    fprintf(stderr, "%s: total trace bytes: %zu\n", __func__, traceBytesTotal);
+    INFO("%s: total trace bytes: %zu", __func__, traceBytesTotal);
 }
 
 void VkReconstruction::addHandles(const uint64_t* toAdd, uint32_t count) {
@@ -421,13 +444,14 @@ void VkReconstruction::forEachHandleDeleteApi(const uint64_t* toProcess, uint32_
     if (!toProcess) return;
 
     for (uint32_t i = 0; i < count; ++i) {
-        DEBUG_RECON("deleting api for 0x%lx\n", toProcess[i]);
+        DEBUG_RECON("deleting api for 0x%lx", toProcess[i]);
         auto item = mHandleReconstructions.get(toProcess[i]);
 
         if (!item) continue;
 
         for (auto& state : item->states) {
             for (auto handle : state.apiRefs) {
+                removeHandleFromApiInfo(handle, toProcess[i]);
                 destroyApiInfo(handle);
             }
             state.apiRefs.clear();
@@ -451,7 +475,7 @@ void VkReconstruction::addHandleDependency(const uint64_t* handles, uint32_t cou
     auto parentItem = mHandleReconstructions.get(parentHandle);
 
     if (!parentItem) {
-        DEBUG_RECON("WARN: adding null parent item: 0x%lx\n", parentHandle);
+        DEBUG_RECON("WARN: adding null parent item: 0x%lx", parentHandle);
         return;
     }
     auto& parentItemState = parentItem->states[parentState];
@@ -492,9 +516,11 @@ void VkReconstruction::forEachHandleAddModifyApi(const uint64_t* toProcess, uint
     if (!toProcess) return;
 
     for (uint32_t i = 0; i < count; ++i) {
-        mHandleModifications.add(toProcess[i], HandleModification());
-
         auto item = mHandleModifications.get(toProcess[i]);
+        if (!item) {
+            mHandleModifications.add(toProcess[i], HandleModification());
+            item = mHandleModifications.get(toProcess[i]);
+        }
 
         if (!item) continue;
 
@@ -506,8 +532,6 @@ void VkReconstruction::forEachHandleClearModifyApi(const uint64_t* toProcess, ui
     if (!toProcess) return;
 
     for (uint32_t i = 0; i < count; ++i) {
-        mHandleModifications.add(toProcess[i], HandleModification());
-
         auto item = mHandleModifications.get(toProcess[i]);
 
         if (!item) continue;
