@@ -95,6 +95,13 @@ class CleanupThread {
 
     void enqueueCleanup(GenericCleanup command) { mWorker.enqueue(std::move(command)); }
 
+    void waitForPendingCleanups() {
+        std::promise<void> pendingCleanupsCompletedSignal;
+        std::future<void> pendingCleanupsCompltedWaitable = pendingCleanupsCompletedSignal.get_future();
+        enqueueCleanup([&]() { pendingCleanupsCompletedSignal.set_value(); });
+        pendingCleanupsCompltedWaitable.wait();
+    }
+
     void stop() {
         mWorker.enqueue(Exit{});
         mWorker.join();
@@ -131,7 +138,11 @@ int VirtioGpuFrontend::init(void* cookie, gfxstream::host::FeatureSet features,
     return 0;
 }
 
-void VirtioGpuFrontend::teardown() { mCleanupThread.reset(); }
+void VirtioGpuFrontend::teardown() {
+    destroyVirtioGpuObjects();
+
+    mCleanupThread.reset();
+}
 
 int VirtioGpuFrontend::resetPipe(VirtioGpuContextId contextId, GoldfishHostPipe* hostPipe) {
     stream_renderer_debug("reset pipe for context %u to hostpipe %p", contextId, hostPipe);
@@ -921,6 +932,41 @@ int VirtioGpuFrontend::vulkanInfo(uint32_t resourceId,
     return resource.GetVulkanInfo(vulkanInfo);
 }
 
+int VirtioGpuFrontend::destroyVirtioGpuObjects() {
+    {
+        std::vector<VirtioGpuResourceId> resourceIds;
+        resourceIds.reserve(mResources.size());
+        for (auto& [resourceId, resource] : mResources) {
+            const auto contextIds = resource.GetAttachedContexts();
+            for (const VirtioGpuContextId contextId : contextIds) {
+                detachResource(contextId, resourceId);
+            }
+            resourceIds.push_back(resourceId);
+        }
+        for (const VirtioGpuResourceId resourceId : resourceIds) {
+            unrefResource(resourceId);
+        }
+        mResources.clear();
+    }
+    {
+        std::vector<VirtioGpuContextId> contextIds;
+        contextIds.reserve(mContexts.size());
+        for (const auto& [contextId, _] : mContexts) {
+            contextIds.push_back(contextId);
+        }
+        for (const VirtioGpuContextId contextId : contextIds) {
+            destroyContext(contextId);
+        }
+        mContexts.clear();
+    }
+
+    if (mCleanupThread) {
+        mCleanupThread->waitForPendingCleanups();
+    }
+
+    return 0;
+}
+
 #ifdef CONFIG_AEMU
 void VirtioGpuFrontend::setServiceOps(const GoldfishPipeServiceOps* ops) { mServiceOps = ops; }
 #endif  // CONFIG_AEMU
@@ -991,6 +1037,8 @@ int VirtioGpuFrontend::snapshotFrontend(const char* directory) {
 }
 
 int VirtioGpuFrontend::snapshot(const char* directory) {
+    stream_renderer_debug("directory:%s", directory);
+
     android_getOpenglesRenderer()->pauseAllPreSave();
 
     int ret = snapshotRenderer(directory);
@@ -1007,6 +1055,7 @@ int VirtioGpuFrontend::snapshot(const char* directory) {
         }
     }
 
+    stream_renderer_debug("directory:%s - done!", directory);
     return 0;
 }
 
@@ -1067,6 +1116,10 @@ int VirtioGpuFrontend::restoreFrontend(const char* directory) {
 }
 
 int VirtioGpuFrontend::restore(const char* directory) {
+    stream_renderer_debug("directory:%s", directory);
+
+    destroyVirtioGpuObjects();
+
     int ret = restoreRenderer(directory);
     if (ret) {
         stream_renderer_error("Failed to load snapshot: failed to load renderer.");
@@ -1085,6 +1138,7 @@ int VirtioGpuFrontend::restore(const char* directory) {
     // We will need to resume all render threads without waiting for snapshot.
     android_getOpenglesRenderer()->resumeAll(false);
 
+    stream_renderer_debug("directory:%s - done!", directory);
     return 0;
 }
 
