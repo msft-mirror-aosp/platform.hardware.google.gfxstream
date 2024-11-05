@@ -2308,6 +2308,20 @@ class VkDecoderGlobalState::Impl {
         auto device = unbox_VkDevice(boxed_device);
         auto vk = dispatch_VkDevice(boxed_device);
 
+        if (pCreateInfo->format == VK_FORMAT_UNDEFINED) {
+            // VUID-VkImageCreateInfo-pNext-01975:
+            // If the pNext chain does not include a VkExternalFormatANDROID structure, or does
+            // and its externalFormat member is 0, the format must not be VK_FORMAT_UNDEFINED.
+            //
+            // VkExternalFormatANDROID usages should be replaced with Vulkan formats on the guest
+            // side during image creation. We don't support external formats on the host side and
+            // format should be valid at this stage. This error indicates usage of an unsupported
+            // external format, or an old system image.
+            // We handle this here to better report the error and avoid crashes in the driver.
+            ERR("vkCreateImage called with VK_FORMAT_UNDEFINED, external format is not supported.");
+            return VK_ERROR_INITIALIZATION_FAILED;
+        }
+
         std::lock_guard<std::recursive_mutex> lock(mLock);
 
         auto* deviceInfo = android::base::find(mDeviceInfo, device);
