@@ -379,6 +379,10 @@ int VirtioGpuResource::GetCaching(uint32_t* outCaching) const {
         auto& memory = std::get<ExternalMemoryMapping>(*mBlobMemory);
         *outCaching = memory.caching;
         return 0;
+    } else if (std::holds_alternative<ExternalMemoryDescriptor>(*mBlobMemory)) {
+        auto& descriptor = std::get<ExternalMemoryDescriptor>(*mBlobMemory);
+        *outCaching = descriptor->caching;
+        return 0;
     }
 
     stream_renderer_error("failed to get caching for resource %d: unhandled type?", mId);
