@@ -26,6 +26,8 @@ std::optional<VirtioGpuContextSnapshot> SnapshotContext(const VirtioGpuContext& 
     contextSnapshot.set_id(context.ctxId);
     contextSnapshot.set_name(context.name);
     contextSnapshot.set_capset(context.capsetId);
+    contextSnapshot.mutable_resource_asgs()->insert(context.addressSpaceHandles.begin(),
+                                                    context.addressSpaceHandles.end());
     return contextSnapshot;
 }
 
@@ -35,6 +37,8 @@ std::optional<VirtioGpuContext> RestoreContext(
     context.ctxId = contextSnapshot.id();
     context.name = contextSnapshot.name();
     context.capsetId = contextSnapshot.capset();
+    context.addressSpaceHandles.insert(contextSnapshot.resource_asgs().begin(),
+                                       contextSnapshot.resource_asgs().end());
     return context;
 }
 
