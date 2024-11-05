@@ -265,12 +265,6 @@ typedef id&lt;MTLSharedEvent&gt; MTLSharedEvent_id;
 #else
 typedef void* <name>MTLSharedEvent_id</name>;
 #endif</type>
-        <type category="basetype">#ifdef __OBJC__
-@protocol MTLResource;
-typedef __unsafe_unretained id&lt;MTLResource&gt; MTLResource_id;
-#else
-typedef void* <name>MTLResource_id</name>;
-#endif</type>
         <type category="basetype">typedef struct __IOSurface* <name>IOSurfaceRef</name>;</type>
 
         <type category="basetype">typedef <type>uint32_t</type> <name>VkSampleMask</name>;</type>
@@ -737,7 +731,8 @@ typedef void* <name>MTLResource_id</name>;
         <type name="VkPerformanceOverrideTypeINTEL" category="enum"/>
         <type name="VkPerformanceParameterTypeINTEL" category="enum"/>
         <type name="VkPerformanceValueTypeINTEL" category="enum"/>
-        <type name="VkLineRasterizationModeEXT" category="enum"/>
+        <type name="VkLineRasterizationModeKHR" category="enum"/>
+        <type name="VkLineRasterizationModeEXT" category="enum" alias="VkLineRasterizationModeKHR"/>
         <type name="VkShaderModuleCreateFlagBits" category="enum"/>
         <type name="VkPipelineCompilerControlFlagBitsAMD" category="enum"/>
         <type name="VkShaderCorePropertiesFlagBitsAMD" category="enum"/>
@@ -2746,7 +2741,7 @@ typedef void* <name>MTLResource_id</name>;
             <member values="VK_STRUCTURE_TYPE_IMPORT_MEMORY_METAL_HANDLE_INFO_EXT"><type>VkStructureType</type> <name>sType</name></member>
             <member optional="true">const <type>void</type>*                      <name>pNext</name></member>
             <member optional="true"><type>VkExternalMemoryHandleTypeFlagBits</type> <name>handleType</name></member>
-            <member optional="true"><type>MTLResource_id</type>           <name>handle</name></member>
+            <member optional="true"><type>void</type>*           <name>handle</name></member>
         </type>
         <type category="struct" name="VkMemoryMetalHandlePropertiesEXT" returnedonly="true">
             <member values="VK_STRUCTURE_TYPE_MEMORY_METAL_HANDLE_PROPERTIES_EXT"><type>VkStructureType</type> <name>sType</name></member>
@@ -5387,8 +5382,8 @@ typedef void* <name>MTLResource_id</name>;
             <member><type>VkDeviceMemory</type>                   <name>memory</name></member>
         </type>
         <type category="struct" name="VkDeviceMemoryOpaqueCaptureAddressInfoKHR"               alias="VkDeviceMemoryOpaqueCaptureAddressInfo"/>
-        <type category="struct" name="VkPhysicalDeviceLineRasterizationFeaturesEXT" structextends="VkPhysicalDeviceFeatures2,VkDeviceCreateInfo">
-            <member values="VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_FEATURES_EXT"><type>VkStructureType</type> <name>sType</name></member>
+        <type category="struct" name="VkPhysicalDeviceLineRasterizationFeaturesKHR" structextends="VkPhysicalDeviceFeatures2,VkDeviceCreateInfo">
+            <member values="VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_FEATURES_KHR"><type>VkStructureType</type> <name>sType</name></member>
             <member optional="true"><type>void</type>*        <name>pNext</name></member>
             <member><type>VkBool32</type>                           <name>rectangularLines</name></member>
             <member><type>VkBool32</type>                           <name>bresenhamLines</name></member>
@@ -5397,19 +5392,22 @@ typedef void* <name>MTLResource_id</name>;
             <member><type>VkBool32</type>                           <name>stippledBresenhamLines</name></member>
             <member><type>VkBool32</type>                           <name>stippledSmoothLines</name></member>
         </type>
-        <type category="struct" name="VkPhysicalDeviceLineRasterizationPropertiesEXT" returnedonly="true" structextends="VkPhysicalDeviceProperties2">
-            <member values="VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_PROPERTIES_EXT"><type>VkStructureType</type> <name>sType</name></member>
+        <type category="struct" name="VkPhysicalDeviceLineRasterizationFeaturesEXT" alias="VkPhysicalDeviceLineRasterizationFeaturesKHR"/>
+        <type category="struct" name="VkPhysicalDeviceLineRasterizationPropertiesKHR" returnedonly="true" structextends="VkPhysicalDeviceProperties2">
+            <member values="VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_PROPERTIES_KHR"><type>VkStructureType</type> <name>sType</name></member>
             <member optional="true"><type>void</type>*                               <name>pNext</name></member>
             <member limittype="bits"><type>uint32_t</type>                            <name>lineSubPixelPrecisionBits</name></member>
         </type>
-        <type category="struct" name="VkPipelineRasterizationLineStateCreateInfoEXT" structextends="VkPipelineRasterizationStateCreateInfo">
-            <member values="VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_LINE_STATE_CREATE_INFO_EXT"><type>VkStructureType</type> <name>sType</name></member>
-            <member optional="true">const <type>void</type>*                                                      <name>pNext</name></member>
-            <member><type>VkLineRasterizationModeEXT</type>                                       <name>lineRasterizationMode</name></member>
+        <type category="struct" name="VkPhysicalDeviceLineRasterizationPropertiesEXT" alias="VkPhysicalDeviceLineRasterizationPropertiesKHR"/>
+        <type category="struct" name="VkPipelineRasterizationLineStateCreateInfoKHR" structextends="VkPipelineRasterizationStateCreateInfo">
+            <member values="VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_LINE_STATE_CREATE_INFO_KHR"><type>VkStructureType</type> <name>sType</name></member>
+            <member optional="true">const <type>void</type>*                                      <name>pNext</name></member>
+            <member><type>VkLineRasterizationModeKHR</type>                                       <name>lineRasterizationMode</name></member>
             <member><type>VkBool32</type>                                                         <name>stippledLineEnable</name></member>
             <member><type>uint32_t</type>                                                         <name>lineStippleFactor</name></member>
             <member><type>uint16_t</type>                                                         <name>lineStipplePattern</name></member>
         </type>
+        <type category="struct" name="VkPipelineRasterizationLineStateCreateInfoEXT" alias="VkPipelineRasterizationLineStateCreateInfoKHR"/>
         <type category="struct" name="VkPhysicalDevicePipelineCreationCacheControlFeatures" structextends="VkPhysicalDeviceFeatures2,VkDeviceCreateInfo">
             <member values="VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_CREATION_CACHE_CONTROL_FEATURES"><type>VkStructureType</type> <name>sType</name></member>
             <member optional="true"><type>void</type>* <name>pNext</name></member>
@@ -10274,11 +10272,15 @@ typedef void* <name>MTLResource_id</name>;
         <enum value="2" name="VK_PIPELINE_EXECUTABLE_STATISTIC_FORMAT_UINT64_KHR"/>
         <enum value="3" name="VK_PIPELINE_EXECUTABLE_STATISTIC_FORMAT_FLOAT64_KHR"/>
     </enums>
-    <enums name="VkLineRasterizationModeEXT" type="enum">
-        <enum value="0"     name="VK_LINE_RASTERIZATION_MODE_DEFAULT_EXT"/>
-        <enum value="1"     name="VK_LINE_RASTERIZATION_MODE_RECTANGULAR_EXT"/>
-        <enum value="2"     name="VK_LINE_RASTERIZATION_MODE_BRESENHAM_EXT"/>
-        <enum value="3"     name="VK_LINE_RASTERIZATION_MODE_RECTANGULAR_SMOOTH_EXT"/>
+    <enums name="VkLineRasterizationModeKHR" type="enum">
+        <enum value="0"     name="VK_LINE_RASTERIZATION_MODE_DEFAULT_KHR"/>
+        <enum               name="VK_LINE_RASTERIZATION_MODE_DEFAULT_EXT"             alias="VK_LINE_RASTERIZATION_MODE_DEFAULT_KHR"/>
+        <enum value="1"     name="VK_LINE_RASTERIZATION_MODE_RECTANGULAR_KHR"/>
+        <enum               name="VK_LINE_RASTERIZATION_MODE_RECTANGULAR_EXT"         alias="VK_LINE_RASTERIZATION_MODE_RECTANGULAR_KHR"/>
+        <enum value="2"     name="VK_LINE_RASTERIZATION_MODE_BRESENHAM_KHR"/>
+        <enum               name="VK_LINE_RASTERIZATION_MODE_BRESENHAM_EXT"           alias="VK_LINE_RASTERIZATION_MODE_BRESENHAM_KHR"/>
+        <enum value="3"     name="VK_LINE_RASTERIZATION_MODE_RECTANGULAR_SMOOTH_KHR"/>
+        <enum               name="VK_LINE_RASTERIZATION_MODE_RECTANGULAR_SMOOTH_EXT"  alias="VK_LINE_RASTERIZATION_MODE_RECTANGULAR_SMOOTH_KHR"/>
     </enums>
     <enums name="VkShaderModuleCreateFlagBits" type="bitmask">
     </enums>
@@ -13822,11 +13824,12 @@ typedef void* <name>MTLResource_id</name>;
             <param optional="true" len="pInternalRepresentationCount"><type>VkPipelineExecutableInternalRepresentationKHR</type>* <name>pInternalRepresentations</name></param>
         </command>
         <command queues="graphics" renderpass="both" cmdbufferlevel="primary,secondary" tasks="state">
-            <proto><type>void</type> <name>vkCmdSetLineStippleEXT</name></proto>
+            <proto><type>void</type> <name>vkCmdSetLineStippleKHR</name></proto>
             <param externsync="true"><type>VkCommandBuffer</type> <name>commandBuffer</name></param>
             <param><type>uint32_t</type> <name>lineStippleFactor</name></param>
             <param><type>uint16_t</type> <name>lineStipplePattern</name></param>
         </command>
+        <command name="vkCmdSetLineStippleEXT" alias="vkCmdSetLineStippleKHR"/>
         <command successcodes="VK_SUCCESS,VK_INCOMPLETE" errorcodes="VK_ERROR_OUT_OF_HOST_MEMORY,VK_ERROR_OUT_OF_DEVICE_MEMORY">
             <proto><type>VkResult</type> <name>vkGetFaultData</name></proto>
             <param><type>VkDevice</type> <name>device</name></param>
@@ -15063,13 +15066,13 @@ typedef void* <name>MTLResource_id</name>;
             <proto><type>VkResult</type> <name>vkGetMemoryMetalHandleEXT</name></proto>
             <param><type>VkDevice</type> <name>device</name></param>
             <param>const <type>VkMemoryGetMetalHandleInfoEXT</type>* <name>pGetMetalHandleInfo</name></param>
-            <param><type>MTLResource_id</type>* <name>pHandle</name></param>
+            <param><type>void</type>** <name>pHandle</name></param>
         </command>
         <command successcodes="VK_SUCCESS" errorcodes="VK_ERROR_OUT_OF_HOST_MEMORY,VK_ERROR_INVALID_EXTERNAL_HANDLE">
             <proto><type>VkResult</type> <name>vkGetMemoryMetalHandlePropertiesEXT</name></proto>
             <param><type>VkDevice</type> <name>device</name></param>
             <param><type>VkExternalMemoryHandleTypeFlagBits</type> <name>handleType</name></param>
-            <param><type>MTLResource_id</type> <name>handle</name></param>
+            <param><type>void</type>* <name>handle</name></param>
             <param><type>VkMemoryMetalHandlePropertiesEXT</type>* <name>pMemoryMetalHandleProperties</name></param>
         </command>
     </commands>
@@ -20166,14 +20169,14 @@ typedef void* <name>MTLResource_id</name>;
                 <enum bitpos="19" extends="VkImageCreateFlagBits"           name="VK_IMAGE_CREATE_RESERVED_19_BIT_EXT"/>
             </require>
         </extension>
-        <extension name="VK_EXT_line_rasterization" number="260" type="device" depends="VK_KHR_get_physical_device_properties2,VK_VERSION_1_1" author="EXT" contact="Jeff Bolz @jeffbolznv" specialuse="cadsupport" supported="vulkan,vulkansc">
+        <extension name="VK_EXT_line_rasterization" number="260" type="device" depends="VK_KHR_get_physical_device_properties2,VK_VERSION_1_1" author="EXT" contact="Jeff Bolz @jeffbolznv" specialuse="cadsupport" supported="vulkan,vulkansc" promotedto="VK_KHR_line_rasterization">
             <require>
                 <enum value="1"                                             name="VK_EXT_LINE_RASTERIZATION_SPEC_VERSION"/>
                 <enum value="&quot;VK_EXT_line_rasterization&quot;"         name="VK_EXT_LINE_RASTERIZATION_EXTENSION_NAME"/>
-                <enum offset="0" extends="VkStructureType"                  name="VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_FEATURES_EXT"/>
-                <enum offset="1" extends="VkStructureType"                  name="VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_LINE_STATE_CREATE_INFO_EXT"/>
-                <enum offset="2" extends="VkStructureType"                  name="VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_PROPERTIES_EXT"/>
-                <enum offset="0" extends="VkDynamicState"                   name="VK_DYNAMIC_STATE_LINE_STIPPLE_EXT"/>
+                <enum extends="VkStructureType"                             name="VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_FEATURES_EXT" alias="VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_FEATURES_KHR"/>
+                <enum extends="VkStructureType"                             name="VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_LINE_STATE_CREATE_INFO_EXT" alias="VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_LINE_STATE_CREATE_INFO_KHR"/>
+                <enum extends="VkStructureType"                             name="VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_PROPERTIES_EXT" alias="VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_PROPERTIES_KHR"/>
+                <enum extends="VkDynamicState"                              name="VK_DYNAMIC_STATE_LINE_STIPPLE_EXT" alias="VK_DYNAMIC_STATE_LINE_STIPPLE_KHR"/>
                 <type name="VkPhysicalDeviceLineRasterizationFeaturesEXT"/>
                 <type name="VkPhysicalDeviceLineRasterizationPropertiesEXT"/>
                 <type name="VkPipelineRasterizationLineStateCreateInfoEXT"/>
@@ -22559,13 +22562,12 @@ typedef void* <name>MTLResource_id</name>;
                 <enum value="&quot;VK_GOOGLE_extension_455&quot;"       name="VK_GOOGLE_EXTENSION_455_EXTENSION_NAME"/>
             </require>
         </extension>
-        <extension name="VK_EXT_extended_dynamic_state3" number="456" type="device" depends="VK_KHR_get_physical_device_properties2" author="NV" contact="Piers Daniell @pdaniell-nv" supported="vulkan">
+        <extension name="VK_EXT_extended_dynamic_state3" number="456" type="device" depends="VK_KHR_get_physical_device_properties2,VK_VERSION_1_1" author="NV" contact="Piers Daniell @pdaniell-nv" supported="vulkan" ratified="vulkan">
             <require>
                 <enum value="2"                                              name="VK_EXT_EXTENDED_DYNAMIC_STATE_3_SPEC_VERSION"/>
                 <enum value="&quot;VK_EXT_extended_dynamic_state3&quot;"     name="VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME"/>
                 <enum offset="0" extends="VkStructureType"                   name="VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_3_FEATURES_EXT"/>
                 <enum offset="1" extends="VkStructureType"                   name="VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_3_PROPERTIES_EXT"/>
-                <enum offset="2" extends="VkDynamicState"                    name="VK_DYNAMIC_STATE_TESSELLATION_DOMAIN_ORIGIN_EXT"/>
                 <enum offset="3" extends="VkDynamicState"                    name="VK_DYNAMIC_STATE_DEPTH_CLAMP_ENABLE_EXT"/>
                 <enum offset="4" extends="VkDynamicState"                    name="VK_DYNAMIC_STATE_POLYGON_MODE_EXT"/>
                 <enum offset="5" extends="VkDynamicState"                    name="VK_DYNAMIC_STATE_RASTERIZATION_SAMPLES_EXT"/>
@@ -22576,21 +22578,10 @@ typedef void* <name>MTLResource_id</name>;
                 <enum offset="10" extends="VkDynamicState"                   name="VK_DYNAMIC_STATE_COLOR_BLEND_ENABLE_EXT"/>
                 <enum offset="11" extends="VkDynamicState"                   name="VK_DYNAMIC_STATE_COLOR_BLEND_EQUATION_EXT"/>
                 <enum offset="12" extends="VkDynamicState"                   name="VK_DYNAMIC_STATE_COLOR_WRITE_MASK_EXT"/>
-                <enum offset="13" extends="VkDynamicState"                   name="VK_DYNAMIC_STATE_RASTERIZATION_STREAM_EXT"/>
-                <enum offset="14" extends="VkDynamicState"                   name="VK_DYNAMIC_STATE_CONSERVATIVE_RASTERIZATION_MODE_EXT"/>
-                <enum offset="15" extends="VkDynamicState"                   name="VK_DYNAMIC_STATE_EXTRA_PRIMITIVE_OVERESTIMATION_SIZE_EXT"/>
-                <enum offset="16" extends="VkDynamicState"                   name="VK_DYNAMIC_STATE_DEPTH_CLIP_ENABLE_EXT"/>
-                <enum offset="17" extends="VkDynamicState"                   name="VK_DYNAMIC_STATE_SAMPLE_LOCATIONS_ENABLE_EXT"/>
-                <enum offset="18" extends="VkDynamicState"                   name="VK_DYNAMIC_STATE_COLOR_BLEND_ADVANCED_EXT"/>
-                <enum offset="19" extends="VkDynamicState"                   name="VK_DYNAMIC_STATE_PROVOKING_VERTEX_MODE_EXT"/>
-                <enum offset="20" extends="VkDynamicState"                   name="VK_DYNAMIC_STATE_LINE_RASTERIZATION_MODE_EXT"/>
-                <enum offset="21" extends="VkDynamicState"                   name="VK_DYNAMIC_STATE_LINE_STIPPLE_ENABLE_EXT"/>
-                <enum offset="22" extends="VkDynamicState"                   name="VK_DYNAMIC_STATE_DEPTH_CLIP_NEGATIVE_ONE_TO_ONE_EXT"/>
                 <type name="VkPhysicalDeviceExtendedDynamicState3FeaturesEXT"/>
                 <type name="VkPhysicalDeviceExtendedDynamicState3PropertiesEXT"/>
                 <type name="VkColorBlendEquationEXT"/>
                 <type name="VkColorBlendAdvancedEXT"/>
-                <command name="vkCmdSetTessellationDomainOriginEXT"/>
                 <command name="vkCmdSetDepthClampEnableEXT"/>
                 <command name="vkCmdSetPolygonModeEXT"/>
                 <command name="vkCmdSetRasterizationSamplesEXT"/>
@@ -22601,15 +22592,45 @@ typedef void* <name>MTLResource_id</name>;
                 <command name="vkCmdSetColorBlendEnableEXT"/>
                 <command name="vkCmdSetColorBlendEquationEXT"/>
                 <command name="vkCmdSetColorWriteMaskEXT"/>
+            </require>
+            <require depends="VK_KHR_maintenance2,VK_VERSION_1_1">
+                <enum offset="2" extends="VkDynamicState"                    name="VK_DYNAMIC_STATE_TESSELLATION_DOMAIN_ORIGIN_EXT"/>
+                <command name="vkCmdSetTessellationDomainOriginEXT"/>
+            </require>
+            <require depends="VK_EXT_transform_feedback">
+                <enum offset="13" extends="VkDynamicState"                   name="VK_DYNAMIC_STATE_RASTERIZATION_STREAM_EXT"/>
                 <command name="vkCmdSetRasterizationStreamEXT"/>
+            </require>
+            <require depends="VK_EXT_conservative_rasterization">
+                <enum offset="14" extends="VkDynamicState"                   name="VK_DYNAMIC_STATE_CONSERVATIVE_RASTERIZATION_MODE_EXT"/>
+                <enum offset="15" extends="VkDynamicState"                   name="VK_DYNAMIC_STATE_EXTRA_PRIMITIVE_OVERESTIMATION_SIZE_EXT"/>
                 <command name="vkCmdSetConservativeRasterizationModeEXT"/>
                 <command name="vkCmdSetExtraPrimitiveOverestimationSizeEXT"/>
+            </require>
+            <require depends="VK_EXT_depth_clip_enable">
+                <enum offset="16" extends="VkDynamicState"                   name="VK_DYNAMIC_STATE_DEPTH_CLIP_ENABLE_EXT"/>
                 <command name="vkCmdSetDepthClipEnableEXT"/>
+            </require>
+            <require depends="VK_EXT_sample_locations">
+                <enum offset="17" extends="VkDynamicState"                   name="VK_DYNAMIC_STATE_SAMPLE_LOCATIONS_ENABLE_EXT"/>
                 <command name="vkCmdSetSampleLocationsEnableEXT"/>
+            </require>
+            <require depends="VK_EXT_blend_operation_advanced">
+                <enum offset="18" extends="VkDynamicState"                   name="VK_DYNAMIC_STATE_COLOR_BLEND_ADVANCED_EXT"/>
                 <command name="vkCmdSetColorBlendAdvancedEXT"/>
+            </require>
+            <require depends="VK_EXT_provoking_vertex">
+                <enum offset="19" extends="VkDynamicState"                   name="VK_DYNAMIC_STATE_PROVOKING_VERTEX_MODE_EXT"/>
                 <command name="vkCmdSetProvokingVertexModeEXT"/>
+            </require>
+            <require depends="VK_EXT_line_rasterization">
+                <enum offset="20" extends="VkDynamicState"                   name="VK_DYNAMIC_STATE_LINE_RASTERIZATION_MODE_EXT"/>
+                <enum offset="21" extends="VkDynamicState"                   name="VK_DYNAMIC_STATE_LINE_STIPPLE_ENABLE_EXT"/>
                 <command name="vkCmdSetLineRasterizationModeEXT"/>
                 <command name="vkCmdSetLineStippleEnableEXT"/>
+            </require>
+            <require depends="VK_EXT_depth_clip_control">
+                <enum offset="22" extends="VkDynamicState"                   name="VK_DYNAMIC_STATE_DEPTH_CLIP_NEGATIVE_ONE_TO_ONE_EXT"/>
                 <command name="vkCmdSetDepthClipNegativeOneToOneEXT"/>
             </require>
             <require depends="VK_NV_clip_space_w_scaling">
@@ -23033,7 +23054,7 @@ typedef void* <name>MTLResource_id</name>;
                 <type name="VkPhysicalDeviceRayTracingPositionFetchFeaturesKHR"/>
             </require>
         </extension>
-        <extension name="VK_EXT_shader_object" number="483" depends="(VK_KHR_get_physical_device_properties2,VK_VERSION_1_1)+(VK_KHR_dynamic_rendering,VK_VERSION_1_3)" type="device" author="EXT" contact="Daniel Story @daniel-story" supported="vulkan" ratified="vulkan">
+        <extension name="VK_EXT_shader_object" number="483" depends="((VK_KHR_get_physical_device_properties2,VK_VERSION_1_1)+VK_KHR_dynamic_rendering),VK_VERSION_1_3" type="device" author="EXT" contact="Daniel Story @daniel-story" supported="vulkan" ratified="vulkan">
             <require>
                 <enum value="1"                                            name="VK_EXT_SHADER_OBJECT_SPEC_VERSION"/>
                 <enum value="&quot;VK_EXT_shader_object&quot;"             name="VK_EXT_SHADER_OBJECT_EXTENSION_NAME"/>
@@ -23044,7 +23065,8 @@ typedef void* <name>MTLResource_id</name>;
                 <enum extnumber="353" offset="2" extends="VkStructureType" name="VK_STRUCTURE_TYPE_VERTEX_INPUT_ATTRIBUTE_DESCRIPTION_2_EXT"/>
                 <enum extends="VkStructureType"                            name="VK_STRUCTURE_TYPE_SHADER_REQUIRED_SUBGROUP_SIZE_CREATE_INFO_EXT" alias="VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_REQUIRED_SUBGROUP_SIZE_CREATE_INFO"/>
                 <enum offset="0" extends="VkObjectType"                    name="VK_OBJECT_TYPE_SHADER_EXT"/>
-                <enum offset="0" extends="VkResult"                        name="VK_ERROR_INCOMPATIBLE_SHADER_BINARY_EXT"/>
+                <enum offset="0" extends="VkResult"                        name="VK_INCOMPATIBLE_SHADER_BINARY_EXT"/>
+                <enum            extends="VkResult"                        name="VK_ERROR_INCOMPATIBLE_SHADER_BINARY_EXT" alias="VK_INCOMPATIBLE_SHADER_BINARY_EXT" deprecated="aliased"/>
                 <type name="VkShaderEXT"/>
                 <type name="VkShaderCreateFlagBitsEXT"/>
                 <type name="VkShaderCreateFlagsEXT"/>
@@ -23090,15 +23112,32 @@ typedef void* <name>MTLResource_id</name>;
                 <command name="vkCmdSetColorBlendEnableEXT"/>
                 <command name="vkCmdSetColorBlendEquationEXT"/>
                 <command name="vkCmdSetColorWriteMaskEXT"/>
+                <feature name="shaderObject" struct="VkPhysicalDeviceShaderObjectFeaturesEXT"/>
+            </require>
+            <require depends="VK_EXT_transform_feedback">
                 <command name="vkCmdSetRasterizationStreamEXT"/>
+            </require>
+            <require depends="VK_EXT_conservative_rasterization">
                 <command name="vkCmdSetConservativeRasterizationModeEXT"/>
                 <command name="vkCmdSetExtraPrimitiveOverestimationSizeEXT"/>
+            </require>
+            <require depends="VK_EXT_depth_clip_enable">
                 <command name="vkCmdSetDepthClipEnableEXT"/>
+            </require>
+            <require depends="VK_EXT_sample_locations">
                 <command name="vkCmdSetSampleLocationsEnableEXT"/>
+            </require>
+            <require depends="VK_EXT_blend_operation_advanced">
                 <command name="vkCmdSetColorBlendAdvancedEXT"/>
+            </require>
+            <require depends="VK_EXT_provoking_vertex">
                 <command name="vkCmdSetProvokingVertexModeEXT"/>
+            </require>
+            <require depends="VK_EXT_line_rasterization">
                 <command name="vkCmdSetLineRasterizationModeEXT"/>
                 <command name="vkCmdSetLineStippleEnableEXT"/>
+            </require>
+            <require depends="VK_EXT_depth_clip_control">
                 <command name="vkCmdSetDepthClipNegativeOneToOneEXT"/>
             </require>
             <require depends="VK_EXT_subgroup_size_control,VK_VERSION_1_3">
@@ -23608,10 +23647,19 @@ typedef void* <name>MTLResource_id</name>;
                 <enum value="&quot;VK_KHR_extension_534&quot;"          name="VK_KHR_EXTENSION_534_EXTENSION_NAME"/>
             </require>
         </extension>
-        <extension name="VK_KHR_extension_535" number="535" author="KHR" contact="Piers Daniell @pdaniell-nv" supported="disabled">
+        <extension name="VK_KHR_line_rasterization" number="535" type="device" author="KHR" depends="VK_KHR_get_physical_device_properties2,VK_VERSION_1_1" contact="Piers Daniell @pdaniell-nv" supported="vulkan,vulkansc" ratified="vulkan,vulkansc">
             <require>
-                <enum value="0"                                         name="VK_KHR_EXTENSION_535_SPEC_VERSION"/>
-                <enum value="&quot;VK_KHR_extension_535&quot;"          name="VK_KHR_EXTENSION_535_EXTENSION_NAME"/>
+                <enum value="1"                                             name="VK_KHR_LINE_RASTERIZATION_SPEC_VERSION"/>
+                <enum value="&quot;VK_KHR_line_rasterization&quot;"         name="VK_KHR_LINE_RASTERIZATION_EXTENSION_NAME"/>
+                <enum offset="0" extends="VkStructureType" extnumber="260"  name="VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_FEATURES_KHR"/>
+                <enum offset="1" extends="VkStructureType" extnumber="260"  name="VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_LINE_STATE_CREATE_INFO_KHR"/>
+                <enum offset="2" extends="VkStructureType" extnumber="260"  name="VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_PROPERTIES_KHR"/>
+                <enum offset="0" extends="VkDynamicState"  extnumber="260"  name="VK_DYNAMIC_STATE_LINE_STIPPLE_KHR"/>
+                <type name="VkPhysicalDeviceLineRasterizationFeaturesKHR"/>
+                <type name="VkPhysicalDeviceLineRasterizationPropertiesKHR"/>
+                <type name="VkPipelineRasterizationLineStateCreateInfoKHR"/>
+                <type name="VkLineRasterizationModeKHR"/>
+                <command name="vkCmdSetLineStippleKHR"/>
             </require>
         </extension>
         <extension name="VK_QCOM_extension_536" number="536" type="device" author="QCOM" contact="Jeff Leger @jackohound" supported="disabled">
@@ -23723,10 +23771,10 @@ typedef void* <name>MTLResource_id</name>;
                 <enum offset="2" extends="VkStructureType"                     name="VK_STRUCTURE_TYPE_MEMORY_GET_METAL_HANDLE_INFO_EXT"/>
                 <enum bitpos="16" extends="VkExternalMemoryHandleTypeFlagBits" name="VK_EXTERNAL_MEMORY_HANDLE_TYPE_MTLBUFFER_BIT_EXT"/>
                 <enum bitpos="17" extends="VkExternalMemoryHandleTypeFlagBits" name="VK_EXTERNAL_MEMORY_HANDLE_TYPE_MTLTEXTURE_BIT_EXT"/>
+                <enum bitpos="18" extends="VkExternalMemoryHandleTypeFlagBits" name="VK_EXTERNAL_MEMORY_HANDLE_TYPE_MTLHEAP_BIT_EXT"/>
                 <type name="VkImportMemoryMetalHandleInfoEXT"/>
                 <type name="VkMemoryMetalHandlePropertiesEXT"/>
                 <type name="VkMemoryGetMetalHandleInfoEXT"/>
-                <type name="MTLResource_id"/>
                 <command name="vkGetMemoryMetalHandleEXT"/>
                 <command name="vkGetMemoryMetalHandlePropertiesEXT"/>
             </require>

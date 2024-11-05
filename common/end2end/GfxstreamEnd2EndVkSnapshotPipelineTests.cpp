@@ -526,7 +526,6 @@ TEST_P(GfxstreamEnd2EndVkSnapshotPipelineWithMultiSamplingTest, CanSubmitQueue) 
 
     SnapshotSaveAndLoad();
     ASSERT_THAT(device->getFenceStatus(*fence), IsVkSuccess());
-    device->resetFences(*fence);
     // TODO(b/332763326): fix validation layer complain about unreleased pipeline layout
 
     // Try to draw something.
@@ -1259,11 +1258,6 @@ INSTANTIATE_TEST_CASE_P(GfxstreamEnd2EndTests, GfxstreamEnd2EndVkSnapshotPipelin
                                 .with_gl = false,
                                 .with_vk = true,
                                 .with_features = {"VulkanSnapshots", "VulkanBatchedDescriptorSetUpdate"},
-                            },
-                            TestParams{
-                                .with_gl = false,
-                                .with_vk = true,
-                                .with_features = {"VulkanSnapshots"},
                             },
                         }),
                         &GetTestName);

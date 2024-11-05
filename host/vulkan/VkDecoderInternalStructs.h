@@ -16,14 +16,13 @@
 
 #include <vulkan/vulkan.h>
 
-#include <future>
-
 #ifdef _WIN32
 #include <malloc.h>
 #endif
 
 #include <stdlib.h>
 
+#include <optional>
 #include <set>
 #include <string>
 #include <unordered_map>
@@ -211,6 +210,7 @@ struct DeviceInfo {
     std::set<VkFormat> imageFormats = {};  // image formats used on this device
     std::unique_ptr<GpuDecompressionPipelineManager> decompPipelines = nullptr;
     DeviceOpTrackerPtr deviceOpTracker = nullptr;
+    std::optional<uint32_t> virtioGpuContextId;
 
     // True if this is a compressed image that needs to be decompressed on the GPU (with our
     // compute shader)
@@ -292,15 +292,15 @@ struct FenceInfo {
     VkFence boxed = VK_NULL_HANDLE;
     VulkanDispatch* vk = nullptr;
 
-    // 1. Handles races between the main virtio gpu channel and RenderThread/ASG
-    // channels by ensuring that the host does not do a `vkWaitForFences()` before
-    // the fence is used in a `VkQueueSubmit`.
-    //
-    // 2. Allows the host to insert additional operations and artificially delay when
-    // the fence will be marked as signaled (e.g. inserting VK->GL ColorBuffer syncs
-    // after vkQueueSubmit() operations).
-    std::shared_ptr<std::promise<void>> isWaitablePromise;
-    std::shared_future<void> isWaitable;
+    android::base::StaticLock lock;
+    android::base::ConditionVariable cv;
+
+    enum class State {
+        kWaitable,
+        kNotWaitable,
+        kWaiting,
+    };
+    State state = State::kNotWaitable;
 
     bool external = false;
 
