@@ -899,7 +899,7 @@ int VirtioGpuFrontend::resourceMap(uint32_t resourceId, void** hvaOut, uint64_t*
         if (hvaOut) *hvaOut = nullptr;
         if (sizeOut) *sizeOut = 0;
 
-        stream_renderer_error("Failed to map resource: unknown resource id %s.", resourceId);
+        stream_renderer_error("Failed to map resource: unknown resource id %d.", resourceId);
         return -EINVAL;
     }
 
@@ -912,7 +912,7 @@ int VirtioGpuFrontend::resourceUnmap(uint32_t resourceId) {
 
     auto it = mResources.find(resourceId);
     if (it == mResources.end()) {
-        stream_renderer_error("Failed to map resource: unknown resource id %s.", resourceId);
+        stream_renderer_error("Failed to map resource: unknown resource id %d.", resourceId);
         return -EINVAL;
     }
 
