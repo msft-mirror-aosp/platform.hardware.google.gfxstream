@@ -25,6 +25,9 @@
 #include "ExternalObjectManager.h"
 #include "VirtioGpu.h"
 #ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
+// X11 defines status as a preprocessor define which messes up
+// anyone with a `Status` type.
+#undef Status
 #include "VirtioGpuContextSnapshot.pb.h"
 #endif
 #include "VirtioGpuResource.h"

@@ -14,17 +14,28 @@
 
 #include "VirtioGpuFrontend.h"
 
+#ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
+#include <filesystem>
+#include <fcntl.h>
+// X11 defines status as a preprocessor define which messes up
+// anyone with a `Status` type.
+#include <google/protobuf/io/zero_copy_stream_impl.h>
+#include <google/protobuf/text_format.h>
+#endif  // ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
+
 #include <vulkan/vulkan.h>
 
 #include "FrameBuffer.h"
 #include "FrameworkFormats.h"
 #include "VkCommonOperations.h"
 #include "aemu/base/ManagedDescriptor.hpp"
+#include "aemu/base/files/StdioStream.h"
 #include "aemu/base/memory/SharedMemory.h"
 #include "aemu/base/threads/WorkerThread.h"
 #include "gfxstream/host/Tracing.h"
 #include "host-common/AddressSpaceService.h"
 #include "host-common/address_space_device.h"
+#include "host-common/address_space_device.hpp"
 #include "host-common/address_space_device_control_ops.h"
 #include "host-common/opengles.h"
 #include "virtgpu_gfxstream_protocol.h"
@@ -922,14 +933,36 @@ inline const GoldfishPipeServiceOps* VirtioGpuFrontend::ensureAndGetServiceOps()
 
 #ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
 
-int VirtioGpuFrontend::snapshot(gfxstream::host::snapshot::VirtioGpuFrontendSnapshot& outSnapshot) {
+// Work in progress. Disabled for now but code is present to get build CI.
+static constexpr const bool kEnableFrontendSnapshots = false;
+
+static constexpr const char kSnapshotBasenameFrontend[] = "gfxstream_frontend.txtproto";
+static constexpr const char kSnapshotBasenameRenderer[] = "gfxstream_renderer.bin";
+
+int VirtioGpuFrontend::snapshotRenderer(const char* directory) {
+    const std::filesystem::path snapshotDirectory = std::string(directory);
+    const std::filesystem::path snapshotPath = snapshotDirectory / kSnapshotBasenameRenderer;
+
+    android::base::StdioStream stream(fopen(snapshotPath.c_str(), "wb"),
+                                      android::base::StdioStream::kOwner);
+    android::snapshot::SnapshotSaveStream saveStream{
+        .stream = &stream,
+    };
+
+    android_getOpenglesRenderer()->save(saveStream.stream, saveStream.textureSaver);
+    return 0;
+}
+
+int VirtioGpuFrontend::snapshotFrontend(const char* directory) {
+    gfxstream::host::snapshot::VirtioGpuFrontendSnapshot snapshot;
+
     for (const auto& [contextId, context] : mContexts) {
         auto contextSnapshotOpt = context.Snapshot();
         if (!contextSnapshotOpt) {
             stream_renderer_error("Failed to snapshot context %d", contextId);
             return -1;
         }
-        (*outSnapshot.mutable_contexts())[contextId] = std::move(*contextSnapshotOpt);
+        (*snapshot.mutable_contexts())[contextId] = std::move(*contextSnapshotOpt);
     }
     for (const auto& [resourceId, resource] : mResources) {
         auto resourceSnapshotOpt = resource.Snapshot();
@@ -937,14 +970,83 @@ int VirtioGpuFrontend::snapshot(gfxstream::host::snapshot::VirtioGpuFrontendSnap
             stream_renderer_error("Failed to snapshot resource %d", resourceId);
             return -1;
         }
-        (*outSnapshot.mutable_resources())[resourceId] = std::move(*resourceSnapshotOpt);
+        (*snapshot.mutable_resources())[resourceId] = std::move(*resourceSnapshotOpt);
     }
+
+    const std::filesystem::path snapshotDirectory = std::string(directory);
+    const std::filesystem::path snapshotPath = snapshotDirectory / kSnapshotBasenameFrontend;
+    int snapshotFd = open(snapshotPath.c_str(), O_CREAT | O_WRONLY | O_TRUNC, 0660);
+    if (snapshotFd < 0) {
+        stream_renderer_error("Failed to save snapshot: failed to open %s", snapshotPath.c_str());
+        return -1;
+    }
+    google::protobuf::io::FileOutputStream snapshotOutputStream(snapshotFd);
+    snapshotOutputStream.SetCloseOnDelete(true);
+    if (!google::protobuf::TextFormat::Print(snapshot, &snapshotOutputStream)) {
+        stream_renderer_error("Failed to save snapshot: failed to serialize to stream.");
+        return -1;
+    }
+
     return 0;
 }
 
-int VirtioGpuFrontend::restore(const VirtioGpuFrontendSnapshot& snapshot) {
+int VirtioGpuFrontend::snapshot(const char* directory) {
+    android_getOpenglesRenderer()->pauseAllPreSave();
+
+    int ret = snapshotRenderer(directory);
+    if (ret) {
+        stream_renderer_error("Failed to save snapshot: failed to snapshot renderer.");
+        return ret;
+    }
+
+    if (kEnableFrontendSnapshots) {
+        ret = snapshotFrontend(directory);
+        if (ret) {
+            stream_renderer_error("Failed to save snapshot: failed to snapshot frontend.");
+            return ret;
+        }
+    }
+
+    return 0;
+}
+
+int VirtioGpuFrontend::restoreRenderer(const char* directory) {
+    const std::filesystem::path snapshotDirectory = std::string(directory);
+    const std::filesystem::path snapshotPath = snapshotDirectory / kSnapshotBasenameRenderer;
+
+    android::base::StdioStream stream(fopen(snapshotPath.c_str(), "rb"),
+                                      android::base::StdioStream::kOwner);
+    android::snapshot::SnapshotLoadStream loadStream{
+        .stream = &stream,
+    };
+
+    android_getOpenglesRenderer()->load(loadStream.stream, loadStream.textureLoader);
+    return 0;
+}
+
+int VirtioGpuFrontend::restoreFrontend(const char* directory) {
+    const std::filesystem::path snapshotDirectory = std::string(directory);
+    const std::filesystem::path snapshotPath = snapshotDirectory / kSnapshotBasenameFrontend;
+
+    gfxstream::host::snapshot::VirtioGpuFrontendSnapshot snapshot;
+    {
+        int snapshotFd = open(snapshotPath.c_str(), O_RDONLY);
+        if (snapshotFd < 0) {
+            stream_renderer_error("Failed to restore snapshot: failed to open %s",
+                                snapshotPath.c_str());
+            return -1;
+        }
+        google::protobuf::io::FileInputStream snapshotInputStream(snapshotFd);
+        snapshotInputStream.SetCloseOnDelete(true);
+        if (!google::protobuf::TextFormat::Parse(&snapshotInputStream, &snapshot)) {
+            stream_renderer_error("Failed to restore snapshot: failed to parse from file.");
+            return -1;
+        }
+    }
+
     mContexts.clear();
     mResources.clear();
+
     for (const auto& [contextId, contextSnapshot] : snapshot.contexts()) {
         auto contextOpt = VirtioGpuContext::Restore(contextSnapshot);
         if (!contextOpt) {
@@ -961,6 +1063,28 @@ int VirtioGpuFrontend::restore(const VirtioGpuFrontendSnapshot& snapshot) {
         }
         mResources.emplace(resourceId, std::move(*resourceOpt));
     }
+    return 0;
+}
+
+int VirtioGpuFrontend::restore(const char* directory) {
+    int ret = restoreRenderer(directory);
+    if (ret) {
+        stream_renderer_error("Failed to load snapshot: failed to load renderer.");
+        return ret;
+    }
+
+    if (kEnableFrontendSnapshots) {
+        ret = restoreFrontend(directory);
+        if (ret) {
+            stream_renderer_error("Failed to load snapshot: failed to load frontend.");
+            return ret;
+        }
+    }
+
+    // In end2end tests, we don't really do snapshot save for render threads.
+    // We will need to resume all render threads without waiting for snapshot.
+    android_getOpenglesRenderer()->resumeAll(false);
+
     return 0;
 }
 
