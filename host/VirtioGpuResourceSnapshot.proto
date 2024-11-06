@@ -18,6 +18,16 @@ import "VirtioGpuRingBlobSnapshot.proto";
 
 package gfxstream.host.snapshot;
 
+// LINT.IfChange(virtio_gpu_resource_type)
+enum VirtioGpuResourceType {
+    UNKNOWN = 0;
+    PIPE = 1;
+    BUFFER = 2;
+    COLOR_BUFFER = 3;
+    BLOB = 4;
+}
+// LINT.ThenChange(VirtioGpuResource.h:virtio_gpu_resource_type)
+
 message VirtioGpuResourceCreateArgs {
     optional uint32 id = 1;
     optional uint32 target = 2;
@@ -51,17 +61,18 @@ message VirtioGpuBlobExternalMemoryInfo {
 // LINT.IfChange(virtio_gpu_resource)
 message VirtioGpuResourceSnapshot {
     optional uint32 id = 1;
-    optional VirtioGpuResourceCreateArgs create_args = 2;
-    optional VirtioGpuResourceCreateBlobArgs create_blob_args = 3;
+    optional VirtioGpuResourceType type = 2;
+    optional VirtioGpuResourceCreateArgs create_args = 3;
+    optional VirtioGpuResourceCreateBlobArgs create_blob_args = 4;
     // NOTE: `VirtioGpuResource::iovs` is not saved because the host virtual address
     // may not be the same across snapshot and restore. VMMs are expected to re-call
     // `stream_renderer_resource_attach_iov()` for resources with the new guest-memory
     // host virtual addresses.
 
     oneof blob_memory {
-        VirtioGpuRingBlobSnapshot ring_blob = 4;
-        VirtioGpuBlobExternalMemoryInfo external_memory_descriptor = 5;
-        VirtioGpuBlobExternalMemoryInfo external_memory_mapping = 6;
+        VirtioGpuRingBlobSnapshot ring_blob = 5;
+        VirtioGpuBlobExternalMemoryInfo external_memory_descriptor = 6;
+        VirtioGpuBlobExternalMemoryInfo external_memory_mapping = 7;
     }
 }
 // LINT.ThenChange(VirtioGpuResource.h:virtio_gpu_resource)
