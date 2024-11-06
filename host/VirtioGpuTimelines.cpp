@@ -30,7 +30,7 @@ std::unique_ptr<VirtioGpuTimelines> VirtioGpuTimelines::create(FenceCompletionCa
 }
 
 VirtioGpuTimelines::VirtioGpuTimelines(FenceCompletionCallback callback)
-    : mNextId(0), mFenceCompletionCallback(std::move(callback)) {
+    : mFenceCompletionCallback(std::move(callback)), mNextId(0) {
         gfxstream::host::InitializeTracing();
     }
 
@@ -164,3 +164,197 @@ void VirtioGpuTimelines::poll_locked(const Ring& ring) {
     }
     timelineQueue.erase(timelineQueue.begin(), i);
 }
+
+#ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
+
+std::optional<gfxstream::host::snapshot::VirtioGpuRing> SnapshotRing(const VirtioGpuRing& ring) {
+    gfxstream::host::snapshot::VirtioGpuRing snapshot;
+
+    if (std::holds_alternative<VirtioGpuRingGlobal>(ring)) {
+        snapshot.mutable_global();
+    } else if (std::holds_alternative<VirtioGpuRingContextSpecific>(ring)) {
+        auto& specific = std::get<VirtioGpuRingContextSpecific>(ring);
+
+        auto* specificSnapshot = snapshot.mutable_context_specific();
+        specificSnapshot->set_context_id(specific.mCtxId);
+        specificSnapshot->set_ring_id(specific.mRingIdx);
+    } else {
+        return std::nullopt;
+    }
+
+    return snapshot;
+}
+
+std::optional<VirtioGpuRing> RestoreRing(const gfxstream::host::snapshot::VirtioGpuRing& snapshot) {
+    if (snapshot.has_global()) {
+        return VirtioGpuRingGlobal{};
+    } else if (snapshot.has_context_specific()) {
+        const auto& specific = snapshot.context_specific();
+        return VirtioGpuRingContextSpecific{
+            .mCtxId = specific.context_id(),
+            .mRingIdx = static_cast<VirtioGpuRingIdx>(specific.ring_id()),
+        };
+    } else {
+        return std::nullopt;
+    }
+}
+
+/*static*/
+std::optional<gfxstream::host::snapshot::VirtioGpuTimelineItem>
+VirtioGpuTimelines::SnapshotTimelineItem(const TimelineItem& timelineItem) {
+    gfxstream::host::snapshot::VirtioGpuTimelineItem snapshot;
+
+    if (std::holds_alternative<FenceId>(timelineItem)) {
+        auto fenceId = std::get<FenceId>(timelineItem);
+
+        auto* fenceSnapshot = snapshot.mutable_fence();
+        fenceSnapshot->set_id(fenceId);
+    } else if (std::holds_alternative<std::shared_ptr<Task>>(timelineItem)) {
+        const auto& task = std::get<std::shared_ptr<Task>>(timelineItem);
+
+        auto ringOpt = SnapshotRing(task->mRing);
+        if (!ringOpt) {
+            stream_renderer_error("Failed to snapshot timeline item: failed to snapshot ring.");
+            return std::nullopt;
+        }
+
+        auto* taskSnapshot = snapshot.mutable_task();
+        taskSnapshot->set_id(task->mId);
+        taskSnapshot->mutable_ring()->Swap(&*ringOpt);
+        taskSnapshot->set_trace_id(task->mTraceId);
+        taskSnapshot->set_completed(task->mHasCompleted);
+    } else {
+        stream_renderer_error("Failed to snapshot timeline item: unhandled.");
+        return std::nullopt;
+    }
+
+    return snapshot;
+}
+
+/*static*/
+std::optional<VirtioGpuTimelines::TimelineItem> VirtioGpuTimelines::RestoreTimelineItem(
+    const gfxstream::host::snapshot::VirtioGpuTimelineItem& snapshot) {
+    if (snapshot.has_fence()) {
+        return snapshot.fence().id();
+    } else if (snapshot.has_task()) {
+        const auto& taskSnapshot = snapshot.task();
+
+        auto ringOpt = RestoreRing(taskSnapshot.ring());
+        if (!ringOpt) {
+            stream_renderer_error("Failed to restore timeline item: failed to restore ring.");
+            return std::nullopt;
+        }
+
+        auto task = std::make_shared<Task>(taskSnapshot.id(), *ringOpt, taskSnapshot.trace_id());
+        task->mHasCompleted = taskSnapshot.completed();
+        return task;
+    }
+
+    stream_renderer_error("Failed to restore timeline item: unhandled.");
+    return std::nullopt;
+}
+
+std::optional<gfxstream::host::snapshot::VirtioGpuTimeline> VirtioGpuTimelines::Timeline::Snapshot()
+    const {
+    gfxstream::host::snapshot::VirtioGpuTimeline timeline;
+    timeline.set_trace_id(mTraceTrackId);
+    for (const auto& timelineItem : mQueue) {
+        auto timelineItemSnapshotOpt = SnapshotTimelineItem(timelineItem);
+        if (!timelineItemSnapshotOpt) {
+            stream_renderer_error("Failed to snapshot timeline item.");
+            return std::nullopt;
+        }
+        timeline.mutable_items()->Add(std::move(*timelineItemSnapshotOpt));
+    }
+    return timeline;
+}
+
+/*static*/
+std::optional<VirtioGpuTimelines::Timeline> VirtioGpuTimelines::Timeline::Restore(
+    const gfxstream::host::snapshot::VirtioGpuTimeline& snapshot) {
+    VirtioGpuTimelines::Timeline timeline;
+    timeline.mTraceTrackId = snapshot.trace_id();
+    for (const auto& timelineItemSnapshot : snapshot.items()) {
+        auto timelineItemOpt = RestoreTimelineItem(timelineItemSnapshot);
+        if (!timelineItemOpt) {
+            stream_renderer_error("Failed to snapshot timeline item.");
+            return std::nullopt;
+        }
+        timeline.mQueue.emplace_back(std::move(*timelineItemOpt));
+    }
+    return timeline;
+}
+
+std::optional<gfxstream::host::snapshot::VirtioGpuTimelinesSnapshot> VirtioGpuTimelines::Snapshot()
+    const {
+    std::lock_guard<std::mutex> lock(mTimelinesMutex);
+
+    gfxstream::host::snapshot::VirtioGpuTimelinesSnapshot snapshot;
+    snapshot.set_next_id(mNextId);
+
+    for (const auto& [ring, timeline] : mTimelineQueues) {
+        auto ringSnapshotOpt = SnapshotRing(ring);
+        if (!ringSnapshotOpt) {
+            stream_renderer_error("Failed to snapshot timelines: failed to snapshot ring.");
+            return std::nullopt;
+        }
+
+        auto timelineSnapshotOpt = timeline.Snapshot();
+        if (!timelineSnapshotOpt) {
+            stream_renderer_error("Failed to snapshot timelines: failed to snapshot timeline.");
+            return std::nullopt;
+        }
+
+        auto* kv = snapshot.add_timelines();
+        kv->mutable_ring()->Swap(&*ringSnapshotOpt);
+        kv->mutable_timeline()->Swap(&*timelineSnapshotOpt);
+    }
+
+    return snapshot;
+}
+
+/*static*/
+std::unique_ptr<VirtioGpuTimelines> VirtioGpuTimelines::Restore(
+    FenceCompletionCallback callback,
+    const gfxstream::host::snapshot::VirtioGpuTimelinesSnapshot& snapshot) {
+    std::unique_ptr<VirtioGpuTimelines> timelines(new VirtioGpuTimelines(std::move(callback)));
+    timelines->mNextId.store(snapshot.next_id());
+
+    for (const auto& timelineSnapshot : snapshot.timelines()) {
+        if (!timelineSnapshot.has_ring()) {
+            stream_renderer_error("Failed to restore timelines: missing ring.");
+            return nullptr;
+        }
+        auto ringOpt = RestoreRing(timelineSnapshot.ring());
+        if (!ringOpt) {
+            stream_renderer_error("Failed to restore timelines: failed to restore ring.");
+            return nullptr;
+        }
+
+        if (!timelineSnapshot.has_timeline()) {
+            stream_renderer_error("Failed to restore timelines: missing timeline.");
+            return nullptr;
+        }
+        auto timelineOpt = Timeline::Restore(timelineSnapshot.timeline());
+        if (!timelineOpt) {
+            stream_renderer_error("Failed to restore timelines: failed to restore timeline.");
+            return nullptr;
+        }
+
+        timelines->mTimelineQueues[std::move(*ringOpt)] = std::move(*timelineOpt);
+    }
+
+    // Rebuild task index:
+    for (const auto& [_, timeline] : timelines->mTimelineQueues) {
+        for (const auto& timelineItem : timeline.mQueue) {
+            if (std::holds_alternative<std::shared_ptr<Task>>(timelineItem)) {
+                auto& task = std::get<std::shared_ptr<Task>>(timelineItem);
+                timelines->mTaskIdToTask[task->mId] = task;
+            }
+        }
+    }
+
+    return timelines;
+}
+
+#endif  // GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT

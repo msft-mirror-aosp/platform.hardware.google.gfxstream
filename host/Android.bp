@@ -34,6 +34,7 @@ cc_library_host_static {
         "VirtioGpuFrontendSnapshot.proto",
         "VirtioGpuRingBlobSnapshot.proto",
         "VirtioGpuResourceSnapshot.proto",
+        "VirtioGpuTimelinesSnapshot.proto",
     ],
 }
 
