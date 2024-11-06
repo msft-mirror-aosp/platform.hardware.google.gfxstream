@@ -114,15 +114,23 @@ class VirtioGpuFrontend {
     int vulkanInfo(uint32_t res_handle, struct stream_renderer_vulkan_info* vulkan_info);
 
 #ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
-    int snapshot(gfxstream::host::snapshot::VirtioGpuFrontendSnapshot& outSnapshot);
-    int restore(const gfxstream::host::snapshot::VirtioGpuFrontendSnapshot& snapshot);
-#endif
+    int snapshot(const char* directory);
+    int restore(const char* directory);
+#endif  // GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
 
 #ifdef CONFIG_AEMU
     void setServiceOps(const GoldfishPipeServiceOps* ops);
 #endif  // CONFIG_AEMU
 
    private:
+#ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
+    int snapshotRenderer(const char* directory);
+    int snapshotFrontend(const char* directory);
+
+    int restoreRenderer(const char* directory);
+    int restoreFrontend(const char* directory);
+#endif  // GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
+
     int resetPipe(VirtioGpuContextId contextId, GoldfishHostPipe* hostPipe);
 
     const GoldfishPipeServiceOps* ensureAndGetServiceOps();
