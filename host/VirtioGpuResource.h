@@ -18,6 +18,7 @@
 
 #include <memory>
 #include <optional>
+#include <unordered_set>
 
 extern "C" {
 #include "host-common/goldfish_pipe.h"
@@ -36,17 +37,20 @@ extern "C" {
 namespace gfxstream {
 namespace host {
 
+// LINT.IfChange(virtio_gpu_resource_type)
 enum class VirtioGpuResourceType {
+    UNKNOWN = 0,
     // Used as a communication channel between the guest and the host
     // which does not need an allocation on the host GPU.
-    PIPE,
+    PIPE = 1,
     // Used as a GPU data buffer.
-    BUFFER,
+    BUFFER = 2,
     // Used as a GPU texture.
-    COLOR_BUFFER,
+    COLOR_BUFFER = 3,
     // Used as a blob and not known to FrameBuffer.
-    BLOB,
+    BLOB = 4,
 };
+// LINT.ThenChange(VirtioGpuResourceSnapshot.proto:virtio_gpu_resource_type)
 
 class VirtioGpuResource {
    public:
@@ -64,11 +68,14 @@ class VirtioGpuResource {
 
     int Destroy();
 
+    VirtioGpuResourceId GetId() const { return mId; }
+
     void AttachIov(struct iovec* iov, uint32_t num_iovs);
     void DetachIov();
 
     void AttachToContext(VirtioGpuContextId contextId);
-    void DetachFromContext();
+    void DetachFromContext(VirtioGpuContextId contextId);
+    std::unordered_set<VirtioGpuContextId> GetAttachedContexts() const;
 
     int Map(void** outAddress, uint64_t* outSize);
 
@@ -145,13 +152,14 @@ class VirtioGpuResource {
 
     // LINT.IfChange(virtio_gpu_resource)
     VirtioGpuResourceId mId = -1;
-    VirtioGpuResourceType mResourceType;
+    VirtioGpuResourceType mResourceType = VirtioGpuResourceType::UNKNOWN;
     std::optional<struct stream_renderer_resource_create_args> mCreateArgs;
     std::optional<struct stream_renderer_create_blob> mCreateBlobArgs;
     std::vector<struct iovec> mIovs;
     std::vector<char> mLinear;
     GoldfishHostPipe* mHostPipe = nullptr;
-    std::optional<VirtioGpuContextId> mContextId;
+    std::optional<VirtioGpuContextId> mLatestAttachedContext;
+    std::unordered_set<VirtioGpuContextId> mAttachedToContexts;
 
     // If this resource is a blob resource, the source of the external memory.
     //

@@ -19,40 +19,77 @@
 #include <memory>
 #include <optional>
 #include <string>
-
-extern "C" {
-#include "host-common/goldfish_pipe.h"
-}  // extern "C"
+#include <unordered_map>
+#include <unordered_set>
 
 #include "ExternalObjectManager.h"
 #include "VirtioGpu.h"
 #ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
+// X11 defines status as a preprocessor define which messes up
+// anyone with a `Status` type.
+#undef Status
 #include "VirtioGpuContextSnapshot.pb.h"
 #endif
+#include "VirtioGpuResource.h"
 #include "gfxstream/virtio-gpu-gfxstream-renderer.h"
+#include "host-common/address_space_device_control_ops.h"
+extern "C" {
+#include "host-common/goldfish_pipe.h"
+}  // extern "C"
 
 namespace gfxstream {
 namespace host {
 
-// LINT.IfChange(virtio_gpu_context)
-struct VirtioGpuContext {
-    std::string name;
-    uint32_t capsetId;
-    VirtioGpuContextId ctxId;
-    GoldfishHostPipe* hostPipe;
-    std::unordered_map<VirtioGpuResourceId, uint32_t> addressSpaceHandles;
-    std::unordered_map<uint32_t, struct stream_renderer_resource_create_args> blobMap;
-    std::shared_ptr<gfxstream::SyncDescriptorInfo> latestFence;
-};
-// LINT.ThenChange(VirtioGpuContextSnapshot.proto:virtio_gpu_context)
+class VirtioGpuContext {
+   public:
+    VirtioGpuContext() = default;
+
+    static std::optional<VirtioGpuContext> Create(const GoldfishPipeServiceOps* ops,
+                                                  VirtioGpuContextId contextId,
+                                                  std::string contextName, uint32_t capsetId);
+
+    int Destroy(const GoldfishPipeServiceOps* pipeOps,
+                const struct address_space_device_control_ops* asgOps);
+
+    void AttachResource(VirtioGpuResource& resource);
+    void DetachResource(VirtioGpuResource& resource);
+
+    const std::unordered_set<VirtioGpuResourceId>& GetAttachedResources() const;
+
+    void SetHostPipe(GoldfishHostPipe* pipe);
+
+    int AcquireSync(uint64_t syncId);
+    std::optional<SyncDescriptorInfo> TakeSync();
+
+    int CreateAddressSpaceGraphicsInstance(const struct address_space_device_control_ops* asgOps,
+                                           VirtioGpuResource& resource);
+    std::optional<uint32_t> TakeAddressSpaceGraphicsHandle(VirtioGpuResourceId resourceId);
+
+    int PingAddressSpaceGraphicsInstance(const struct address_space_device_control_ops* asgOps,
+                                         VirtioGpuResourceId resourceId);
+
+    int AddPendingBlob(uint32_t blobId, struct stream_renderer_resource_create_args args);
+    std::optional<struct stream_renderer_resource_create_args> TakePendingBlob(uint32_t args);
 
 #ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
-std::optional<gfxstream::host::snapshot::VirtioGpuContextSnapshot>
-SnapshotContext(const VirtioGpuContext& context);
+    std::optional<gfxstream::host::snapshot::VirtioGpuContextSnapshot> Snapshot() const;
 
-std::optional<VirtioGpuContext>
-RestoreContext(const gfxstream::host::snapshot::VirtioGpuContextSnapshot& snapshot);
+    static std::optional<VirtioGpuContext> Restore(
+        const gfxstream::host::snapshot::VirtioGpuContextSnapshot& snapshot);
 #endif
+
+   private:
+    // LINT.IfChange(virtio_gpu_context)
+    VirtioGpuContextId mId;
+    std::string mName;
+    uint32_t mCapsetId;
+    GoldfishHostPipe* mHostPipe;
+    std::unordered_set<VirtioGpuResourceId> mAttachedResources;
+    std::unordered_map<VirtioGpuResourceId, uint32_t> mAddressSpaceHandles;
+    std::unordered_map<uint32_t, struct stream_renderer_resource_create_args> mPendingBlobs;
+    std::optional<SyncDescriptorInfo> mLatestSync;
+    // LINT.ThenChange(VirtioGpuContextSnapshot.proto:virtio_gpu_context)
+};
 
 }  // namespace host
 }  // namespace gfxstream
