@@ -21,5 +21,6 @@ message VirtioGpuContextSnapshot {
     optional uint32 id = 1;
     optional string name = 2;
     optional uint32 capset = 3;
+    map<uint32, uint32> resource_asgs = 4;
 }
 // LINT.ThenChange(VirtioGpuContext.h:virtio_gpu_context)

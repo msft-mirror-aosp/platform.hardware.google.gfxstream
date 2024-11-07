@@ -379,6 +379,10 @@ int VirtioGpuResource::GetCaching(uint32_t* outCaching) const {
         auto& memory = std::get<ExternalMemoryMapping>(*mBlobMemory);
         *outCaching = memory.caching;
         return 0;
+    } else if (std::holds_alternative<ExternalMemoryDescriptor>(*mBlobMemory)) {
+        auto& descriptor = std::get<ExternalMemoryDescriptor>(*mBlobMemory);
+        *outCaching = descriptor->caching;
+        return 0;
     }
 
     stream_renderer_error("failed to get caching for resource %d: unhandled type?", mId);
@@ -820,6 +824,7 @@ std::shared_ptr<RingBlob> VirtioGpuResource::ShareRingBlob() {
 std::optional<VirtioGpuResourceSnapshot> VirtioGpuResource::Snapshot() const {
     VirtioGpuResourceSnapshot resourceSnapshot;
     resourceSnapshot.set_id(mId);
+    resourceSnapshot.set_type(static_cast<::gfxstream::host::snapshot::VirtioGpuResourceType>(mResourceType));
 
     if (mCreateArgs) {
         VirtioGpuResourceCreateArgs* snapshotCreateArgs = resourceSnapshot.mutable_create_args();
@@ -887,6 +892,8 @@ std::optional<VirtioGpuResourceSnapshot> VirtioGpuResource::Snapshot() const {
 /*static*/ std::optional<VirtioGpuResource> VirtioGpuResource::Restore(
     const VirtioGpuResourceSnapshot& resourceSnapshot) {
     VirtioGpuResource resource = {};
+    resource.mId = resourceSnapshot.id();
+    resource.mResourceType = static_cast<VirtioGpuResourceType>(resourceSnapshot.type());
 
     if (resourceSnapshot.has_create_args()) {
         const auto& createArgsSnapshot = resourceSnapshot.create_args();
