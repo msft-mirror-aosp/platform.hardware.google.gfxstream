@@ -46,7 +46,8 @@ class VirtioGpuContext {
 
     static std::optional<VirtioGpuContext> Create(const GoldfishPipeServiceOps* ops,
                                                   VirtioGpuContextId contextId,
-                                                  std::string contextName, uint32_t capsetId);
+                                                  const std::string& contextName,
+                                                  uint32_t capsetId);
 
     int Destroy(const GoldfishPipeServiceOps* pipeOps,
                 const struct address_space_device_control_ops* asgOps);
