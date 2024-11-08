@@ -55,11 +55,6 @@ class VirtioGpuFrontend {
 
     int destroyContext(VirtioGpuContextId handle);
 
-    int setContextAddressSpaceHandleLocked(VirtioGpuContextId ctxId, uint32_t handle,
-                                           uint32_t resourceId);
-
-    uint32_t getAddressSpaceHandleLocked(VirtioGpuContextId ctxId, uint32_t resourceId);
-
     int addressSpaceProcessCmd(VirtioGpuContextId ctxId, uint32_t* dwords);
 
     int submitCmd(struct stream_renderer_command* cmd);
@@ -119,19 +114,24 @@ class VirtioGpuFrontend {
     int vulkanInfo(uint32_t res_handle, struct stream_renderer_vulkan_info* vulkan_info);
 
 #ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
-    int snapshot(gfxstream::host::snapshot::VirtioGpuFrontendSnapshot& outSnapshot);
-    int restore(const gfxstream::host::snapshot::VirtioGpuFrontendSnapshot& snapshot);
-#endif
+    int snapshot(const char* directory);
+    int restore(const char* directory);
+#endif  // GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
 
 #ifdef CONFIG_AEMU
     void setServiceOps(const GoldfishPipeServiceOps* ops);
 #endif  // CONFIG_AEMU
 
    private:
-    int resetPipe(VirtioGpuContextId contextId, GoldfishHostPipe* hostPipe);
+#ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
+    int snapshotRenderer(const char* directory);
+    int snapshotFrontend(const char* directory);
 
-    void allocResource(VirtioGpuResource& entry, iovec* iov, int num_iovs);
-    void detachResourceLocked(uint32_t ctxId, uint32_t toUnrefId);
+    int restoreRenderer(const char* directory);
+    int restoreFrontend(const char* directory);
+#endif  // GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
+
+    int resetPipe(VirtioGpuContextId contextId, GoldfishHostPipe* hostPipe);
 
     const GoldfishPipeServiceOps* ensureAndGetServiceOps();
 
@@ -139,7 +139,7 @@ class VirtioGpuFrontend {
     gfxstream::host::FeatureSet mFeatures;
     stream_renderer_fence_callback mFenceCallback;
     uint32_t mPageSize = 4096;
-    struct address_space_device_control_ops* mAddressSpaceDeviceControlOps = nullptr;
+    struct ::address_space_device_control_ops* mAddressSpaceDeviceControlOps = nullptr;
 
     const GoldfishPipeServiceOps* mServiceOps = nullptr;
 
@@ -148,7 +148,6 @@ class VirtioGpuFrontend {
     // LINT.IfChange(virtio_gpu_frontend)
     std::unordered_map<VirtioGpuContextId, VirtioGpuContext> mContexts;
     std::unordered_map<VirtioGpuResourceId, VirtioGpuResource> mResources;
-    std::unordered_map<VirtioGpuContextId, std::vector<VirtioGpuResourceId>> mContextResources;
     std::unordered_map<uint64_t, std::shared_ptr<SyncDescriptorInfo>> mSyncMap;
     // When we wait for gpu or wait for gpu vulkan, the next (and subsequent)
     // fences created for that context should not be signaled immediately.
