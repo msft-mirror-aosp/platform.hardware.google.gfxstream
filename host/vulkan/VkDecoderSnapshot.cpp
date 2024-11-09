@@ -786,7 +786,29 @@ class VkDecoderSnapshot::Impl {
     void vkAllocateDescriptorSets(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
                                   android::base::BumpPool* pool, VkResult input_result,
                                   VkDevice device, const VkDescriptorSetAllocateInfo* pAllocateInfo,
-                                  VkDescriptorSet* pDescriptorSets) {}
+                                  VkDescriptorSet* pDescriptorSets) {
+        if (!pDescriptorSets) return;
+        android::base::AutoLock lock(mLock);
+        // pDescriptorSets create
+        mReconstruction.addHandles((const uint64_t*)pDescriptorSets,
+                                   pAllocateInfo->descriptorSetCount);
+        mReconstruction.addHandleDependency((const uint64_t*)pDescriptorSets,
+                                            pAllocateInfo->descriptorSetCount,
+                                            (uint64_t)(uintptr_t)device);
+        mReconstruction.addHandleDependency(
+            (const uint64_t*)pDescriptorSets, pAllocateInfo->descriptorSetCount,
+            (uint64_t)(uintptr_t)unboxed_to_boxed_non_dispatchable_VkDescriptorPool(
+                pAllocateInfo->descriptorPool));
+        auto apiHandle = mReconstruction.createApiInfo();
+        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
+        mReconstruction.setApiTrace(apiInfo, OP_vkAllocateDescriptorSets, snapshotTraceBegin,
+                                    snapshotTraceBytes);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pDescriptorSets,
+                                            pAllocateInfo->descriptorSetCount, apiHandle,
+                                            VkReconstruction::CREATED);
+        mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pDescriptorSets,
+                                                pAllocateInfo->descriptorSetCount);
+    }
     void vkFreeDescriptorSets(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
                               android::base::BumpPool* pool, VkResult input_result, VkDevice device,
                               VkDescriptorPool descriptorPool, uint32_t descriptorSetCount,
@@ -801,7 +823,58 @@ class VkDecoderSnapshot::Impl {
                                 uint32_t descriptorWriteCount,
                                 const VkWriteDescriptorSet* pDescriptorWrites,
                                 uint32_t descriptorCopyCount,
-                                const VkCopyDescriptorSet* pDescriptorCopies) {}
+                                const VkCopyDescriptorSet* pDescriptorCopies) {
+        android::base::AutoLock lock(mLock);
+        // pDescriptorWrites action
+        VkDecoderGlobalState* m_state = VkDecoderGlobalState::get();
+        if (m_state->batchedDescriptorSetUpdateEnabled()) {
+            return;
+        }
+        uint64_t handle = m_state->newGlobalVkGenericHandle();
+        mReconstruction.addHandles((const uint64_t*)(&handle), 1);
+        auto apiHandle = mReconstruction.createApiInfo();
+        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
+        mReconstruction.setApiTrace(apiInfo, OP_vkUpdateDescriptorSets, snapshotTraceBegin,
+                                    snapshotTraceBytes);
+        for (uint32_t i = 0; i < descriptorWriteCount; ++i) {
+            mReconstruction.addHandleDependency(
+                (const uint64_t*)(&handle), 1,
+                (uint64_t)(uintptr_t)unboxed_to_boxed_non_dispatchable_VkDescriptorSet(
+                    pDescriptorWrites[i].dstSet));
+            for (uint32_t j = 0; j < pDescriptorWrites[i].descriptorCount; ++j) {
+                if ((pDescriptorWrites[i].pImageInfo)) {
+                    if (pDescriptorWrites[i].descriptorType ==
+                        VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER) {
+                        mReconstruction.addHandleDependency(
+                            (const uint64_t*)(&handle), 1,
+                            (uint64_t)(uintptr_t)unboxed_to_boxed_non_dispatchable_VkSampler(
+                                pDescriptorWrites[i].pImageInfo[j].sampler));
+                        mReconstruction.addHandleDependency(
+                            (const uint64_t*)(&handle), 1,
+                            (uint64_t)(uintptr_t)unboxed_to_boxed_non_dispatchable_VkImageView(
+                                pDescriptorWrites[i].pImageInfo[j].imageView));
+                    }
+                    if (pDescriptorWrites[i].descriptorType == VK_DESCRIPTOR_TYPE_SAMPLER) {
+                        mReconstruction.addHandleDependency(
+                            (const uint64_t*)(&handle), 1,
+                            (uint64_t)(uintptr_t)unboxed_to_boxed_non_dispatchable_VkSampler(
+                                pDescriptorWrites[i].pImageInfo[j].sampler));
+                    }
+                }
+                if (pDescriptorWrites[i].pBufferInfo) {
+                    if (pDescriptorWrites[i].descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER) {
+                        mReconstruction.addHandleDependency(
+                            (const uint64_t*)(&handle), 1,
+                            (uint64_t)(uintptr_t)unboxed_to_boxed_non_dispatchable_VkBuffer(
+                                pDescriptorWrites[i].pBufferInfo[j].buffer));
+                    }
+                }
+            }
+        }
+        mReconstruction.forEachHandleAddApi((const uint64_t*)(&handle), 1, apiHandle,
+                                            VkReconstruction::CREATED);
+        mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)(&handle), 1);
+    }
     void vkCreateFramebuffer(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
                              android::base::BumpPool* pool, VkResult input_result, VkDevice device,
                              const VkFramebufferCreateInfo* pCreateInfo,
