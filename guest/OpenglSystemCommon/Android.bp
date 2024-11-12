@@ -53,6 +53,7 @@ cc_defaults {
         "libgfxstream_guest_graphics_headers",
         "mesa_gfxstream_guest_iostream",
         "libhardware_headers",
+        "mesa_gfxstream_aemu_headers",
         "libnativebase_headers",
     ],
     export_header_lib_headers: [
