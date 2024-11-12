@@ -19,7 +19,7 @@
 // xml/vk_gfxstream.xml cereal -o /tmp/
 //
 // Please do not modify directly;
-// re-run gfxstream-protocols/scripts/generate-vulkan-sources.sh,
+// re-run mesa3d/src/gfxstream/codegen/generate-gfxstream-vulkan.sh,
 // or directly from Python by defining:
 // VULKAN_REGISTRY_XML_DIR : Directory containing vk.xml
 // VULKAN_REGISTRY_SCRIPTS_DIR : Directory containing genvk.py
