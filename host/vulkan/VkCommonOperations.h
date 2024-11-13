@@ -216,6 +216,7 @@ struct VkEmulation {
         bool glInteropSupported = false;
         bool hasNvidiaDeviceDiagnosticCheckpointsExtension = false;
         bool supportsNvidiaDeviceDiagnosticCheckpoints = false;
+        bool supportsPrivateData = false;
 
         std::vector<VkExtensionProperties> extensions;
 

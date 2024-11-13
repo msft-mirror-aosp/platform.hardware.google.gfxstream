@@ -1794,6 +1794,27 @@ class VkDecoderGlobalState::Impl {
             featuresToFilter.emplace_back(&featuresFiltered);
         }
 
+        // TODO(b/378686769): Force enable private data feature when available to
+        //  mitigate the issues with duplicated vulkan handles. This should be
+        //  removed once the issue is properly fixed.
+        VkPhysicalDevicePrivateDataFeatures forceEnablePrivateData = {
+            VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRIVATE_DATA_FEATURES,
+            nullptr,
+            VK_TRUE,
+        };
+        if (m_emu->deviceInfo.supportsPrivateData) {
+            VkPhysicalDevicePrivateDataFeatures* privateDataFeatures =
+                vk_find_struct<VkPhysicalDevicePrivateDataFeatures>(&createInfoFiltered);
+            if (privateDataFeatures != nullptr) {
+                privateDataFeatures->privateData = VK_TRUE;
+            } else {
+                // Insert into device create info chain
+                forceEnablePrivateData.pNext = const_cast<void*>(createInfoFiltered.pNext);
+                createInfoFiltered.pNext = &forceEnablePrivateData;
+                privateDataFeatures = &forceEnablePrivateData;
+            }
+        }
+
         if (VkPhysicalDeviceFeatures2* features2 =
                 vk_find_struct<VkPhysicalDeviceFeatures2>(&createInfoFiltered)) {
             featuresToFilter.emplace_back(&features2->features);
@@ -7880,6 +7901,14 @@ class VkDecoderGlobalState::Impl {
         }
 
 #endif
+
+        if (hasDeviceExtension(properties, VK_EXT_PRIVATE_DATA_EXTENSION_NAME)) {
+            //TODO(b/378686769): Enable private data extension where available to
+            // mitigate the issues with duplicated vulkan handles. This should be
+            // removed once the issue is properly resolved.
+            res.push_back(VK_EXT_PRIVATE_DATA_EXTENSION_NAME);
+        }
+
         return res;
     }
 
