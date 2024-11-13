@@ -201,6 +201,9 @@ static std::unordered_set<std::string> kSnapshotEngineAllowList = {"ANGLE", "ace
 enum BoxedHandleTypeTag {
     Tag_Invalid = 0,
     GOLDFISH_VK_LIST_HANDLE_TYPES_BY_STAGE(DEFINE_BOXED_HANDLE_TYPE_TAG)
+
+    // additional generic tag
+    Tag_VkGeneric = 1001,
 };
 
 template <class T>
@@ -362,6 +365,7 @@ class VkDecoderGlobalState::Impl {
           m_emu(getGlobalVkEmulation()),
           mRenderDocWithMultipleVkInstances(m_emu->guestRenderDoc.get()) {
         mSnapshotsEnabled = m_emu->features.VulkanSnapshots.enabled;
+        mBatchedDescriptorSetUpdateEnabled = m_emu->features.VulkanBatchedDescriptorSetUpdate.enabled;
         mVkCleanupEnabled =
             android::base::getEnvironmentVariable("ANDROID_EMU_VK_NO_CLEANUP") != "1";
         mLogging = android::base::getEnvironmentVariable("ANDROID_EMU_VK_LOG_CALLS") == "1";
@@ -413,6 +417,8 @@ class VkDecoderGlobalState::Impl {
     }
 
     bool snapshotsEnabled() const { return mSnapshotsEnabled; }
+
+    bool batchedDescriptorSetUpdateEnabled() const { return mBatchedDescriptorSetUpdateEnabled; }
 
     bool vkCleanupEnabled() const { return mVkCleanupEnabled; }
 
@@ -1786,6 +1792,27 @@ class VkDecoderGlobalState::Impl {
             featuresFiltered = *pCreateInfo->pEnabledFeatures;
             createInfoFiltered.pEnabledFeatures = &featuresFiltered;
             featuresToFilter.emplace_back(&featuresFiltered);
+        }
+
+        // TODO(b/378686769): Force enable private data feature when available to
+        //  mitigate the issues with duplicated vulkan handles. This should be
+        //  removed once the issue is properly fixed.
+        VkPhysicalDevicePrivateDataFeatures forceEnablePrivateData = {
+            VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRIVATE_DATA_FEATURES,
+            nullptr,
+            VK_TRUE,
+        };
+        if (m_emu->deviceInfo.supportsPrivateData) {
+            VkPhysicalDevicePrivateDataFeatures* privateDataFeatures =
+                vk_find_struct<VkPhysicalDevicePrivateDataFeatures>(&createInfoFiltered);
+            if (privateDataFeatures != nullptr) {
+                privateDataFeatures->privateData = VK_TRUE;
+            } else {
+                // Insert into device create info chain
+                forceEnablePrivateData.pNext = const_cast<void*>(createInfoFiltered.pNext);
+                createInfoFiltered.pNext = &forceEnablePrivateData;
+                privateDataFeatures = &forceEnablePrivateData;
+            }
         }
 
         if (VkPhysicalDeviceFeatures2* features2 =
@@ -7874,6 +7901,14 @@ class VkDecoderGlobalState::Impl {
         }
 
 #endif
+
+        if (hasDeviceExtension(properties, VK_EXT_PRIVATE_DATA_EXTENSION_NAME)) {
+            //TODO(b/378686769): Enable private data extension where available to
+            // mitigate the issues with duplicated vulkan handles. This should be
+            // removed once the issue is properly resolved.
+            res.push_back(VK_EXT_PRIVATE_DATA_EXTENSION_NAME);
+        }
+
         return res;
     }
 
@@ -8532,6 +8567,7 @@ class VkDecoderGlobalState::Impl {
     VkEmulation* m_emu;
     emugl::RenderDocWithMultipleVkInstances* mRenderDocWithMultipleVkInstances = nullptr;
     bool mSnapshotsEnabled = false;
+    bool mBatchedDescriptorSetUpdateEnabled = false;
     bool mVkCleanupEnabled = true;
     bool mLogging = false;
     bool mVerbosePrints = false;
@@ -8785,6 +8821,12 @@ void VkDecoderGlobalState::reset() {
 
 // Snapshots
 bool VkDecoderGlobalState::snapshotsEnabled() const { return mImpl->snapshotsEnabled(); }
+bool VkDecoderGlobalState::batchedDescriptorSetUpdateEnabled() const { return mImpl->batchedDescriptorSetUpdateEnabled(); }
+
+uint64_t VkDecoderGlobalState::newGlobalVkGenericHandle() {
+    DispatchableHandleInfo<uint64_t> item;                                                    \
+    return mImpl->newGlobalHandle(item, Tag_VkGeneric);
+}
 
 VkDecoderGlobalState::SnapshotState VkDecoderGlobalState::getSnapshotState() const {
     return mImpl->getSnapshotState();
