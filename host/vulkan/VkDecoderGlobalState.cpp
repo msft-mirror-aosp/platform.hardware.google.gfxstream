@@ -201,6 +201,9 @@ static std::unordered_set<std::string> kSnapshotEngineAllowList = {"ANGLE", "ace
 enum BoxedHandleTypeTag {
     Tag_Invalid = 0,
     GOLDFISH_VK_LIST_HANDLE_TYPES_BY_STAGE(DEFINE_BOXED_HANDLE_TYPE_TAG)
+
+    // additional generic tag
+    Tag_VkGeneric = 1001,
 };
 
 template <class T>
@@ -362,6 +365,7 @@ class VkDecoderGlobalState::Impl {
           m_emu(getGlobalVkEmulation()),
           mRenderDocWithMultipleVkInstances(m_emu->guestRenderDoc.get()) {
         mSnapshotsEnabled = m_emu->features.VulkanSnapshots.enabled;
+        mBatchedDescriptorSetUpdateEnabled = m_emu->features.VulkanBatchedDescriptorSetUpdate.enabled;
         mVkCleanupEnabled =
             android::base::getEnvironmentVariable("ANDROID_EMU_VK_NO_CLEANUP") != "1";
         mLogging = android::base::getEnvironmentVariable("ANDROID_EMU_VK_LOG_CALLS") == "1";
@@ -413,6 +417,8 @@ class VkDecoderGlobalState::Impl {
     }
 
     bool snapshotsEnabled() const { return mSnapshotsEnabled; }
+
+    bool batchedDescriptorSetUpdateEnabled() const { return mBatchedDescriptorSetUpdateEnabled; }
 
     bool vkCleanupEnabled() const { return mVkCleanupEnabled; }
 
@@ -8532,6 +8538,7 @@ class VkDecoderGlobalState::Impl {
     VkEmulation* m_emu;
     emugl::RenderDocWithMultipleVkInstances* mRenderDocWithMultipleVkInstances = nullptr;
     bool mSnapshotsEnabled = false;
+    bool mBatchedDescriptorSetUpdateEnabled = false;
     bool mVkCleanupEnabled = true;
     bool mLogging = false;
     bool mVerbosePrints = false;
@@ -8785,6 +8792,12 @@ void VkDecoderGlobalState::reset() {
 
 // Snapshots
 bool VkDecoderGlobalState::snapshotsEnabled() const { return mImpl->snapshotsEnabled(); }
+bool VkDecoderGlobalState::batchedDescriptorSetUpdateEnabled() const { return mImpl->batchedDescriptorSetUpdateEnabled(); }
+
+uint64_t VkDecoderGlobalState::newGlobalVkGenericHandle() {
+    DispatchableHandleInfo<uint64_t> item;                                                    \
+    return mImpl->newGlobalHandle(item, Tag_VkGeneric);
+}
 
 VkDecoderGlobalState::SnapshotState VkDecoderGlobalState::getSnapshotState() const {
     return mImpl->getSnapshotState();
