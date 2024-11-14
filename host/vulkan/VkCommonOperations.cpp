@@ -3046,9 +3046,18 @@ bool readColorBufferToBytesLocked(uint32_t colorBufferHandle, uint32_t x, uint32
     }
 
     static constexpr uint64_t ANB_MAX_WAIT_NS = 5ULL * 1000ULL * 1000ULL * 1000ULL;
+    VkResult waitRes = vk->vkWaitForFences(
+        sVkEmulation->device, 1, &sVkEmulation->commandBufferFence, VK_TRUE, ANB_MAX_WAIT_NS);
+    if (waitRes == VK_TIMEOUT) {
+        // Give a warning and try once more on a timeout error
+        ERR("readColorBufferToBytesLocked vkWaitForFences failed with timeout error "
+            "(cb:%d, x:%d, y:%d, w:%d, h:%d, bufferCopySize:%llu), retrying...",
+            colorBufferHandle, x, y, w, h, bufferCopySize);
+        waitRes = vk->vkWaitForFences(sVkEmulation->device, 1, &sVkEmulation->commandBufferFence,
+                                      VK_TRUE, ANB_MAX_WAIT_NS*2);
+    }
 
-    VK_CHECK(vk->vkWaitForFences(sVkEmulation->device, 1, &sVkEmulation->commandBufferFence,
-                                 VK_TRUE, ANB_MAX_WAIT_NS));
+    VK_CHECK(waitRes);
 
     VK_CHECK(vk->vkResetFences(sVkEmulation->device, 1, &sVkEmulation->commandBufferFence));
 
