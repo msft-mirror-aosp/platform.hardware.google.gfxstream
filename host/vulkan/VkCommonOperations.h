@@ -532,9 +532,9 @@ bool colorBufferNeedsUpdateBetweenGlAndVk(uint32_t colorBufferHandle);
 
 bool readColorBufferToBytes(uint32_t colorBufferHandle, std::vector<uint8_t>* bytes);
 bool readColorBufferToBytes(uint32_t colorBufferHandle, uint32_t x, uint32_t y, uint32_t w,
-                            uint32_t h, void* outPixels);
+                            uint32_t h, void* outPixels, uint64_t outPixelsSize);
 bool readColorBufferToBytesLocked(uint32_t colorBufferHandle, uint32_t x, uint32_t y, uint32_t w,
-                                  uint32_t h, void* outPixels);
+                                  uint32_t h, void* outPixels, uint64_t outPixelsSize);
 
 bool updateColorBufferFromBytes(uint32_t colorBufferHandle, const std::vector<uint8_t>& bytes);
 bool updateColorBufferFromBytes(uint32_t colorBufferHandle, uint32_t x, uint32_t y, uint32_t w,

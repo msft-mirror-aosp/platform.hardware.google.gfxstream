@@ -2882,7 +2882,7 @@ bool readColorBufferToBytes(uint32_t colorBufferHandle, std::vector<uint8_t>* by
 
     result = readColorBufferToBytesLocked(
         colorBufferHandle, 0, 0, colorBufferInfo->imageCreateInfoShallow.extent.width,
-        colorBufferInfo->imageCreateInfoShallow.extent.height, bytes->data());
+        colorBufferInfo->imageCreateInfoShallow.extent.height, bytes->data(), bytes->size());
     if (!result) {
         ERR("Failed to read from ColorBuffer:%d, failed to get read size.", colorBufferHandle);
         return false;
@@ -2892,18 +2892,18 @@ bool readColorBufferToBytes(uint32_t colorBufferHandle, std::vector<uint8_t>* by
 }
 
 bool readColorBufferToBytes(uint32_t colorBufferHandle, uint32_t x, uint32_t y, uint32_t w,
-                            uint32_t h, void* outPixels) {
+                            uint32_t h, void* outPixels, uint64_t outPixelsSize) {
     if (!sVkEmulation || !sVkEmulation->live) {
         ERR("VkEmulation not available.");
         return false;
     }
 
     AutoLock lock(sVkEmulationLock);
-    return readColorBufferToBytesLocked(colorBufferHandle, x, y, w, h, outPixels);
+    return readColorBufferToBytesLocked(colorBufferHandle, x, y, w, h, outPixels, outPixelsSize);
 }
 
 bool readColorBufferToBytesLocked(uint32_t colorBufferHandle, uint32_t x, uint32_t y, uint32_t w,
-                                  uint32_t h, void* outPixels) {
+                                  uint32_t h, void* outPixels, uint64_t outPixelsSize) {
     if (!sVkEmulation || !sVkEmulation->live) {
         ERR("VkEmulation not available.");
         return false;
@@ -3063,6 +3063,12 @@ bool readColorBufferToBytesLocked(uint32_t colorBufferHandle, uint32_t x, uint32
     VK_CHECK(vk->vkInvalidateMappedMemoryRanges(sVkEmulation->device, 1, &toInvalidate));
 
     const auto* stagingBufferPtr = sVkEmulation->staging.memory.mappedPtr;
+    if (bufferCopySize > outPixelsSize) {
+        ERR("Invalid buffer size for readColorBufferToBytes operation."
+            "Required: %llu, Actual: %llu",
+            bufferCopySize, outPixelsSize);
+        bufferCopySize = outPixelsSize;
+    }
     std::memcpy(outPixels, stagingBufferPtr, bufferCopySize);
 
     return true;
