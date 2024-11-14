@@ -23,7 +23,7 @@ namespace host {
 /*static*/
 std::optional<VirtioGpuContext> VirtioGpuContext::Create(const GoldfishPipeServiceOps* ops,
                                                          VirtioGpuContextId contextId,
-                                                         std::string contextName,
+                                                         const std::string& contextName,
                                                          uint32_t capsetId) {
     VirtioGpuContext context = {};
     context.mId = contextId;

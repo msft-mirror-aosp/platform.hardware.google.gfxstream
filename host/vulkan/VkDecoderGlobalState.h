@@ -83,6 +83,8 @@ class VkDecoderGlobalState {
     // Snapshot save/load
     bool snapshotsEnabled() const;
 
+    bool batchedDescriptorSetUpdateEnabled() const;
+
     SnapshotState getSnapshotState() const;
 
     const gfxstream::host::FeatureSet& getFeatures() const;
@@ -749,6 +751,26 @@ class VkDecoderGlobalState {
 
     // Snapshot access
     VkDecoderSnapshot* snapshot();
+
+    // get a generic handle, this handle
+    // currently is used to represent some
+    // action related api call, such as
+    // vkUpdateDescriptorSets, vkBeginCommandBuffer,
+    // vkCmd***
+    // this generic handle differs from other
+    // cration handles (such as vkAllocate***,
+    // vkCreate***); but important for snapshoter
+    // to use this generic handle to represent some
+    // actions and their dependency. with this,
+    // the action apis will naturally fit into
+    // the dependency graph to ensure correct
+    // ordering of api calls during snapshot save and during
+    // snapshot load; this will deprecate the current
+    // approach of appending "modifying api's"
+    // near the end of snapshot save and loading; the reason
+    // to deprecate the modifying api approach is that it
+    // cannot handle dependencies properly.
+    uint64_t newGlobalVkGenericHandle();
 
 #define DEFINE_TRANSFORMED_TYPE_PROTOTYPE(type)                \
     void transformImpl_##type##_tohost(const type*, uint32_t); \

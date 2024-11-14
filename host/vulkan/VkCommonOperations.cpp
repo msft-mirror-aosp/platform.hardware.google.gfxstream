@@ -1147,6 +1147,13 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk,
                 vk_append_struct(&features2Chain, &deviceDiagnosticsConfigFeatures);
             }
 
+            VkPhysicalDevicePrivateDataFeatures privateDataFeatures = {
+                .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRIVATE_DATA_FEATURES,
+                .privateData = VK_FALSE};
+            if (extensionsSupported(deviceExts, {VK_EXT_PRIVATE_DATA_EXTENSION_NAME})) {
+                vk_append_struct(&features2Chain, &privateDataFeatures);
+            }
+
             sVkEmulation->getPhysicalDeviceFeatures2Func(physdevs[i], &features2);
 
             deviceInfos[i].supportsSamplerYcbcrConversion =
@@ -1154,6 +1161,8 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk,
 
             deviceInfos[i].supportsNvidiaDeviceDiagnosticCheckpoints =
                 deviceDiagnosticsConfigFeatures.diagnosticsConfig == VK_TRUE;
+
+            deviceInfos[i].supportsPrivateData = (privateDataFeatures.privateData == VK_TRUE);
 
 #if defined(__QNX__)
             deviceInfos[i].supportsExternalMemoryImport =

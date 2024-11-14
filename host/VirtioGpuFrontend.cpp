@@ -268,6 +268,12 @@ int VirtioGpuFrontend::submitCmd(struct stream_renderer_command* cmd) {
             GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY,
                                   "GFXSTREAM_CREATE_EXPORT_SYNC");
 
+            // Make sure the context-specific ring is used
+            ring = VirtioGpuRingContextSpecific{
+                .mCtxId = cmd->ctx_id,
+                .mRingIdx = 0,
+            };
+
             DECODE(exportSync, gfxstream::gfxstreamCreateExportSync, buffer)
 
             uint64_t sync_handle = convert32to64(exportSync.syncHandleLo, exportSync.syncHandleHi);
