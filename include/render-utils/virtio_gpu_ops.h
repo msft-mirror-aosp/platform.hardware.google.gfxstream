@@ -80,6 +80,9 @@ typedef void (*read_buffer_t)(uint32_t handle, uint64_t offset, uint64_t sizeToR
 typedef void (*read_color_buffer_t)(
     uint32_t handle, int x, int y, int width, int height,
     uint32_t format, uint32_t type, void* pixels);
+typedef void (*read_color_buffer2_t)(
+    uint32_t handle, int x, int y, int width, int height,
+    uint32_t format, uint32_t type, void* pixels, uint64_t pixels_size);
 typedef void (*read_color_buffer_yuv_t)(
     uint32_t handle, int x, int y, int width, int height,
     void* pixels, uint32_t pixels_size);
@@ -127,6 +130,7 @@ struct AndroidVirtioGpuOps {
     update_color_buffer_t update_color_buffer;
     read_buffer_t read_buffer;
     read_color_buffer_t read_color_buffer;
+    read_color_buffer2_t read_color_buffer2;
     read_color_buffer_yuv_t read_color_buffer_yuv;
     post_color_buffer_t post_color_buffer;
     async_post_color_buffer_t async_post_color_buffer;
