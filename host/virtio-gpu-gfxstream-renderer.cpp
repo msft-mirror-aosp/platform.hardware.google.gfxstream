@@ -1003,11 +1003,12 @@ VG_EXPORT void gfxstream_backend_setup_window(void* native_window_handle, int32_
 }
 
 VG_EXPORT void stream_renderer_teardown() {
+    sFrontend()->teardown();
+
     android_finishOpenglesRenderer();
     android_hideOpenglesWindow();
     android_stopOpenglesRenderer(true);
 
-    sFrontend()->teardown();
     stream_renderer_info("Gfxstream shut down completed!");
 }
 
