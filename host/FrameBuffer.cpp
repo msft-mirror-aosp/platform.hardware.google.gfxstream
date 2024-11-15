@@ -1629,7 +1629,7 @@ void FrameBuffer::readBuffer(HandleType handle, uint64_t offset, uint64_t size, 
 }
 
 void FrameBuffer::readColorBuffer(HandleType p_colorbuffer, int x, int y, int width, int height,
-                                  GLenum format, GLenum type, void* pixels) {
+                                  GLenum format, GLenum type, void* outPixels, uint64_t outPixelsSize) {
     GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DEFAULT_CATEGORY, "FrameBuffer::readColorBuffer()",
                           "ColorBuffer", p_colorbuffer);
 
@@ -1641,11 +1641,11 @@ void FrameBuffer::readColorBuffer(HandleType p_colorbuffer, int x, int y, int wi
         return;
     }
 
-    colorBuffer->readToBytes(x, y, width, height, format, type, pixels);
+    colorBuffer->readToBytes(x, y, width, height, format, type, outPixels, outPixelsSize);
 }
 
 void FrameBuffer::readColorBufferYUV(HandleType p_colorbuffer, int x, int y, int width, int height,
-                                     void* pixels, uint32_t pixels_size) {
+                                     void* outPixels, uint32_t outPixelsSize) {
     AutoLock mutex(m_lock);
 
     ColorBufferPtr colorBuffer = findColorBuffer(p_colorbuffer);
@@ -1654,7 +1654,7 @@ void FrameBuffer::readColorBufferYUV(HandleType p_colorbuffer, int x, int y, int
         return;
     }
 
-    colorBuffer->readYuvToBytes(x, y, width, height, pixels, pixels_size);
+    colorBuffer->readYuvToBytes(x, y, width, height, outPixels, outPixelsSize);
 }
 
 bool FrameBuffer::updateBuffer(HandleType p_buffer, uint64_t offset, uint64_t size, void* bytes) {
