@@ -128,9 +128,11 @@ class VirtioGpuFrontend {
 #ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
     int snapshotRenderer(const char* directory);
     int snapshotFrontend(const char* directory);
+    int snapshotAsg(const char* directory);
 
     int restoreRenderer(const char* directory);
     int restoreFrontend(const char* directory);
+    int restoreAsg(const char* directory);
 #endif  // GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
 
     int resetPipe(VirtioGpuContextId contextId, GoldfishHostPipe* hostPipe);
