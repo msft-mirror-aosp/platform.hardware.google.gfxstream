@@ -123,6 +123,8 @@ class VirtioGpuFrontend {
 #endif  // CONFIG_AEMU
 
    private:
+    int destroyVirtioGpuObjects();
+
 #ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
     int snapshotRenderer(const char* directory);
     int snapshotFrontend(const char* directory);
