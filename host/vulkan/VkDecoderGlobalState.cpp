@@ -8314,11 +8314,13 @@ class VkDecoderGlobalState::Impl {
             extractInfosWithDeviceInto(device, mDescriptorPoolInfo, deviceObjects.descriptorPools);
             extractInfosWithDeviceInto(device, mDescriptorSetLayoutInfo,
                                        deviceObjects.descriptorSetLayouts);
+            extractInfosWithDeviceInto(device, mFenceInfo, deviceObjects.fences);
             extractInfosWithDeviceInto(device, mFramebufferInfo, deviceObjects.framebuffers);
             extractInfosWithDeviceInto(device, mImageInfo, deviceObjects.images);
             extractInfosWithDeviceInto(device, mImageViewInfo, deviceObjects.imageViews);
             extractInfosWithDeviceInto(device, mMemoryInfo, deviceObjects.memories);
             extractInfosWithDeviceInto(device, mPipelineCacheInfo, deviceObjects.pipelineCaches);
+            extractInfosWithDeviceInto(device, mQueueInfo, deviceObjects.queues);
             extractInfosWithDeviceInto(device, mPipelineInfo, deviceObjects.pipelines);
             extractInfosWithDeviceInto(device, mRenderPassInfo, deviceObjects.renderPasses);
             extractInfosWithDeviceInto(device, mSemaphoreInfo, deviceObjects.semaphores);
