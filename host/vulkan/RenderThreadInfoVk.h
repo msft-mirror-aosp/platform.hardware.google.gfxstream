@@ -18,6 +18,7 @@
 #include <string>
 
 #include "VkDecoder.h"
+#include "aemu/base/files/Stream.h"
 
 namespace gfxstream {
 namespace vk {
@@ -34,7 +35,10 @@ struct RenderThreadInfoVk {
     // Return the current thread's instance, if any, or NULL.
     static RenderThreadInfoVk* get();
 
-    uint32_t ctx_id;
+    void onSave(android::base::Stream* stream);
+    bool onLoad(android::base::Stream* stream);
+
+    uint32_t ctx_id = 0;
     VkDecoder m_vkDec;
 };
 
