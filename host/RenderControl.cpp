@@ -1506,7 +1506,7 @@ static int rcReadColorBufferDMA(uint32_t colorBuffer,
         return -1;
     }
 
-    fb->readColorBuffer(colorBuffer, x, y, width, height, format, type, pixels);
+    fb->readColorBuffer(colorBuffer, x, y, width, height, format, type, pixels, pixels_size);
     return 0;
 }
 
