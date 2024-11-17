@@ -68,10 +68,10 @@ class ColorBuffer : public android::snapshot::LazySnapshotObj<ColorBuffer> {
     FrameworkFormat getFrameworkFormat() const { return mFrameworkFormat; }
 
     void readToBytes(int x, int y, int width, int height, GLenum pixelsFormat, GLenum pixelsType,
-                     void* outPixels);
+                     void* outPixels, uint64_t outPixelsSize);
     void readToBytesScaled(int pixelsWidth, int pixelsHeight, GLenum pixelsFormat,
                            GLenum pixelsType, int pixelsRotation, Rect rect, void* outPixels);
-    void readYuvToBytes(int x, int y, int width, int height, void* outPixels, uint32_t pixelsSize);
+    void readYuvToBytes(int x, int y, int width, int height, void* outPixels, uint32_t outPixelsSize);
 
     bool updateFromBytes(int x, int y, int width, int height, GLenum pixelsFormat,
                          GLenum pixelsType, const void* pixels);
