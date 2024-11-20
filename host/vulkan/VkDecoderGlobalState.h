@@ -177,6 +177,14 @@ class VkDecoderGlobalState {
                                               VkPhysicalDevice physicalDevice,
                                               VkPhysicalDeviceProperties2* pProperties);
 
+    // Override queue properties
+    void on_vkGetPhysicalDeviceQueueFamilyProperties(
+        android::base::BumpPool* pool, VkPhysicalDevice physicalDevice,
+        uint32_t* pQueueFamilyPropertyCount, VkQueueFamilyProperties* pQueueFamilyProperties);
+    void on_vkGetPhysicalDeviceQueueFamilyProperties2(
+        android::base::BumpPool* pool, VkPhysicalDevice physicalDevice,
+        uint32_t* pQueueFamilyPropertyCount, VkQueueFamilyProperties2* pQueueFamilyProperties);
+
     // Override memory types advertised from host
     //
     void on_vkGetPhysicalDeviceMemoryProperties(
@@ -697,6 +705,8 @@ class VkDecoderGlobalState {
                                                         VkQueue queue, uint32_t waitSemaphoreCount,
                                                         const VkSemaphore* pWaitSemaphores,
                                                         VkImage image);
+    VkResult on_vkQueuePresentKHR(android::base::BumpPool* pool, VkQueue queue,
+                                  const VkPresentInfoKHR* pPresentInfo);
 
     VkResult on_vkCreateSamplerYcbcrConversion(
         android::base::BumpPool* pool, VkDevice device,
