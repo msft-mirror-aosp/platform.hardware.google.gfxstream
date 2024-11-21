@@ -212,8 +212,10 @@ TEST_F(FrameBufferTest, CreateOpenUpdateCloseColorBuffer) {
     TestTexture forUpdate = createTestPatternRGBA8888(mWidth, mHeight);
     mFb->updateColorBuffer(handle, 0, 0, mWidth, mHeight, GL_RGBA, GL_UNSIGNED_BYTE, forUpdate.data());
 
-    TestTexture forRead = createTestTextureRGBA8888SingleColor(mWidth, mHeight, 0.0f, 0.0f, 0.0f, 0.0f);
-    mFb->readColorBuffer(handle, 0, 0, mWidth, mHeight, GL_RGBA, GL_UNSIGNED_BYTE, forRead.data());
+    TestTexture forRead =
+        createTestTextureRGBA8888SingleColor(mWidth, mHeight, 0.0f, 0.0f, 0.0f, 0.0f);
+    mFb->readColorBuffer(handle, 0, 0, mWidth, mHeight, GL_RGBA, GL_UNSIGNED_BYTE, forRead.data(),
+                         forRead.size());
 
     EXPECT_TRUE(ImageMatches(mWidth, mHeight, 4, mWidth, forUpdate.data(), forRead.data()));
 
@@ -368,8 +370,10 @@ TEST_F(FrameBufferTest, CreateOpenUpdateCloseColorBuffer_FormatChange) {
     TestTexture forUpdate = createTestPatternRGBA8888(mWidth, mHeight);
     mFb->updateColorBuffer(handle, 0, 0, mWidth, mHeight, GL_RGBA, GL_UNSIGNED_BYTE, forUpdate.data());
 
-    TestTexture forRead = createTestTextureRGBA8888SingleColor(mWidth, mHeight, 0.0f, 0.0f, 0.0f, 0.0f);
-    mFb->readColorBuffer(handle, 0, 0, mWidth, mHeight, GL_RGBA, GL_UNSIGNED_BYTE, forRead.data());
+    TestTexture forRead =
+        createTestTextureRGBA8888SingleColor(mWidth, mHeight, 0.0f, 0.0f, 0.0f, 0.0f);
+    mFb->readColorBuffer(handle, 0, 0, mWidth, mHeight, GL_RGBA, GL_UNSIGNED_BYTE, forRead.data(),
+                         forRead.size());
 
     EXPECT_TRUE(ImageMatches(mWidth, mHeight, 4, mWidth, forUpdate.data(),
                              forRead.data()));
@@ -441,9 +445,8 @@ TEST_F(FrameBufferTest, BasicBlit) {
             createTestTextureRGBA8888SingleColor(
                 mWidth, mHeight, 0.0f, 0.0f, 0.0f, 0.0f);
 
-        mFb->readColorBuffer(
-            colorBuffer, 0, 0, mWidth, mHeight,
-            GL_RGBA, GL_UNSIGNED_BYTE, forRead.data());
+        mFb->readColorBuffer(colorBuffer, 0, 0, mWidth, mHeight, GL_RGBA, GL_UNSIGNED_BYTE,
+                             forRead.data(), forRead.size());
 
         EXPECT_TRUE(
             ImageMatches(
@@ -506,8 +509,10 @@ TEST_F(FrameBufferTest, SnapshotSingleColorBuffer) {
     saveSnapshot();
     loadSnapshot();
 
-    TestTexture forRead = createTestTextureRGBA8888SingleColor(mWidth, mHeight, 0.0f, 0.0f, 0.0f, 0.0f);
-    mFb->readColorBuffer(handle, 0, 0, mWidth, mHeight, GL_RGBA, GL_UNSIGNED_BYTE, forRead.data());
+    TestTexture forRead =
+        createTestTextureRGBA8888SingleColor(mWidth, mHeight, 0.0f, 0.0f, 0.0f, 0.0f);
+    mFb->readColorBuffer(handle, 0, 0, mWidth, mHeight, GL_RGBA, GL_UNSIGNED_BYTE, forRead.data(),
+                         forRead.size());
 
     EXPECT_TRUE(ImageMatches(mWidth, mHeight, 4, mWidth, forUpdate.data(), forRead.data()));
 
@@ -528,8 +533,10 @@ TEST_F(FrameBufferTest, SnapshotColorBufferSubUpdateRestore) {
     TestTexture forUpdate = createTestPatternRGBA8888(mWidth, mHeight);
     mFb->updateColorBuffer(handle, 0, 0, mWidth, mHeight, GL_RGBA, GL_UNSIGNED_BYTE, forUpdate.data());
 
-    TestTexture forRead = createTestTextureRGBA8888SingleColor(mWidth, mHeight, 0.0f, 0.0f, 0.0f, 0.0f);
-    mFb->readColorBuffer(handle, 0, 0, mWidth, mHeight, GL_RGBA, GL_UNSIGNED_BYTE, forRead.data());
+    TestTexture forRead =
+        createTestTextureRGBA8888SingleColor(mWidth, mHeight, 0.0f, 0.0f, 0.0f, 0.0f);
+    mFb->readColorBuffer(handle, 0, 0, mWidth, mHeight, GL_RGBA, GL_UNSIGNED_BYTE, forRead.data(),
+                         forRead.size());
 
     EXPECT_TRUE(ImageMatches(mWidth, mHeight, 4, mWidth, forUpdate.data(), forRead.data()));
 
@@ -753,9 +760,11 @@ TEST_F(FrameBufferTest, DISABLED_ReadColorBufferSwitchRedBlue) {
     TestTexture forUpdate = createTestPatternRGBA8888(mWidth, mHeight);
     mFb->updateColorBuffer(handle, 0, 0, mWidth, mHeight, GL_RGBA, GL_UNSIGNED_BYTE, forUpdate.data());
 
-    TestTexture forRead = createTestTextureRGBA8888SingleColor(mWidth, mHeight, 0.0f, 0.0f, 0.0f, 0.0f);
+    TestTexture forRead =
+        createTestTextureRGBA8888SingleColor(mWidth, mHeight, 0.0f, 0.0f, 0.0f, 0.0f);
     // Switch red and blue
-    mFb->readColorBuffer(handle, 0, 0, mWidth, mHeight, GL_BGRA_EXT, GL_UNSIGNED_BYTE, forRead.data());
+    mFb->readColorBuffer(handle, 0, 0, mWidth, mHeight, GL_BGRA_EXT, GL_UNSIGNED_BYTE,
+                         forRead.data(), forRead.size());
 
     // Switch them back, so we get the original image
     uint8_t* forReadBytes = forRead.data();
@@ -905,8 +914,10 @@ TEST_F(FrameBufferTest, PixmapImport_Basic) {
 
     EXPECT_TRUE(mFb->platformImportResource(cb, RESOURCE_TYPE_EGL_NATIVE_PIXMAP|RESOURCE_USE_PRESERVE, pixmap));
 
-    TestTexture forRead = createTestTextureRGBA8888SingleColor(kWidth, kHeight, 0.0f, 0.0f, 0.0f, 0.0f);
-    mFb->readColorBuffer(cb, 0, 0, kWidth, kHeight, GL_RGBA, GL_UNSIGNED_BYTE, forRead.data());
+    TestTexture forRead =
+        createTestTextureRGBA8888SingleColor(kWidth, kHeight, 0.0f, 0.0f, 0.0f, 0.0f);
+    mFb->readColorBuffer(cb, 0, 0, kWidth, kHeight, GL_RGBA, GL_UNSIGNED_BYTE, forRead.data(),
+                         forRead.size());
 
     EXPECT_TRUE(ImageMatches(kWidth, kHeight, 4, kWidth, forUpdate.data(), forRead.data()));
 
@@ -963,9 +974,8 @@ TEST_F(FrameBufferTest, PixmapImport_Blit) {
             createTestTextureRGBA8888SingleColor(
                 mWidth, mHeight, 0.0f, 0.0f, 0.0f, 0.0f);
 
-        mFb->readColorBuffer(
-            colorBuffer, 0, 0, mWidth, mHeight,
-            GL_RGBA, GL_UNSIGNED_BYTE, forRead.data());
+        mFb->readColorBuffer(colorBuffer, 0, 0, mWidth, mHeight, GL_RGBA, GL_UNSIGNED_BYTE,
+                             forRead.data(), forRead.size());
 
         EXPECT_TRUE(
             ImageMatches(
