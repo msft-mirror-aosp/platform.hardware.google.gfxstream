@@ -56,8 +56,9 @@ bool ColorBufferVk::readToBytes(std::vector<uint8_t>* outBytes) {
     return readColorBufferToBytes(mHandle, outBytes);
 }
 
-bool ColorBufferVk::readToBytes(uint32_t x, uint32_t y, uint32_t w, uint32_t h, void* outBytes) {
-    return readColorBufferToBytes(mHandle, x, y, w, h, outBytes);
+bool ColorBufferVk::readToBytes(uint32_t x, uint32_t y, uint32_t w, uint32_t h, void* outBytes,
+                                uint64_t outBytesSize) {
+    return readColorBufferToBytes(mHandle, x, y, w, h, outBytes, outBytesSize);
 }
 
 bool ColorBufferVk::updateFromBytes(const std::vector<uint8_t>& bytes) {
