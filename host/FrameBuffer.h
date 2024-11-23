@@ -840,6 +840,7 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
     std::string m_graphicsApiVersion;
     std::string m_graphicsApiExtensions;
     std::string m_graphicsDeviceExtensions;
+    android::base::Lock m_procOwnedResourcesLock;
     std::unordered_map<uint64_t, std::unique_ptr<ProcessResources>> m_procOwnedResources;
 
     // Flag set when emulator is shutting down.
