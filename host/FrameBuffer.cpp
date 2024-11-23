@@ -1464,8 +1464,11 @@ void FrameBuffer::eraseDelayedCloseColorBufferLocked(
 }
 
 void FrameBuffer::createGraphicsProcessResources(uint64_t puid) {
-    AutoLock mutex(m_lock);
-    bool inserted = m_procOwnedResources.try_emplace(puid, ProcessResources::create()).second;
+    bool inserted = false;
+    {
+        AutoLock mutex(m_procOwnedResourcesLock);
+        inserted = m_procOwnedResources.try_emplace(puid, ProcessResources::create()).second;
+    }
     if (!inserted) {
         WARN("Failed to create process resource for puid %" PRIu64 ".", puid);
     }
@@ -1474,7 +1477,7 @@ void FrameBuffer::createGraphicsProcessResources(uint64_t puid) {
 std::unique_ptr<ProcessResources> FrameBuffer::removeGraphicsProcessResources(uint64_t puid) {
     std::unordered_map<uint64_t, std::unique_ptr<ProcessResources>>::node_type node;
     {
-        AutoLock mutex(m_lock);
+        AutoLock mutex(m_procOwnedResourcesLock);
         node = m_procOwnedResources.extract(puid);
     }
     if (node.empty()) {
@@ -2365,6 +2368,7 @@ void FrameBuffer::onSave(Stream* stream, const android::snapshot::ITextureSaverP
 
     // TODO(b/309858017): remove if when ready to bump snapshot version
     if (m_features.VulkanSnapshots.enabled) {
+        AutoLock mutex(m_procOwnedResourcesLock);
         stream->putBe64(m_procOwnedResources.size());
         for (const auto& element : m_procOwnedResources) {
             stream->putBe64(element.first);
@@ -2480,7 +2484,10 @@ bool FrameBuffer::onLoad(Stream* stream,
                 }
             }
 
-            m_procOwnedResources.clear();
+            {
+                AutoLock mutex(m_procOwnedResourcesLock);
+                m_procOwnedResources.clear();
+            }
 
             performDelayedColorBufferCloseLocked(true);
 
@@ -2615,7 +2622,10 @@ bool FrameBuffer::onLoad(Stream* stream,
             uint32_t sequenceNumber = stream->getBe32();
             std::unique_ptr<ProcessResources> processResources = ProcessResources::create();
             processResources->getSequenceNumberPtr()->store(sequenceNumber);
-            m_procOwnedResources.emplace(puid, std::move(processResources));
+            {
+                AutoLock mutex(m_procOwnedResourcesLock);
+                m_procOwnedResources.emplace(puid, std::move(processResources));
+            }
         }
     }
 
@@ -2717,13 +2727,15 @@ void FrameBuffer::unregisterProcessCleanupCallback(void* key) {
 }
 
 const ProcessResources* FrameBuffer::getProcessResources(uint64_t puid) {
-    AutoLock mutex(m_lock);
-    auto i = m_procOwnedResources.find(puid);
-    if (i == m_procOwnedResources.end()) {
-        ERR("Failed to find process owned resources for puid %" PRIu64 ".", puid);
-        return nullptr;
+    {
+        AutoLock mutex(m_procOwnedResourcesLock);
+        auto i = m_procOwnedResources.find(puid);
+        if (i != m_procOwnedResources.end()) {
+            return i->second.get();
+        }
     }
-    return i->second.get();
+    ERR("Failed to find process owned resources for puid %" PRIu64 ".", puid);
+    return nullptr;
 }
 
 int FrameBuffer::createDisplay(uint32_t* displayId) {
