@@ -103,9 +103,6 @@ using gfxstream::VulkanInfo;
 #define __ALIGN_MASK(x, mask) (((x) + (mask)) & ~(mask))
 #define __ALIGN(x, a) __ALIGN_MASK(x, (__typeof__(x))(a)-1)
 
-// TODO: Asserts build
-#define DCHECK(condition) (void)(condition);
-
 #define VKDGS_DEBUG 0
 
 #if VKDGS_DEBUG
@@ -132,6 +129,17 @@ template <typename T>
 void validateRequiredHandle(const char* api_name, const char* parameter_name, T value) {
     if (value == VK_NULL_HANDLE) {
         GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << api_name << ":" << parameter_name;
+    }
+}
+
+#define VALIDATE_NEW_HANDLE_INFO_ENTRY(objectMap, newEntry) \
+    validateNewHandleInfoEntry(objectMap, newEntry, #objectMap)
+
+template <typename T, typename K>
+void validateNewHandleInfoEntry(const std::unordered_map<T, K>& vkObjectMap, const T& newEntry,
+                                const char* typeName) {
+    if (vkObjectMap.find(newEntry) != vkObjectMap.end()) {
+        ERR("Found duplicate in %s (%p)!", typeName, newEntry);
     }
 }
 
@@ -1113,6 +1121,7 @@ class VkDecoderGlobalState::Impl {
         std::string_view engineName = appInfo.pEngineName ? appInfo.pEngineName : "";
         info.isAngle = (engineName == "ANGLE");
 
+        VALIDATE_NEW_HANDLE_INFO_ENTRY(mInstanceInfo, *pInstance);
         mInstanceInfo[*pInstance] = info;
 
         *pInstance = (VkInstance)info.boxed;
@@ -1269,8 +1278,9 @@ class VkDecoderGlobalState::Impl {
         if (pPhysicalDeviceCount && pPhysicalDevices) {
             // Box them up
             for (uint32_t i = 0; i < std::min(requestedCount, availableCount); ++i) {
+                VALIDATE_NEW_HANDLE_INFO_ENTRY(mPhysicalDeviceToInstance, physicalDevices[i]);
                 mPhysicalDeviceToInstance[physicalDevices[i]] = instance;
-
+                VALIDATE_NEW_HANDLE_INFO_ENTRY(mPhysdevInfo, physicalDevices[i]);
                 auto& physdevInfo = mPhysdevInfo[physicalDevices[i]];
                 physdevInfo.instance = instance;
                 physdevInfo.boxed = new_boxed_VkPhysicalDevice(physicalDevices[i], vk,
@@ -1648,6 +1658,28 @@ class VkDecoderGlobalState::Impl {
         }
     }
 
+    void on_vkGetPhysicalDeviceQueueFamilyProperties(
+        android::base::BumpPool* pool, VkPhysicalDevice boxed_physicalDevice,
+        uint32_t* pQueueFamilyPropertyCount, VkQueueFamilyProperties* pQueueFamilyProperties) {
+
+        auto physicalDevice = unbox_VkPhysicalDevice(boxed_physicalDevice);
+        auto vk = dispatch_VkPhysicalDevice(boxed_physicalDevice);
+
+        return vk->vkGetPhysicalDeviceQueueFamilyProperties(
+            physicalDevice, pQueueFamilyPropertyCount, pQueueFamilyProperties);
+    }
+
+    void on_vkGetPhysicalDeviceQueueFamilyProperties2(
+        android::base::BumpPool* pool, VkPhysicalDevice boxed_physicalDevice,
+        uint32_t* pQueueFamilyPropertyCount, VkQueueFamilyProperties2* pQueueFamilyProperties) {
+
+        auto physicalDevice = unbox_VkPhysicalDevice(boxed_physicalDevice);
+        auto vk = dispatch_VkPhysicalDevice(boxed_physicalDevice);
+
+        return vk->vkGetPhysicalDeviceQueueFamilyProperties2(
+            physicalDevice, pQueueFamilyPropertyCount, pQueueFamilyProperties);
+    }
+
     void on_vkGetPhysicalDeviceMemoryProperties(
         android::base::BumpPool* pool, VkPhysicalDevice boxed_physicalDevice,
         VkPhysicalDeviceMemoryProperties* pMemoryProperties) {
@@ -1942,6 +1974,7 @@ class VkDecoderGlobalState::Impl {
         auto& instanceInfo = instanceInfoIt->second;
 
         // Fill out information about the logical device here.
+        VALIDATE_NEW_HANDLE_INFO_ENTRY(mDeviceInfo, *pDevice);
         auto& deviceInfo = mDeviceInfo[*pDevice];
         deviceInfo.physicalDevice = physicalDevice;
         deviceInfo.emulateTextureEtc2 = emulateTextureEtc2;
@@ -1970,13 +2003,13 @@ class VkDecoderGlobalState::Impl {
         }
 
         // First, get the dispatch table.
-        VkDevice boxed = new_boxed_VkDevice(*pDevice, nullptr, true /* own dispatch */);
+        VkDevice boxedDevice = new_boxed_VkDevice(*pDevice, nullptr, true /* own dispatch */);
 
         if (mLogging) {
             INFO("%s: init vulkan dispatch from device", __func__);
         }
 
-        VulkanDispatch* dispatch = dispatch_VkDevice(boxed);
+        VulkanDispatch* dispatch = dispatch_VkDevice(boxedDevice);
         init_vulkan_dispatch_from_device(vk, *pDevice, dispatch);
         if (m_emu->debugUtilsAvailableAndRequested) {
             deviceInfo.debugUtilsHelper = DebugUtilsHelper::withUtilsEnabled(*pDevice, dispatch);
@@ -1991,17 +2024,17 @@ class VkDecoderGlobalState::Impl {
             INFO("%s: init vulkan dispatch from device (end)", __func__);
         }
 
-        deviceInfo.boxed = boxed;
+        deviceInfo.boxed = boxedDevice;
 
         if (mSnapshotState == SnapshotState::Loading) {
             if (!mSnapshotLoadVkDeviceToVirtioCpuContextId) {
                 GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
                     << "Missing device to context id map during snapshot load.";
             }
-            auto contextIdIt = mSnapshotLoadVkDeviceToVirtioCpuContextId->find(boxed);
+            auto contextIdIt = mSnapshotLoadVkDeviceToVirtioCpuContextId->find(boxedDevice);
             if (contextIdIt == mSnapshotLoadVkDeviceToVirtioCpuContextId->end()) {
                 GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                    << "Missing context id for VkDevice:" << boxed;
+                    << "Missing context id for VkDevice:" << boxedDevice;
             }
             deviceInfo.virtioGpuContextId = contextIdIt->second;
         } else {
@@ -2021,32 +2054,35 @@ class VkDecoderGlobalState::Impl {
             queueFamilyIndexCounts[queueFamilyIndex] = queueCount;
         }
 
+        VulkanDispatch* dispatchDevice = dispatch_VkDevice(deviceInfo.boxed);
+
         std::vector<uint64_t> extraHandles;
         for (auto it : queueFamilyIndexCounts) {
             auto index = it.first;
             auto count = it.second;
             auto& queues = deviceInfo.queues[index];
             for (uint32_t i = 0; i < count; ++i) {
-                VkQueue queueOut;
+                VkQueue physicalQueue;
 
                 if (mLogging) {
                     INFO("%s: get device queue (begin)", __func__);
                 }
 
-                vk->vkGetDeviceQueue(*pDevice, index, i, &queueOut);
+                vk->vkGetDeviceQueue(*pDevice, index, i, &physicalQueue);
 
                 if (mLogging) {
                     INFO("%s: get device queue (end)", __func__);
                 }
-                queues.push_back(queueOut);
-                mQueueInfo[queueOut].device = *pDevice;
-                mQueueInfo[queueOut].queueFamilyIndex = index;
+                queues.push_back(physicalQueue);
+                VALIDATE_NEW_HANDLE_INFO_ENTRY(mQueueInfo, physicalQueue);
+                mQueueInfo[physicalQueue].device = *pDevice;
+                mQueueInfo[physicalQueue].queueFamilyIndex = index;
 
-                auto boxed = new_boxed_VkQueue(queueOut, dispatch_VkDevice(deviceInfo.boxed),
+                auto boxedQueue = new_boxed_VkQueue(physicalQueue, dispatch_VkDevice(deviceInfo.boxed),
                                                false /* does not own dispatch */);
-                extraHandles.push_back((uint64_t)boxed);
-                mQueueInfo[queueOut].boxed = boxed;
-                mQueueInfo[queueOut].lock = new Lock;
+                extraHandles.push_back((uint64_t)boxedQueue);
+                mQueueInfo[physicalQueue].boxed = boxedQueue;
+                mQueueInfo[physicalQueue].lock = new Lock;
             }
         }
         if (snapshotsEnabled()) {
@@ -2083,7 +2119,10 @@ class VkDecoderGlobalState::Impl {
         VkQueue unboxedQueue = (*queueList)[queueIndex];
 
         auto* queueInfo = android::base::find(mQueueInfo, unboxedQueue);
-        if (!queueInfo) return;
+        if (!queueInfo) {
+            ERR("vkGetDeviceQueue failed on queue: %p", unboxedQueue);
+            return;
+        }
 
         *pQueue = (VkQueue)queueInfo->boxed;
     }
@@ -2215,6 +2254,7 @@ class VkDecoderGlobalState::Impl {
 
         if (result == VK_SUCCESS) {
             std::lock_guard<std::recursive_mutex> lock(mLock);
+            VALIDATE_NEW_HANDLE_INFO_ENTRY(mBufferInfo, *pBuffer);
             auto& bufInfo = mBufferInfo[*pBuffer];
             bufInfo.device = device;
             bufInfo.usage = pCreateInfo->usage;
@@ -2416,6 +2456,7 @@ class VkDecoderGlobalState::Impl {
             }
         }
 
+        VALIDATE_NEW_HANDLE_INFO_ENTRY(mImageInfo, *pImage);
         auto& imageInfo = mImageInfo[*pImage];
         imageInfo.device = device;
         imageInfo.cmpInfo = std::move(cmpInfo);
@@ -2683,6 +2724,7 @@ class VkDecoderGlobalState::Impl {
             return result;
         }
 
+        VALIDATE_NEW_HANDLE_INFO_ENTRY(mImageViewInfo, *pView);
         auto& imageViewInfo = mImageViewInfo[*pView];
         imageViewInfo.device = device;
         imageViewInfo.needEmulatedAlpha = needEmulatedAlpha;
@@ -2733,6 +2775,7 @@ class VkDecoderGlobalState::Impl {
             return result;
         }
         std::lock_guard<std::recursive_mutex> lock(mLock);
+        VALIDATE_NEW_HANDLE_INFO_ENTRY(mSamplerInfo, *pSampler);
         auto& samplerInfo = mSamplerInfo[*pSampler];
         samplerInfo.device = device;
         deepcopy_VkSamplerCreateInfo(pool, VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
@@ -2895,6 +2938,7 @@ class VkDecoderGlobalState::Impl {
 
         std::lock_guard<std::recursive_mutex> lock(mLock);
 
+        VALIDATE_NEW_HANDLE_INFO_ENTRY(mSemaphoreInfo, *pSemaphore);
         auto& semaphoreInfo = mSemaphoreInfo[*pSemaphore];
         semaphoreInfo.device = device;
 
@@ -2953,8 +2997,10 @@ class VkDecoderGlobalState::Impl {
         {
             std::lock_guard<std::recursive_mutex> lock(mLock);
 
-            DCHECK(fenceReused || mFenceInfo.find(*pFence) == mFenceInfo.end());
             // Create FenceInfo for *pFence.
+            if (!fenceReused) {
+                VALIDATE_NEW_HANDLE_INFO_ENTRY(mFenceInfo, *pFence);
+            }
             auto& fenceInfo = mFenceInfo[*pFence];
             fenceInfo.device = device;
             fenceInfo.vk = vk;
@@ -2981,13 +3027,16 @@ class VkDecoderGlobalState::Impl {
             for (uint32_t i = 0; i < fenceCount; i++) {
                 if (pFences[i] == VK_NULL_HANDLE) continue;
 
-                DCHECK(mFenceInfo.find(pFences[i]) != mFenceInfo.end());
-                if (mFenceInfo[pFences[i]].external) {
-                    externalFences.push_back(pFences[i]);
+                if (mFenceInfo.find(pFences[i]) == mFenceInfo.end()) {
+                    ERR("Invalid fence handle: %p!", pFences[i]);
                 } else {
-                    // Reset all fences' states to kNotWaitable.
-                    cleanedFences.push_back(pFences[i]);
-                    mFenceInfo[pFences[i]].state = FenceInfo::State::kNotWaitable;
+                    if (mFenceInfo[pFences[i]].external) {
+                        externalFences.push_back(pFences[i]);
+                    } else {
+                        // Reset all fences' states to kNotWaitable.
+                        cleanedFences.push_back(pFences[i]);
+                        mFenceInfo[pFences[i]].state = FenceInfo::State::kNotWaitable;
+                    }
                 }
             }
         }
@@ -3266,6 +3315,7 @@ class VkDecoderGlobalState::Impl {
 
         if (res == VK_SUCCESS) {
             std::lock_guard<std::recursive_mutex> lock(mLock);
+            VALIDATE_NEW_HANDLE_INFO_ENTRY(mDescriptorSetLayoutInfo, *pSetLayout);
             auto& info = mDescriptorSetLayoutInfo[*pSetLayout];
             info.device = device;
             *pSetLayout = new_boxed_non_dispatchable_VkDescriptorSetLayout(*pSetLayout);
@@ -3320,6 +3370,7 @@ class VkDecoderGlobalState::Impl {
 
         if (res == VK_SUCCESS) {
             std::lock_guard<std::recursive_mutex> lock(mLock);
+            VALIDATE_NEW_HANDLE_INFO_ENTRY(mDescriptorPoolInfo, *pDescriptorPool);
             auto& info = mDescriptorPoolInfo[*pDescriptorPool];
             info.device = device;
             *pDescriptorPool = new_boxed_non_dispatchable_VkDescriptorPool(*pDescriptorPool);
@@ -3456,6 +3507,7 @@ class VkDecoderGlobalState::Impl {
             GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "Cannot find setLayout";
         }
 
+        VALIDATE_NEW_HANDLE_INFO_ENTRY(mDescriptorSetInfo, descriptorSet);
         auto& setInfo = mDescriptorSetInfo[descriptorSet];
 
         setInfo.pool = pool;
@@ -3810,6 +3862,7 @@ class VkDecoderGlobalState::Impl {
 
         std::lock_guard<std::recursive_mutex> lock(mLock);
 
+        VALIDATE_NEW_HANDLE_INFO_ENTRY(mShaderModuleInfo, *pShaderModule);
         auto& shaderModuleInfo = mShaderModuleInfo[*pShaderModule];
         shaderModuleInfo.device = device;
 
@@ -3862,6 +3915,7 @@ class VkDecoderGlobalState::Impl {
 
         std::lock_guard<std::recursive_mutex> lock(mLock);
 
+        VALIDATE_NEW_HANDLE_INFO_ENTRY(mPipelineCacheInfo, *pPipelineCache);
         auto& pipelineCacheInfo = mPipelineCacheInfo[*pPipelineCache];
         pipelineCacheInfo.device = device;
 
@@ -3920,6 +3974,7 @@ class VkDecoderGlobalState::Impl {
             if (!pPipelines[i]) {
                 continue;
             }
+            VALIDATE_NEW_HANDLE_INFO_ENTRY(mPipelineInfo, pPipelines[i]);
             auto& pipelineInfo = mPipelineInfo[pPipelines[i]];
             pipelineInfo.device = device;
 
@@ -3949,6 +4004,7 @@ class VkDecoderGlobalState::Impl {
             if (!pPipelines[i]) {
                 continue;
             }
+            VALIDATE_NEW_HANDLE_INFO_ENTRY(mPipelineInfo, pPipelines[i]);
             auto& pipelineInfo = mPipelineInfo[pPipelines[i]];
             pipelineInfo.device = device;
 
@@ -5269,6 +5325,7 @@ class VkDecoderGlobalState::Impl {
 
         std::lock_guard<std::recursive_mutex> lock(mLock);
 
+        VALIDATE_NEW_HANDLE_INFO_ENTRY(mMemoryInfo, *pMemory);
         mMemoryInfo[*pMemory] = MemoryInfo();
         auto& memoryInfo = mMemoryInfo[*pMemory];
         memoryInfo.size = localAllocInfo.allocationSize;
@@ -5812,6 +5869,7 @@ class VkDecoderGlobalState::Impl {
         if (!deviceInfo) return VK_ERROR_UNKNOWN;
 
         for (uint32_t i = 0; i < pAllocateInfo->commandBufferCount; i++) {
+            VALIDATE_NEW_HANDLE_INFO_ENTRY(mCommandBufferInfo, pCommandBuffers[i]);
             mCommandBufferInfo[pCommandBuffers[i]] = CommandBufferInfo();
             mCommandBufferInfo[pCommandBuffers[i]].device = device;
             mCommandBufferInfo[pCommandBuffers[i]].debugUtilsHelper = deviceInfo->debugUtilsHelper;
@@ -5836,6 +5894,7 @@ class VkDecoderGlobalState::Impl {
             return result;
         }
         std::lock_guard<std::recursive_mutex> lock(mLock);
+        VALIDATE_NEW_HANDLE_INFO_ENTRY(mCommandPoolInfo, *pCommandPool);
         mCommandPoolInfo[*pCommandPool] = CommandPoolInfo();
         auto& cmdPoolInfo = mCommandPoolInfo[*pCommandPool];
         cmdPoolInfo.device = device;
@@ -6656,6 +6715,7 @@ class VkDecoderGlobalState::Impl {
             return res;
         }
 
+        VALIDATE_NEW_HANDLE_INFO_ENTRY(mRenderPassInfo, *pRenderPass);
         auto& renderPassInfo = mRenderPassInfo[*pRenderPass];
         renderPassInfo.device = device;
 
@@ -6677,6 +6737,7 @@ class VkDecoderGlobalState::Impl {
             return res;
         }
 
+        VALIDATE_NEW_HANDLE_INFO_ENTRY(mRenderPassInfo, *pRenderPass);
         auto& renderPassInfo = mRenderPassInfo[*pRenderPass];
         renderPassInfo.device = device;
 
@@ -6779,6 +6840,7 @@ class VkDecoderGlobalState::Impl {
 
         std::lock_guard<std::recursive_mutex> lock(mLock);
 
+        VALIDATE_NEW_HANDLE_INFO_ENTRY(mFramebufferInfo, *pFramebuffer);
         auto& framebufferInfo = mFramebufferInfo[*pFramebuffer];
         framebufferInfo.device = device;
 
@@ -6940,6 +7002,16 @@ class VkDecoderGlobalState::Impl {
 
             return VK_SUCCESS;
         }
+    }
+
+    VkResult on_vkQueuePresentKHR(android::base::BumpPool* pool, VkQueue boxed_queue,
+                                  const VkPresentInfoKHR* pPresentInfo) {
+        // Note that on Android guests, this call will actually be handled
+        // with vkQueueSignalReleaseImageANDROID
+        auto queue = unbox_VkQueue(boxed_queue);
+        auto vk = dispatch_VkQueue(boxed_queue);
+
+        return vk->vkQueuePresentKHR(queue, pPresentInfo);
     }
 
     void on_vkGetLinearImageLayoutGOOGLE(android::base::BumpPool* pool, VkDevice boxed_device,
@@ -8267,6 +8339,8 @@ class VkDecoderGlobalState::Impl {
             if (physicalDeviceInstance != instance) continue;
             mPhysicalDeviceToInstance.erase(physicalDeviceInstanceIt);
 
+            mPhysdevInfo.erase(physicalDevice);
+
             auto deviceInfoIt = mDeviceInfo.find(device);
             if (deviceInfoIt == mDeviceInfo.end()) continue;
 
@@ -8279,11 +8353,13 @@ class VkDecoderGlobalState::Impl {
             extractInfosWithDeviceInto(device, mDescriptorPoolInfo, deviceObjects.descriptorPools);
             extractInfosWithDeviceInto(device, mDescriptorSetLayoutInfo,
                                        deviceObjects.descriptorSetLayouts);
+            extractInfosWithDeviceInto(device, mFenceInfo, deviceObjects.fences);
             extractInfosWithDeviceInto(device, mFramebufferInfo, deviceObjects.framebuffers);
             extractInfosWithDeviceInto(device, mImageInfo, deviceObjects.images);
             extractInfosWithDeviceInto(device, mImageViewInfo, deviceObjects.imageViews);
             extractInfosWithDeviceInto(device, mMemoryInfo, deviceObjects.memories);
             extractInfosWithDeviceInto(device, mPipelineCacheInfo, deviceObjects.pipelineCaches);
+            extractInfosWithDeviceInto(device, mQueueInfo, deviceObjects.queues);
             extractInfosWithDeviceInto(device, mPipelineInfo, deviceObjects.pipelines);
             extractInfosWithDeviceInto(device, mRenderPassInfo, deviceObjects.renderPasses);
             extractInfosWithDeviceInto(device, mSemaphoreInfo, deviceObjects.semaphores);
@@ -8292,6 +8368,15 @@ class VkDecoderGlobalState::Impl {
 
         for (InstanceObjects::DeviceObjects& deviceObjects : objects.devices) {
             mDeviceToPhysicalDevice.erase(deviceObjects.device.key());
+        }
+
+        for (auto it = mPhysicalDeviceToInstance.begin(); it != mPhysicalDeviceToInstance.end();) {
+            auto current = it++;
+            auto physicalDevice = current->first;
+            auto& physicalDeviceInstance = current->second;
+            if (physicalDeviceInstance != instance) continue;
+            mPhysicalDeviceToInstance.erase(current);
+            mPhysdevInfo.erase(physicalDevice);
         }
     }
 
@@ -8669,12 +8754,6 @@ class VkDecoderGlobalState::Impl {
         }
     }
 
-    template <class T>
-    class NonDispatchableHandleInfo {
-       public:
-        T underlying;
-    };
-
     std::unordered_map<VkInstance, InstanceInfo> mInstanceInfo;
     std::unordered_map<VkPhysicalDevice, PhysicalDeviceInfo> mPhysdevInfo;
     std::unordered_map<VkDevice, DeviceInfo> mDeviceInfo;
@@ -8948,6 +9027,25 @@ void VkDecoderGlobalState::on_vkGetPhysicalDeviceProperties2(
     android::base::BumpPool* pool, VkPhysicalDevice physicalDevice,
     VkPhysicalDeviceProperties2* pProperties) {
     mImpl->on_vkGetPhysicalDeviceProperties2(pool, physicalDevice, pProperties);
+}
+
+void VkDecoderGlobalState::on_vkGetPhysicalDeviceQueueFamilyProperties(
+    android::base::BumpPool* pool, VkPhysicalDevice physicalDevice,
+    uint32_t* pQueueFamilyPropertyCount, VkQueueFamilyProperties* pQueueFamilyProperties) {
+    mImpl->on_vkGetPhysicalDeviceQueueFamilyProperties(
+        pool, physicalDevice, pQueueFamilyPropertyCount, pQueueFamilyProperties);
+}
+
+void VkDecoderGlobalState::on_vkGetPhysicalDeviceQueueFamilyProperties2(
+    android::base::BumpPool* pool, VkPhysicalDevice physicalDevice,
+    uint32_t* pQueueFamilyPropertyCount, VkQueueFamilyProperties2* pQueueFamilyProperties) {
+    mImpl->on_vkGetPhysicalDeviceQueueFamilyProperties2(
+        pool, physicalDevice, pQueueFamilyPropertyCount, pQueueFamilyProperties);
+}
+
+VkResult VkDecoderGlobalState::on_vkQueuePresentKHR(android::base::BumpPool* pool, VkQueue queue,
+                                                 const VkPresentInfoKHR* pPresentInfo) {
+    return mImpl->on_vkQueuePresentKHR(pool, queue, pPresentInfo);
 }
 
 void VkDecoderGlobalState::on_vkGetPhysicalDeviceProperties2KHR(
@@ -9784,7 +9882,12 @@ void VkDecoderGlobalState::on_vkQueueBindSparseAsyncGOOGLE(android::base::BumpPo
                                                            VkQueue queue, uint32_t bindInfoCount,
                                                            const VkBindSparseInfo* pBindInfo,
                                                            VkFence fence) {
-    mImpl->on_vkQueueBindSparse(pool, queue, bindInfoCount, pBindInfo, fence);
+    VkResult res = mImpl->on_vkQueueBindSparse(pool, queue, bindInfoCount, pBindInfo, fence);
+    if (res != VK_SUCCESS) {
+        // Report an error here as we don't use the result after this call
+        ERR("vkQueueBindSparse failed with: %s [%d], bindInfoCount=%d, fence=%p",
+            string_VkResult(res), res, bindInfoCount, fence);
+    }
 }
 
 void VkDecoderGlobalState::on_vkGetLinearImageLayoutGOOGLE(android::base::BumpPool* pool,
