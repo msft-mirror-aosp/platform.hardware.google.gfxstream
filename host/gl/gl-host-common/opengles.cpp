@@ -365,7 +365,6 @@ android_finishOpenglesRenderer()
     }
 }
 
-static gfxstream::RenderOpt sOpt;
 static int sWidth, sHeight;
 static int sNewWidth, sNewHeight;
 
