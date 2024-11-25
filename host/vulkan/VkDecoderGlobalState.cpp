@@ -1852,6 +1852,15 @@ class VkDecoderGlobalState::Impl {
             featuresToFilter.emplace_back(&features2->features);
         }
 
+        VkPhysicalDeviceDiagnosticsConfigFeaturesNV deviceDiagnosticsConfigFeatures = {
+            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DIAGNOSTICS_CONFIG_FEATURES_NV,
+            .diagnosticsConfig = VK_TRUE,
+        };
+        if (m_emu->commandBufferCheckpointsSupportedAndRequested) {
+            deviceDiagnosticsConfigFeatures.pNext = const_cast<void*>(createInfoFiltered.pNext);
+            createInfoFiltered.pNext = &deviceDiagnosticsConfigFeatures;
+        }
+
         for (VkPhysicalDeviceFeatures* feature : featuresToFilter) {
             if (emulateTextureEtc2) {
                 feature->textureCompressionETC2 = VK_FALSE;
