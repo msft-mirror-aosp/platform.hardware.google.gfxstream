@@ -6206,7 +6206,11 @@ class VkDecoderGlobalState::Impl {
             }
         }
         if (!releasedColorBuffers.empty()) {
-            vk->vkWaitForFences(device, 1, &usedFence, VK_TRUE, /* 1 sec */ 1000000000L);
+            result = vk->vkWaitForFences(device, 1, &usedFence, VK_TRUE, /* 1 sec */ 1000000000L);
+            if (result != VK_SUCCESS) {
+                ERR("vkWaitForFences failed: %s [%d]", string_VkResult(result), result);
+                return result;
+            }
 
             for (HandleType cb : releasedColorBuffers) {
                 m_emu->callbacks.flushColorBuffer(cb);
