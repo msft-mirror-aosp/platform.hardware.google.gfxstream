@@ -1822,6 +1822,17 @@ class VkDecoderGlobalState::Impl {
             }
         }
 
+        VkPhysicalDeviceRobustness2FeaturesEXT modifiedRobustness2features;
+        const auto r2features = m_vkEmulation->getRobustness2Features();
+        if (r2features && vk_find_struct<VkPhysicalDeviceRobustness2FeaturesEXT>(
+                                       &createInfoFiltered) == nullptr) {
+            VERBOSE("Force-enabling VK_EXT_robustness2 on device creation.");
+            updatedDeviceExtensions.push_back(VK_EXT_ROBUSTNESS_2_EXTENSION_NAME);
+            modifiedRobustness2features = *r2features;
+            modifiedRobustness2features.pNext = const_cast<void*>(createInfoFiltered.pNext);
+            createInfoFiltered.pNext = &modifiedRobustness2features;
+        }
+
         if (VkPhysicalDeviceFeatures2* features2 =
                 vk_find_struct<VkPhysicalDeviceFeatures2>(&createInfoFiltered)) {
             featuresToFilter.emplace_back(&features2->features);
