@@ -47,6 +47,7 @@
 #include "host-common/logging.h"
 #include "vk_fn_info.h"
 #include "vk_struct_id.h"
+#include "vulkan/vk_enum_string_helper.h"
 
 namespace gfxstream {
 namespace vk {
@@ -303,7 +304,9 @@ void vk_struct_chain_filter(H* head) {
                 vk_util::getVkCheckCallbacks().callIfExists(                                    \
                     &vk_util::VkCheckCallbacks::onVkErrorOutOfMemory, err, __func__, __LINE__); \
             }                                                                                   \
-            GFXSTREAM_ABORT(::emugl::FatalError(err));                                          \
+            GFXSTREAM_ABORT(::emugl::FatalError(err))                                           \
+                << " VK_CHECK(" << #x << ") failed with " << string_VkResult(err) << " at "     \
+                << __FILE__ << ":" << __LINE__;                                                 \
         }                                                                                       \
     } while (0)
 
