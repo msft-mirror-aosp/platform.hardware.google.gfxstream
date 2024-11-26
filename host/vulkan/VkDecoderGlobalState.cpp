@@ -1852,6 +1852,15 @@ class VkDecoderGlobalState::Impl {
             featuresToFilter.emplace_back(&features2->features);
         }
 
+        VkPhysicalDeviceDiagnosticsConfigFeaturesNV deviceDiagnosticsConfigFeatures = {
+            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DIAGNOSTICS_CONFIG_FEATURES_NV,
+            .diagnosticsConfig = VK_TRUE,
+        };
+        if (m_emu->commandBufferCheckpointsSupportedAndRequested) {
+            deviceDiagnosticsConfigFeatures.pNext = const_cast<void*>(createInfoFiltered.pNext);
+            createInfoFiltered.pNext = &deviceDiagnosticsConfigFeatures;
+        }
+
         for (VkPhysicalDeviceFeatures* feature : featuresToFilter) {
             if (emulateTextureEtc2) {
                 feature->textureCompressionETC2 = VK_FALSE;
@@ -6197,7 +6206,11 @@ class VkDecoderGlobalState::Impl {
             }
         }
         if (!releasedColorBuffers.empty()) {
-            vk->vkWaitForFences(device, 1, &usedFence, VK_TRUE, /* 1 sec */ 1000000000L);
+            result = vk->vkWaitForFences(device, 1, &usedFence, VK_TRUE, /* 1 sec */ 1000000000L);
+            if (result != VK_SUCCESS) {
+                ERR("vkWaitForFences failed: %s [%d]", string_VkResult(result), result);
+                return result;
+            }
 
             for (HandleType cb : releasedColorBuffers) {
                 m_emu->callbacks.flushColorBuffer(cb);
