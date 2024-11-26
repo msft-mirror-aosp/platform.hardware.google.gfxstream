@@ -255,11 +255,19 @@ void VirtioGpuResource::AttachIov(struct iovec* iov, uint32_t num_iovs) {
     }
 }
 
-void VirtioGpuResource::AttachToContext(VirtioGpuContextId contextId) { mContextId = contextId; }
+void VirtioGpuResource::AttachToContext(VirtioGpuContextId contextId) {
+    mAttachedToContexts.insert(contextId);
+    mLatestAttachedContext = contextId;
+}
 
-void VirtioGpuResource::DetachFromContext() {
-    mContextId.reset();
+void VirtioGpuResource::DetachFromContext(VirtioGpuContextId contextId) {
+    mAttachedToContexts.erase(contextId);
+    mLatestAttachedContext.reset();
     mHostPipe = nullptr;
+}
+
+std::unordered_set<VirtioGpuContextId> VirtioGpuResource::GetAttachedContexts() const {
+    return mAttachedToContexts;
 }
 
 void VirtioGpuResource::DetachIov() {
@@ -577,7 +585,7 @@ VirtioGpuResource::TransferWriteResult VirtioGpuResource::WriteToPipeFromLinear(
         .status = 0,
     };
     if (updatedHostPipe != nullptr) {
-        result.contextId = mContextId.value_or(-1);
+        result.contextId = mLatestAttachedContext.value_or(-1);
         result.contextPipe = updatedHostPipe;
     }
     return result;
@@ -860,7 +868,7 @@ std::optional<VirtioGpuResourceSnapshot> VirtioGpuResource::Snapshot() const {
             }
             resourceSnapshot.mutable_ring_blob()->Swap(&*snapshotRingBlobOpt);
         } else if (std::holds_alternative<ExternalMemoryDescriptor>(*mBlobMemory)) {
-            if (!mContextId) {
+            if (!mLatestAttachedContext) {
                 stream_renderer_error("Failed to snapshot resource %d: missing blob context?", mId);
                 return std::nullopt;
             }
@@ -869,10 +877,10 @@ std::optional<VirtioGpuResourceSnapshot> VirtioGpuResource::Snapshot() const {
                 return std::nullopt;
             }
             auto snapshotDescriptorInfo = resourceSnapshot.mutable_external_memory_descriptor();
-            snapshotDescriptorInfo->set_context_id(*mContextId);
+            snapshotDescriptorInfo->set_context_id(*mLatestAttachedContext);
             snapshotDescriptorInfo->set_blob_id(mCreateBlobArgs->blob_id);
         } else if (std::holds_alternative<ExternalMemoryMapping>(*mBlobMemory)) {
-            if (!mContextId) {
+            if (!mLatestAttachedContext) {
                 stream_renderer_error("Failed to snapshot resource %d: missing blob context?", mId);
                 return std::nullopt;
             }
@@ -881,10 +889,17 @@ std::optional<VirtioGpuResourceSnapshot> VirtioGpuResource::Snapshot() const {
                 return std::nullopt;
             }
             auto snapshotDescriptorInfo = resourceSnapshot.mutable_external_memory_mapping();
-            snapshotDescriptorInfo->set_context_id(*mContextId);
+            snapshotDescriptorInfo->set_context_id(*mLatestAttachedContext);
             snapshotDescriptorInfo->set_blob_id(mCreateBlobArgs->blob_id);
         }
     }
+
+    if (mLatestAttachedContext) {
+        resourceSnapshot.set_latest_attached_context(*mLatestAttachedContext);
+    }
+
+    resourceSnapshot.mutable_attached_contexts()->Add(mAttachedToContexts.begin(),
+                                                      mAttachedToContexts.end());
 
     return resourceSnapshot;
 }
@@ -953,6 +968,13 @@ std::optional<VirtioGpuResourceSnapshot> VirtioGpuResource::Snapshot() const {
         }
         resource.mBlobMemory.emplace(std::move(*memoryMappingOpt));
     }
+
+    if (resourceSnapshot.has_latest_attached_context()) {
+        resource.mLatestAttachedContext = resourceSnapshot.latest_attached_context();
+    }
+
+    resource.mAttachedToContexts.insert(resourceSnapshot.attached_contexts().begin(),
+                                        resourceSnapshot.attached_contexts().end());
 
     return resource;
 }

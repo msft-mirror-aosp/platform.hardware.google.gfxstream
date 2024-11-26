@@ -68,11 +68,12 @@ message VirtioGpuResourceSnapshot {
     // may not be the same across snapshot and restore. VMMs are expected to re-call
     // `stream_renderer_resource_attach_iov()` for resources with the new guest-memory
     // host virtual addresses.
-
     oneof blob_memory {
         VirtioGpuRingBlobSnapshot ring_blob = 5;
         VirtioGpuBlobExternalMemoryInfo external_memory_descriptor = 6;
         VirtioGpuBlobExternalMemoryInfo external_memory_mapping = 7;
     }
+    optional uint32 latest_attached_context = 8;
+    repeated uint32 attached_contexts = 9;
 }
 // LINT.ThenChange(VirtioGpuResource.h:virtio_gpu_resource)
