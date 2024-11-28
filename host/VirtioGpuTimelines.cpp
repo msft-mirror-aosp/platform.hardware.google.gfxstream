@@ -30,7 +30,9 @@ std::unique_ptr<VirtioGpuTimelines> VirtioGpuTimelines::create(FenceCompletionCa
 }
 
 VirtioGpuTimelines::VirtioGpuTimelines(FenceCompletionCallback callback)
-    : mNextId(0), mFenceCompletionCallback(std::move(callback)) {}
+    : mNextId(0), mFenceCompletionCallback(std::move(callback)) {
+        gfxstream::host::InitializeTracing();
+    }
 
 TaskId VirtioGpuTimelines::enqueueTask(const Ring& ring) {
     std::lock_guard<std::mutex> lock(mTimelinesMutex);
