@@ -21,7 +21,7 @@
 // ../../../../../hardware/google/gfxstream/host/vulkan/cereal
 //
 // Please do not modify directly;
-// re-run gfxstream-protocols/scripts/generate-vulkan-sources.sh,
+// re-run mesa3d/src/gfxstream/codegen/generate-gfxstream-vulkan.sh,
 // or directly from Python by defining:
 // VULKAN_REGISTRY_XML_DIR : Directory containing vk.xml
 // VULKAN_REGISTRY_SCRIPTS_DIR : Directory containing genvk.py
@@ -1872,6 +1872,17 @@ void deepcopy_VkPipelineRasterizationProvokingVertexStateCreateInfoEXT(
     Allocator* alloc, VkStructureType rootType,
     const VkPipelineRasterizationProvokingVertexStateCreateInfoEXT* from,
     VkPipelineRasterizationProvokingVertexStateCreateInfoEXT* to);
+
+#endif
+#ifdef VK_EXT_line_rasterization
+DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDeviceLineRasterizationFeaturesKHR,
+                      deepcopy_VkPhysicalDeviceLineRasterizationFeaturesEXT)
+
+DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDeviceLineRasterizationPropertiesKHR,
+                      deepcopy_VkPhysicalDeviceLineRasterizationPropertiesEXT)
+
+DEFINE_ALIAS_FUNCTION(deepcopy_VkPipelineRasterizationLineStateCreateInfoKHR,
+                      deepcopy_VkPipelineRasterizationLineStateCreateInfoEXT)
 
 #endif
 #ifdef VK_EXT_index_type_uint8

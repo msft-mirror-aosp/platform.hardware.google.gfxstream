@@ -21,7 +21,7 @@
 // ../../../../../hardware/google/gfxstream/host/vulkan/cereal
 //
 // Please do not modify directly;
-// re-run gfxstream-protocols/scripts/generate-vulkan-sources.sh,
+// re-run mesa3d/src/gfxstream/codegen/generate-gfxstream-vulkan.sh,
 // or directly from Python by defining:
 // VULKAN_REGISTRY_XML_DIR : Directory containing vk.xml
 // VULKAN_REGISTRY_SCRIPTS_DIR : Directory containing genvk.py
@@ -435,6 +435,9 @@ struct VulkanDispatch {
     PFN_vkGetDeviceImageSubresourceLayoutKHR vkGetDeviceImageSubresourceLayoutKHR;
     PFN_vkGetImageSubresourceLayout2KHR vkGetImageSubresourceLayout2KHR;
 #endif
+#ifdef VK_KHR_line_rasterization
+    PFN_vkCmdSetLineStippleKHR vkCmdSetLineStippleKHR;
+#endif
 #ifdef VK_ANDROID_native_buffer
     PFN_vkGetSwapchainGrallocUsageANDROID vkGetSwapchainGrallocUsageANDROID;
     PFN_vkAcquireImageANDROID vkAcquireImageANDROID;
@@ -482,6 +485,9 @@ struct VulkanDispatch {
 #endif
 #ifdef VK_EXT_tooling_info
     PFN_vkGetPhysicalDeviceToolPropertiesEXT vkGetPhysicalDeviceToolPropertiesEXT;
+#endif
+#ifdef VK_EXT_line_rasterization
+    PFN_vkCmdSetLineStippleEXT vkCmdSetLineStippleEXT;
 #endif
 #ifdef VK_EXT_extended_dynamic_state
     PFN_vkCmdSetCullModeEXT vkCmdSetCullModeEXT;

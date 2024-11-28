@@ -16,6 +16,7 @@
 
 #include <string>
 #include <map>
+#include <vector>
 
 namespace gfxstream {
 namespace host {
@@ -23,6 +24,8 @@ namespace host {
 struct FeatureInfo;
 
 using FeatureMap = std::map<std::string, FeatureInfo*>;
+//type used for returning success or a string with the concatenated errors (missing features)
+using FeatureResult = std::pair<bool, std::string>;
 
 struct FeatureInfo {
     FeatureInfo(const FeatureInfo& rhs) = default;
@@ -312,6 +315,17 @@ struct FeatureSet {
         "buffers on device lost. (TODO: VK_AMD_buffer_marker)",
         &map,
     };
+};
+struct FeatureDependencyHandler {
+    FeatureDependencyHandler(const FeatureSet& set) : featureSetView(set){}
+    const FeatureSet& featureSetView;
+    const std::map<const FeatureInfo*, std::vector<const FeatureInfo*>> VK_FEATURE_DEPENDENCY_MAP= {
+        // List other dependencies here in the shape of:
+        // {FEATURE_X, {DEPENDENT_FEATURE_A, DEPENDENT_FEATURE_B}}
+        {&featureSetView.VulkanSnapshots, {&featureSetView.VulkanBatchedDescriptorSetUpdate, &featureSetView.Vulkan}},
+    };
+
+    FeatureResult checkAllDependentFeaturesAreEnabled();
 };
 
 #define GFXSTREAM_SET_FEATURE_ON_CONDITION(set, feature, condition) \

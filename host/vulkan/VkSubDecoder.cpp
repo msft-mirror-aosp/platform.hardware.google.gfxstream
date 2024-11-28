@@ -21,7 +21,7 @@
 // ../../../../../hardware/google/gfxstream/host/vulkan/cereal
 //
 // Please do not modify directly;
-// re-run gfxstream-protocols/scripts/generate-vulkan-sources.sh,
+// re-run mesa3d/src/gfxstream/codegen/generate-gfxstream-vulkan.sh,
 // or directly from Python by defining:
 // VULKAN_REGISTRY_XML_DIR : Directory containing vk.xml
 // VULKAN_REGISTRY_SCRIPTS_DIR : Directory containing genvk.py
@@ -2405,6 +2405,21 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 break;
             }
 #endif
+#ifdef VK_KHR_line_rasterization
+            case OP_vkCmdSetLineStippleKHR: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkSubDecoder vkCmdSetLineStippleKHR");
+                uint32_t lineStippleFactor;
+                uint16_t lineStipplePattern;
+                memcpy((uint32_t*)&lineStippleFactor, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                memcpy((uint16_t*)&lineStipplePattern, *readStreamPtrPtr, sizeof(uint16_t));
+                *readStreamPtrPtr += sizeof(uint16_t);
+                vk->vkCmdSetLineStippleKHR((VkCommandBuffer)dispatchHandle, lineStippleFactor,
+                                           lineStipplePattern);
+                break;
+            }
+#endif
 #ifdef VK_EXT_transform_feedback
             case OP_vkCmdBindTransformFeedbackBuffersEXT: {
                 GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
@@ -2686,6 +2701,21 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                                                           (VkDebugUtilsLabelEXT*)(pLabelInfo));
                 }
                 vk->vkCmdInsertDebugUtilsLabelEXT((VkCommandBuffer)dispatchHandle, pLabelInfo);
+                break;
+            }
+#endif
+#ifdef VK_EXT_line_rasterization
+            case OP_vkCmdSetLineStippleEXT: {
+                GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
+                                      "VkSubDecoder vkCmdSetLineStippleEXT");
+                uint32_t lineStippleFactor;
+                uint16_t lineStipplePattern;
+                memcpy((uint32_t*)&lineStippleFactor, *readStreamPtrPtr, sizeof(uint32_t));
+                *readStreamPtrPtr += sizeof(uint32_t);
+                memcpy((uint16_t*)&lineStipplePattern, *readStreamPtrPtr, sizeof(uint16_t));
+                *readStreamPtrPtr += sizeof(uint16_t);
+                vk->vkCmdSetLineStippleEXT((VkCommandBuffer)dispatchHandle, lineStippleFactor,
+                                           lineStipplePattern);
                 break;
             }
 #endif

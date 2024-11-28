@@ -14,12 +14,6 @@ namespace vk {
 using emugl::ABORT_REASON_OTHER;
 using emugl::FatalError;
 
-#define SWAPCHAINSTATE_VK_ERROR(fmt, ...)                                                     \
-    do {                                                                                      \
-        fprintf(stderr, "%s(%s:%d): " fmt "\n", __func__, __FILE__, __LINE__, ##__VA_ARGS__); \
-        fflush(stderr);                                                                       \
-    } while (0)
-
 namespace {
 
 void swap(SwapchainCreateInfoWrapper& a, SwapchainCreateInfoWrapper& b) {
@@ -198,7 +192,7 @@ std::optional<SwapchainCreateInfoWrapper> SwapChainStateVk::createSwapChainCi(
             return format.format == k_vkFormat && format.colorSpace == k_vkColorSpace;
         });
     if (iSurfaceFormat == formats.end()) {
-        SWAPCHAINSTATE_VK_ERROR("Fail to create swapchain: the format(%#" PRIx64
+        ERR("Failed to create swapchain: the format(%#" PRIx64
                                 ") with color space(%#" PRIx64 ") not supported.",
                                 static_cast<uint64_t>(k_vkFormat),
                                 static_cast<uint64_t>(k_vkColorSpace));
@@ -214,7 +208,7 @@ std::optional<SwapchainCreateInfoWrapper> SwapChainStateVk::createSwapChainCi(
     std::unordered_set<VkPresentModeKHR> presentModes(presentModes_.begin(), presentModes_.end());
     VkPresentModeKHR presentMode = VK_PRESENT_MODE_FIFO_KHR;
     if (!presentModes.count(VK_PRESENT_MODE_FIFO_KHR)) {
-        SWAPCHAINSTATE_VK_ERROR("Fail to create swapchain: FIFO present mode not supported.");
+        ERR("Failed to create swapchain: FIFO present mode not supported.");
         return std::nullopt;
     }
     VkFormatProperties formatProperties = {};
@@ -225,7 +219,7 @@ std::optional<SwapchainCreateInfoWrapper> SwapChainStateVk::createSwapChainCi(
     if (!(formatFeatures & VK_FORMAT_FEATURE_BLIT_DST_BIT)) {
         // According to VUID-vkCmdBlitImage-dstImage-02000, the format features of dstImage must
         // contain VK_FORMAT_FEATURE_BLIT_DST_BIT.
-        SWAPCHAINSTATE_VK_ERROR(
+        ERR(
             "The format %s with the optimal tiling doesn't support VK_FORMAT_FEATURE_BLIT_DST_BIT. "
             "The supported features are %s.",
             string_VkFormat(k_vkFormat), string_VkFormatFeatureFlags(formatFeatures).c_str());
@@ -234,7 +228,7 @@ std::optional<SwapchainCreateInfoWrapper> SwapChainStateVk::createSwapChainCi(
     VkSurfaceCapabilitiesKHR surfaceCaps;
     VK_CHECK(vk.vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, &surfaceCaps));
     if (!(surfaceCaps.supportedUsageFlags & VK_IMAGE_USAGE_TRANSFER_DST_BIT)) {
-        SWAPCHAINSTATE_VK_ERROR(
+        ERR(
             "The supported usage flags of the presentable images is %s, and don't contain "
             "VK_IMAGE_USAGE_TRANSFER_DST_BIT.",
             string_VkImageUsageFlags(surfaceCaps.supportedUsageFlags).c_str());
@@ -251,7 +245,7 @@ std::optional<SwapchainCreateInfoWrapper> SwapChainStateVk::createSwapChainCi(
         maybeExtent = VkExtent2D({width, height});
     }
     if (!maybeExtent.has_value()) {
-        SWAPCHAINSTATE_VK_ERROR("Fail to create swapchain: extent(%" PRIu64 "x%" PRIu64
+        ERR("Failed to create swapchain: extent(%" PRIu64 "x%" PRIu64
                                 ") not supported.",
                                 static_cast<uint64_t>(width), static_cast<uint64_t>(height));
         return std::nullopt;
@@ -281,7 +275,7 @@ std::optional<SwapchainCreateInfoWrapper> SwapChainStateVk::createSwapChainCi(
         .clipped = VK_TRUE,
         .oldSwapchain = VK_NULL_HANDLE});
     if (queueFamilyIndices.empty()) {
-        SWAPCHAINSTATE_VK_ERROR("Fail to create swapchain: no Vulkan queue family specified.");
+        ERR("Failed to create swapchain: no Vulkan queue family specified.");
         return std::nullopt;
     }
     if (queueFamilyIndices.size() == 1) {

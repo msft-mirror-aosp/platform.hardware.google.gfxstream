@@ -21,7 +21,7 @@
 // ../../../../../hardware/google/gfxstream/host/vulkan/cereal
 //
 // Please do not modify directly;
-// re-run gfxstream-protocols/scripts/generate-vulkan-sources.sh,
+// re-run mesa3d/src/gfxstream/codegen/generate-gfxstream-vulkan.sh,
 // or directly from Python by defining:
 // VULKAN_REGISTRY_XML_DIR : Directory containing vk.xml
 // VULKAN_REGISTRY_SCRIPTS_DIR : Directory containing genvk.py
@@ -22808,6 +22808,13 @@ const char* api_opcode_to_string(const uint32_t opcode) {
         case OP_vkCmdSetDepthBoundsTestEnable: {
             return "OP_vkCmdSetDepthBoundsTestEnable";
         }
+#endif
+#ifdef VK_KHR_line_rasterization
+        case OP_vkCmdSetLineStippleKHR: {
+            return "OP_vkCmdSetLineStippleKHR";
+        }
+#endif
+#ifdef VK_VERSION_1_3
         case OP_vkCmdSetScissorWithCount: {
             return "OP_vkCmdSetScissorWithCount";
         }
@@ -23092,6 +23099,11 @@ const char* api_opcode_to_string(const uint32_t opcode) {
         }
         case OP_vkCmdSetPrimitiveTopology: {
             return "OP_vkCmdSetPrimitiveTopology";
+        }
+#endif
+#ifdef VK_EXT_line_rasterization
+        case OP_vkCmdSetLineStippleEXT: {
+            return "OP_vkCmdSetLineStippleEXT";
         }
 #endif
 #ifdef VK_EXT_extended_dynamic_state

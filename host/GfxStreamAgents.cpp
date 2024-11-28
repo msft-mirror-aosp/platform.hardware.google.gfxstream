@@ -147,11 +147,11 @@ static const QAndroidMultiDisplayAgent sMultiDisplayAgent = {
         .setGpuMode = [](bool isGuestMode, uint32_t w, uint32_t h) {},
         .createDisplay = [](uint32_t* displayId) -> int {
             if (displayId == nullptr) {
-                fprintf(stderr, "null displayId pointer\n");
+                ERR("cannot create display, null displayId pointer");
                 return -1;
             }
             if (mMultiDisplay.size() >= MultiDisplay::s_maxNumMultiDisplay) {
-                fprintf(stderr, "cannot create more displays, exceeding limits %d\n",
+                ERR("cannot create more displays, exceeding limits %d",
                         MultiDisplay::s_maxNumMultiDisplay);
                 return -1;
             }
@@ -168,7 +168,7 @@ static const QAndroidMultiDisplayAgent sMultiDisplayAgent = {
                 }
             }
             if (*displayId == MultiDisplay::s_invalidIdMultiDisplay) {
-                fprintf(stderr, "cannot create more internaldisplays, exceeding limits %d\n",
+                ERR("cannot create more internaldisplays, exceeding limits %d",
                         MultiDisplay::s_maxNumMultiDisplay - MultiDisplay::s_displayIdInternalBegin);
                 return -1;
             }
@@ -187,7 +187,7 @@ static const QAndroidMultiDisplayAgent sMultiDisplayAgent = {
                              uint32_t h,
                              uint32_t dpi) -> int {
             if (mMultiDisplay.find(displayId) == mMultiDisplay.end()) {
-                fprintf(stderr, "cannot find display %d\n", displayId);
+                ERR("cannot find display %d", displayId);
                 return -1;
             }
             mMultiDisplay[displayId].pos_x = x;
@@ -203,7 +203,7 @@ static const QAndroidMultiDisplayAgent sMultiDisplayAgent = {
                              uint32_t* w,
                              uint32_t* h) -> int {
             if (mMultiDisplay.find(displayId) == mMultiDisplay.end()) {
-                fprintf(stderr, "cannot find display %d\n", displayId);
+                ERR("cannot find display %d", displayId);
                 return -1;
             }
             if (x)
@@ -219,7 +219,7 @@ static const QAndroidMultiDisplayAgent sMultiDisplayAgent = {
         .getDisplayColorBuffer = [](uint32_t displayId,
                                     uint32_t* colorBuffer) -> int {
             if (mMultiDisplay.find(displayId) == mMultiDisplay.end()) {
-                fprintf(stderr, "cannot find display %d\n", displayId);
+                ERR("cannot find display %d", displayId);
                 return -1;
             }
             *colorBuffer = mMultiDisplay[displayId].cb;
@@ -238,7 +238,7 @@ static const QAndroidMultiDisplayAgent sMultiDisplayAgent = {
         .setDisplayColorBuffer = [](uint32_t displayId,
                                     uint32_t colorBuffer) -> int {
             if (mMultiDisplay.find(displayId) == mMultiDisplay.end()) {
-                fprintf(stderr, "cannot find display %d\n", displayId);
+                ERR("Unable to set display color buffer for non existing display: %d", displayId);
                 return -1;
             }
             mMultiDisplay[displayId].cb = colorBuffer;

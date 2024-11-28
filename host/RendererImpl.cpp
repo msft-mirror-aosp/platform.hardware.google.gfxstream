@@ -394,15 +394,7 @@ bool RendererImpl::load(android::base::Stream* stream,
     }
     auto fb = FrameBuffer::getFB();
     assert(fb);
-
-    bool res = true;
-
-    res = fb->onLoad(stream, textureLoader);
-#if GFXSTREAM_ENABLE_HOST_GLES
-    gl::EmulatedEglFenceSync::onLoad(stream);
-#endif
-
-    return res;
+    return fb->onLoad(stream, textureLoader);
 }
 
 void RendererImpl::fillGLESUsages(android_studio::EmulatorGLESUsages* usages) {
@@ -589,6 +581,12 @@ static struct AndroidVirtioGpuOps sVirtioGpuOps = {
            void* pixels) {
             FrameBuffer::getFB()->readColorBuffer(handle, x, y, width, height, format, type,
                                                   pixels);
+        },
+    .read_color_buffer2 =
+        [](uint32_t handle, int x, int y, int width, int height, uint32_t format, uint32_t type,
+           void* pixels, uint64_t pixels_size) {
+            FrameBuffer::getFB()->readColorBuffer(handle, x, y, width, height, format, type,
+                                                  pixels, pixels_size);
         },
     .read_color_buffer_yuv =
         [](uint32_t handle, int x, int y, int width, int height, void* pixels,
