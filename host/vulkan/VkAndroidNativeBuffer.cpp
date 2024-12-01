@@ -383,12 +383,6 @@ void teardownAndroidNativeBufferImage(VulkanDispatch* vk, AndroidNativeBufferInf
     auto mappedPtr = anbInfo->mappedStagingPtr;
     auto stagingMemory = anbInfo->stagingMemory;
 
-    if (image) vk->vkDestroyImage(device, image, nullptr);
-    if (imageMemory) vk->vkFreeMemory(device, imageMemory, nullptr);
-    if (stagingBuffer) vk->vkDestroyBuffer(device, stagingBuffer, nullptr);
-    if (mappedPtr) vk->vkUnmapMemory(device, stagingMemory);
-    if (stagingMemory) vk->vkFreeMemory(device, stagingMemory, nullptr);
-
     for (auto queueState : anbInfo->queueStates) {
         queueState.teardown(vk, device);
     }
@@ -396,6 +390,12 @@ void teardownAndroidNativeBufferImage(VulkanDispatch* vk, AndroidNativeBufferInf
     anbInfo->queueStates.clear();
 
     anbInfo->acquireQueueState.teardown(vk, device);
+
+    if (image) vk->vkDestroyImage(device, image, nullptr);
+    if (imageMemory) vk->vkFreeMemory(device, imageMemory, nullptr);
+    if (stagingBuffer) vk->vkDestroyBuffer(device, stagingBuffer, nullptr);
+    if (mappedPtr) vk->vkUnmapMemory(device, stagingMemory);
+    if (stagingMemory) vk->vkFreeMemory(device, stagingMemory, nullptr);
 
     anbInfo->vk = nullptr;
     anbInfo->device = VK_NULL_HANDLE;
