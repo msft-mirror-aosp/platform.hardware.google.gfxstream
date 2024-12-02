@@ -22799,6 +22799,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
             }
         }
         ptr += packetLen;
+        vkStream->clearPool();
     }
     if (m_forSnapshotLoad) {
         m_state->clearCreatedHandlesForSnapshotLoad();
