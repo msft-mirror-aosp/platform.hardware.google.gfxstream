@@ -6272,7 +6272,7 @@ class VkDecoderGlobalState::Impl {
     void freeCommandBufferWithExclusiveInfos(
         VkDevice device, VulkanDispatch* deviceDispatch, VkCommandBuffer commandBuffer,
         CommandBufferInfo& commandBufferInfo,
-        std::unordered_map<VkCommandPool, CommandPoolInfo> commandPoolInfos) {
+        std::unordered_map<VkCommandPool, CommandPoolInfo>& commandPoolInfos) {
         auto commandPool = commandBufferInfo.cmdPool;
 
         auto commandPoolInfoIt = commandPoolInfos.find(commandPool);
