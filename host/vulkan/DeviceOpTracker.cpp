@@ -28,8 +28,9 @@ using emugl::ABORT_REASON_OTHER;
 using emugl::FatalError;
 
 constexpr const size_t kSizeLoggingThreshold = 20;
+constexpr const auto kSizeLoggingTimeThreshold = std::chrono::seconds(1);
 
-constexpr const auto kTimeThreshold = std::chrono::seconds(5);
+constexpr const auto kAutoDeleteTimeThreshold = std::chrono::seconds(5);
 
 template <typename T>
 inline constexpr bool always_false_v = false;
@@ -42,7 +43,7 @@ DeviceOpTracker::DeviceOpTracker(VkDevice device, VulkanDispatch* deviceDispatch
 void DeviceOpTracker::AddPendingGarbage(DeviceOpWaitable waitable, VkFence fence) {
     std::lock_guard<std::mutex> lock(mPendingGarbageMutex);
 
-    mPendingGarbage.push_back(PendingGarabage{
+    mPendingGarbage.push_back(PendingGarbage{
         .waitable = std::move(waitable),
         .obj = fence,
         .timepoint = std::chrono::system_clock::now(),
@@ -56,7 +57,7 @@ void DeviceOpTracker::AddPendingGarbage(DeviceOpWaitable waitable, VkFence fence
 void DeviceOpTracker::AddPendingGarbage(DeviceOpWaitable waitable, VkSemaphore semaphore) {
     std::lock_guard<std::mutex> lock(mPendingGarbageMutex);
 
-    mPendingGarbage.push_back(PendingGarabage{
+    mPendingGarbage.push_back(PendingGarbage{
         .waitable = std::move(waitable),
         .obj = semaphore,
         .timepoint = std::chrono::system_clock::now(),
@@ -69,16 +70,27 @@ void DeviceOpTracker::AddPendingGarbage(DeviceOpWaitable waitable, VkSemaphore s
 
 void DeviceOpTracker::Poll() {
     std::lock_guard<std::mutex> lock(mPollFunctionsMutex);
-
     mPollFunctions.erase(std::remove_if(mPollFunctions.begin(), mPollFunctions.end(),
-                                        [](const OpPollingFunction& pollingFunc) {
-                                            DeviceOpStatus status = pollingFunc();
+                                        [](const PollFunction& pollingFunc) {
+                                            DeviceOpStatus status = pollingFunc.func();
                                             return status != DeviceOpStatus::kPending;
                                         }),
                          mPollFunctions.end());
 
     if (mPollFunctions.size() > kSizeLoggingThreshold) {
-        WARN("VkDevice:%p has %d pending waitables.", mDevice, mPollFunctions.size());
+        // Only report old-enough objects to avoid reporting lots of pending waitables
+        // when many requests have been done in a small amount of time.
+        const auto now = std::chrono::system_clock::now();
+        const auto old = now - kSizeLoggingTimeThreshold;
+        int numOldFuncs = std::count_if(
+            mPollFunctions.begin(), mPollFunctions.end(), [old](const PollFunction& pollingFunc) {
+                return (pollingFunc.timepoint < old);
+            });
+        if (numOldFuncs > kSizeLoggingThreshold) {
+            WARN("VkDevice:%p has %d pending waitables, %d taking more than %d milliseconds.",
+                 mDevice, mPollFunctions.size(), numOldFuncs,
+                 std::chrono::duration_cast<std::chrono::milliseconds>(kSizeLoggingTimeThreshold));
+        }
     }
 }
 
@@ -86,7 +98,7 @@ void DeviceOpTracker::PollAndProcessGarbage() {
     Poll();
 
     const auto now = std::chrono::system_clock::now();
-    const auto old = now - kTimeThreshold;
+    const auto old = now - kAutoDeleteTimeThreshold;
     {
         std::lock_guard<std::mutex> lock(mPendingGarbageMutex);
 
@@ -97,7 +109,7 @@ void DeviceOpTracker::PollAndProcessGarbage() {
         // of work performed here as it is expected that this function will be called
         // while processing other guest vulkan functions.
         auto firstPendingIt = std::find_if(mPendingGarbage.begin(), mPendingGarbage.end(),
-                                           [&](const PendingGarabage& pendingGarbage) {
+                                           [old](const PendingGarbage& pendingGarbage) {
                                                if (pendingGarbage.timepoint < old) {
                                                    return /*still pending=*/false;
                                                }
@@ -105,7 +117,7 @@ void DeviceOpTracker::PollAndProcessGarbage() {
                                            });
 
         for (auto it = mPendingGarbage.begin(); it != firstPendingIt; it++) {
-            PendingGarabage& pendingGarbage = *it;
+            PendingGarbage& pendingGarbage = *it;
 
             if (pendingGarbage.timepoint < old) {
                 const auto difference = std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -153,7 +165,10 @@ void DeviceOpTracker::OnDestroyDevice() {
 
 void DeviceOpTracker::AddPendingDeviceOp(std::function<DeviceOpStatus()> pollFunction) {
     std::lock_guard<std::mutex> lock(mPollFunctionsMutex);
-    mPollFunctions.push_back(std::move(pollFunction));
+    mPollFunctions.push_back(PollFunction{
+        .func = std::move(pollFunction),
+        .timepoint = std::chrono::system_clock::now(),
+    });
 }
 
 DeviceOpBuilder::DeviceOpBuilder(DeviceOpTracker& tracker) : mTracker(tracker) {}
