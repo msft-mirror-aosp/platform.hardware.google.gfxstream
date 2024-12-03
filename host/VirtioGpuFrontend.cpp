@@ -1151,9 +1151,45 @@ int VirtioGpuFrontend::restoreAsg(const char* directory) {
         .stream = &stream,
     };
 
-    int ret = android::emulation::goldfish_address_space_memory_state_load(loadStream.stream);
+    // Gather external memory info that the ASG device needs to reload.
+    android::emulation::AddressSpaceDeviceLoadResources asgLoadResources;
+    for (const auto& [contextId, context] : mContexts) {
+        for (const auto [resourceId, asgId] : context.AsgInstances()) {
+            auto resourceIt = mResources.find(resourceId);
+            if (resourceIt == mResources.end()) {
+                stream_renderer_error("Failed to restore ASG device: context %" PRIu32
+                                      " claims resource %" PRIu32 " is used for ASG %" PRIu32
+                                      " but resource not found.",
+                                      contextId, resourceId, asgId);
+                return -1;
+            }
+            auto& resource = resourceIt->second;
+
+            void* mappedAddr = nullptr;
+            uint64_t mappedSize = 0;
+
+            int ret = resource.Map(&mappedAddr, &mappedSize);
+            if (ret) {
+                stream_renderer_error("Failed to restore ASG device: failed to map resource %" PRIu32, resourceId);
+                return -1;
+            }
+
+            asgLoadResources.contextExternalMemoryMap[asgId] = {
+                .externalAddress = mappedAddr,
+                .externalAddressSize = mappedSize,
+            };
+        }
+    }
+
+    int ret = android::emulation::goldfish_address_space_memory_state_set_load_resources(asgLoadResources);
     if (ret) {
-        stream_renderer_error("Failed to restore snapshot: failed to restore ASG state.");
+        stream_renderer_error("Failed to restore ASG device: failed to set ASG load resources.");
+        return ret;
+    }
+
+    ret = android::emulation::goldfish_address_space_memory_state_load(loadStream.stream);
+    if (ret) {
+        stream_renderer_error("Failed to restore ASG device: failed to restore ASG state.");
         return ret;
     }
     return 0;
