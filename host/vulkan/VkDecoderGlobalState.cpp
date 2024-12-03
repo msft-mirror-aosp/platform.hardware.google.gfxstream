@@ -6094,38 +6094,37 @@ class VkDecoderGlobalState::Impl {
         }
 
         VkDevice device = VK_NULL_HANDLE;
-        Lock* ql;
+        Lock* ql = nullptr;
+        DeviceOpTrackerPtr opTracker = nullptr;
+        VkFence usedFence = fence;
+        DeviceOpWaitable queueCompletedWaitable;
         {
             std::lock_guard<std::recursive_mutex> lock(mLock);
+            auto* queueInfo = android::base::find(mQueueInfo, queue);
+            if (!queueInfo) {
+                ERR("vkQueueSubmit cannot find queue info for %p", queue);
+                return VK_ERROR_INITIALIZATION_FAILED;
+            }
+            device = queueInfo->device;
+            ql = queueInfo->lock;
 
-            {
-                auto* queueInfo = android::base::find(mQueueInfo, queue);
-                if (queueInfo) {
-                    device = queueInfo->device;
-                    // Unsafe to release when snapshot enabled.
-                    // Snapshot load might fail to find the shader modules if we release them here.
-                    if (!snapshotsEnabled()) {
-                        sBoxedHandleManager.processDelayedRemovesGlobalStateLocked(device);
-                    }
-                }
+            auto* deviceInfo = android::base::find(mDeviceInfo, device);
+            if (!deviceInfo) {
+                ERR("vkQueueSubmit cannot find device info for %p", device);
+                return VK_ERROR_INITIALIZATION_FAILED;
+            }
+            opTracker = deviceInfo->deviceOpTracker;
+
+            // Unsafe to release when snapshot enabled.
+            // Snapshot load might fail to find the shader modules if we release them here.
+            if (!snapshotsEnabled()) {
+                sBoxedHandleManager.processDelayedRemovesGlobalStateLocked(device);
             }
 
             for (uint32_t i = 0; i < submitCount; i++) {
                 executePreprocessRecursive(pSubmits[i]);
             }
-
-            auto* queueInfo = android::base::find(mQueueInfo, queue);
-            if (!queueInfo) return VK_SUCCESS;
-            ql = queueInfo->lock;
-        }
-
-        VkFence usedFence = fence;
-        DeviceOpWaitable queueCompletedWaitable;
-        {
-            std::lock_guard<std::recursive_mutex> lock(mLock);
-            auto* deviceInfo = android::base::find(mDeviceInfo, device);
-            if (!deviceInfo) return VK_ERROR_INITIALIZATION_FAILED;
-            DeviceOpBuilder builder(*deviceInfo->deviceOpTracker);
+            DeviceOpBuilder builder = DeviceOpBuilder(*opTracker);
             if (VK_NULL_HANDLE == usedFence) {
                 // Note: This fence will be managed by the DeviceOpTracker after the
                 // OnQueueSubmittedWithFence call, so it does not need to be destroyed in the scope
@@ -6133,29 +6132,6 @@ class VkDecoderGlobalState::Impl {
                 usedFence = builder.CreateFenceForOp();
             }
             queueCompletedWaitable = builder.OnQueueSubmittedWithFence(usedFence);
-
-            deviceInfo->deviceOpTracker->PollAndProcessGarbage();
-        }
-
-        {
-            std::lock_guard<std::recursive_mutex> lock(mLock);
-            std::unordered_set<HandleType> imageBarrierColorBuffers;
-            for (int i = 0; i < submitCount; i++) {
-                for (int j = 0; j < getCommandBufferCount(pSubmits[i]); j++) {
-                    VkCommandBuffer cmdBuffer = getCommandBuffer(pSubmits[i], j);
-                    CommandBufferInfo* cmdBufferInfo =
-                        android::base::find(mCommandBufferInfo, cmdBuffer);
-                    if (cmdBufferInfo) {
-                        imageBarrierColorBuffers.merge(cmdBufferInfo->imageBarrierColorBuffers);
-                    }
-                }
-            }
-            auto* deviceInfo = android::base::find(mDeviceInfo, device);
-            if (!deviceInfo) return VK_ERROR_INITIALIZATION_FAILED;
-            for (const auto& colorBuffer : imageBarrierColorBuffers) {
-                setColorBufferLatestUse(colorBuffer, queueCompletedWaitable,
-                                        deviceInfo->deviceOpTracker);
-            }
         }
 
         AutoLock qlock(*ql);
@@ -6165,44 +6141,53 @@ class VkDecoderGlobalState::Impl {
             WARN("dispatchVkQueueSubmit failed: %s [%d]", string_VkResult(result), result);
             return result;
         }
+
         {
             std::lock_guard<std::recursive_mutex> lock(mLock);
-            // Update image layouts
+
+            std::unordered_set<HandleType> imageBarrierColorBuffers;
             for (int i = 0; i < submitCount; i++) {
                 for (int j = 0; j < getCommandBufferCount(pSubmits[i]); j++) {
                     VkCommandBuffer cmdBuffer = getCommandBuffer(pSubmits[i], j);
                     CommandBufferInfo* cmdBufferInfo =
                         android::base::find(mCommandBufferInfo, cmdBuffer);
-                    if (!cmdBufferInfo) {
-                        continue;
-                    }
-                    for (const auto& ite : cmdBufferInfo->imageLayouts) {
-                        auto imageIte = mImageInfo.find(ite.first);
-                        if (imageIte == mImageInfo.end()) {
-                            continue;
+
+                    if (cmdBufferInfo) {
+                        imageBarrierColorBuffers.merge(cmdBufferInfo->imageBarrierColorBuffers);
+
+                        // Update image layouts
+                        for (const auto& ite : cmdBufferInfo->imageLayouts) {
+                            auto imageIte = mImageInfo.find(ite.first);
+                            if (imageIte == mImageInfo.end()) {
+                                continue;
+                            }
+                            imageIte->second.layout = ite.second;
                         }
-                        imageIte->second.layout = ite.second;
+                    }
+
+                    // Update latestUse for all wait/signal semaphores, to ensure that they
+                    // are never asynchronously destroyed before the queue submissions referencing
+                    // them have completed
+                    for (int j = 0; j < getWaitSemaphoreCount(pSubmits[i]); j++) {
+                        SemaphoreInfo* semaphoreInfo =
+                            android::base::find(mSemaphoreInfo, getWaitSemaphore(pSubmits[i], j));
+                        if (semaphoreInfo) {
+                            semaphoreInfo->latestUse = queueCompletedWaitable;
+                        }
+                    }
+                    for (int j = 0; j < getSignalSemaphoreCount(pSubmits[i]); j++) {
+                        SemaphoreInfo* semaphoreInfo =
+                            android::base::find(mSemaphoreInfo, getSignalSemaphore(pSubmits[i], j));
+                        if (semaphoreInfo) {
+                            semaphoreInfo->latestUse = queueCompletedWaitable;
+                        }
                     }
                 }
             }
-            // Update latestUse for all wait/signal semaphores, to ensure that they
-            // are never asynchronously destroyed before the queue submissions referencing
-            // them have completed
-            for (int i = 0; i < submitCount; i++) {
-                for (int j = 0; j < getWaitSemaphoreCount(pSubmits[i]); j++) {
-                    SemaphoreInfo* semaphoreInfo =
-                        android::base::find(mSemaphoreInfo, getWaitSemaphore(pSubmits[i], j));
-                    if (semaphoreInfo) {
-                        semaphoreInfo->latestUse = queueCompletedWaitable;
-                    }
-                }
-                for (int j = 0; j < getSignalSemaphoreCount(pSubmits[i]); j++) {
-                    SemaphoreInfo* semaphoreInfo =
-                        android::base::find(mSemaphoreInfo, getSignalSemaphore(pSubmits[i], j));
-                    if (semaphoreInfo) {
-                        semaphoreInfo->latestUse = queueCompletedWaitable;
-                    }
-                }
+
+            // Update latest use for color buffers
+            for (const auto& colorBuffer : imageBarrierColorBuffers) {
+                setColorBufferLatestUse(colorBuffer, queueCompletedWaitable, opTracker);
             }
 
             // After vkQueueSubmit is called, we can signal the conditional variable
@@ -6218,7 +6203,10 @@ class VkDecoderGlobalState::Impl {
                 // referencing it
                 fenceInfo->latestUse = queueCompletedWaitable;
             }
+
+            opTracker->PollAndProcessGarbage();
         }
+
         if (!releasedColorBuffers.empty()) {
             result = vk->vkWaitForFences(device, 1, &usedFence, VK_TRUE, /* 1 sec */ 1000000000L);
             if (result != VK_SUCCESS) {
