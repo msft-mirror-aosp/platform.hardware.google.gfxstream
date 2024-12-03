@@ -218,9 +218,8 @@ DeviceOpWaitable DeviceOpBuilder::OnQueueSubmittedWithFence(VkFence fence) {
             return DeviceOpStatus::kDone;
         }
 
-        VkResult result =
-            deviceDispatch->vkWaitForFences(device, 1, &fence, /*waitAll=*/VK_TRUE, /*timeout=*/0);
-        if (result == VK_TIMEOUT) {
+        VkResult result = deviceDispatch->vkGetFenceStatus(device, fence);
+        if (result == VK_NOT_READY) {
             return DeviceOpStatus::kPending;
         }
 
