@@ -985,9 +985,6 @@ inline const GoldfishPipeServiceOps* VirtioGpuFrontend::ensureAndGetServiceOps()
 
 #ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
 
-// Work in progress. Disabled for now but code is present to get build CI.
-static constexpr const bool kEnableFrontendAndAsgSnapshots = false;
-
 static constexpr const char kSnapshotBasenameAsg[] = "gfxstream_asg.bin";
 static constexpr const char kSnapshotBasenameFrontend[] = "gfxstream_frontend.txtproto";
 static constexpr const char kSnapshotBasenameRenderer[] = "gfxstream_renderer.bin";
@@ -1072,18 +1069,16 @@ int VirtioGpuFrontend::snapshot(const char* directory) {
         return ret;
     }
 
-    if (kEnableFrontendAndAsgSnapshots) {
-        ret = snapshotFrontend(directory);
-        if (ret) {
-            stream_renderer_error("Failed to save snapshot: failed to snapshot frontend.");
-            return ret;
-        }
+    ret = snapshotFrontend(directory);
+    if (ret) {
+        stream_renderer_error("Failed to save snapshot: failed to snapshot frontend.");
+        return ret;
+    }
 
-        ret = snapshotAsg(directory);
-        if (ret) {
-            stream_renderer_error("Failed to save snapshot: failed to snapshot ASG device.");
-            return ret;
-        }
+    ret = snapshotAsg(directory);
+    if (ret) {
+        stream_renderer_error("Failed to save snapshot: failed to snapshot ASG device.");
+        return ret;
     }
 
     stream_renderer_debug("directory:%s - done!", directory);
@@ -1156,9 +1151,45 @@ int VirtioGpuFrontend::restoreAsg(const char* directory) {
         .stream = &stream,
     };
 
-    int ret = android::emulation::goldfish_address_space_memory_state_load(loadStream.stream);
+    // Gather external memory info that the ASG device needs to reload.
+    android::emulation::AddressSpaceDeviceLoadResources asgLoadResources;
+    for (const auto& [contextId, context] : mContexts) {
+        for (const auto [resourceId, asgId] : context.AsgInstances()) {
+            auto resourceIt = mResources.find(resourceId);
+            if (resourceIt == mResources.end()) {
+                stream_renderer_error("Failed to restore ASG device: context %" PRIu32
+                                      " claims resource %" PRIu32 " is used for ASG %" PRIu32
+                                      " but resource not found.",
+                                      contextId, resourceId, asgId);
+                return -1;
+            }
+            auto& resource = resourceIt->second;
+
+            void* mappedAddr = nullptr;
+            uint64_t mappedSize = 0;
+
+            int ret = resource.Map(&mappedAddr, &mappedSize);
+            if (ret) {
+                stream_renderer_error("Failed to restore ASG device: failed to map resource %" PRIu32, resourceId);
+                return -1;
+            }
+
+            asgLoadResources.contextExternalMemoryMap[asgId] = {
+                .externalAddress = mappedAddr,
+                .externalAddressSize = mappedSize,
+            };
+        }
+    }
+
+    int ret = android::emulation::goldfish_address_space_memory_state_set_load_resources(asgLoadResources);
     if (ret) {
-        stream_renderer_error("Failed to restore snapshot: failed to restore ASG state.");
+        stream_renderer_error("Failed to restore ASG device: failed to set ASG load resources.");
+        return ret;
+    }
+
+    ret = android::emulation::goldfish_address_space_memory_state_load(loadStream.stream);
+    if (ret) {
+        stream_renderer_error("Failed to restore ASG device: failed to restore ASG state.");
         return ret;
     }
     return 0;
@@ -1175,18 +1206,16 @@ int VirtioGpuFrontend::restore(const char* directory) {
         return ret;
     }
 
-    if (kEnableFrontendAndAsgSnapshots) {
-        ret = restoreFrontend(directory);
-        if (ret) {
-            stream_renderer_error("Failed to load snapshot: failed to load frontend.");
-            return ret;
-        }
+    ret = restoreFrontend(directory);
+    if (ret) {
+        stream_renderer_error("Failed to load snapshot: failed to load frontend.");
+        return ret;
+    }
 
-        ret = restoreAsg(directory);
-        if (ret) {
-            stream_renderer_error("Failed to load snapshot: failed to load ASG device.");
-            return ret;
-        }
+    ret = restoreAsg(directory);
+    if (ret) {
+        stream_renderer_error("Failed to load snapshot: failed to load ASG device.");
+        return ret;
     }
 
     // In end2end tests, we don't really do snapshot save for render threads.

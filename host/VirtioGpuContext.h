@@ -64,6 +64,7 @@ class VirtioGpuContext {
 
     int CreateAddressSpaceGraphicsInstance(const struct address_space_device_control_ops* asgOps,
                                            VirtioGpuResource& resource);
+    const std::unordered_map<VirtioGpuResourceId, uint32_t>& AsgInstances() const;
     std::optional<uint32_t> TakeAddressSpaceGraphicsHandle(VirtioGpuResourceId resourceId);
 
     int PingAddressSpaceGraphicsInstance(const struct address_space_device_control_ops* asgOps,
