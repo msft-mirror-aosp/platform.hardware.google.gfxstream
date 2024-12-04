@@ -161,6 +161,12 @@ if (APPLE)
         LINK_FLAGS  "-undefined dynamic_lookup -flat_namespace")
 endif()
 
+if (LINUX)
+    # Make sure we embed an build-id that can be used by crashpad.
+    target_link_options(gfxstream_backend PRIVATE "LINKER:--build-id=sha1")
+endif()
+
+
 if(CONFIG_AEMU)
     android_install_shared(gfxstream_backend)
 else()
