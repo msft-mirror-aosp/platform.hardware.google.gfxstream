@@ -77,17 +77,20 @@ class DeviceOpTracker {
     using OpPollingFunction = std::function<DeviceOpStatus()>;
 
     void AddPendingDeviceOp(OpPollingFunction pollFunction);
-
+    struct PollFunction {
+        OpPollingFunction func;
+        std::chrono::time_point<std::chrono::system_clock> timepoint;
+    };
     std::mutex mPollFunctionsMutex;
-    std::deque<OpPollingFunction> mPollFunctions;
+    std::deque<PollFunction> mPollFunctions;
 
-    struct PendingGarabage {
+    struct PendingGarbage {
         DeviceOpWaitable waitable;
         std::variant<VkFence, VkSemaphore> obj;
         std::chrono::time_point<std::chrono::system_clock> timepoint;
     };
     std::mutex mPendingGarbageMutex;
-    std::deque<PendingGarabage> mPendingGarbage;
+    std::deque<PendingGarbage> mPendingGarbage;
 };
 
 class DeviceOpBuilder {
