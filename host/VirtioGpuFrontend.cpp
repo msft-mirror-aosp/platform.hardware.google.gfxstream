@@ -28,7 +28,6 @@
 #include "FrameBuffer.h"
 #include "FrameworkFormats.h"
 #include "VkCommonOperations.h"
-#include "aemu/base/ManagedDescriptor.hpp"
 #include "aemu/base/files/StdioStream.h"
 #include "aemu/base/memory/SharedMemory.h"
 #include "aemu/base/threads/WorkerThread.h"
