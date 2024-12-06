@@ -134,6 +134,7 @@ cc_defaults {
         "gfxstream_cc_defaults",
     ],
     cflags: [
+        "-DGFXSTREAM_BUILD_WITH_SNAPSHOT_SUPPORT=1",
         "-DGFXSTREAM_BUILD_WITH_TRACING=1",
     ] + select(soong_config_variable("gfxstream", "mesa3d_platforms"), {
         // Android surfaceless build
@@ -143,6 +144,13 @@ cc_defaults {
         // The default when variable is not set is Android
         default: [],
     }),
+    target: {
+        host: {
+            cflags: [
+                "-DGFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT=1",
+            ],
+        }
+    }
 }
 
 cc_defaults {
@@ -155,7 +163,6 @@ cc_defaults {
         "-D_FILE_OFFSET_BITS=64",
         "-DVK_GFXSTREAM_STRUCTURE_TYPE_EXT",
         "-DGFXSTREAM_ENABLE_HOST_GLES=1",
-        "-DGFXSTREAM_ENABLE_HOST_VK_SNAPSHOT=1",
         "-Wno-unreachable-code-loop-increment",
         "-Wno-unused-parameter",
         "-Wno-unused-function",

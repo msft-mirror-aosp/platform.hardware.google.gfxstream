@@ -408,7 +408,7 @@ std::string replaceESVersionString(const std::string& prev,
     if (esStart == std::string::npos ||
         esEnd == std::string::npos) {
         // Account for out-of-spec version strings.
-        fprintf(stderr, "%s: Error: invalid OpenGL ES version string %s\n",
+        ERR("%s: Error: unexpected OpenGL ES version string %s",
                 __func__, prev.c_str());
         return prev;
     }
@@ -1506,7 +1506,7 @@ static int rcReadColorBufferDMA(uint32_t colorBuffer,
         return -1;
     }
 
-    fb->readColorBuffer(colorBuffer, x, y, width, height, format, type, pixels);
+    fb->readColorBuffer(colorBuffer, x, y, width, height, format, type, pixels, pixels_size);
     return 0;
 }
 

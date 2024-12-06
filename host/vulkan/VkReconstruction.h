@@ -83,6 +83,8 @@ class VkReconstruction {
     ApiHandle createApiInfo();
     void destroyApiInfo(ApiHandle h);
 
+    void removeHandleFromApiInfo(ApiHandle h, uint64_t toRemove);
+
     ApiInfo* getApiInfo(ApiHandle h);
 
     void setApiTrace(ApiInfo* apiInfo, uint32_t opcode, const uint8_t* traceBegin,

@@ -338,7 +338,20 @@ bool FrameBuffer::initialize(int width, int height, gfxstream::host::FeatureSet 
             .flushColorBufferFromBytes =
                 [fb = fb.get()](uint32_t colorBufferHandle, const void* bytes, size_t bytesSize) {
                     fb->flushColorBufferFromVkBytes(colorBufferHandle, bytes, bytesSize);
-                }};
+                },
+            .scheduleAsyncWork =
+                [fb = fb.get()](std::function<void()> work, std::string description) {
+                    auto promise = std::make_shared<AutoCancelingPromise>();
+                    auto future = promise->GetFuture();
+                    SyncThread::get()->triggerGeneral(
+                        [promise = std::move(promise), work = std::move(work)]() mutable {
+                            work();
+                            promise->MarkComplete();
+                        },
+                        description);
+                    return future;
+                },
+        };
         vkEmu = vk::createGlobalVkEmulation(vkDispatch, callbacks, fb->m_features);
         if (!vkEmu) {
             ERR("Failed to initialize global Vulkan emulation. Disable the Vulkan support.");
@@ -351,12 +364,10 @@ bool FrameBuffer::initialize(int width, int height, gfxstream::host::FeatureSet 
             fb->m_vkInstance = vkEmu->instance;
         }
         if (vkEmu->instanceSupportsPhysicalDeviceIDProperties) {
-            GL_LOG("Supports id properties, got a vulkan device UUID");
-            fprintf(stderr, "%s: Supports id properties, got a vulkan device UUID\n", __func__);
+            INFO("Supports id properties, got a vulkan device UUID");
             memcpy(fb->m_vulkanUUID.data(), vkEmu->deviceInfo.idProps.deviceUUID, VK_UUID_SIZE);
         } else {
-            GL_LOG("Doesn't support id properties, no vulkan device UUID");
-            fprintf(stderr, "%s: Doesn't support id properties, no vulkan device UUID\n", __func__);
+            WARN("Doesn't support id properties, no vulkan device UUID");
         }
     }
 
@@ -599,7 +610,7 @@ FrameBuffer::FrameBuffer(int p_width, int p_height, gfxstream::host::FeatureSet 
     mDisplayConfigs[0] = {p_width, p_height, 160, 160};
     uint32_t displayId = 0;
     if (createDisplay(&displayId) < 0) {
-        fprintf(stderr, "Failed to create default display\n");
+        ERR( "Failed to create default display");
     }
 
     setDisplayPose(displayId, 0, 0, getWidth(), getHeight(), 0);
@@ -1453,8 +1464,11 @@ void FrameBuffer::eraseDelayedCloseColorBufferLocked(
 }
 
 void FrameBuffer::createGraphicsProcessResources(uint64_t puid) {
-    AutoLock mutex(m_lock);
-    bool inserted = m_procOwnedResources.try_emplace(puid, ProcessResources::create()).second;
+    bool inserted = false;
+    {
+        AutoLock mutex(m_procOwnedResourcesLock);
+        inserted = m_procOwnedResources.try_emplace(puid, ProcessResources::create()).second;
+    }
     if (!inserted) {
         WARN("Failed to create process resource for puid %" PRIu64 ".", puid);
     }
@@ -1463,7 +1477,7 @@ void FrameBuffer::createGraphicsProcessResources(uint64_t puid) {
 std::unique_ptr<ProcessResources> FrameBuffer::removeGraphicsProcessResources(uint64_t puid) {
     std::unordered_map<uint64_t, std::unique_ptr<ProcessResources>>::node_type node;
     {
-        AutoLock mutex(m_lock);
+        AutoLock mutex(m_procOwnedResourcesLock);
         node = m_procOwnedResources.extract(puid);
     }
     if (node.empty()) {
@@ -1618,7 +1632,7 @@ void FrameBuffer::readBuffer(HandleType handle, uint64_t offset, uint64_t size, 
 }
 
 void FrameBuffer::readColorBuffer(HandleType p_colorbuffer, int x, int y, int width, int height,
-                                  GLenum format, GLenum type, void* pixels) {
+                                  GLenum format, GLenum type, void* outPixels, uint64_t outPixelsSize) {
     GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DEFAULT_CATEGORY, "FrameBuffer::readColorBuffer()",
                           "ColorBuffer", p_colorbuffer);
 
@@ -1630,11 +1644,11 @@ void FrameBuffer::readColorBuffer(HandleType p_colorbuffer, int x, int y, int wi
         return;
     }
 
-    colorBuffer->readToBytes(x, y, width, height, format, type, pixels);
+    colorBuffer->readToBytes(x, y, width, height, format, type, outPixels, outPixelsSize);
 }
 
 void FrameBuffer::readColorBufferYUV(HandleType p_colorbuffer, int x, int y, int width, int height,
-                                     void* pixels, uint32_t pixels_size) {
+                                     void* outPixels, uint32_t outPixelsSize) {
     AutoLock mutex(m_lock);
 
     ColorBufferPtr colorBuffer = findColorBuffer(p_colorbuffer);
@@ -1643,7 +1657,7 @@ void FrameBuffer::readColorBufferYUV(HandleType p_colorbuffer, int x, int y, int
         return;
     }
 
-    colorBuffer->readYuvToBytes(x, y, width, height, pixels, pixels_size);
+    colorBuffer->readYuvToBytes(x, y, width, height, outPixels, outPixelsSize);
 }
 
 bool FrameBuffer::updateBuffer(HandleType p_buffer, uint64_t offset, uint64_t size, void* bytes) {
@@ -2354,6 +2368,7 @@ void FrameBuffer::onSave(Stream* stream, const android::snapshot::ITextureSaverP
 
     // TODO(b/309858017): remove if when ready to bump snapshot version
     if (m_features.VulkanSnapshots.enabled) {
+        AutoLock mutex(m_procOwnedResourcesLock);
         stream->putBe64(m_procOwnedResources.size());
         for (const auto& element : m_procOwnedResources) {
             stream->putBe64(element.first);
@@ -2469,7 +2484,10 @@ bool FrameBuffer::onLoad(Stream* stream,
                 }
             }
 
-            m_procOwnedResources.clear();
+            {
+                AutoLock mutex(m_procOwnedResourcesLock);
+                m_procOwnedResources.clear();
+            }
 
             performDelayedColorBufferCloseLocked(true);
 
@@ -2604,7 +2622,10 @@ bool FrameBuffer::onLoad(Stream* stream,
             uint32_t sequenceNumber = stream->getBe32();
             std::unique_ptr<ProcessResources> processResources = ProcessResources::create();
             processResources->getSequenceNumberPtr()->store(sequenceNumber);
-            m_procOwnedResources.emplace(puid, std::move(processResources));
+            {
+                AutoLock mutex(m_procOwnedResourcesLock);
+                m_procOwnedResources.emplace(puid, std::move(processResources));
+            }
         }
     }
 
@@ -2706,13 +2727,15 @@ void FrameBuffer::unregisterProcessCleanupCallback(void* key) {
 }
 
 const ProcessResources* FrameBuffer::getProcessResources(uint64_t puid) {
-    AutoLock mutex(m_lock);
-    auto i = m_procOwnedResources.find(puid);
-    if (i == m_procOwnedResources.end()) {
-        ERR("Failed to find process owned resources for puid %" PRIu64 ".", puid);
-        return nullptr;
+    {
+        AutoLock mutex(m_procOwnedResourcesLock);
+        auto i = m_procOwnedResources.find(puid);
+        if (i != m_procOwnedResources.end()) {
+            return i->second.get();
+        }
     }
-    return i->second.get();
+    ERR("Failed to find process owned resources for puid %" PRIu64 ".", puid);
+    return nullptr;
 }
 
 int FrameBuffer::createDisplay(uint32_t* displayId) {
@@ -2891,7 +2914,7 @@ void FrameBuffer::setVsyncHz(int vsyncHz) {
 
 void FrameBuffer::scheduleVsyncTask(VsyncThread::VsyncTask task) {
     if (!m_vsyncThread) {
-        fprintf(stderr, "%s: warning: no vsync thread exists\n", __func__);
+        ERR("%s: warning: no vsync thread exists", __func__);
         task(0);
         return;
     }

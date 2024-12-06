@@ -119,7 +119,6 @@ gfxstream_headers = files(
 
 inc_root = include_directories('../')
 inc_gfxstream_include = include_directories('../include')
-inc_include = include_directories('../guest/mesa/include')
 # Included by all host component builds. Leave empty for future build updates.
 inc_include = include_directories()
 inc_utils = include_directories('../utils/include')
@@ -188,6 +187,10 @@ files_lib_gfxstream_backend = files(
   'FrameBuffer.cpp',
   'GfxStreamAgents.cpp',
   'virtio-gpu-gfxstream-renderer.cpp',
+  'VirtioGpuContext.cpp',
+  'VirtioGpuFrontend.cpp',
+  'VirtioGpuResource.cpp',
+  'VirtioGpuRingBlob.cpp',
   'VirtioGpuTimelines.cpp',
   'VsyncThread.cpp',
 )

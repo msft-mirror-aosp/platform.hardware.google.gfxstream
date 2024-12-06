@@ -16,6 +16,8 @@
 
 #include <functional>
 
+#include "gfxstream/CancelableFuture.h"
+
 namespace gfxstream {
 namespace host {
 
@@ -36,6 +38,10 @@ struct BackendCallbacks {
     using FlushColorBufferFromBytesFunc =
         std::function<void(uint32_t colorBufferHandle, const void* bytes, size_t bytesSize)>;
     FlushColorBufferFromBytesFunc flushColorBufferFromBytes;
+
+    using ScheduleAsyncWorkFunc =
+        std::function<CancelableFuture(std::function<void()> work, std::string description)>;
+    ScheduleAsyncWorkFunc scheduleAsyncWork;
 };
 
 }  // namespace host

@@ -19,7 +19,6 @@ extern "C" {
 #endif
 
 
-
 // VK_GOOGLE_gfxstream is a preprocessor guard. Do not pass it to API calls.
 #define VK_GOOGLE_gfxstream 1
 #define VK_GOOGLE_GFXSTREAM_SPEC_VERSION  0
@@ -71,7 +70,6 @@ typedef void (VKAPI_PTR *PFN_vkUpdateDescriptorSetWithTemplateSized2GOOGLE)(VkDe
 typedef void (VKAPI_PTR *PFN_vkQueueSubmitAsync2GOOGLE)(VkQueue queue, uint32_t submitCount, const VkSubmitInfo2* pSubmits, VkFence fence);
 typedef VkResult (VKAPI_PTR *PFN_vkGetSemaphoreGOOGLE)(VkDevice device, VkSemaphore semaphore, uint64_t syncId);
 
-#ifndef VK_NO_PROTOTYPES
 VKAPI_ATTR VkResult VKAPI_CALL vkMapMemoryIntoAddressSpaceGOOGLE(
     VkDevice                                    device,
     VkDeviceMemory                              memory,
@@ -233,7 +231,6 @@ VKAPI_ATTR VkResult VKAPI_CALL vkGetSemaphoreGOOGLE(
     VkDevice                                    device,
     VkSemaphore                                 semaphore,
     uint64_t                                    syncId);
-#endif
 
 #ifdef __cplusplus
 }

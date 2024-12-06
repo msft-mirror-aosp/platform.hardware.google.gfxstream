@@ -57,6 +57,7 @@
     f(VkAccelerationStructureKHR)                                 \
     f(VkCuModuleNVX)                                              \
     f(VkCuFunctionNVX)                                            \
+    f(VkPrivateDataSlot)                                          \
     f(VkMicromapEXT)
 
 #define GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES(f) \
@@ -108,4 +109,5 @@
     f(VkAccelerationStructureKHR)                 \
     f(VkCuModuleNVX)                              \
     f(VkCuFunctionNVX)                            \
+    f(VkPrivateDataSlot)                          \
     f(VkMicromapEXT)

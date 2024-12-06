@@ -33,7 +33,7 @@ cc_library_shared {
     name: "libEGL_emulation",
     defaults: [
         "libgfxstream_guest_cc_defaults",
-        "libplatform_virtgpu_defaults",
+        "mesa_platform_virtgpu_defaults",
     ],
     header_libs: [
         "libgfxstream_guest_graphics_headers",

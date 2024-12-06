@@ -13,13 +13,31 @@
 // limitations under the License.
 
 #include "gfxstream/host/Features.h"
-
+#include <sstream>
+#include <vector>
 namespace gfxstream {
 namespace host {
 
 FeatureSet::FeatureSet(const FeatureSet& rhs) : FeatureSet() {
     *this = rhs;
 }
+
+FeatureResult FeatureDependencyHandler::checkAllDependentFeaturesAreEnabled() {
+    // Only check for direct dependencies. Since we're verifying all enabled features, this should cover the whole span.
+    bool allDependenciesAreEnabled = true;
+    std::stringstream ss;
+    for (auto const&[feature, dependentFeatures] : VK_FEATURE_DEPENDENCY_MAP) {
+        if (feature->enabled && !dependentFeatures.empty()) {
+            for (auto const& dep : dependentFeatures) {
+                if (!dep->enabled) {
+                    ss << "Feature: " << feature->name << " requests missing dependency: " << dep->name << "\n";
+                    allDependenciesAreEnabled = false;
+                }
+            }
+        }
+    }
+    return {allDependenciesAreEnabled, ss.str()};
+};
 
 FeatureSet& FeatureSet::operator=(const FeatureSet& rhs) {
     for (const auto& [featureName, featureInfo] : rhs.map) {

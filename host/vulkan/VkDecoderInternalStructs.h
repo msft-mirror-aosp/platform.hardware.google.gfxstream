@@ -22,9 +22,12 @@
 
 #include <stdlib.h>
 
+#include <optional>
 #include <set>
 #include <string>
+#include <unordered_map>
 
+#include "DebugUtilsHelper.h"
 #include "DeviceOpTracker.h"
 #include "Handle.h"
 #include "VkEmulatedPhysicalDeviceMemory.h"
@@ -207,6 +210,7 @@ struct DeviceInfo {
     std::set<VkFormat> imageFormats = {};  // image formats used on this device
     std::unique_ptr<GpuDecompressionPipelineManager> decompPipelines = nullptr;
     DeviceOpTrackerPtr deviceOpTracker = nullptr;
+    std::optional<uint32_t> virtioGpuContextId;
 
     // True if this is a compressed image that needs to be decompressed on the GPU (with our
     // compute shader)
@@ -244,7 +248,7 @@ struct BufferInfo {
 struct ImageInfo {
     VkDevice device;
     VkImageCreateInfo imageCreateInfoShallow;
-    std::shared_ptr<AndroidNativeBufferInfo> anbInfo;
+    std::unique_ptr<AndroidNativeBufferInfo> anbInfo;
     CompressedImageInfo cmpInfo;
     // ColorBuffer, provided via vkAllocateMemory().
     std::optional<HandleType> boundColorBuffer;
@@ -395,5 +399,79 @@ struct FramebufferInfo {
     VkDevice device;
     std::vector<HandleType> attachedColorBuffers;
 };
+
+typedef std::function<void()> PreprocessFunc;
+struct CommandBufferInfo {
+    std::vector<PreprocessFunc> preprocessFuncs = {};
+    std::vector<VkCommandBuffer> subCmds = {};
+    VkDevice device = VK_NULL_HANDLE;
+    VkCommandPool cmdPool = VK_NULL_HANDLE;
+    VkCommandBuffer boxed = VK_NULL_HANDLE;
+    DebugUtilsHelper debugUtilsHelper = DebugUtilsHelper::withUtilsDisabled();
+
+    // Most recently bound compute pipeline and descriptor sets. We save it here so that we can
+    // restore it after doing emulated texture decompression.
+    VkPipeline computePipeline = VK_NULL_HANDLE;
+    uint32_t firstSet = 0;
+    VkPipelineLayout descriptorLayout = VK_NULL_HANDLE;
+    std::vector<VkDescriptorSet> currentDescriptorSets;
+    std::unordered_set<VkDescriptorSet> allDescriptorSets;
+    std::vector<uint32_t> dynamicOffsets;
+    std::unordered_set<HandleType> acquiredColorBuffers;
+    std::unordered_set<HandleType> releasedColorBuffers;
+    std::unordered_map<HandleType, VkImageLayout> cbLayouts;
+    std::unordered_map<VkImage, VkImageLayout> imageLayouts;
+    std::unordered_set<HandleType> imageBarrierColorBuffers;
+
+    void reset() {
+        preprocessFuncs.clear();
+        subCmds.clear();
+        computePipeline = VK_NULL_HANDLE;
+        firstSet = 0;
+        descriptorLayout = VK_NULL_HANDLE;
+        currentDescriptorSets.clear();
+        allDescriptorSets.clear();
+        dynamicOffsets.clear();
+        acquiredColorBuffers.clear();
+        releasedColorBuffers.clear();
+        cbLayouts.clear();
+        imageLayouts.clear();
+    }
+};
+
+struct CommandPoolInfo {
+    VkDevice device = VK_NULL_HANDLE;
+    VkCommandPool boxed = VK_NULL_HANDLE;
+    std::unordered_set<VkCommandBuffer> cmdBuffers = {};
+};
+
+struct InstanceObjects {
+    std::unordered_map<VkInstance, InstanceInfo>::node_type instance;
+    std::unordered_map<VkPhysicalDevice, PhysicalDeviceInfo> physicalDevices;
+    struct DeviceObjects {
+        std::unordered_map<VkDevice, DeviceInfo>::node_type device;
+
+        std::unordered_map<VkBuffer, BufferInfo> buffers;
+        std::unordered_map<VkCommandBuffer, CommandBufferInfo> commandBuffers;
+        std::unordered_map<VkCommandPool, CommandPoolInfo> commandPools;
+        std::unordered_map<VkDescriptorPool, DescriptorPoolInfo> descriptorPools;
+        std::unordered_map<VkDescriptorSet, DescriptorSetInfo> descriptorSets;
+        std::unordered_map<VkDescriptorSetLayout, DescriptorSetLayoutInfo> descriptorSetLayouts;
+        std::unordered_map<VkDeviceMemory, MemoryInfo> memories;
+        std::unordered_map<VkFence, FenceInfo> fences;
+        std::unordered_map<VkFramebuffer, FramebufferInfo> framebuffers;
+        std::unordered_map<VkImage, ImageInfo> images;
+        std::unordered_map<VkImageView, ImageViewInfo> imageViews;
+        std::unordered_map<VkPipeline, PipelineInfo> pipelines;
+        std::unordered_map<VkPipelineCache, PipelineCacheInfo> pipelineCaches;
+        std::unordered_map<VkQueue, QueueInfo> queues;
+        std::unordered_map<VkRenderPass, RenderPassInfo> renderPasses;
+        std::unordered_map<VkSampler, SamplerInfo> samplers;
+        std::unordered_map<VkSemaphore, SemaphoreInfo> semaphores;
+        std::unordered_map<VkShaderModule, ShaderModuleInfo> shaderModules;
+    };
+    std::vector<DeviceObjects> devices;
+};
+
 }  // namespace vk
 }  // namespace gfxstream

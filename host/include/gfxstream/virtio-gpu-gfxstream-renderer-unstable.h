@@ -86,8 +86,6 @@ VG_EXPORT void stream_renderer_flush(uint32_t res_handle);
 
 VG_EXPORT int stream_renderer_platform_import_resource(int res_handle, int res_info,
                                                        void* resource);
-VG_EXPORT int stream_renderer_platform_resource_info(int res_handle, int* width, int* height,
-                                                     int* internal_format);
 VG_EXPORT void* stream_renderer_platform_create_shared_egl_context(void);
 VG_EXPORT int stream_renderer_platform_destroy_shared_egl_context(void*);
 
@@ -106,9 +104,15 @@ struct stream_renderer_resource_info {
 VG_EXPORT int stream_renderer_resource_get_info(int res_handle,
                                                 struct stream_renderer_resource_info* info);
 
+VG_EXPORT int stream_renderer_suspend();
+
 VG_EXPORT int stream_renderer_snapshot(const char* dir);
 
 VG_EXPORT int stream_renderer_restore(const char* dir);
+
+VG_EXPORT int stream_renderer_resume();
+
+VG_EXPORT int stream_renderer_wait_sync_resource(uint32_t res_handle);
 
 #ifdef __cplusplus
 }  // extern "C"

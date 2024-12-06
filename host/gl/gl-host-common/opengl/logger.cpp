@@ -14,17 +14,17 @@
 
 #include "host-common/opengl/logger.h"
 
-#include "aemu/base/files/PathUtils.h"
-#include "aemu/base/synchronization/Lock.h"
-
-#include <algorithm>
-#include <fstream>
 #include <inttypes.h>
 #include <stdarg.h>
 #include <stdio.h>
+
+#include <algorithm>
+#include <fstream>
 #include <string>
 
+#include "aemu/base/files/PathUtils.h"
 #include "aemu/base/msvc.h"
+#include "aemu/base/synchronization/Lock.h"
 
 #ifndef _MSC_VER
 #include <sys/time.h>
@@ -49,8 +49,8 @@ static const int kBufferLen = 2048;
 typedef std::pair<uint64_t, std::string> TimestampedLogEntry;
 
 class OpenGLLogger {
-public:
-    OpenGLLogger();
+   public:
+    OpenGLLogger() = default;
     OpenGLLogger(const char* filename);
     void stop();
 
@@ -66,8 +66,7 @@ public:
 
     static OpenGLLogger* get();
 
-private:
-
+   private:
     void writeFineLocked(uint64_t time, const char* str);
     void stopFineLogLocked();
 
@@ -83,31 +82,14 @@ private:
 };
 
 static OpenGLLogger* sOpenGLLogger() {
-    static OpenGLLogger* g = new OpenGLLogger;
-    return g;
+    static OpenGLLogger sLogger;
+    return &sLogger;
 }
 
-OpenGLLogger* OpenGLLogger::get() {
-    return sOpenGLLogger();
-}
+OpenGLLogger* OpenGLLogger::get() { return sOpenGLLogger(); }
 
-OpenGLLogger::OpenGLLogger() {
-// #ifdef AEMU_MIN
-    return;
-// #else
-//     const std::string& data_dir =
-//         CrashReporter::get()->getDataExchangeDir();
-//     mFileName = PathUtils::join(data_dir,
-//                                 "opengl_log.txt");
-//     mFileHandle.open(mFileName, std::ios::app);
-//     mFineLogFileName = PathUtils::join(data_dir,
-//                                        "opengl_cxt_log.txt");
-//     mFineLogFileHandle.open(mFineLogFileName, std::ios::app);
-// #endif
-}
 
-OpenGLLogger::OpenGLLogger(const char* filename) :
-    mFileName(filename) {
+OpenGLLogger::OpenGLLogger(const char* filename) : mFileName(filename) {
     mFileHandle.open(mFileName, std::ios::app);
 }
 
@@ -146,28 +128,25 @@ void OpenGLLogger::writeFineTimestamped(const char* str) {
         uint64_t curr_secs = tv.tv_sec;
         uint64_t curr_us = tv.tv_sec * 1000000ULL + tv.tv_usec;
         snprintf(buf, sizeof(buf) - 1,
-                "time_us="
-                "%" PRIu64 " s "
-                "%" PRIu64 " ms "
-                "%" PRIu64 " us deltaUs "
-                "%" PRIu64 " | %s",
-                curr_secs,
-                curr_millis,
-                curr_micros,
-                curr_us - mPrevTimeUs,
-                str);
+                 "time_us="
+                 "%" PRIu64
+                 " s "
+                 "%" PRIu64
+                 " ms "
+                 "%" PRIu64
+                 " us deltaUs "
+                 "%" PRIu64 " | %s",
+                 curr_secs, curr_millis, curr_micros, curr_us - mPrevTimeUs, str);
         AutoLock lock(mLock);
-        writeFineLocked(curr_micros + 1000ULL * curr_millis +
-                  1000ULL * 1000ULL * curr_secs, buf);
+        writeFineLocked(curr_micros + 1000ULL * curr_millis + 1000ULL * 1000ULL * curr_secs, buf);
         mPrevTimeUs = curr_us;
     }
 }
 
 void OpenGLLogger::setLoggerFlags(AndroidOpenglLoggerFlags flags) {
     AutoLock lock(mLock);
-    bool needStopFineLog =
-        (mLoggerFlags & OPENGL_LOGGER_DO_FINE_LOGGING) &&
-        (!(flags & OPENGL_LOGGER_DO_FINE_LOGGING));
+    bool needStopFineLog = (mLoggerFlags & OPENGL_LOGGER_DO_FINE_LOGGING) &&
+                           (!(flags & OPENGL_LOGGER_DO_FINE_LOGGING));
 
     if (needStopFineLog) {
         stopFineLogLocked();
@@ -185,17 +164,14 @@ void OpenGLLogger::stopFineLogLocked() {
     // Only print message when fine-grained
     // logging is turned on.
     if (!mFineLog.empty()) {
-        fprintf(stderr,
-                "Writing fine-grained GL log to %s...",
-                mFineLogFileName.c_str());
+        fprintf(stderr, "Writing fine-grained GL log to %s...", mFineLogFileName.c_str());
     }
 
     // Sort log entries according to their timestamps.
     // This is because the log entries might arrive
     // out of order.
     std::sort(mFineLog.begin(), mFineLog.end(),
-              [](const TimestampedLogEntry& x,
-                 const TimestampedLogEntry& y) {
+              [](const TimestampedLogEntry& x, const TimestampedLogEntry& y) {
                   return x.first < y.first;
               });
 
@@ -217,35 +193,31 @@ void OpenGLLogger::stopFineLogLocked() {
 
 // C interface
 
-void android_init_opengl_logger() {
-    OpenGLLogger::get();
-}
+void android_init_opengl_logger() { OpenGLLogger::get(); }
 
 void android_opengl_logger_set_flags(AndroidOpenglLoggerFlags flags) {
     OpenGLLogger::get()->setLoggerFlags(flags);
 }
 
-void android_opengl_logger_write(const char* fmt, ...) {
+void android_opengl_logger_write(char severity, const char* file, unsigned int line,
+                                 int64_t timestamp_us, const char* message) {
     char buf[kBufferLen] = {};
-    va_list ap;
-    va_start(ap, fmt);
-    vsnprintf(buf, sizeof(buf) - 1, fmt, ap);
-    va_end(ap);
-    OpenGLLogger::get()->writeCoarse(buf);
-}
-
-void android_opengl_cxt_logger_write(const char* fmt, ...) {
     auto gl_log = OpenGLLogger::get();
 
-    if (!gl_log->isFineLogging()) return;
+    if (severity == 'V' || severity == 'D') {
+        // Not logging details if it is not requested
+        if (!gl_log->isFineLogging()) {
+            return;
+        }
 
-    char buf[kBufferLen] = {};
-    va_list ap;
-    va_start(ap, fmt);
-    vsnprintf(buf, sizeof(buf) - 1, fmt, ap);
-    va_end(ap);
+        snprintf(buf, sizeof(buf) - 1, "%c %s:%d %s", severity, file, line, message);
+        gl_log->writeFineTimestamped(buf);
+        return;
+    }
 
-    gl_log->writeFineTimestamped(buf);
+    // Other log levels..
+    snprintf(buf, sizeof(buf) - 1, "%c %s:%d %s", severity, file, line, message);
+    gl_log->writeCoarse(buf);
 }
 
 void android_stop_opengl_logger() {
