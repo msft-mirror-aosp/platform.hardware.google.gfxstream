@@ -582,6 +582,12 @@ static struct AndroidVirtioGpuOps sVirtioGpuOps = {
             FrameBuffer::getFB()->readColorBuffer(handle, x, y, width, height, format, type,
                                                   pixels);
         },
+    .read_color_buffer2 =
+        [](uint32_t handle, int x, int y, int width, int height, uint32_t format, uint32_t type,
+           void* pixels, uint64_t pixels_size) {
+            FrameBuffer::getFB()->readColorBuffer(handle, x, y, width, height, format, type,
+                                                  pixels, pixels_size);
+        },
     .read_color_buffer_yuv =
         [](uint32_t handle, int x, int y, int width, int height, void* pixels,
            uint32_t pixels_size) {

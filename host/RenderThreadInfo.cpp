@@ -74,8 +74,20 @@ void RenderThreadInfo::onSave(Stream* stream) {
     }
 
 #if GFXSTREAM_ENABLE_HOST_GLES
-    m_glInfo->onSave(stream);
+    if (m_glInfo) {
+        stream->putBe32(1);
+        m_glInfo->onSave(stream);
+    } else {
+        stream->putBe32(0);
+    }
 #endif
+
+    if (m_vkInfo) {
+        stream->putBe32(1);
+        m_vkInfo->onSave(stream);
+    } else {
+        stream->putBe32(0);
+    }
 }
 
 bool RenderThreadInfo::onLoad(Stream* stream) {
@@ -85,16 +97,35 @@ bool RenderThreadInfo::onLoad(Stream* stream) {
     }
 
 #if GFXSTREAM_ENABLE_HOST_GLES
-    return m_glInfo->onLoad(stream);
-#else
-    // Functions only work with GLES for now.
-    return false;
+    const bool loadGlInfo = stream->getBe32() == 1;
+    if (loadGlInfo) {
+        if (!m_glInfo) {
+            m_glInfo.emplace();
+        }
+        if (!m_glInfo->onLoad(stream)) {
+            return false;
+        }
+    }
 #endif
+
+    const bool loadVkInfo = stream->getBe32() == 1;
+    if (loadVkInfo) {
+        if (!m_vkInfo) {
+            m_vkInfo.emplace();
+        }
+        if (!m_vkInfo->onLoad(stream)) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 void RenderThreadInfo::postLoadRefreshCurrentContextSurfacePtrs() {
 #if GFXSTREAM_ENABLE_HOST_GLES
-    return m_glInfo->postLoadRefreshCurrentContextSurfacePtrs();
+    if (m_glInfo) {
+        m_glInfo->postLoadRefreshCurrentContextSurfacePtrs();
+    }
 #endif
 }
 
