@@ -148,6 +148,10 @@ int VirtioGpuContext::CreateAddressSpaceGraphicsInstance(
     return 0;
 }
 
+const std::unordered_map<VirtioGpuResourceId, uint32_t>& VirtioGpuContext::AsgInstances() const {
+    return mAddressSpaceHandles;
+}
+
 std::optional<uint32_t> VirtioGpuContext::TakeAddressSpaceGraphicsHandle(
     VirtioGpuResourceId resourceId) {
     auto asgIt = mAddressSpaceHandles.find(resourceId);
