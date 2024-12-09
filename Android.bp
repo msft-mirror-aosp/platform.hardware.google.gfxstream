@@ -167,7 +167,6 @@ cc_defaults {
         "-Wno-unused-function",
         "-Wno-unused-variable",
         "-Wno-unused-private-field",
-        "-Wno-macro-redefined",
     ],
     header_libs: [
         "gfxstream_headers",
