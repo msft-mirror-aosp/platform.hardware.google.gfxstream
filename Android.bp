@@ -166,7 +166,6 @@ cc_defaults {
         "-Wno-unused-parameter",
         "-Wno-unused-function",
         "-Wno-unused-variable",
-        "-Wno-implicit-fallthrough",
         "-Wno-unused-private-field",
         "-Wno-macro-redefined",
     ],
