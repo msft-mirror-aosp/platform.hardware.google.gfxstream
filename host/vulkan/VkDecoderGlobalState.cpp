@@ -6895,13 +6895,31 @@ class VkDecoderGlobalState::Impl {
         destroyRenderPassLocked(device, deviceDispatch, renderPass, pAllocator);
     }
 
-    void registerRenderPassBeginInfo(VkCommandBuffer commandBuffer,
+    bool registerRenderPassBeginInfo(VkCommandBuffer commandBuffer,
                                      const VkRenderPassBeginInfo* pRenderPassBegin) {
+        if (!pRenderPassBegin) {
+            ERR("pRenderPassBegin is null");
+            return false;
+        }
+
+        std::lock_guard<std::recursive_mutex> lock(mLock);
         CommandBufferInfo* cmdBufferInfo = android::base::find(mCommandBufferInfo, commandBuffer);
+        if (!cmdBufferInfo) {
+            ERR("VkCommandBuffer=%p not found in mCommandBufferInfo", commandBuffer);
+            return false;
+        }
+
         FramebufferInfo* fbInfo =
             android::base::find(mFramebufferInfo, pRenderPassBegin->framebuffer);
+        if (!fbInfo) {
+            ERR("pRenderPassBegin->framebuffer=%p not found in mFbInfo",
+                pRenderPassBegin->framebuffer);
+            return false;
+        }
+
         cmdBufferInfo->releasedColorBuffers.insert(fbInfo->attachedColorBuffers.begin(),
                                                    fbInfo->attachedColorBuffers.end());
+        return true;
     }
 
     void on_vkCmdBeginRenderPass(android::base::BumpPool* pool, VkCommandBuffer boxed_commandBuffer,
@@ -6909,8 +6927,9 @@ class VkDecoderGlobalState::Impl {
                                  VkSubpassContents contents) {
         auto commandBuffer = unbox_VkCommandBuffer(boxed_commandBuffer);
         auto vk = dispatch_VkCommandBuffer(boxed_commandBuffer);
-        registerRenderPassBeginInfo(commandBuffer, pRenderPassBegin);
-        vk->vkCmdBeginRenderPass(commandBuffer, pRenderPassBegin, contents);
+        if (registerRenderPassBeginInfo(commandBuffer, pRenderPassBegin)) {
+            vk->vkCmdBeginRenderPass(commandBuffer, pRenderPassBegin, contents);
+        }
     }
 
     void on_vkCmdBeginRenderPass2(android::base::BumpPool* pool,
@@ -6919,8 +6938,9 @@ class VkDecoderGlobalState::Impl {
                                   const VkSubpassBeginInfo* pSubpassBeginInfo) {
         auto commandBuffer = unbox_VkCommandBuffer(boxed_commandBuffer);
         auto vk = dispatch_VkCommandBuffer(boxed_commandBuffer);
-        registerRenderPassBeginInfo(commandBuffer, pRenderPassBegin);
-        vk->vkCmdBeginRenderPass2(commandBuffer, pRenderPassBegin, pSubpassBeginInfo);
+        if (registerRenderPassBeginInfo(commandBuffer, pRenderPassBegin)) {
+            vk->vkCmdBeginRenderPass2(commandBuffer, pRenderPassBegin, pSubpassBeginInfo);
+        }
     }
 
     void on_vkCmdBeginRenderPass2KHR(android::base::BumpPool* pool,
