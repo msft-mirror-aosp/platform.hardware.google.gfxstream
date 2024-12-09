@@ -149,8 +149,8 @@ cc_defaults {
             cflags: [
                 "-DGFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT=1",
             ],
-        }
-    }
+        },
+    },
 }
 
 cc_defaults {
