@@ -166,7 +166,6 @@ cc_defaults {
         "-Wno-unused-parameter",
         "-Wno-unused-function",
         "-Wno-unused-variable",
-        "-Wno-ignored-qualifiers",
         "-Wno-reorder-ctor",
         "-Wno-missing-field-initializers",
         "-Wno-implicit-fallthrough",

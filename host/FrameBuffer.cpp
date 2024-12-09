@@ -2942,12 +2942,12 @@ void FrameBuffer::setDisplayActiveConfig(int configId) {
     INFO("setDisplayActiveConfig %d", configId);
 }
 
-const int FrameBuffer::getDisplayConfigsCount() {
+int FrameBuffer::getDisplayConfigsCount() {
     AutoLock mutex(m_lock);
     return mDisplayConfigs.size();
 }
 
-const int FrameBuffer::getDisplayConfigsParam(int configId, EGLint param) {
+int FrameBuffer::getDisplayConfigsParam(int configId, EGLint param) {
     AutoLock mutex(m_lock);
     if (mDisplayConfigs.find(configId) == mDisplayConfigs.end()) {
         return -1;
@@ -2972,7 +2972,7 @@ const int FrameBuffer::getDisplayConfigsParam(int configId, EGLint param) {
     }
 }
 
-const int FrameBuffer::getDisplayActiveConfig() {
+int FrameBuffer::getDisplayActiveConfig() {
     AutoLock mutex(m_lock);
     return mDisplayActiveConfigId >= 0 ? mDisplayActiveConfigId : -1;
 }
