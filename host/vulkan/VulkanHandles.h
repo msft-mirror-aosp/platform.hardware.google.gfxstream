@@ -23,22 +23,6 @@
     f(VkQueue)                                        \
     f(VkCommandBuffer)
 
-// Unboxing can be overridden for some handles, this would mean the actual
-// unboxed handle to be used for the GPU can be different than the 'unboxed'
-// handle used for tracking its properties (e.g. via mQueueInfo).
-// Queues can be virtualized by using made up 'unboxed' handles for tracking,
-// whichwill then needs translation when used for the driver operations.
-#define GOLDFISH_VK_LIST_DISPATCHABLE_REGULAR_UNBOX_HANDLE_TYPES(f) \
-    f(VkInstance)                                                   \
-    f(VkPhysicalDevice)                                             \
-    f(VkDevice)                                                     \
-    f(VkCommandBuffer)
-
-// VkQueues can be virtualized to provide multiple queues when only a single
-// queue is supported. Custom unbox will ensure that the unboxed handle can
-// be used by the GPU correctly.
-#define GOLDFISH_VK_LIST_DISPATCHABLE_CUSTOM_UNBOX_HANDLE_TYPES(f) f(VkQueue)
-
 #define GOLDFISH_VK_LIST_TRIVIAL_NON_DISPATCHABLE_HANDLE_TYPES(f) \
     f(VkBuffer)                                                   \
     f(VkBufferView)                                               \
