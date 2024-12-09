@@ -167,7 +167,6 @@ cc_defaults {
         "-Wno-unused-function",
         "-Wno-unused-variable",
         "-Wno-reorder-ctor",
-        "-Wno-missing-field-initializers",
         "-Wno-implicit-fallthrough",
         "-Wno-unused-private-field",
         "-Wno-macro-redefined",
