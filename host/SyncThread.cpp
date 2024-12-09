@@ -377,6 +377,7 @@ intptr_t SyncThread::main() {
     DPRINT("in sync thread");
     mLock.lock();
     mCv.wait(&mLock, [this] { return mExiting; });
+    mLock.unlock();
 
     mWorkerThreadPool.done();
     mWorkerThreadPool.join();
