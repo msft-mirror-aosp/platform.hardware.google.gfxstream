@@ -2827,8 +2827,6 @@ bool FrameBuffer::platformImportResource(uint32_t handle, uint32_t info, void* r
 #if GFXSTREAM_ENABLE_HOST_GLES
         case RESOURCE_TYPE_EGL_NATIVE_PIXMAP:
             return colorBuffer->glOpImportEglNativePixmap(resource, preserveContent);
-        case RESOURCE_TYPE_EGL_IMAGE:
-            return colorBuffer->glOpImportEglImage(resource, preserveContent);
 #endif
         // Note: Additional non-EGL resource-types can be added here, and will
         // be propagated through color-buffer import functionality
