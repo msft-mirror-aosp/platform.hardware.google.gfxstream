@@ -100,14 +100,8 @@ class VulkanMemReadingStream : public VulkanStream {
     ssize_t read(void* buffer, size_t size) override;
     ssize_t write(const void* buffer, size_t size) override;
 
-    uint8_t* beginTrace();
-    size_t endTrace();
-
    private:
-    void resetTrace();
-
     uint8_t* mStart;
-    uint8_t* mTraceStart;
     uintptr_t mReadPos = 0;
 };
 

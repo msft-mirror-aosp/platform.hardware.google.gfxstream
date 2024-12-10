@@ -133,6 +133,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
         ptr += m_state->setCreatedHandlesForSnapshotLoad(ptr);
     }
     while (end - ptr >= 8) {
+        const uint8_t* packet = (const uint8_t*)ptr;
         uint32_t opcode = *(uint32_t*)ptr;
         uint32_t packetLen = *(uint32_t*)(ptr + 4);
 
@@ -151,7 +152,6 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
         vkReadStream->setBuf((uint8_t*)(ptr + 8));
         uint8_t* readStreamPtr = vkReadStream->getBuf();
         uint8_t** readStreamPtrPtr = &readStreamPtr;
-        uint8_t* snapshotTraceBegin = vkReadStream->beginTrace();
         vkReadStream->setHandleMapping(&m_boxedHandleUnwrapMapping);
 
         std::unique_ptr<EventHangMetadata::HangAnnotations> executionData =
@@ -278,12 +278,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write((VkInstance*)pInstance, 8 * 1);
                 vkStream->write(&vkCreateInstance_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCreateInstance(snapshotTraceBegin, snapshotTraceBytes,
-                                                          &m_pool, vkCreateInstance_VkResult_return,
+                    m_state->snapshot()->vkCreateInstance(packet, packetLen, &m_pool,
+                                                          vkCreateInstance_VkResult_return,
                                                           pCreateInfo, pAllocator, pInstance);
                 }
                 vkReadStream->clearPool();
@@ -321,12 +318,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 m_state->on_vkDestroyInstance(&m_pool, instance, pAllocator);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkDestroyInstance(snapshotTraceBegin, snapshotTraceBytes,
-                                                           &m_pool, instance, pAllocator);
+                    m_state->snapshot()->vkDestroyInstance(packet, packetLen, &m_pool, instance,
+                                                           pAllocator);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -418,14 +412,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->write(&vkEnumeratePhysicalDevices_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkEnumeratePhysicalDevices(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkEnumeratePhysicalDevices_VkResult_return, instance, pPhysicalDeviceCount,
-                        pPhysicalDevices);
+                        packet, packetLen, &m_pool, vkEnumeratePhysicalDevices_VkResult_return,
+                        instance, pPhysicalDeviceCount, pPhysicalDevices);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -467,12 +457,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 marshal_VkPhysicalDeviceFeatures(vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                  (VkPhysicalDeviceFeatures*)(pFeatures));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkGetPhysicalDeviceFeatures(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, physicalDevice, pFeatures);
+                    m_state->snapshot()->vkGetPhysicalDeviceFeatures(packet, packetLen, &m_pool,
+                                                                     physicalDevice, pFeatures);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -520,13 +507,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 marshal_VkFormatProperties(vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                            (VkFormatProperties*)(pFormatProperties));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetPhysicalDeviceFormatProperties(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, physicalDevice, format,
-                        pFormatProperties);
+                        packet, packetLen, &m_pool, physicalDevice, format, pFormatProperties);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -599,12 +582,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write(&vkGetPhysicalDeviceImageFormatProperties_VkResult_return,
                                 sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetPhysicalDeviceImageFormatProperties(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        packet, packetLen, &m_pool,
                         vkGetPhysicalDeviceImageFormatProperties_VkResult_return, physicalDevice,
                         format, type, tiling, usage, flags, pImageFormatProperties);
                 }
@@ -649,12 +629,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 marshal_VkPhysicalDeviceProperties(vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                    (VkPhysicalDeviceProperties*)(pProperties));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkGetPhysicalDeviceProperties(snapshotTraceBegin,
-                                                                       snapshotTraceBytes, &m_pool,
+                    m_state->snapshot()->vkGetPhysicalDeviceProperties(packet, packetLen, &m_pool,
                                                                        physicalDevice, pProperties);
                 }
                 vkReadStream->clearPool();
@@ -749,13 +725,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetPhysicalDeviceQueueFamilyProperties(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, physicalDevice,
-                        pQueueFamilyPropertyCount, pQueueFamilyProperties);
+                        packet, packetLen, &m_pool, physicalDevice, pQueueFamilyPropertyCount,
+                        pQueueFamilyProperties);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -801,13 +774,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                     (VkPhysicalDeviceMemoryProperties*)(pMemoryProperties));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetPhysicalDeviceMemoryProperties(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, physicalDevice,
-                        pMemoryProperties);
+                        packet, packetLen, &m_pool, physicalDevice, pMemoryProperties);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -840,13 +809,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write(&vkGetInstanceProcAddr_PFN_vkVoidFunction_return,
                                 sizeof(PFN_vkVoidFunction));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetInstanceProcAddr(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkGetInstanceProcAddr_PFN_vkVoidFunction_return, instance, pName);
+                        packet, packetLen, &m_pool, vkGetInstanceProcAddr_PFN_vkVoidFunction_return,
+                        instance, pName);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -879,13 +845,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write(&vkGetDeviceProcAddr_PFN_vkVoidFunction_return,
                                 sizeof(PFN_vkVoidFunction));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetDeviceProcAddr(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkGetDeviceProcAddr_PFN_vkVoidFunction_return, device, pName);
+                        packet, packetLen, &m_pool, vkGetDeviceProcAddr_PFN_vkVoidFunction_return,
+                        device, pName);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -953,14 +916,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write((VkDevice*)pDevice, 8 * 1);
                 vkStream->write(&vkCreateDevice_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCreateDevice(snapshotTraceBegin, snapshotTraceBytes,
-                                                        &m_pool, vkCreateDevice_VkResult_return,
-                                                        physicalDevice, pCreateInfo, pAllocator,
-                                                        pDevice);
+                    m_state->snapshot()->vkCreateDevice(
+                        packet, packetLen, &m_pool, vkCreateDevice_VkResult_return, physicalDevice,
+                        pCreateInfo, pAllocator, pDevice);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -997,12 +956,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 m_state->on_vkDestroyDevice(&m_pool, device, pAllocator);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkDestroyDevice(snapshotTraceBegin, snapshotTraceBytes,
-                                                         &m_pool, device, pAllocator);
+                    m_state->snapshot()->vkDestroyDevice(packet, packetLen, &m_pool, device,
+                                                         pAllocator);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -1109,12 +1065,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write(&vkEnumerateInstanceExtensionProperties_VkResult_return,
                                 sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkEnumerateInstanceExtensionProperties(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        packet, packetLen, &m_pool,
                         vkEnumerateInstanceExtensionProperties_VkResult_return, pLayerName,
                         pPropertyCount, pProperties);
                 }
@@ -1230,12 +1183,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write(&vkEnumerateDeviceExtensionProperties_VkResult_return,
                                 sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkEnumerateDeviceExtensionProperties(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        packet, packetLen, &m_pool,
                         vkEnumerateDeviceExtensionProperties_VkResult_return, physicalDevice,
                         pLayerName, pPropertyCount, pProperties);
                 }
@@ -1325,12 +1275,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write(&vkEnumerateInstanceLayerProperties_VkResult_return,
                                 sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkEnumerateInstanceLayerProperties(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        packet, packetLen, &m_pool,
                         vkEnumerateInstanceLayerProperties_VkResult_return, pPropertyCount,
                         pProperties);
                 }
@@ -1432,12 +1379,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write(&vkEnumerateDeviceLayerProperties_VkResult_return,
                                 sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkEnumerateDeviceLayerProperties(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        packet, packetLen, &m_pool,
                         vkEnumerateDeviceLayerProperties_VkResult_return, physicalDevice,
                         pPropertyCount, pProperties);
                 }
@@ -1483,13 +1427,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->handleMapping()->mapHandles_VkQueue((VkQueue*)pQueue, 1);
                 vkStream->write((VkQueue*)pQueue, 8 * 1);
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkGetDeviceQueue(snapshotTraceBegin, snapshotTraceBytes,
-                                                          &m_pool, device, queueFamilyIndex,
-                                                          queueIndex, pQueue);
+                    m_state->snapshot()->vkGetDeviceQueue(packet, packetLen, &m_pool, device,
+                                                          queueFamilyIndex, queueIndex, pQueue);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -1538,13 +1478,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 vkStream->write(&vkQueueSubmit_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkQueueSubmit(snapshotTraceBegin, snapshotTraceBytes,
-                                                       &m_pool, vkQueueSubmit_VkResult_return,
-                                                       queue, submitCount, pSubmits, fence);
+                    m_state->snapshot()->vkQueueSubmit(packet, packetLen, &m_pool,
+                                                       vkQueueSubmit_VkResult_return, queue,
+                                                       submitCount, pSubmits, fence);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -1574,13 +1511,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 vkStream->write(&vkQueueWaitIdle_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkQueueWaitIdle(snapshotTraceBegin, snapshotTraceBytes,
-                                                         &m_pool, vkQueueWaitIdle_VkResult_return,
-                                                         queue);
+                    m_state->snapshot()->vkQueueWaitIdle(packet, packetLen, &m_pool,
+                                                         vkQueueWaitIdle_VkResult_return, queue);
                 }
                 vkReadStream->clearPool();
                 break;
@@ -1611,13 +1544,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 vkStream->write(&vkDeviceWaitIdle_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkDeviceWaitIdle(snapshotTraceBegin, snapshotTraceBytes,
-                                                          &m_pool, vkDeviceWaitIdle_VkResult_return,
-                                                          device);
+                    m_state->snapshot()->vkDeviceWaitIdle(packet, packetLen, &m_pool,
+                                                          vkDeviceWaitIdle_VkResult_return, device);
                 }
                 vkReadStream->clearPool();
                 break;
@@ -1690,14 +1619,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->setHandleMapping(&m_boxedHandleUnwrapMapping);
                 vkStream->write(&vkAllocateMemory_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkAllocateMemory(snapshotTraceBegin, snapshotTraceBytes,
-                                                          &m_pool, vkAllocateMemory_VkResult_return,
-                                                          device, pAllocateInfo, pAllocator,
-                                                          pMemory);
+                    m_state->snapshot()->vkAllocateMemory(packet, packetLen, &m_pool,
+                                                          vkAllocateMemory_VkResult_return, device,
+                                                          pAllocateInfo, pAllocator, pMemory);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -1744,13 +1669,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 m_state->on_vkFreeMemory(&m_pool, device, memory, pAllocator);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkFreeMemory(snapshotTraceBegin, snapshotTraceBytes,
-                                                      &m_pool, device, boxed_memory_preserve,
-                                                      pAllocator);
+                    m_state->snapshot()->vkFreeMemory(packet, packetLen, &m_pool, device,
+                                                      boxed_memory_preserve, pAllocator);
                 }
                 delete_VkDeviceMemory(boxed_memory_preserve);
                 vkReadStream->clearPool();
@@ -1815,13 +1736,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->write(&vkMapMemory_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkMapMemory(snapshotTraceBegin, snapshotTraceBytes,
-                                                     &m_pool, vkMapMemory_VkResult_return, device,
-                                                     memory, offset, size, flags, ppData);
+                    m_state->snapshot()->vkMapMemory(packet, packetLen, &m_pool,
+                                                     vkMapMemory_VkResult_return, device, memory,
+                                                     offset, size, flags, ppData);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -1848,12 +1766,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 m_state->on_vkUnmapMemory(&m_pool, device, memory);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkUnmapMemory(snapshotTraceBegin, snapshotTraceBytes,
-                                                       &m_pool, device, memory);
+                    m_state->snapshot()->vkUnmapMemory(packet, packetLen, &m_pool, device, memory);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -1944,14 +1858,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 vkStream->write(&vkFlushMappedMemoryRanges_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkFlushMappedMemoryRanges(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkFlushMappedMemoryRanges_VkResult_return, device, memoryRangeCount,
-                        pMemoryRanges);
+                        packet, packetLen, &m_pool, vkFlushMappedMemoryRanges_VkResult_return,
+                        device, memoryRangeCount, pMemoryRanges);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -2024,14 +1934,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkInvalidateMappedMemoryRanges(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkInvalidateMappedMemoryRanges_VkResult_return, device, memoryRangeCount,
-                        pMemoryRanges);
+                        packet, packetLen, &m_pool, vkInvalidateMappedMemoryRanges_VkResult_return,
+                        device, memoryRangeCount, pMemoryRanges);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -2073,13 +1979,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 vkStream->write((VkDeviceSize*)pCommittedMemoryInBytes, sizeof(VkDeviceSize));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetDeviceMemoryCommitment(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device, memory,
-                        pCommittedMemoryInBytes);
+                        packet, packetLen, &m_pool, device, memory, pCommittedMemoryInBytes);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -2124,13 +2026,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 vkStream->write(&vkBindBufferMemory_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkBindBufferMemory(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkBindBufferMemory_VkResult_return, device, buffer, memory, memoryOffset);
+                    m_state->snapshot()->vkBindBufferMemory(packet, packetLen, &m_pool,
+                                                            vkBindBufferMemory_VkResult_return,
+                                                            device, buffer, memory, memoryOffset);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -2175,13 +2074,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 vkStream->write(&vkBindImageMemory_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkBindImageMemory(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkBindImageMemory_VkResult_return, device, image, memory, memoryOffset);
+                    m_state->snapshot()->vkBindImageMemory(packet, packetLen, &m_pool,
+                                                           vkBindImageMemory_VkResult_return,
+                                                           device, image, memory, memoryOffset);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -2229,13 +2125,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 marshal_VkMemoryRequirements(vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                              (VkMemoryRequirements*)(pMemoryRequirements));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetBufferMemoryRequirements(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device, buffer,
-                        pMemoryRequirements);
+                        packet, packetLen, &m_pool, device, buffer, pMemoryRequirements);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -2283,13 +2175,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 marshal_VkMemoryRequirements(vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                              (VkMemoryRequirements*)(pMemoryRequirements));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetImageMemoryRequirements(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device, image,
-                        pMemoryRequirements);
+                        packet, packetLen, &m_pool, device, image, pMemoryRequirements);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -2397,13 +2285,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetImageSparseMemoryRequirements(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device, image,
-                        pSparseMemoryRequirementCount, pSparseMemoryRequirements);
+                        packet, packetLen, &m_pool, device, image, pSparseMemoryRequirementCount,
+                        pSparseMemoryRequirements);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -2517,13 +2402,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetPhysicalDeviceSparseImageFormatProperties(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, physicalDevice, format,
-                        type, samples, usage, tiling, pPropertyCount, pProperties);
+                        packet, packetLen, &m_pool, physicalDevice, format, type, samples, usage,
+                        tiling, pPropertyCount, pProperties);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -2576,13 +2458,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 vkStream->write(&vkQueueBindSparse_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkQueueBindSparse(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkQueueBindSparse_VkResult_return, queue, bindInfoCount, pBindInfo, fence);
+                    m_state->snapshot()->vkQueueBindSparse(packet, packetLen, &m_pool,
+                                                           vkQueueBindSparse_VkResult_return, queue,
+                                                           bindInfoCount, pBindInfo, fence);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -2651,13 +2530,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->setHandleMapping(&m_boxedHandleUnwrapMapping);
                 vkStream->write(&vkCreateFence_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCreateFence(snapshotTraceBegin, snapshotTraceBytes,
-                                                       &m_pool, vkCreateFence_VkResult_return,
-                                                       device, pCreateInfo, pAllocator, pFence);
+                    m_state->snapshot()->vkCreateFence(packet, packetLen, &m_pool,
+                                                       vkCreateFence_VkResult_return, device,
+                                                       pCreateInfo, pAllocator, pFence);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -2703,13 +2579,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 m_state->on_vkDestroyFence(&m_pool, device, fence, pAllocator);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkDestroyFence(snapshotTraceBegin, snapshotTraceBytes,
-                                                        &m_pool, device, boxed_fence_preserve,
-                                                        pAllocator);
+                    m_state->snapshot()->vkDestroyFence(packet, packetLen, &m_pool, device,
+                                                        boxed_fence_preserve, pAllocator);
                 }
                 delete_VkFence(boxed_fence_preserve);
                 vkReadStream->clearPool();
@@ -2754,13 +2626,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 vkStream->write(&vkResetFences_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkResetFences(snapshotTraceBegin, snapshotTraceBytes,
-                                                       &m_pool, vkResetFences_VkResult_return,
-                                                       device, fenceCount, pFences);
+                    m_state->snapshot()->vkResetFences(packet, packetLen, &m_pool,
+                                                       vkResetFences_VkResult_return, device,
+                                                       fenceCount, pFences);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -2796,13 +2665,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 vkStream->write(&vkGetFenceStatus_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkGetFenceStatus(snapshotTraceBegin, snapshotTraceBytes,
-                                                          &m_pool, vkGetFenceStatus_VkResult_return,
-                                                          device, fence);
+                    m_state->snapshot()->vkGetFenceStatus(packet, packetLen, &m_pool,
+                                                          vkGetFenceStatus_VkResult_return, device,
+                                                          fence);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -2860,14 +2726,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 vkStream->write(&vkWaitForFences_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkWaitForFences(snapshotTraceBegin, snapshotTraceBytes,
-                                                         &m_pool, vkWaitForFences_VkResult_return,
-                                                         device, fenceCount, pFences, waitAll,
-                                                         timeout);
+                    m_state->snapshot()->vkWaitForFences(packet, packetLen, &m_pool,
+                                                         vkWaitForFences_VkResult_return, device,
+                                                         fenceCount, pFences, waitAll, timeout);
                 }
                 vkReadStream->clearPool();
                 break;
@@ -2937,14 +2799,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->setHandleMapping(&m_boxedHandleUnwrapMapping);
                 vkStream->write(&vkCreateSemaphore_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCreateSemaphore(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkCreateSemaphore_VkResult_return, device, pCreateInfo, pAllocator,
-                        pSemaphore);
+                        packet, packetLen, &m_pool, vkCreateSemaphore_VkResult_return, device,
+                        pCreateInfo, pAllocator, pSemaphore);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -2991,12 +2849,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 m_state->on_vkDestroySemaphore(&m_pool, device, semaphore, pAllocator);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkDestroySemaphore(snapshotTraceBegin, snapshotTraceBytes,
-                                                            &m_pool, device,
+                    m_state->snapshot()->vkDestroySemaphore(packet, packetLen, &m_pool, device,
                                                             boxed_semaphore_preserve, pAllocator);
                 }
                 delete_VkSemaphore(boxed_semaphore_preserve);
@@ -3071,13 +2925,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->setHandleMapping(&m_boxedHandleUnwrapMapping);
                 vkStream->write(&vkCreateEvent_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCreateEvent(snapshotTraceBegin, snapshotTraceBytes,
-                                                       &m_pool, vkCreateEvent_VkResult_return,
-                                                       device, pCreateInfo, pAllocator, pEvent);
+                    m_state->snapshot()->vkCreateEvent(packet, packetLen, &m_pool,
+                                                       vkCreateEvent_VkResult_return, device,
+                                                       pCreateInfo, pAllocator, pEvent);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -3126,13 +2977,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkDestroyEvent(unboxed_device, event, pAllocator);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkDestroyEvent(snapshotTraceBegin, snapshotTraceBytes,
-                                                        &m_pool, device, boxed_event_preserve,
-                                                        pAllocator);
+                    m_state->snapshot()->vkDestroyEvent(packet, packetLen, &m_pool, device,
+                                                        boxed_event_preserve, pAllocator);
                 }
                 delete_VkEvent(boxed_event_preserve);
                 vkReadStream->clearPool();
@@ -3169,13 +3016,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 vkStream->write(&vkGetEventStatus_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkGetEventStatus(snapshotTraceBegin, snapshotTraceBytes,
-                                                          &m_pool, vkGetEventStatus_VkResult_return,
-                                                          device, event);
+                    m_state->snapshot()->vkGetEventStatus(packet, packetLen, &m_pool,
+                                                          vkGetEventStatus_VkResult_return, device,
+                                                          event);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -3209,11 +3053,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 vkStream->write(&vkSetEvent_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkSetEvent(snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                    m_state->snapshot()->vkSetEvent(packet, packetLen, &m_pool,
                                                     vkSetEvent_VkResult_return, device, event);
                 }
                 vkReadStream->clearPool();
@@ -3249,13 +3090,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 vkStream->write(&vkResetEvent_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkResetEvent(snapshotTraceBegin, snapshotTraceBytes,
-                                                      &m_pool, vkResetEvent_VkResult_return, device,
-                                                      event);
+                    m_state->snapshot()->vkResetEvent(packet, packetLen, &m_pool,
+                                                      vkResetEvent_VkResult_return, device, event);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -3331,14 +3168,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->setHandleMapping(&m_boxedHandleUnwrapMapping);
                 vkStream->write(&vkCreateQueryPool_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCreateQueryPool(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkCreateQueryPool_VkResult_return, device, pCreateInfo, pAllocator,
-                        pQueryPool);
+                        packet, packetLen, &m_pool, vkCreateQueryPool_VkResult_return, device,
+                        pCreateInfo, pAllocator, pQueryPool);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -3388,12 +3221,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkDestroyQueryPool(unboxed_device, queryPool, pAllocator);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkDestroyQueryPool(snapshotTraceBegin, snapshotTraceBytes,
-                                                            &m_pool, device,
+                    m_state->snapshot()->vkDestroyQueryPool(packet, packetLen, &m_pool, device,
                                                             boxed_queryPool_preserve, pAllocator);
                 }
                 delete_VkQueryPool(boxed_queryPool_preserve);
@@ -3463,14 +3292,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write((void*)pData, ((dataSize)) * sizeof(uint8_t));
                 vkStream->write(&vkGetQueryPoolResults_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetQueryPoolResults(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkGetQueryPoolResults_VkResult_return, device, queryPool, firstQuery,
-                        queryCount, dataSize, pData, stride, flags);
+                        packet, packetLen, &m_pool, vkGetQueryPoolResults_VkResult_return, device,
+                        queryPool, firstQuery, queryCount, dataSize, pData, stride, flags);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -3540,13 +3365,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->setHandleMapping(&m_boxedHandleUnwrapMapping);
                 vkStream->write(&vkCreateBuffer_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCreateBuffer(snapshotTraceBegin, snapshotTraceBytes,
-                                                        &m_pool, vkCreateBuffer_VkResult_return,
-                                                        device, pCreateInfo, pAllocator, pBuffer);
+                    m_state->snapshot()->vkCreateBuffer(packet, packetLen, &m_pool,
+                                                        vkCreateBuffer_VkResult_return, device,
+                                                        pCreateInfo, pAllocator, pBuffer);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -3593,13 +3415,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 m_state->on_vkDestroyBuffer(&m_pool, device, buffer, pAllocator);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkDestroyBuffer(snapshotTraceBegin, snapshotTraceBytes,
-                                                         &m_pool, device, boxed_buffer_preserve,
-                                                         pAllocator);
+                    m_state->snapshot()->vkDestroyBuffer(packet, packetLen, &m_pool, device,
+                                                         boxed_buffer_preserve, pAllocator);
                 }
                 delete_VkBuffer(boxed_buffer_preserve);
                 vkReadStream->clearPool();
@@ -3676,13 +3494,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->setHandleMapping(&m_boxedHandleUnwrapMapping);
                 vkStream->write(&vkCreateBufferView_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCreateBufferView(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkCreateBufferView_VkResult_return, device, pCreateInfo, pAllocator, pView);
+                    m_state->snapshot()->vkCreateBufferView(packet, packetLen, &m_pool,
+                                                            vkCreateBufferView_VkResult_return,
+                                                            device, pCreateInfo, pAllocator, pView);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -3733,12 +3548,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkDestroyBufferView(unboxed_device, bufferView, pAllocator);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkDestroyBufferView(snapshotTraceBegin, snapshotTraceBytes,
-                                                             &m_pool, device,
+                    m_state->snapshot()->vkDestroyBufferView(packet, packetLen, &m_pool, device,
                                                              boxed_bufferView_preserve, pAllocator);
                 }
                 delete_VkBufferView(boxed_bufferView_preserve);
@@ -3810,13 +3621,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->setHandleMapping(&m_boxedHandleUnwrapMapping);
                 vkStream->write(&vkCreateImage_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCreateImage(snapshotTraceBegin, snapshotTraceBytes,
-                                                       &m_pool, vkCreateImage_VkResult_return,
-                                                       device, pCreateInfo, pAllocator, pImage);
+                    m_state->snapshot()->vkCreateImage(packet, packetLen, &m_pool,
+                                                       vkCreateImage_VkResult_return, device,
+                                                       pCreateInfo, pAllocator, pImage);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -3862,13 +3670,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 m_state->on_vkDestroyImage(&m_pool, device, image, pAllocator);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkDestroyImage(snapshotTraceBegin, snapshotTraceBytes,
-                                                        &m_pool, device, boxed_image_preserve,
-                                                        pAllocator);
+                    m_state->snapshot()->vkDestroyImage(packet, packetLen, &m_pool, device,
+                                                        boxed_image_preserve, pAllocator);
                 }
                 delete_VkImage(boxed_image_preserve);
                 vkReadStream->clearPool();
@@ -3928,13 +3732,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 marshal_VkSubresourceLayout(vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                             (VkSubresourceLayout*)(pLayout));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetImageSubresourceLayout(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device, image,
-                        pSubresource, pLayout);
+                        packet, packetLen, &m_pool, device, image, pSubresource, pLayout);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -4006,13 +3806,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->setHandleMapping(&m_boxedHandleUnwrapMapping);
                 vkStream->write(&vkCreateImageView_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCreateImageView(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkCreateImageView_VkResult_return, device, pCreateInfo, pAllocator, pView);
+                    m_state->snapshot()->vkCreateImageView(packet, packetLen, &m_pool,
+                                                           vkCreateImageView_VkResult_return,
+                                                           device, pCreateInfo, pAllocator, pView);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -4059,12 +3856,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 m_state->on_vkDestroyImageView(&m_pool, device, imageView, pAllocator);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkDestroyImageView(snapshotTraceBegin, snapshotTraceBytes,
-                                                            &m_pool, device,
+                    m_state->snapshot()->vkDestroyImageView(packet, packetLen, &m_pool, device,
                                                             boxed_imageView_preserve, pAllocator);
                 }
                 delete_VkImageView(boxed_imageView_preserve);
@@ -4140,14 +3933,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->setHandleMapping(&m_boxedHandleUnwrapMapping);
                 vkStream->write(&vkCreateShaderModule_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCreateShaderModule(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkCreateShaderModule_VkResult_return, device, pCreateInfo, pAllocator,
-                        pShaderModule);
+                        packet, packetLen, &m_pool, vkCreateShaderModule_VkResult_return, device,
+                        pCreateInfo, pAllocator, pShaderModule);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -4198,13 +3987,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 m_state->on_vkDestroyShaderModule(&m_pool, device, shaderModule, pAllocator);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkDestroyShaderModule(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device,
-                        boxed_shaderModule_preserve, pAllocator);
+                    m_state->snapshot()->vkDestroyShaderModule(packet, packetLen, &m_pool, device,
+                                                               boxed_shaderModule_preserve,
+                                                               pAllocator);
                 }
                 delayed_delete_VkShaderModule(boxed_shaderModule_preserve, unboxed_device, nullptr);
                 vkReadStream->clearPool();
@@ -4280,14 +4066,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->setHandleMapping(&m_boxedHandleUnwrapMapping);
                 vkStream->write(&vkCreatePipelineCache_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCreatePipelineCache(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkCreatePipelineCache_VkResult_return, device, pCreateInfo, pAllocator,
-                        pPipelineCache);
+                        packet, packetLen, &m_pool, vkCreatePipelineCache_VkResult_return, device,
+                        pCreateInfo, pAllocator, pPipelineCache);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -4336,13 +4118,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 m_state->on_vkDestroyPipelineCache(&m_pool, device, pipelineCache, pAllocator);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkDestroyPipelineCache(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device,
-                        boxed_pipelineCache_preserve, pAllocator);
+                    m_state->snapshot()->vkDestroyPipelineCache(packet, packetLen, &m_pool, device,
+                                                                boxed_pipelineCache_preserve,
+                                                                pAllocator);
                 }
                 delete_VkPipelineCache(boxed_pipelineCache_preserve);
                 vkReadStream->clearPool();
@@ -4422,14 +4201,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->write(&vkGetPipelineCacheData_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetPipelineCacheData(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkGetPipelineCacheData_VkResult_return, device, pipelineCache, pDataSize,
-                        pData);
+                        packet, packetLen, &m_pool, vkGetPipelineCacheData_VkResult_return, device,
+                        pipelineCache, pDataSize, pData);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -4487,14 +4262,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 vkStream->write(&vkMergePipelineCaches_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkMergePipelineCaches(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkMergePipelineCaches_VkResult_return, device, dstCache, srcCacheCount,
-                        pSrcCaches);
+                        packet, packetLen, &m_pool, vkMergePipelineCaches_VkResult_return, device,
+                        dstCache, srcCacheCount, pSrcCaches);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -4595,14 +4366,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->setHandleMapping(&m_boxedHandleUnwrapMapping);
                 vkStream->write(&vkCreateGraphicsPipelines_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCreateGraphicsPipelines(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkCreateGraphicsPipelines_VkResult_return, device, pipelineCache,
-                        createInfoCount, pCreateInfos, pAllocator, pPipelines);
+                        packet, packetLen, &m_pool, vkCreateGraphicsPipelines_VkResult_return,
+                        device, pipelineCache, createInfoCount, pCreateInfos, pAllocator,
+                        pPipelines);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -4703,14 +4471,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->setHandleMapping(&m_boxedHandleUnwrapMapping);
                 vkStream->write(&vkCreateComputePipelines_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCreateComputePipelines(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkCreateComputePipelines_VkResult_return, device, pipelineCache,
-                        createInfoCount, pCreateInfos, pAllocator, pPipelines);
+                        packet, packetLen, &m_pool, vkCreateComputePipelines_VkResult_return,
+                        device, pipelineCache, createInfoCount, pCreateInfos, pAllocator,
+                        pPipelines);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -4757,13 +4522,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 m_state->on_vkDestroyPipeline(&m_pool, device, pipeline, pAllocator);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkDestroyPipeline(snapshotTraceBegin, snapshotTraceBytes,
-                                                           &m_pool, device, boxed_pipeline_preserve,
-                                                           pAllocator);
+                    m_state->snapshot()->vkDestroyPipeline(packet, packetLen, &m_pool, device,
+                                                           boxed_pipeline_preserve, pAllocator);
                 }
                 delete_VkPipeline(boxed_pipeline_preserve);
                 vkReadStream->clearPool();
@@ -4845,14 +4606,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->setHandleMapping(&m_boxedHandleUnwrapMapping);
                 vkStream->write(&vkCreatePipelineLayout_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCreatePipelineLayout(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkCreatePipelineLayout_VkResult_return, device, pCreateInfo, pAllocator,
-                        pPipelineLayout);
+                        packet, packetLen, &m_pool, vkCreatePipelineLayout_VkResult_return, device,
+                        pCreateInfo, pAllocator, pPipelineLayout);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -4909,13 +4666,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     vk->vkDestroyPipelineLayout(unboxed_device, pipelineLayout, pAllocator);
                 };
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkDestroyPipelineLayout(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device,
-                        boxed_pipelineLayout_preserve, pAllocator);
+                    m_state->snapshot()->vkDestroyPipelineLayout(packet, packetLen, &m_pool, device,
+                                                                 boxed_pipelineLayout_preserve,
+                                                                 pAllocator);
                 }
                 delayed_delete_VkPipelineLayout(boxed_pipelineLayout_preserve, unboxed_device,
                                                 delayed_remove_callback);
@@ -4989,13 +4743,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->setHandleMapping(&m_boxedHandleUnwrapMapping);
                 vkStream->write(&vkCreateSampler_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCreateSampler(snapshotTraceBegin, snapshotTraceBytes,
-                                                         &m_pool, vkCreateSampler_VkResult_return,
-                                                         device, pCreateInfo, pAllocator, pSampler);
+                    m_state->snapshot()->vkCreateSampler(packet, packetLen, &m_pool,
+                                                         vkCreateSampler_VkResult_return, device,
+                                                         pCreateInfo, pAllocator, pSampler);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -5042,13 +4793,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 m_state->on_vkDestroySampler(&m_pool, device, sampler, pAllocator);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkDestroySampler(snapshotTraceBegin, snapshotTraceBytes,
-                                                          &m_pool, device, boxed_sampler_preserve,
-                                                          pAllocator);
+                    m_state->snapshot()->vkDestroySampler(packet, packetLen, &m_pool, device,
+                                                          boxed_sampler_preserve, pAllocator);
                 }
                 delete_VkSampler(boxed_sampler_preserve);
                 vkReadStream->clearPool();
@@ -5129,14 +4876,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->setHandleMapping(&m_boxedHandleUnwrapMapping);
                 vkStream->write(&vkCreateDescriptorSetLayout_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCreateDescriptorSetLayout(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkCreateDescriptorSetLayout_VkResult_return, device, pCreateInfo,
-                        pAllocator, pSetLayout);
+                        packet, packetLen, &m_pool, vkCreateDescriptorSetLayout_VkResult_return,
+                        device, pCreateInfo, pAllocator, pSetLayout);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -5188,13 +4931,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 m_state->on_vkDestroyDescriptorSetLayout(&m_pool, device, descriptorSetLayout,
                                                          pAllocator);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkDestroyDescriptorSetLayout(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device,
-                        boxed_descriptorSetLayout_preserve, pAllocator);
+                        packet, packetLen, &m_pool, device, boxed_descriptorSetLayout_preserve,
+                        pAllocator);
                 }
                 delete_VkDescriptorSetLayout(boxed_descriptorSetLayout_preserve);
                 vkReadStream->clearPool();
@@ -5270,14 +5010,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->setHandleMapping(&m_boxedHandleUnwrapMapping);
                 vkStream->write(&vkCreateDescriptorPool_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCreateDescriptorPool(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkCreateDescriptorPool_VkResult_return, device, pCreateInfo, pAllocator,
-                        pDescriptorPool);
+                        packet, packetLen, &m_pool, vkCreateDescriptorPool_VkResult_return, device,
+                        pCreateInfo, pAllocator, pDescriptorPool);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -5326,13 +5062,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 m_state->on_vkDestroyDescriptorPool(&m_pool, device, descriptorPool, pAllocator);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkDestroyDescriptorPool(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device,
-                        boxed_descriptorPool_preserve, pAllocator);
+                    m_state->snapshot()->vkDestroyDescriptorPool(packet, packetLen, &m_pool, device,
+                                                                 boxed_descriptorPool_preserve,
+                                                                 pAllocator);
                 }
                 delete_VkDescriptorPool(boxed_descriptorPool_preserve);
                 vkReadStream->clearPool();
@@ -5374,13 +5107,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 vkStream->write(&vkResetDescriptorPool_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkResetDescriptorPool(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkResetDescriptorPool_VkResult_return, device, descriptorPool, flags);
+                        packet, packetLen, &m_pool, vkResetDescriptorPool_VkResult_return, device,
+                        descriptorPool, flags);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -5453,14 +5183,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->setHandleMapping(&m_boxedHandleUnwrapMapping);
                 vkStream->write(&vkAllocateDescriptorSets_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkAllocateDescriptorSets(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkAllocateDescriptorSets_VkResult_return, device, pAllocateInfo,
-                        pDescriptorSets);
+                        packet, packetLen, &m_pool, vkAllocateDescriptorSets_VkResult_return,
+                        device, pAllocateInfo, pDescriptorSets);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -5531,14 +5257,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 vkStream->write(&vkFreeDescriptorSets_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkFreeDescriptorSets(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkFreeDescriptorSets_VkResult_return, device, descriptorPool,
-                        descriptorSetCount, boxed_pDescriptorSets_preserve);
+                        packet, packetLen, &m_pool, vkFreeDescriptorSets_VkResult_return, device,
+                        descriptorPool, descriptorSetCount, boxed_pDescriptorSets_preserve);
                 }
                 // Skipping handle cleanup for vkFreeDescriptorSets
                 vkReadStream->clearPool();
@@ -5603,14 +5325,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                    pDescriptorWrites, descriptorCopyCount,
                                                    pDescriptorCopies);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkUpdateDescriptorSets(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device,
-                        descriptorWriteCount, pDescriptorWrites, descriptorCopyCount,
-                        pDescriptorCopies);
+                        packet, packetLen, &m_pool, device, descriptorWriteCount, pDescriptorWrites,
+                        descriptorCopyCount, pDescriptorCopies);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -5684,14 +5402,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->setHandleMapping(&m_boxedHandleUnwrapMapping);
                 vkStream->write(&vkCreateFramebuffer_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCreateFramebuffer(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkCreateFramebuffer_VkResult_return, device, pCreateInfo, pAllocator,
-                        pFramebuffer);
+                        packet, packetLen, &m_pool, vkCreateFramebuffer_VkResult_return, device,
+                        pCreateInfo, pAllocator, pFramebuffer);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -5739,13 +5453,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 m_state->on_vkDestroyFramebuffer(&m_pool, device, framebuffer, pAllocator);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkDestroyFramebuffer(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device,
-                        boxed_framebuffer_preserve, pAllocator);
+                        packet, packetLen, &m_pool, device, boxed_framebuffer_preserve, pAllocator);
                 }
                 delete_VkFramebuffer(boxed_framebuffer_preserve);
                 vkReadStream->clearPool();
@@ -5819,14 +5529,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->setHandleMapping(&m_boxedHandleUnwrapMapping);
                 vkStream->write(&vkCreateRenderPass_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCreateRenderPass(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkCreateRenderPass_VkResult_return, device, pCreateInfo, pAllocator,
-                        pRenderPass);
+                        packet, packetLen, &m_pool, vkCreateRenderPass_VkResult_return, device,
+                        pCreateInfo, pAllocator, pRenderPass);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -5874,12 +5580,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 m_state->on_vkDestroyRenderPass(&m_pool, device, renderPass, pAllocator);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkDestroyRenderPass(snapshotTraceBegin, snapshotTraceBytes,
-                                                             &m_pool, device,
+                    m_state->snapshot()->vkDestroyRenderPass(packet, packetLen, &m_pool, device,
                                                              boxed_renderPass_preserve, pAllocator);
                 }
                 delete_VkRenderPass(boxed_renderPass_preserve);
@@ -5929,13 +5631,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 marshal_VkExtent2D(vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                    (VkExtent2D*)(pGranularity));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetRenderAreaGranularity(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device, renderPass,
-                        pGranularity);
+                        packet, packetLen, &m_pool, device, renderPass, pGranularity);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -6009,14 +5707,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->setHandleMapping(&m_boxedHandleUnwrapMapping);
                 vkStream->write(&vkCreateCommandPool_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCreateCommandPool(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkCreateCommandPool_VkResult_return, device, pCreateInfo, pAllocator,
-                        pCommandPool);
+                        packet, packetLen, &m_pool, vkCreateCommandPool_VkResult_return, device,
+                        pCreateInfo, pAllocator, pCommandPool);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -6064,13 +5758,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 m_state->on_vkDestroyCommandPool(&m_pool, device, commandPool, pAllocator);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkDestroyCommandPool(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device,
-                        boxed_commandPool_preserve, pAllocator);
+                        packet, packetLen, &m_pool, device, boxed_commandPool_preserve, pAllocator);
                 }
                 delete_VkCommandPool(boxed_commandPool_preserve);
                 vkReadStream->clearPool();
@@ -6111,13 +5801,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 vkStream->write(&vkResetCommandPool_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkResetCommandPool(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkResetCommandPool_VkResult_return, device, commandPool, flags);
+                    m_state->snapshot()->vkResetCommandPool(packet, packetLen, &m_pool,
+                                                            vkResetCommandPool_VkResult_return,
+                                                            device, commandPool, flags);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -6186,14 +5873,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->write(&vkAllocateCommandBuffers_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkAllocateCommandBuffers(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkAllocateCommandBuffers_VkResult_return, device, pAllocateInfo,
-                        pCommandBuffers);
+                        packet, packetLen, &m_pool, vkAllocateCommandBuffers_VkResult_return,
+                        device, pAllocateInfo, pCommandBuffers);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -6257,13 +5940,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 m_state->on_vkFreeCommandBuffers(&m_pool, device, commandPool, commandBufferCount,
                                                  pCommandBuffers);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkFreeCommandBuffers(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device, commandPool,
-                        commandBufferCount, boxed_pCommandBuffers_preserve);
+                    m_state->snapshot()->vkFreeCommandBuffers(packet, packetLen, &m_pool, device,
+                                                              commandPool, commandBufferCount,
+                                                              boxed_pCommandBuffers_preserve);
                 }
                 if (((commandBufferCount))) {
                     for (uint32_t i = 0; i < ((commandBufferCount)); ++i) {
@@ -6308,13 +5988,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 vkStream->write(&vkBeginCommandBuffer_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkBeginCommandBuffer(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkBeginCommandBuffer_VkResult_return, commandBuffer, pBeginInfo);
+                    m_state->snapshot()->vkBeginCommandBuffer(packet, packetLen, &m_pool,
+                                                              vkBeginCommandBuffer_VkResult_return,
+                                                              commandBuffer, pBeginInfo);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -6344,13 +6021,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 vkStream->write(&vkEndCommandBuffer_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkEndCommandBuffer(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkEndCommandBuffer_VkResult_return, commandBuffer);
+                    m_state->snapshot()->vkEndCommandBuffer(packet, packetLen, &m_pool,
+                                                            vkEndCommandBuffer_VkResult_return,
+                                                            commandBuffer);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -6384,13 +6058,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 vkStream->write(&vkResetCommandBuffer_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkResetCommandBuffer(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkResetCommandBuffer_VkResult_return, commandBuffer, flags);
+                    m_state->snapshot()->vkResetCommandBuffer(packet, packetLen, &m_pool,
+                                                              vkResetCommandBuffer_VkResult_return,
+                                                              commandBuffer, flags);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -6423,13 +6094,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 m_state->on_vkCmdBindPipeline(&m_pool, commandBuffer, pipelineBindPoint, pipeline);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdBindPipeline(snapshotTraceBegin, snapshotTraceBytes,
-                                                           &m_pool, commandBuffer,
-                                                           pipelineBindPoint, pipeline);
+                    m_state->snapshot()->vkCmdBindPipeline(
+                        packet, packetLen, &m_pool, commandBuffer, pipelineBindPoint, pipeline);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -6477,13 +6144,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vk->vkCmdSetViewport(unboxed_commandBuffer, firstViewport, viewportCount,
                                      pViewports);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdSetViewport(snapshotTraceBegin, snapshotTraceBytes,
-                                                          &m_pool, commandBuffer, firstViewport,
-                                                          viewportCount, pViewports);
+                    m_state->snapshot()->vkCmdSetViewport(packet, packetLen, &m_pool, commandBuffer,
+                                                          firstViewport, viewportCount, pViewports);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -6529,13 +6192,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdSetScissor(unboxed_commandBuffer, firstScissor, scissorCount, pScissors);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdSetScissor(snapshotTraceBegin, snapshotTraceBytes,
-                                                         &m_pool, commandBuffer, firstScissor,
-                                                         scissorCount, pScissors);
+                    m_state->snapshot()->vkCmdSetScissor(packet, packetLen, &m_pool, commandBuffer,
+                                                         firstScissor, scissorCount, pScissors);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -6564,12 +6223,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdSetLineWidth(unboxed_commandBuffer, lineWidth);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdSetLineWidth(snapshotTraceBegin, snapshotTraceBytes,
-                                                           &m_pool, commandBuffer, lineWidth);
+                    m_state->snapshot()->vkCmdSetLineWidth(packet, packetLen, &m_pool,
+                                                           commandBuffer, lineWidth);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -6609,13 +6265,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vk->vkCmdSetDepthBias(unboxed_commandBuffer, depthBiasConstantFactor,
                                       depthBiasClamp, depthBiasSlopeFactor);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdSetDepthBias(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
-                        depthBiasConstantFactor, depthBiasClamp, depthBiasSlopeFactor);
+                    m_state->snapshot()->vkCmdSetDepthBias(packet, packetLen, &m_pool,
+                                                           commandBuffer, depthBiasConstantFactor,
+                                                           depthBiasClamp, depthBiasSlopeFactor);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -6645,12 +6298,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdSetBlendConstants(unboxed_commandBuffer, blendConstants);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdSetBlendConstants(snapshotTraceBegin,
-                                                                snapshotTraceBytes, &m_pool,
+                    m_state->snapshot()->vkCmdSetBlendConstants(packet, packetLen, &m_pool,
                                                                 commandBuffer, blendConstants);
                 }
                 vkReadStream->clearPool();
@@ -6684,13 +6333,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdSetDepthBounds(unboxed_commandBuffer, minDepthBounds, maxDepthBounds);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdSetDepthBounds(snapshotTraceBegin, snapshotTraceBytes,
-                                                             &m_pool, commandBuffer, minDepthBounds,
-                                                             maxDepthBounds);
+                    m_state->snapshot()->vkCmdSetDepthBounds(
+                        packet, packetLen, &m_pool, commandBuffer, minDepthBounds, maxDepthBounds);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -6725,13 +6370,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdSetStencilCompareMask(unboxed_commandBuffer, faceMask, compareMask);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCmdSetStencilCompareMask(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer, faceMask,
-                        compareMask);
+                        packet, packetLen, &m_pool, commandBuffer, faceMask, compareMask);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -6766,13 +6407,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdSetStencilWriteMask(unboxed_commandBuffer, faceMask, writeMask);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCmdSetStencilWriteMask(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer, faceMask,
-                        writeMask);
+                        packet, packetLen, &m_pool, commandBuffer, faceMask, writeMask);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -6807,13 +6444,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdSetStencilReference(unboxed_commandBuffer, faceMask, reference);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCmdSetStencilReference(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer, faceMask,
-                        reference);
+                        packet, packetLen, &m_pool, commandBuffer, faceMask, reference);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -6884,14 +6517,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     &m_pool, commandBuffer, pipelineBindPoint, layout, firstSet, descriptorSetCount,
                     pDescriptorSets, dynamicOffsetCount, pDynamicOffsets);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCmdBindDescriptorSets(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
-                        pipelineBindPoint, layout, firstSet, descriptorSetCount, pDescriptorSets,
-                        dynamicOffsetCount, pDynamicOffsets);
+                        packet, packetLen, &m_pool, commandBuffer, pipelineBindPoint, layout,
+                        firstSet, descriptorSetCount, pDescriptorSets, dynamicOffsetCount,
+                        pDynamicOffsets);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -6930,13 +6560,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdBindIndexBuffer(unboxed_commandBuffer, buffer, offset, indexType);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCmdBindIndexBuffer(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer, buffer,
-                        offset, indexType);
+                        packet, packetLen, &m_pool, commandBuffer, buffer, offset, indexType);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -6991,13 +6617,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vk->vkCmdBindVertexBuffers(unboxed_commandBuffer, firstBinding, bindingCount,
                                            pBuffers, pOffsets);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdBindVertexBuffers(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
-                        firstBinding, bindingCount, pBuffers, pOffsets);
+                    m_state->snapshot()->vkCmdBindVertexBuffers(packet, packetLen, &m_pool,
+                                                                commandBuffer, firstBinding,
+                                                                bindingCount, pBuffers, pOffsets);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -7038,13 +6661,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vk->vkCmdDraw(unboxed_commandBuffer, vertexCount, instanceCount, firstVertex,
                               firstInstance);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdDraw(snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                                                   commandBuffer, vertexCount, instanceCount,
-                                                   firstVertex, firstInstance);
+                    m_state->snapshot()->vkCmdDraw(packet, packetLen, &m_pool, commandBuffer,
+                                                   vertexCount, instanceCount, firstVertex,
+                                                   firstInstance);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -7091,13 +6711,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vk->vkCmdDrawIndexed(unboxed_commandBuffer, indexCount, instanceCount, firstIndex,
                                      vertexOffset, firstInstance);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdDrawIndexed(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer, indexCount,
-                        instanceCount, firstIndex, vertexOffset, firstInstance);
+                    m_state->snapshot()->vkCmdDrawIndexed(packet, packetLen, &m_pool, commandBuffer,
+                                                          indexCount, instanceCount, firstIndex,
+                                                          vertexOffset, firstInstance);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -7141,13 +6758,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdDrawIndirect(unboxed_commandBuffer, buffer, offset, drawCount, stride);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdDrawIndirect(snapshotTraceBegin, snapshotTraceBytes,
-                                                           &m_pool, commandBuffer, buffer, offset,
-                                                           drawCount, stride);
+                    m_state->snapshot()->vkCmdDrawIndirect(packet, packetLen, &m_pool,
+                                                           commandBuffer, buffer, offset, drawCount,
+                                                           stride);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -7192,13 +6806,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vk->vkCmdDrawIndexedIndirect(unboxed_commandBuffer, buffer, offset, drawCount,
                                              stride);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdDrawIndexedIndirect(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer, buffer,
-                        offset, drawCount, stride);
+                    m_state->snapshot()->vkCmdDrawIndexedIndirect(packet, packetLen, &m_pool,
+                                                                  commandBuffer, buffer, offset,
+                                                                  drawCount, stride);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -7234,13 +6845,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdDispatch(unboxed_commandBuffer, groupCountX, groupCountY, groupCountZ);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdDispatch(snapshotTraceBegin, snapshotTraceBytes,
-                                                       &m_pool, commandBuffer, groupCountX,
-                                                       groupCountY, groupCountZ);
+                    m_state->snapshot()->vkCmdDispatch(packet, packetLen, &m_pool, commandBuffer,
+                                                       groupCountX, groupCountY, groupCountZ);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -7275,12 +6882,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdDispatchIndirect(unboxed_commandBuffer, buffer, offset);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdDispatchIndirect(snapshotTraceBegin,
-                                                               snapshotTraceBytes, &m_pool,
+                    m_state->snapshot()->vkCmdDispatchIndirect(packet, packetLen, &m_pool,
                                                                commandBuffer, buffer, offset);
                 }
                 vkReadStream->clearPool();
@@ -7336,13 +6939,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vk->vkCmdCopyBuffer(unboxed_commandBuffer, srcBuffer, dstBuffer, regionCount,
                                     pRegions);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdCopyBuffer(snapshotTraceBegin, snapshotTraceBytes,
-                                                         &m_pool, commandBuffer, srcBuffer,
-                                                         dstBuffer, regionCount, pRegions);
+                    m_state->snapshot()->vkCmdCopyBuffer(packet, packetLen, &m_pool, commandBuffer,
+                                                         srcBuffer, dstBuffer, regionCount,
+                                                         pRegions);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -7400,13 +7000,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 m_state->on_vkCmdCopyImage(&m_pool, commandBuffer, srcImage, srcImageLayout,
                                            dstImage, dstImageLayout, regionCount, pRegions);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdCopyImage(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer, srcImage,
-                        srcImageLayout, dstImage, dstImageLayout, regionCount, pRegions);
+                    m_state->snapshot()->vkCmdCopyImage(packet, packetLen, &m_pool, commandBuffer,
+                                                        srcImage, srcImageLayout, dstImage,
+                                                        dstImageLayout, regionCount, pRegions);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -7471,13 +7068,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vk->vkCmdBlitImage(unboxed_commandBuffer, srcImage, srcImageLayout, dstImage,
                                    dstImageLayout, regionCount, pRegions, filter);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCmdBlitImage(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer, srcImage,
-                        srcImageLayout, dstImage, dstImageLayout, regionCount, pRegions, filter);
+                        packet, packetLen, &m_pool, commandBuffer, srcImage, srcImageLayout,
+                        dstImage, dstImageLayout, regionCount, pRegions, filter);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -7536,13 +7130,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 m_state->on_vkCmdCopyBufferToImage(&m_pool, commandBuffer, srcBuffer, dstImage,
                                                    dstImageLayout, regionCount, pRegions, context);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCmdCopyBufferToImage(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer, srcBuffer,
-                        dstImage, dstImageLayout, regionCount, pRegions);
+                        packet, packetLen, &m_pool, commandBuffer, srcBuffer, dstImage,
+                        dstImageLayout, regionCount, pRegions);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -7601,13 +7192,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 m_state->on_vkCmdCopyImageToBuffer(&m_pool, commandBuffer, srcImage, srcImageLayout,
                                                    dstBuffer, regionCount, pRegions);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCmdCopyImageToBuffer(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer, srcImage,
-                        srcImageLayout, dstBuffer, regionCount, pRegions);
+                        packet, packetLen, &m_pool, commandBuffer, srcImage, srcImageLayout,
+                        dstBuffer, regionCount, pRegions);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -7652,13 +7240,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdUpdateBuffer(unboxed_commandBuffer, dstBuffer, dstOffset, dataSize, pData);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdUpdateBuffer(snapshotTraceBegin, snapshotTraceBytes,
-                                                           &m_pool, commandBuffer, dstBuffer,
-                                                           dstOffset, dataSize, pData);
+                    m_state->snapshot()->vkCmdUpdateBuffer(packet, packetLen, &m_pool,
+                                                           commandBuffer, dstBuffer, dstOffset,
+                                                           dataSize, pData);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -7701,13 +7286,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdFillBuffer(unboxed_commandBuffer, dstBuffer, dstOffset, size, data);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdFillBuffer(snapshotTraceBegin, snapshotTraceBytes,
-                                                         &m_pool, commandBuffer, dstBuffer,
-                                                         dstOffset, size, data);
+                    m_state->snapshot()->vkCmdFillBuffer(packet, packetLen, &m_pool, commandBuffer,
+                                                         dstBuffer, dstOffset, size, data);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -7770,13 +7351,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vk->vkCmdClearColorImage(unboxed_commandBuffer, image, imageLayout, pColor,
                                          rangeCount, pRanges);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdClearColorImage(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer, image,
-                        imageLayout, pColor, rangeCount, pRanges);
+                    m_state->snapshot()->vkCmdClearColorImage(packet, packetLen, &m_pool,
+                                                              commandBuffer, image, imageLayout,
+                                                              pColor, rangeCount, pRanges);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -7841,13 +7419,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vk->vkCmdClearDepthStencilImage(unboxed_commandBuffer, image, imageLayout,
                                                 pDepthStencil, rangeCount, pRanges);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCmdClearDepthStencilImage(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer, image,
-                        imageLayout, pDepthStencil, rangeCount, pRanges);
+                        packet, packetLen, &m_pool, commandBuffer, image, imageLayout,
+                        pDepthStencil, rangeCount, pRanges);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -7909,13 +7484,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vk->vkCmdClearAttachments(unboxed_commandBuffer, attachmentCount, pAttachments,
                                           rectCount, pRects);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdClearAttachments(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
-                        attachmentCount, pAttachments, rectCount, pRects);
+                    m_state->snapshot()->vkCmdClearAttachments(packet, packetLen, &m_pool,
+                                                               commandBuffer, attachmentCount,
+                                                               pAttachments, rectCount, pRects);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -7979,13 +7551,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vk->vkCmdResolveImage(unboxed_commandBuffer, srcImage, srcImageLayout, dstImage,
                                       dstImageLayout, regionCount, pRegions);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCmdResolveImage(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer, srcImage,
-                        srcImageLayout, dstImage, dstImageLayout, regionCount, pRegions);
+                        packet, packetLen, &m_pool, commandBuffer, srcImage, srcImageLayout,
+                        dstImage, dstImageLayout, regionCount, pRegions);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -8020,12 +7589,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdSetEvent(unboxed_commandBuffer, event, stageMask);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdSetEvent(snapshotTraceBegin, snapshotTraceBytes,
-                                                       &m_pool, commandBuffer, event, stageMask);
+                    m_state->snapshot()->vkCmdSetEvent(packet, packetLen, &m_pool, commandBuffer,
+                                                       event, stageMask);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -8061,12 +7627,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdResetEvent(unboxed_commandBuffer, event, stageMask);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdResetEvent(snapshotTraceBegin, snapshotTraceBytes,
-                                                         &m_pool, commandBuffer, event, stageMask);
+                    m_state->snapshot()->vkCmdResetEvent(packet, packetLen, &m_pool, commandBuffer,
+                                                         event, stageMask);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -8181,13 +7744,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                     bufferMemoryBarrierCount, pBufferMemoryBarriers,
                                     imageMemoryBarrierCount, pImageMemoryBarriers);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCmdWaitEvents(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer, eventCount,
-                        pEvents, srcStageMask, dstStageMask, memoryBarrierCount, pMemoryBarriers,
+                        packet, packetLen, &m_pool, commandBuffer, eventCount, pEvents,
+                        srcStageMask, dstStageMask, memoryBarrierCount, pMemoryBarriers,
                         bufferMemoryBarrierCount, pBufferMemoryBarriers, imageMemoryBarrierCount,
                         pImageMemoryBarriers);
                 }
@@ -8290,15 +7850,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     memoryBarrierCount, pMemoryBarriers, bufferMemoryBarrierCount,
                     pBufferMemoryBarriers, imageMemoryBarrierCount, pImageMemoryBarriers);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCmdPipelineBarrier(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
-                        srcStageMask, dstStageMask, dependencyFlags, memoryBarrierCount,
-                        pMemoryBarriers, bufferMemoryBarrierCount, pBufferMemoryBarriers,
-                        imageMemoryBarrierCount, pImageMemoryBarriers);
+                        packet, packetLen, &m_pool, commandBuffer, srcStageMask, dstStageMask,
+                        dependencyFlags, memoryBarrierCount, pMemoryBarriers,
+                        bufferMemoryBarrierCount, pBufferMemoryBarriers, imageMemoryBarrierCount,
+                        pImageMemoryBarriers);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -8339,13 +7896,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdBeginQuery(unboxed_commandBuffer, queryPool, query, flags);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdBeginQuery(snapshotTraceBegin, snapshotTraceBytes,
-                                                         &m_pool, commandBuffer, queryPool, query,
-                                                         flags);
+                    m_state->snapshot()->vkCmdBeginQuery(packet, packetLen, &m_pool, commandBuffer,
+                                                         queryPool, query, flags);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -8380,12 +7933,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdEndQuery(unboxed_commandBuffer, queryPool, query);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdEndQuery(snapshotTraceBegin, snapshotTraceBytes,
-                                                       &m_pool, commandBuffer, queryPool, query);
+                    m_state->snapshot()->vkCmdEndQuery(packet, packetLen, &m_pool, commandBuffer,
+                                                       queryPool, query);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -8426,13 +7976,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdResetQueryPool(unboxed_commandBuffer, queryPool, firstQuery, queryCount);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdResetQueryPool(snapshotTraceBegin, snapshotTraceBytes,
-                                                             &m_pool, commandBuffer, queryPool,
-                                                             firstQuery, queryCount);
+                    m_state->snapshot()->vkCmdResetQueryPool(packet, packetLen, &m_pool,
+                                                             commandBuffer, queryPool, firstQuery,
+                                                             queryCount);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -8474,13 +8021,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdWriteTimestamp(unboxed_commandBuffer, pipelineStage, queryPool, query);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdWriteTimestamp(snapshotTraceBegin, snapshotTraceBytes,
-                                                             &m_pool, commandBuffer, pipelineStage,
-                                                             queryPool, query);
+                    m_state->snapshot()->vkCmdWriteTimestamp(
+                        packet, packetLen, &m_pool, commandBuffer, pipelineStage, queryPool, query);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -8539,13 +8082,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vk->vkCmdCopyQueryPoolResults(unboxed_commandBuffer, queryPool, firstQuery,
                                               queryCount, dstBuffer, dstOffset, stride, flags);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCmdCopyQueryPoolResults(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer, queryPool,
-                        firstQuery, queryCount, dstBuffer, dstOffset, stride, flags);
+                        packet, packetLen, &m_pool, commandBuffer, queryPool, firstQuery,
+                        queryCount, dstBuffer, dstOffset, stride, flags);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -8596,13 +8136,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vk->vkCmdPushConstants(unboxed_commandBuffer, layout, stageFlags, offset, size,
                                        pValues);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdPushConstants(snapshotTraceBegin, snapshotTraceBytes,
-                                                            &m_pool, commandBuffer, layout,
-                                                            stageFlags, offset, size, pValues);
+                    m_state->snapshot()->vkCmdPushConstants(packet, packetLen, &m_pool,
+                                                            commandBuffer, layout, stageFlags,
+                                                            offset, size, pValues);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -8639,13 +8176,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 m_state->on_vkCmdBeginRenderPass(&m_pool, commandBuffer, pRenderPassBegin,
                                                  contents);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCmdBeginRenderPass(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
-                        pRenderPassBegin, contents);
+                        packet, packetLen, &m_pool, commandBuffer, pRenderPassBegin, contents);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -8674,12 +8207,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdNextSubpass(unboxed_commandBuffer, contents);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdNextSubpass(snapshotTraceBegin, snapshotTraceBytes,
-                                                          &m_pool, commandBuffer, contents);
+                    m_state->snapshot()->vkCmdNextSubpass(packet, packetLen, &m_pool, commandBuffer,
+                                                          contents);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -8705,12 +8235,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdEndRenderPass(unboxed_commandBuffer);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdEndRenderPass(snapshotTraceBegin, snapshotTraceBytes,
-                                                            &m_pool, commandBuffer);
+                    m_state->snapshot()->vkCmdEndRenderPass(packet, packetLen, &m_pool,
+                                                            commandBuffer);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -8753,13 +8280,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 m_state->on_vkCmdExecuteCommands(&m_pool, commandBuffer, commandBufferCount,
                                                  pCommandBuffers);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdExecuteCommands(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
-                        commandBufferCount, pCommandBuffers);
+                    m_state->snapshot()->vkCmdExecuteCommands(packet, packetLen, &m_pool,
+                                                              commandBuffer, commandBufferCount,
+                                                              pCommandBuffers);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -8792,13 +8316,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write((uint32_t*)pApiVersion, sizeof(uint32_t));
                 vkStream->write(&vkEnumerateInstanceVersion_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkEnumerateInstanceVersion(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkEnumerateInstanceVersion_VkResult_return, pApiVersion);
+                        packet, packetLen, &m_pool, vkEnumerateInstanceVersion_VkResult_return,
+                        pApiVersion);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -8845,13 +8366,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 vkStream->write(&vkBindBufferMemory2_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkBindBufferMemory2(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkBindBufferMemory2_VkResult_return, device, bindInfoCount, pBindInfos);
+                    m_state->snapshot()->vkBindBufferMemory2(packet, packetLen, &m_pool,
+                                                             vkBindBufferMemory2_VkResult_return,
+                                                             device, bindInfoCount, pBindInfos);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -8898,13 +8416,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 vkStream->write(&vkBindImageMemory2_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkBindImageMemory2(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkBindImageMemory2_VkResult_return, device, bindInfoCount, pBindInfos);
+                    m_state->snapshot()->vkBindImageMemory2(packet, packetLen, &m_pool,
+                                                            vkBindImageMemory2_VkResult_return,
+                                                            device, bindInfoCount, pBindInfos);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -8954,13 +8469,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write((VkPeerMemoryFeatureFlags*)pPeerMemoryFeatures,
                                 sizeof(VkPeerMemoryFeatureFlags));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetDeviceGroupPeerMemoryFeatures(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device, heapIndex,
-                        localDeviceIndex, remoteDeviceIndex, pPeerMemoryFeatures);
+                        packet, packetLen, &m_pool, device, heapIndex, localDeviceIndex,
+                        remoteDeviceIndex, pPeerMemoryFeatures);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -8989,12 +8501,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdSetDeviceMask(unboxed_commandBuffer, deviceMask);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdSetDeviceMask(snapshotTraceBegin, snapshotTraceBytes,
-                                                            &m_pool, commandBuffer, deviceMask);
+                    m_state->snapshot()->vkCmdSetDeviceMask(packet, packetLen, &m_pool,
+                                                            commandBuffer, deviceMask);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -9044,13 +8553,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vk->vkCmdDispatchBase(unboxed_commandBuffer, baseGroupX, baseGroupY, baseGroupZ,
                                       groupCountX, groupCountY, groupCountZ);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCmdDispatchBase(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer, baseGroupX,
-                        baseGroupY, baseGroupZ, groupCountX, groupCountY, groupCountZ);
+                        packet, packetLen, &m_pool, commandBuffer, baseGroupX, baseGroupY,
+                        baseGroupZ, groupCountX, groupCountY, groupCountZ);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -9157,14 +8663,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->write(&vkEnumeratePhysicalDeviceGroups_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkEnumeratePhysicalDeviceGroups(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkEnumeratePhysicalDeviceGroups_VkResult_return, instance,
-                        pPhysicalDeviceGroupCount, pPhysicalDeviceGroupProperties);
+                        packet, packetLen, &m_pool, vkEnumeratePhysicalDeviceGroups_VkResult_return,
+                        instance, pPhysicalDeviceGroupCount, pPhysicalDeviceGroupProperties);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -9216,13 +8718,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 marshal_VkMemoryRequirements2(vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                               (VkMemoryRequirements2*)(pMemoryRequirements));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetImageMemoryRequirements2(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device, pInfo,
-                        pMemoryRequirements);
+                        packet, packetLen, &m_pool, device, pInfo, pMemoryRequirements);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -9275,13 +8773,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 marshal_VkMemoryRequirements2(vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                               (VkMemoryRequirements2*)(pMemoryRequirements));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetBufferMemoryRequirements2(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device, pInfo,
-                        pMemoryRequirements);
+                        packet, packetLen, &m_pool, device, pInfo, pMemoryRequirements);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -9394,13 +8888,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetImageSparseMemoryRequirements2(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device, pInfo,
-                        pSparseMemoryRequirementCount, pSparseMemoryRequirements);
+                        packet, packetLen, &m_pool, device, pInfo, pSparseMemoryRequirementCount,
+                        pSparseMemoryRequirements);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -9442,12 +8933,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 marshal_VkPhysicalDeviceFeatures2(vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                   (VkPhysicalDeviceFeatures2*)(pFeatures));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkGetPhysicalDeviceFeatures2(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, physicalDevice, pFeatures);
+                    m_state->snapshot()->vkGetPhysicalDeviceFeatures2(packet, packetLen, &m_pool,
+                                                                      physicalDevice, pFeatures);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -9490,13 +8978,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 marshal_VkPhysicalDeviceProperties2(vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                     (VkPhysicalDeviceProperties2*)(pProperties));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetPhysicalDeviceProperties2(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, physicalDevice,
-                        pProperties);
+                        packet, packetLen, &m_pool, physicalDevice, pProperties);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -9544,13 +9028,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 marshal_VkFormatProperties2(vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                             (VkFormatProperties2*)(pFormatProperties));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetPhysicalDeviceFormatProperties2(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, physicalDevice, format,
-                        pFormatProperties);
+                        packet, packetLen, &m_pool, physicalDevice, format, pFormatProperties);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -9617,12 +9097,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write(&vkGetPhysicalDeviceImageFormatProperties2_VkResult_return,
                                 sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetPhysicalDeviceImageFormatProperties2(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        packet, packetLen, &m_pool,
                         vkGetPhysicalDeviceImageFormatProperties2_VkResult_return, physicalDevice,
                         pImageFormatInfo, pImageFormatProperties);
                 }
@@ -9718,13 +9195,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetPhysicalDeviceQueueFamilyProperties2(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, physicalDevice,
-                        pQueueFamilyPropertyCount, pQueueFamilyProperties);
+                        packet, packetLen, &m_pool, physicalDevice, pQueueFamilyPropertyCount,
+                        pQueueFamilyProperties);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -9770,13 +9244,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                     (VkPhysicalDeviceMemoryProperties2*)(pMemoryProperties));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetPhysicalDeviceMemoryProperties2(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, physicalDevice,
-                        pMemoryProperties);
+                        packet, packetLen, &m_pool, physicalDevice, pMemoryProperties);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -9881,13 +9351,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetPhysicalDeviceSparseImageFormatProperties2(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, physicalDevice,
-                        pFormatInfo, pPropertyCount, pProperties);
+                        packet, packetLen, &m_pool, physicalDevice, pFormatInfo, pPropertyCount,
+                        pProperties);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -9923,12 +9390,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkTrimCommandPool(unboxed_device, commandPool, flags);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkTrimCommandPool(snapshotTraceBegin, snapshotTraceBytes,
-                                                           &m_pool, device, commandPool, flags);
+                    m_state->snapshot()->vkTrimCommandPool(packet, packetLen, &m_pool, device,
+                                                           commandPool, flags);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -9973,12 +9437,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->handleMapping()->mapHandles_VkQueue((VkQueue*)pQueue, 1);
                 vkStream->write((VkQueue*)pQueue, 8 * 1);
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkGetDeviceQueue2(snapshotTraceBegin, snapshotTraceBytes,
-                                                           &m_pool, device, pQueueInfo, pQueue);
+                    m_state->snapshot()->vkGetDeviceQueue2(packet, packetLen, &m_pool, device,
+                                                           pQueueInfo, pQueue);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -10058,14 +9519,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->setHandleMapping(&m_boxedHandleUnwrapMapping);
                 vkStream->write(&vkCreateSamplerYcbcrConversion_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCreateSamplerYcbcrConversion(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkCreateSamplerYcbcrConversion_VkResult_return, device, pCreateInfo,
-                        pAllocator, pYcbcrConversion);
+                        packet, packetLen, &m_pool, vkCreateSamplerYcbcrConversion_VkResult_return,
+                        device, pCreateInfo, pAllocator, pYcbcrConversion);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -10117,13 +9574,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 m_state->on_vkDestroySamplerYcbcrConversion(&m_pool, device, ycbcrConversion,
                                                             pAllocator);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkDestroySamplerYcbcrConversion(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device,
-                        boxed_ycbcrConversion_preserve, pAllocator);
+                        packet, packetLen, &m_pool, device, boxed_ycbcrConversion_preserve,
+                        pAllocator);
                 }
                 delete_VkSamplerYcbcrConversion(boxed_ycbcrConversion_preserve);
                 vkReadStream->clearPool();
@@ -10207,12 +9661,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write(&vkCreateDescriptorUpdateTemplate_VkResult_return,
                                 sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCreateDescriptorUpdateTemplate(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        packet, packetLen, &m_pool,
                         vkCreateDescriptorUpdateTemplate_VkResult_return, device, pCreateInfo,
                         pAllocator, pDescriptorUpdateTemplate);
                 }
@@ -10269,13 +9720,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 m_state->on_vkDestroyDescriptorUpdateTemplate(&m_pool, device,
                                                               descriptorUpdateTemplate, pAllocator);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkDestroyDescriptorUpdateTemplate(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device,
-                        boxed_descriptorUpdateTemplate_preserve, pAllocator);
+                        packet, packetLen, &m_pool, device, boxed_descriptorUpdateTemplate_preserve,
+                        pAllocator);
                 }
                 delete_VkDescriptorUpdateTemplate(boxed_descriptorUpdateTemplate_preserve);
                 vkReadStream->clearPool();
@@ -10329,13 +9777,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vk->vkUpdateDescriptorSetWithTemplate(unboxed_device, descriptorSet,
                                                       descriptorUpdateTemplate, pData);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkUpdateDescriptorSetWithTemplate(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device, descriptorSet,
-                        descriptorUpdateTemplate, pData);
+                        packet, packetLen, &m_pool, device, descriptorSet, descriptorUpdateTemplate,
+                        pData);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -10402,13 +9847,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                     (VkExternalBufferProperties*)(pExternalBufferProperties));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetPhysicalDeviceExternalBufferProperties(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, physicalDevice,
-                        pExternalBufferInfo, pExternalBufferProperties);
+                        packet, packetLen, &m_pool, physicalDevice, pExternalBufferInfo,
+                        pExternalBufferProperties);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -10469,13 +9911,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                     (VkExternalFenceProperties*)(pExternalFenceProperties));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetPhysicalDeviceExternalFenceProperties(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, physicalDevice,
-                        pExternalFenceInfo, pExternalFenceProperties);
+                        packet, packetLen, &m_pool, physicalDevice, pExternalFenceInfo,
+                        pExternalFenceProperties);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -10535,13 +9974,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                     (VkExternalSemaphoreProperties*)(pExternalSemaphoreProperties));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetPhysicalDeviceExternalSemaphoreProperties(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, physicalDevice,
-                        pExternalSemaphoreInfo, pExternalSemaphoreProperties);
+                        packet, packetLen, &m_pool, physicalDevice, pExternalSemaphoreInfo,
+                        pExternalSemaphoreProperties);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -10597,13 +10033,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 marshal_VkDescriptorSetLayoutSupport(vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                      (VkDescriptorSetLayoutSupport*)(pSupport));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetDescriptorSetLayoutSupport(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device, pCreateInfo,
-                        pSupport);
+                        packet, packetLen, &m_pool, device, pCreateInfo, pSupport);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -10659,13 +10091,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vk->vkCmdDrawIndirectCount(unboxed_commandBuffer, buffer, offset, countBuffer,
                                            countBufferOffset, maxDrawCount, stride);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCmdDrawIndirectCount(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer, buffer,
-                        offset, countBuffer, countBufferOffset, maxDrawCount, stride);
+                        packet, packetLen, &m_pool, commandBuffer, buffer, offset, countBuffer,
+                        countBufferOffset, maxDrawCount, stride);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -10720,13 +10149,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                   countBuffer, countBufferOffset, maxDrawCount,
                                                   stride);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCmdDrawIndexedIndirectCount(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer, buffer,
-                        offset, countBuffer, countBufferOffset, maxDrawCount, stride);
+                        packet, packetLen, &m_pool, commandBuffer, buffer, offset, countBuffer,
+                        countBufferOffset, maxDrawCount, stride);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -10799,14 +10225,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->setHandleMapping(&m_boxedHandleUnwrapMapping);
                 vkStream->write(&vkCreateRenderPass2_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCreateRenderPass2(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkCreateRenderPass2_VkResult_return, device, pCreateInfo, pAllocator,
-                        pRenderPass);
+                        packet, packetLen, &m_pool, vkCreateRenderPass2_VkResult_return, device,
+                        pCreateInfo, pAllocator, pRenderPass);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -10850,13 +10272,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 m_state->on_vkCmdBeginRenderPass2(&m_pool, commandBuffer, pRenderPassBegin,
                                                   pSubpassBeginInfo);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdBeginRenderPass2(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
-                        pRenderPassBegin, pSubpassBeginInfo);
+                    m_state->snapshot()->vkCmdBeginRenderPass2(packet, packetLen, &m_pool,
+                                                               commandBuffer, pRenderPassBegin,
+                                                               pSubpassBeginInfo);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -10902,13 +10321,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdNextSubpass2(unboxed_commandBuffer, pSubpassBeginInfo, pSubpassEndInfo);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdNextSubpass2(snapshotTraceBegin, snapshotTraceBytes,
-                                                           &m_pool, commandBuffer,
-                                                           pSubpassBeginInfo, pSubpassEndInfo);
+                    m_state->snapshot()->vkCmdNextSubpass2(packet, packetLen, &m_pool,
+                                                           commandBuffer, pSubpassBeginInfo,
+                                                           pSubpassEndInfo);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -10944,13 +10360,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdEndRenderPass2(unboxed_commandBuffer, pSubpassEndInfo);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdEndRenderPass2(snapshotTraceBegin, snapshotTraceBytes,
-                                                             &m_pool, commandBuffer,
-                                                             pSubpassEndInfo);
+                    m_state->snapshot()->vkCmdEndRenderPass2(packet, packetLen, &m_pool,
+                                                             commandBuffer, pSubpassEndInfo);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -10989,13 +10401,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkResetQueryPool(unboxed_device, queryPool, firstQuery, queryCount);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkResetQueryPool(snapshotTraceBegin, snapshotTraceBytes,
-                                                          &m_pool, device, queryPool, firstQuery,
-                                                          queryCount);
+                    m_state->snapshot()->vkResetQueryPool(packet, packetLen, &m_pool, device,
+                                                          queryPool, firstQuery, queryCount);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -11043,13 +10451,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write((uint64_t*)pValue, sizeof(uint64_t));
                 vkStream->write(&vkGetSemaphoreCounterValue_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetSemaphoreCounterValue(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkGetSemaphoreCounterValue_VkResult_return, device, semaphore, pValue);
+                        packet, packetLen, &m_pool, vkGetSemaphoreCounterValue_VkResult_return,
+                        device, semaphore, pValue);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -11096,13 +10501,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 vkStream->write(&vkWaitSemaphores_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkWaitSemaphores(snapshotTraceBegin, snapshotTraceBytes,
-                                                          &m_pool, vkWaitSemaphores_VkResult_return,
-                                                          device, pWaitInfo, timeout);
+                    m_state->snapshot()->vkWaitSemaphores(packet, packetLen, &m_pool,
+                                                          vkWaitSemaphores_VkResult_return, device,
+                                                          pWaitInfo, timeout);
                 }
                 vkReadStream->clearPool();
                 break;
@@ -11141,13 +10543,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 vkStream->write(&vkSignalSemaphore_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkSignalSemaphore(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkSignalSemaphore_VkResult_return, device, pSignalInfo);
+                    m_state->snapshot()->vkSignalSemaphore(packet, packetLen, &m_pool,
+                                                           vkSignalSemaphore_VkResult_return,
+                                                           device, pSignalInfo);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -11187,13 +10586,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write(&vkGetBufferDeviceAddress_VkDeviceAddress_return,
                                 sizeof(VkDeviceAddress));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetBufferDeviceAddress(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkGetBufferDeviceAddress_VkDeviceAddress_return, device, pInfo);
+                        packet, packetLen, &m_pool, vkGetBufferDeviceAddress_VkDeviceAddress_return,
+                        device, pInfo);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -11232,13 +10628,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 vkStream->write(&vkGetBufferOpaqueCaptureAddress_uint64_t_return, sizeof(uint64_t));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetBufferOpaqueCaptureAddress(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkGetBufferOpaqueCaptureAddress_uint64_t_return, device, pInfo);
+                        packet, packetLen, &m_pool, vkGetBufferOpaqueCaptureAddress_uint64_t_return,
+                        device, pInfo);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -11280,12 +10673,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write(&vkGetDeviceMemoryOpaqueCaptureAddress_uint64_t_return,
                                 sizeof(uint64_t));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetDeviceMemoryOpaqueCaptureAddress(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        packet, packetLen, &m_pool,
                         vkGetDeviceMemoryOpaqueCaptureAddress_uint64_t_return, device, pInfo);
                 }
                 vkReadStream->clearPool();
@@ -11390,12 +10780,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write(&vkGetPhysicalDeviceToolProperties_VkResult_return,
                                 sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetPhysicalDeviceToolProperties(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        packet, packetLen, &m_pool,
                         vkGetPhysicalDeviceToolProperties_VkResult_return, physicalDevice,
                         pToolCount, pToolProperties);
                 }
@@ -11478,14 +10865,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->setHandleMapping(&m_boxedHandleUnwrapMapping);
                 vkStream->write(&vkCreatePrivateDataSlot_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCreatePrivateDataSlot(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkCreatePrivateDataSlot_VkResult_return, device, pCreateInfo, pAllocator,
-                        pPrivateDataSlot);
+                        packet, packetLen, &m_pool, vkCreatePrivateDataSlot_VkResult_return, device,
+                        pCreateInfo, pAllocator, pPrivateDataSlot);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -11537,13 +10920,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkDestroyPrivateDataSlot(unboxed_device, privateDataSlot, pAllocator);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkDestroyPrivateDataSlot(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device,
-                        boxed_privateDataSlot_preserve, pAllocator);
+                        packet, packetLen, &m_pool, device, boxed_privateDataSlot_preserve,
+                        pAllocator);
                 }
                 delete_VkPrivateDataSlot(boxed_privateDataSlot_preserve);
                 vkReadStream->clearPool();
@@ -11595,14 +10975,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 vkStream->write(&vkSetPrivateData_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkSetPrivateData(snapshotTraceBegin, snapshotTraceBytes,
-                                                          &m_pool, vkSetPrivateData_VkResult_return,
-                                                          device, objectType, objectHandle,
-                                                          privateDataSlot, data);
+                    m_state->snapshot()->vkSetPrivateData(
+                        packet, packetLen, &m_pool, vkSetPrivateData_VkResult_return, device,
+                        objectType, objectHandle, privateDataSlot, data);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -11652,13 +11028,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 vkStream->write((uint64_t*)pData, sizeof(uint64_t));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkGetPrivateData(snapshotTraceBegin, snapshotTraceBytes,
-                                                          &m_pool, device, objectType, objectHandle,
-                                                          privateDataSlot, pData);
+                    m_state->snapshot()->vkGetPrivateData(packet, packetLen, &m_pool, device,
+                                                          objectType, objectHandle, privateDataSlot,
+                                                          pData);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -11698,13 +11071,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdSetEvent2(unboxed_commandBuffer, event, pDependencyInfo);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdSetEvent2(snapshotTraceBegin, snapshotTraceBytes,
-                                                        &m_pool, commandBuffer, event,
-                                                        pDependencyInfo);
+                    m_state->snapshot()->vkCmdSetEvent2(packet, packetLen, &m_pool, commandBuffer,
+                                                        event, pDependencyInfo);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -11740,12 +11109,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdResetEvent2(unboxed_commandBuffer, event, stageMask);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdResetEvent2(snapshotTraceBegin, snapshotTraceBytes,
-                                                          &m_pool, commandBuffer, event, stageMask);
+                    m_state->snapshot()->vkCmdResetEvent2(packet, packetLen, &m_pool, commandBuffer,
+                                                          event, stageMask);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -11802,13 +11168,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdWaitEvents2(unboxed_commandBuffer, eventCount, pEvents, pDependencyInfos);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdWaitEvents2(snapshotTraceBegin, snapshotTraceBytes,
-                                                          &m_pool, commandBuffer, eventCount,
-                                                          pEvents, pDependencyInfos);
+                    m_state->snapshot()->vkCmdWaitEvents2(packet, packetLen, &m_pool, commandBuffer,
+                                                          eventCount, pEvents, pDependencyInfos);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -11841,12 +11203,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 m_state->on_vkCmdPipelineBarrier2(&m_pool, commandBuffer, pDependencyInfo);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdPipelineBarrier2(snapshotTraceBegin,
-                                                               snapshotTraceBytes, &m_pool,
+                    m_state->snapshot()->vkCmdPipelineBarrier2(packet, packetLen, &m_pool,
                                                                commandBuffer, pDependencyInfo);
                 }
                 vkReadStream->clearPool();
@@ -11888,13 +11246,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdWriteTimestamp2(unboxed_commandBuffer, stage, queryPool, query);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCmdWriteTimestamp2(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer, stage,
-                        queryPool, query);
+                        packet, packetLen, &m_pool, commandBuffer, stage, queryPool, query);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -11944,13 +11298,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 vkStream->write(&vkQueueSubmit2_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkQueueSubmit2(snapshotTraceBegin, snapshotTraceBytes,
-                                                        &m_pool, vkQueueSubmit2_VkResult_return,
-                                                        queue, submitCount, pSubmits, fence);
+                    m_state->snapshot()->vkQueueSubmit2(packet, packetLen, &m_pool,
+                                                        vkQueueSubmit2_VkResult_return, queue,
+                                                        submitCount, pSubmits, fence);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -11985,12 +11336,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdCopyBuffer2(unboxed_commandBuffer, pCopyBufferInfo);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdCopyBuffer2(snapshotTraceBegin, snapshotTraceBytes,
-                                                          &m_pool, commandBuffer, pCopyBufferInfo);
+                    m_state->snapshot()->vkCmdCopyBuffer2(packet, packetLen, &m_pool, commandBuffer,
+                                                          pCopyBufferInfo);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -12021,12 +11369,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 m_state->on_vkCmdCopyImage2(&m_pool, commandBuffer, pCopyImageInfo);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdCopyImage2(snapshotTraceBegin, snapshotTraceBytes,
-                                                         &m_pool, commandBuffer, pCopyImageInfo);
+                    m_state->snapshot()->vkCmdCopyImage2(packet, packetLen, &m_pool, commandBuffer,
+                                                         pCopyImageInfo);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -12061,13 +11406,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 m_state->on_vkCmdCopyBufferToImage2(&m_pool, commandBuffer, pCopyBufferToImageInfo,
                                                     context);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCmdCopyBufferToImage2(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
-                        pCopyBufferToImageInfo);
+                        packet, packetLen, &m_pool, commandBuffer, pCopyBufferToImageInfo);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -12101,13 +11442,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 m_state->on_vkCmdCopyImageToBuffer2(&m_pool, commandBuffer, pCopyImageToBufferInfo);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCmdCopyImageToBuffer2(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
-                        pCopyImageToBufferInfo);
+                        packet, packetLen, &m_pool, commandBuffer, pCopyImageToBufferInfo);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -12141,12 +11478,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdBlitImage2(unboxed_commandBuffer, pBlitImageInfo);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdBlitImage2(snapshotTraceBegin, snapshotTraceBytes,
-                                                         &m_pool, commandBuffer, pBlitImageInfo);
+                    m_state->snapshot()->vkCmdBlitImage2(packet, packetLen, &m_pool, commandBuffer,
+                                                         pBlitImageInfo);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -12182,13 +11516,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdResolveImage2(unboxed_commandBuffer, pResolveImageInfo);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdResolveImage2(snapshotTraceBegin, snapshotTraceBytes,
-                                                            &m_pool, commandBuffer,
-                                                            pResolveImageInfo);
+                    m_state->snapshot()->vkCmdResolveImage2(packet, packetLen, &m_pool,
+                                                            commandBuffer, pResolveImageInfo);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -12223,13 +11553,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdBeginRendering(unboxed_commandBuffer, pRenderingInfo);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdBeginRendering(snapshotTraceBegin, snapshotTraceBytes,
-                                                             &m_pool, commandBuffer,
-                                                             pRenderingInfo);
+                    m_state->snapshot()->vkCmdBeginRendering(packet, packetLen, &m_pool,
+                                                             commandBuffer, pRenderingInfo);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -12255,12 +11581,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdEndRendering(unboxed_commandBuffer);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdEndRendering(snapshotTraceBegin, snapshotTraceBytes,
-                                                           &m_pool, commandBuffer);
+                    m_state->snapshot()->vkCmdEndRendering(packet, packetLen, &m_pool,
+                                                           commandBuffer);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -12289,12 +11612,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdSetCullMode(unboxed_commandBuffer, cullMode);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdSetCullMode(snapshotTraceBegin, snapshotTraceBytes,
-                                                          &m_pool, commandBuffer, cullMode);
+                    m_state->snapshot()->vkCmdSetCullMode(packet, packetLen, &m_pool, commandBuffer,
+                                                          cullMode);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -12323,12 +11643,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdSetFrontFace(unboxed_commandBuffer, frontFace);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdSetFrontFace(snapshotTraceBegin, snapshotTraceBytes,
-                                                           &m_pool, commandBuffer, frontFace);
+                    m_state->snapshot()->vkCmdSetFrontFace(packet, packetLen, &m_pool,
+                                                           commandBuffer, frontFace);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -12359,13 +11676,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdSetPrimitiveTopology(unboxed_commandBuffer, primitiveTopology);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCmdSetPrimitiveTopology(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
-                        primitiveTopology);
+                        packet, packetLen, &m_pool, commandBuffer, primitiveTopology);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -12408,13 +11721,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdSetViewportWithCount(unboxed_commandBuffer, viewportCount, pViewports);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCmdSetViewportWithCount(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
-                        viewportCount, pViewports);
+                        packet, packetLen, &m_pool, commandBuffer, viewportCount, pViewports);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -12456,13 +11765,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdSetScissorWithCount(unboxed_commandBuffer, scissorCount, pScissors);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCmdSetScissorWithCount(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
-                        scissorCount, pScissors);
+                        packet, packetLen, &m_pool, commandBuffer, scissorCount, pScissors);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -12550,13 +11855,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vk->vkCmdBindVertexBuffers2(unboxed_commandBuffer, firstBinding, bindingCount,
                                             pBuffers, pOffsets, pSizes, pStrides);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCmdBindVertexBuffers2(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
-                        firstBinding, bindingCount, pBuffers, pOffsets, pSizes, pStrides);
+                        packet, packetLen, &m_pool, commandBuffer, firstBinding, bindingCount,
+                        pBuffers, pOffsets, pSizes, pStrides);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -12586,12 +11888,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdSetDepthTestEnable(unboxed_commandBuffer, depthTestEnable);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdSetDepthTestEnable(snapshotTraceBegin,
-                                                                 snapshotTraceBytes, &m_pool,
+                    m_state->snapshot()->vkCmdSetDepthTestEnable(packet, packetLen, &m_pool,
                                                                  commandBuffer, depthTestEnable);
                 }
                 vkReadStream->clearPool();
@@ -12622,12 +11920,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdSetDepthWriteEnable(unboxed_commandBuffer, depthWriteEnable);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdSetDepthWriteEnable(snapshotTraceBegin,
-                                                                  snapshotTraceBytes, &m_pool,
+                    m_state->snapshot()->vkCmdSetDepthWriteEnable(packet, packetLen, &m_pool,
                                                                   commandBuffer, depthWriteEnable);
                 }
                 vkReadStream->clearPool();
@@ -12658,12 +11952,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdSetDepthCompareOp(unboxed_commandBuffer, depthCompareOp);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdSetDepthCompareOp(snapshotTraceBegin,
-                                                                snapshotTraceBytes, &m_pool,
+                    m_state->snapshot()->vkCmdSetDepthCompareOp(packet, packetLen, &m_pool,
                                                                 commandBuffer, depthCompareOp);
                 }
                 vkReadStream->clearPool();
@@ -12695,13 +11985,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdSetDepthBoundsTestEnable(unboxed_commandBuffer, depthBoundsTestEnable);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCmdSetDepthBoundsTestEnable(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
-                        depthBoundsTestEnable);
+                        packet, packetLen, &m_pool, commandBuffer, depthBoundsTestEnable);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -12731,13 +12017,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdSetStencilTestEnable(unboxed_commandBuffer, stencilTestEnable);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCmdSetStencilTestEnable(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
-                        stencilTestEnable);
+                        packet, packetLen, &m_pool, commandBuffer, stencilTestEnable);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -12785,13 +12067,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vk->vkCmdSetStencilOp(unboxed_commandBuffer, faceMask, failOp, passOp, depthFailOp,
                                       compareOp);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdSetStencilOp(snapshotTraceBegin, snapshotTraceBytes,
-                                                           &m_pool, commandBuffer, faceMask, failOp,
-                                                           passOp, depthFailOp, compareOp);
+                    m_state->snapshot()->vkCmdSetStencilOp(packet, packetLen, &m_pool,
+                                                           commandBuffer, faceMask, failOp, passOp,
+                                                           depthFailOp, compareOp);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -12822,13 +12101,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdSetRasterizerDiscardEnable(unboxed_commandBuffer, rasterizerDiscardEnable);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCmdSetRasterizerDiscardEnable(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
-                        rasterizerDiscardEnable);
+                        packet, packetLen, &m_pool, commandBuffer, rasterizerDiscardEnable);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -12858,12 +12133,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdSetDepthBiasEnable(unboxed_commandBuffer, depthBiasEnable);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdSetDepthBiasEnable(snapshotTraceBegin,
-                                                                 snapshotTraceBytes, &m_pool,
+                    m_state->snapshot()->vkCmdSetDepthBiasEnable(packet, packetLen, &m_pool,
                                                                  commandBuffer, depthBiasEnable);
                 }
                 vkReadStream->clearPool();
@@ -12895,13 +12166,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdSetPrimitiveRestartEnable(unboxed_commandBuffer, primitiveRestartEnable);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCmdSetPrimitiveRestartEnable(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
-                        primitiveRestartEnable);
+                        packet, packetLen, &m_pool, commandBuffer, primitiveRestartEnable);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -12956,13 +12223,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 marshal_VkMemoryRequirements2(vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                               (VkMemoryRequirements2*)(pMemoryRequirements));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetDeviceBufferMemoryRequirements(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device, pInfo,
-                        pMemoryRequirements);
+                        packet, packetLen, &m_pool, device, pInfo, pMemoryRequirements);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -13017,13 +12280,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 marshal_VkMemoryRequirements2(vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                               (VkMemoryRequirements2*)(pMemoryRequirements));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetDeviceImageMemoryRequirements(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device, pInfo,
-                        pMemoryRequirements);
+                        packet, packetLen, &m_pool, device, pInfo, pMemoryRequirements);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -13135,13 +12394,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetDeviceImageSparseMemoryRequirements(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device, pInfo,
-                        pSparseMemoryRequirementCount, pSparseMemoryRequirements);
+                        packet, packetLen, &m_pool, device, pInfo, pSparseMemoryRequirementCount,
+                        pSparseMemoryRequirements);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -13221,14 +12477,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->setHandleMapping(&m_boxedHandleUnwrapMapping);
                 vkStream->write(&vkCreateSwapchainKHR_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCreateSwapchainKHR(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkCreateSwapchainKHR_VkResult_return, device, pCreateInfo, pAllocator,
-                        pSwapchain);
+                        packet, packetLen, &m_pool, vkCreateSwapchainKHR_VkResult_return, device,
+                        pCreateInfo, pAllocator, pSwapchain);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -13279,13 +12531,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkDestroySwapchainKHR(unboxed_device, swapchain, pAllocator);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkDestroySwapchainKHR(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device,
-                        boxed_swapchain_preserve, pAllocator);
+                        packet, packetLen, &m_pool, device, boxed_swapchain_preserve, pAllocator);
                 }
                 delete_VkSwapchainKHR(boxed_swapchain_preserve);
                 vkReadStream->clearPool();
@@ -13382,14 +12630,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->write(&vkGetSwapchainImagesKHR_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetSwapchainImagesKHR(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkGetSwapchainImagesKHR_VkResult_return, device, swapchain,
-                        pSwapchainImageCount, pSwapchainImages);
+                        packet, packetLen, &m_pool, vkGetSwapchainImagesKHR_VkResult_return, device,
+                        swapchain, pSwapchainImageCount, pSwapchainImages);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -13453,14 +12697,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write((uint32_t*)pImageIndex, sizeof(uint32_t));
                 vkStream->write(&vkAcquireNextImageKHR_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkAcquireNextImageKHR(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkAcquireNextImageKHR_VkResult_return, device, swapchain, timeout,
-                        semaphore, fence, pImageIndex);
+                        packet, packetLen, &m_pool, vkAcquireNextImageKHR_VkResult_return, device,
+                        swapchain, timeout, semaphore, fence, pImageIndex);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -13497,13 +12737,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 vkStream->write(&vkQueuePresentKHR_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkQueuePresentKHR(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkQueuePresentKHR_VkResult_return, queue, pPresentInfo);
+                    m_state->snapshot()->vkQueuePresentKHR(packet, packetLen, &m_pool,
+                                                           vkQueuePresentKHR_VkResult_return, queue,
+                                                           pPresentInfo);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -13564,12 +12801,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write(&vkGetDeviceGroupPresentCapabilitiesKHR_VkResult_return,
                                 sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetDeviceGroupPresentCapabilitiesKHR(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        packet, packetLen, &m_pool,
                         vkGetDeviceGroupPresentCapabilitiesKHR_VkResult_return, device,
                         pDeviceGroupPresentCapabilities);
                 }
@@ -13635,12 +12869,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write(&vkGetDeviceGroupSurfacePresentModesKHR_VkResult_return,
                                 sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetDeviceGroupSurfacePresentModesKHR(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        packet, packetLen, &m_pool,
                         vkGetDeviceGroupSurfacePresentModesKHR_VkResult_return, device, surface,
                         pModes);
                 }
@@ -13746,12 +12977,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write(&vkGetPhysicalDevicePresentRectanglesKHR_VkResult_return,
                                 sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetPhysicalDevicePresentRectanglesKHR(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        packet, packetLen, &m_pool,
                         vkGetPhysicalDevicePresentRectanglesKHR_VkResult_return, physicalDevice,
                         surface, pRectCount, pRects);
                 }
@@ -13804,13 +13032,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write((uint32_t*)pImageIndex, sizeof(uint32_t));
                 vkStream->write(&vkAcquireNextImage2KHR_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkAcquireNextImage2KHR(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkAcquireNextImage2KHR_VkResult_return, device, pAcquireInfo, pImageIndex);
+                        packet, packetLen, &m_pool, vkAcquireNextImage2KHR_VkResult_return, device,
+                        pAcquireInfo, pImageIndex);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -13847,12 +13072,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdBeginRenderingKHR(unboxed_commandBuffer, pRenderingInfo);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdBeginRenderingKHR(snapshotTraceBegin,
-                                                                snapshotTraceBytes, &m_pool,
+                    m_state->snapshot()->vkCmdBeginRenderingKHR(packet, packetLen, &m_pool,
                                                                 commandBuffer, pRenderingInfo);
                 }
                 vkReadStream->clearPool();
@@ -13879,12 +13100,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdEndRenderingKHR(unboxed_commandBuffer);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdEndRenderingKHR(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer);
+                    m_state->snapshot()->vkCmdEndRenderingKHR(packet, packetLen, &m_pool,
+                                                              commandBuffer);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -13929,12 +13147,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 marshal_VkPhysicalDeviceFeatures2(vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                   (VkPhysicalDeviceFeatures2*)(pFeatures));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkGetPhysicalDeviceFeatures2KHR(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, physicalDevice, pFeatures);
+                    m_state->snapshot()->vkGetPhysicalDeviceFeatures2KHR(packet, packetLen, &m_pool,
+                                                                         physicalDevice, pFeatures);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -13977,13 +13192,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 marshal_VkPhysicalDeviceProperties2(vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                     (VkPhysicalDeviceProperties2*)(pProperties));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetPhysicalDeviceProperties2KHR(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, physicalDevice,
-                        pProperties);
+                        packet, packetLen, &m_pool, physicalDevice, pProperties);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -14031,13 +13242,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 marshal_VkFormatProperties2(vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                             (VkFormatProperties2*)(pFormatProperties));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetPhysicalDeviceFormatProperties2KHR(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, physicalDevice, format,
-                        pFormatProperties);
+                        packet, packetLen, &m_pool, physicalDevice, format, pFormatProperties);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -14104,12 +13311,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write(&vkGetPhysicalDeviceImageFormatProperties2KHR_VkResult_return,
                                 sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetPhysicalDeviceImageFormatProperties2KHR(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        packet, packetLen, &m_pool,
                         vkGetPhysicalDeviceImageFormatProperties2KHR_VkResult_return,
                         physicalDevice, pImageFormatInfo, pImageFormatProperties);
                 }
@@ -14208,13 +13412,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetPhysicalDeviceQueueFamilyProperties2KHR(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, physicalDevice,
-                        pQueueFamilyPropertyCount, pQueueFamilyProperties);
+                        packet, packetLen, &m_pool, physicalDevice, pQueueFamilyPropertyCount,
+                        pQueueFamilyProperties);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -14261,13 +13462,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                     (VkPhysicalDeviceMemoryProperties2*)(pMemoryProperties));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetPhysicalDeviceMemoryProperties2KHR(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, physicalDevice,
-                        pMemoryProperties);
+                        packet, packetLen, &m_pool, physicalDevice, pMemoryProperties);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -14373,13 +13570,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetPhysicalDeviceSparseImageFormatProperties2KHR(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, physicalDevice,
-                        pFormatInfo, pPropertyCount, pProperties);
+                        packet, packetLen, &m_pool, physicalDevice, pFormatInfo, pPropertyCount,
+                        pProperties);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -14417,12 +13611,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkTrimCommandPoolKHR(unboxed_device, commandPool, flags);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkTrimCommandPoolKHR(snapshotTraceBegin,
-                                                              snapshotTraceBytes, &m_pool, device,
+                    m_state->snapshot()->vkTrimCommandPoolKHR(packet, packetLen, &m_pool, device,
                                                               commandPool, flags);
                 }
                 vkReadStream->clearPool();
@@ -14492,13 +13682,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                     (VkExternalBufferProperties*)(pExternalBufferProperties));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetPhysicalDeviceExternalBufferPropertiesKHR(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, physicalDevice,
-                        pExternalBufferInfo, pExternalBufferProperties);
+                        packet, packetLen, &m_pool, physicalDevice, pExternalBufferInfo,
+                        pExternalBufferProperties);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -14561,13 +13748,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                     (VkExternalSemaphoreProperties*)(pExternalSemaphoreProperties));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetPhysicalDeviceExternalSemaphorePropertiesKHR(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, physicalDevice,
-                        pExternalSemaphoreInfo, pExternalSemaphoreProperties);
+                        packet, packetLen, &m_pool, physicalDevice, pExternalSemaphoreInfo,
+                        pExternalSemaphoreProperties);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -14610,13 +13794,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 vkStream->write(&vkImportSemaphoreFdKHR_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkImportSemaphoreFdKHR(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkImportSemaphoreFdKHR_VkResult_return, device, pImportSemaphoreFdInfo);
+                        packet, packetLen, &m_pool, vkImportSemaphoreFdKHR_VkResult_return, device,
+                        pImportSemaphoreFdInfo);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -14662,13 +13843,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write((int*)pFd, sizeof(int));
                 vkStream->write(&vkGetSemaphoreFdKHR_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkGetSemaphoreFdKHR(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkGetSemaphoreFdKHR_VkResult_return, device, pGetFdInfo, pFd);
+                    m_state->snapshot()->vkGetSemaphoreFdKHR(packet, packetLen, &m_pool,
+                                                             vkGetSemaphoreFdKHR_VkResult_return,
+                                                             device, pGetFdInfo, pFd);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -14753,12 +13931,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write(&vkCreateDescriptorUpdateTemplateKHR_VkResult_return,
                                 sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCreateDescriptorUpdateTemplateKHR(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        packet, packetLen, &m_pool,
                         vkCreateDescriptorUpdateTemplateKHR_VkResult_return, device, pCreateInfo,
                         pAllocator, pDescriptorUpdateTemplate);
                 }
@@ -14815,13 +13990,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 m_state->on_vkDestroyDescriptorUpdateTemplateKHR(
                     &m_pool, device, descriptorUpdateTemplate, pAllocator);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkDestroyDescriptorUpdateTemplateKHR(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device,
-                        boxed_descriptorUpdateTemplate_preserve, pAllocator);
+                        packet, packetLen, &m_pool, device, boxed_descriptorUpdateTemplate_preserve,
+                        pAllocator);
                 }
                 delete_VkDescriptorUpdateTemplate(boxed_descriptorUpdateTemplate_preserve);
                 vkReadStream->clearPool();
@@ -14875,13 +14047,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vk->vkUpdateDescriptorSetWithTemplateKHR(unboxed_device, descriptorSet,
                                                          descriptorUpdateTemplate, pData);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkUpdateDescriptorSetWithTemplateKHR(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device, descriptorSet,
-                        descriptorUpdateTemplate, pData);
+                        packet, packetLen, &m_pool, device, descriptorSet, descriptorUpdateTemplate,
+                        pData);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -14957,14 +14126,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->setHandleMapping(&m_boxedHandleUnwrapMapping);
                 vkStream->write(&vkCreateRenderPass2KHR_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCreateRenderPass2KHR(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkCreateRenderPass2KHR_VkResult_return, device, pCreateInfo, pAllocator,
-                        pRenderPass);
+                        packet, packetLen, &m_pool, vkCreateRenderPass2KHR_VkResult_return, device,
+                        pCreateInfo, pAllocator, pRenderPass);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -15009,13 +14174,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 m_state->on_vkCmdBeginRenderPass2KHR(&m_pool, commandBuffer, pRenderPassBegin,
                                                      pSubpassBeginInfo);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdBeginRenderPass2KHR(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
-                        pRenderPassBegin, pSubpassBeginInfo);
+                    m_state->snapshot()->vkCmdBeginRenderPass2KHR(packet, packetLen, &m_pool,
+                                                                  commandBuffer, pRenderPassBegin,
+                                                                  pSubpassBeginInfo);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -15061,13 +14223,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdNextSubpass2KHR(unboxed_commandBuffer, pSubpassBeginInfo, pSubpassEndInfo);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdNextSubpass2KHR(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
-                        pSubpassBeginInfo, pSubpassEndInfo);
+                    m_state->snapshot()->vkCmdNextSubpass2KHR(packet, packetLen, &m_pool,
+                                                              commandBuffer, pSubpassBeginInfo,
+                                                              pSubpassEndInfo);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -15103,12 +14262,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdEndRenderPass2KHR(unboxed_commandBuffer, pSubpassEndInfo);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdEndRenderPass2KHR(snapshotTraceBegin,
-                                                                snapshotTraceBytes, &m_pool,
+                    m_state->snapshot()->vkCmdEndRenderPass2KHR(packet, packetLen, &m_pool,
                                                                 commandBuffer, pSubpassEndInfo);
                 }
                 vkReadStream->clearPool();
@@ -15172,13 +14327,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                     (VkExternalFenceProperties*)(pExternalFenceProperties));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetPhysicalDeviceExternalFencePropertiesKHR(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, physicalDevice,
-                        pExternalFenceInfo, pExternalFenceProperties);
+                        packet, packetLen, &m_pool, physicalDevice, pExternalFenceInfo,
+                        pExternalFenceProperties);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -15222,13 +14374,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 vkStream->write(&vkImportFenceFdKHR_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkImportFenceFdKHR(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkImportFenceFdKHR_VkResult_return, device, pImportFenceFdInfo);
+                    m_state->snapshot()->vkImportFenceFdKHR(packet, packetLen, &m_pool,
+                                                            vkImportFenceFdKHR_VkResult_return,
+                                                            device, pImportFenceFdInfo);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -15277,13 +14426,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write((int*)pFd, sizeof(int));
                 vkStream->write(&vkGetFenceFdKHR_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkGetFenceFdKHR(snapshotTraceBegin, snapshotTraceBytes,
-                                                         &m_pool, vkGetFenceFdKHR_VkResult_return,
-                                                         device, pGetFdInfo, pFd);
+                    m_state->snapshot()->vkGetFenceFdKHR(packet, packetLen, &m_pool,
+                                                         vkGetFenceFdKHR_VkResult_return, device,
+                                                         pGetFdInfo, pFd);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -15338,13 +14484,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 marshal_VkMemoryRequirements2(vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                               (VkMemoryRequirements2*)(pMemoryRequirements));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetImageMemoryRequirements2KHR(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device, pInfo,
-                        pMemoryRequirements);
+                        packet, packetLen, &m_pool, device, pInfo, pMemoryRequirements);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -15397,13 +14539,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 marshal_VkMemoryRequirements2(vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                               (VkMemoryRequirements2*)(pMemoryRequirements));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetBufferMemoryRequirements2KHR(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device, pInfo,
-                        pMemoryRequirements);
+                        packet, packetLen, &m_pool, device, pInfo, pMemoryRequirements);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -15516,13 +14654,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetImageSparseMemoryRequirements2KHR(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device, pInfo,
-                        pSparseMemoryRequirementCount, pSparseMemoryRequirements);
+                        packet, packetLen, &m_pool, device, pInfo, pSparseMemoryRequirementCount,
+                        pSparseMemoryRequirements);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -15605,12 +14740,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write(&vkCreateSamplerYcbcrConversionKHR_VkResult_return,
                                 sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCreateSamplerYcbcrConversionKHR(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        packet, packetLen, &m_pool,
                         vkCreateSamplerYcbcrConversionKHR_VkResult_return, device, pCreateInfo,
                         pAllocator, pYcbcrConversion);
                 }
@@ -15664,13 +14796,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 m_state->on_vkDestroySamplerYcbcrConversionKHR(&m_pool, device, ycbcrConversion,
                                                                pAllocator);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkDestroySamplerYcbcrConversionKHR(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device,
-                        boxed_ycbcrConversion_preserve, pAllocator);
+                        packet, packetLen, &m_pool, device, boxed_ycbcrConversion_preserve,
+                        pAllocator);
                 }
                 delete_VkSamplerYcbcrConversion(boxed_ycbcrConversion_preserve);
                 vkReadStream->clearPool();
@@ -15722,13 +14851,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 vkStream->write(&vkBindBufferMemory2KHR_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkBindBufferMemory2KHR(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkBindBufferMemory2KHR_VkResult_return, device, bindInfoCount, pBindInfos);
+                        packet, packetLen, &m_pool, vkBindBufferMemory2KHR_VkResult_return, device,
+                        bindInfoCount, pBindInfos);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -15776,13 +14902,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 vkStream->write(&vkBindImageMemory2KHR_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkBindImageMemory2KHR(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkBindImageMemory2KHR_VkResult_return, device, bindInfoCount, pBindInfos);
+                        packet, packetLen, &m_pool, vkBindImageMemory2KHR_VkResult_return, device,
+                        bindInfoCount, pBindInfos);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -15840,13 +14963,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 marshal_VkDescriptorSetLayoutSupport(vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                      (VkDescriptorSetLayoutSupport*)(pSupport));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetDescriptorSetLayoutSupportKHR(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device, pCreateInfo,
-                        pSupport);
+                        packet, packetLen, &m_pool, device, pCreateInfo, pSupport);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -15888,12 +15007,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write(&vkGetBufferDeviceAddressKHR_VkDeviceAddress_return,
                                 sizeof(VkDeviceAddress));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetBufferDeviceAddressKHR(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        packet, packetLen, &m_pool,
                         vkGetBufferDeviceAddressKHR_VkDeviceAddress_return, device, pInfo);
                 }
                 vkReadStream->clearPool();
@@ -15934,12 +15050,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write(&vkGetBufferOpaqueCaptureAddressKHR_uint64_t_return,
                                 sizeof(uint64_t));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetBufferOpaqueCaptureAddressKHR(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        packet, packetLen, &m_pool,
                         vkGetBufferOpaqueCaptureAddressKHR_uint64_t_return, device, pInfo);
                 }
                 vkReadStream->clearPool();
@@ -15982,12 +15095,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write(&vkGetDeviceMemoryOpaqueCaptureAddressKHR_uint64_t_return,
                                 sizeof(uint64_t));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetDeviceMemoryOpaqueCaptureAddressKHR(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        packet, packetLen, &m_pool,
                         vkGetDeviceMemoryOpaqueCaptureAddressKHR_uint64_t_return, device, pInfo);
                 }
                 vkReadStream->clearPool();
@@ -16101,12 +15211,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write(&vkGetPipelineExecutablePropertiesKHR_VkResult_return,
                                 sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetPipelineExecutablePropertiesKHR(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        packet, packetLen, &m_pool,
                         vkGetPipelineExecutablePropertiesKHR_VkResult_return, device, pPipelineInfo,
                         pExecutableCount, pProperties);
                 }
@@ -16220,12 +15327,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write(&vkGetPipelineExecutableStatisticsKHR_VkResult_return,
                                 sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetPipelineExecutableStatisticsKHR(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        packet, packetLen, &m_pool,
                         vkGetPipelineExecutableStatisticsKHR_VkResult_return, device,
                         pExecutableInfo, pStatisticCount, pStatistics);
                 }
@@ -16354,12 +15458,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write(&vkGetPipelineExecutableInternalRepresentationsKHR_VkResult_return,
                                 sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetPipelineExecutableInternalRepresentationsKHR(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        packet, packetLen, &m_pool,
                         vkGetPipelineExecutableInternalRepresentationsKHR_VkResult_return, device,
                         pExecutableInfo, pInternalRepresentationCount, pInternalRepresentations);
                 }
@@ -16404,13 +15505,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdSetEvent2KHR(unboxed_commandBuffer, event, pDependencyInfo);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdSetEvent2KHR(snapshotTraceBegin, snapshotTraceBytes,
-                                                           &m_pool, commandBuffer, event,
-                                                           pDependencyInfo);
+                    m_state->snapshot()->vkCmdSetEvent2KHR(packet, packetLen, &m_pool,
+                                                           commandBuffer, event, pDependencyInfo);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -16446,13 +15543,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdResetEvent2KHR(unboxed_commandBuffer, event, stageMask);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdResetEvent2KHR(snapshotTraceBegin, snapshotTraceBytes,
-                                                             &m_pool, commandBuffer, event,
-                                                             stageMask);
+                    m_state->snapshot()->vkCmdResetEvent2KHR(packet, packetLen, &m_pool,
+                                                             commandBuffer, event, stageMask);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -16511,13 +15604,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vk->vkCmdWaitEvents2KHR(unboxed_commandBuffer, eventCount, pEvents,
                                         pDependencyInfos);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdWaitEvents2KHR(snapshotTraceBegin, snapshotTraceBytes,
-                                                             &m_pool, commandBuffer, eventCount,
-                                                             pEvents, pDependencyInfos);
+                    m_state->snapshot()->vkCmdWaitEvents2KHR(packet, packetLen, &m_pool,
+                                                             commandBuffer, eventCount, pEvents,
+                                                             pDependencyInfos);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -16553,12 +15643,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdPipelineBarrier2KHR(unboxed_commandBuffer, pDependencyInfo);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdPipelineBarrier2KHR(snapshotTraceBegin,
-                                                                  snapshotTraceBytes, &m_pool,
+                    m_state->snapshot()->vkCmdPipelineBarrier2KHR(packet, packetLen, &m_pool,
                                                                   commandBuffer, pDependencyInfo);
                 }
                 vkReadStream->clearPool();
@@ -16601,13 +15687,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdWriteTimestamp2KHR(unboxed_commandBuffer, stage, queryPool, query);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCmdWriteTimestamp2KHR(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer, stage,
-                        queryPool, query);
+                        packet, packetLen, &m_pool, commandBuffer, stage, queryPool, query);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -16662,13 +15744,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 vkStream->write(&vkQueueSubmit2KHR_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkQueueSubmit2KHR(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkQueueSubmit2KHR_VkResult_return, queue, submitCount, pSubmits, fence);
+                    m_state->snapshot()->vkQueueSubmit2KHR(packet, packetLen, &m_pool,
+                                                           vkQueueSubmit2KHR_VkResult_return, queue,
+                                                           submitCount, pSubmits, fence);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -16714,13 +15793,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vk->vkCmdWriteBufferMarker2AMD(unboxed_commandBuffer, stage, dstBuffer, dstOffset,
                                                marker);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdWriteBufferMarker2AMD(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer, stage,
-                        dstBuffer, dstOffset, marker);
+                    m_state->snapshot()->vkCmdWriteBufferMarker2AMD(packet, packetLen, &m_pool,
+                                                                    commandBuffer, stage, dstBuffer,
+                                                                    dstOffset, marker);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -16812,13 +15888,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetQueueCheckpointData2NV(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, queue,
-                        pCheckpointDataCount, pCheckpointData);
+                        packet, packetLen, &m_pool, queue, pCheckpointDataCount, pCheckpointData);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -16856,13 +15928,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdCopyBuffer2KHR(unboxed_commandBuffer, pCopyBufferInfo);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdCopyBuffer2KHR(snapshotTraceBegin, snapshotTraceBytes,
-                                                             &m_pool, commandBuffer,
-                                                             pCopyBufferInfo);
+                    m_state->snapshot()->vkCmdCopyBuffer2KHR(packet, packetLen, &m_pool,
+                                                             commandBuffer, pCopyBufferInfo);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -16893,12 +15961,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 m_state->on_vkCmdCopyImage2KHR(&m_pool, commandBuffer, pCopyImageInfo);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdCopyImage2KHR(snapshotTraceBegin, snapshotTraceBytes,
-                                                            &m_pool, commandBuffer, pCopyImageInfo);
+                    m_state->snapshot()->vkCmdCopyImage2KHR(packet, packetLen, &m_pool,
+                                                            commandBuffer, pCopyImageInfo);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -16933,13 +15998,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 m_state->on_vkCmdCopyBufferToImage2KHR(&m_pool, commandBuffer,
                                                        pCopyBufferToImageInfo, context);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCmdCopyBufferToImage2KHR(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
-                        pCopyBufferToImageInfo);
+                        packet, packetLen, &m_pool, commandBuffer, pCopyBufferToImageInfo);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -16974,13 +16035,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 m_state->on_vkCmdCopyImageToBuffer2KHR(&m_pool, commandBuffer,
                                                        pCopyImageToBufferInfo);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCmdCopyImageToBuffer2KHR(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
-                        pCopyImageToBufferInfo);
+                        packet, packetLen, &m_pool, commandBuffer, pCopyImageToBufferInfo);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -17014,12 +16071,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdBlitImage2KHR(unboxed_commandBuffer, pBlitImageInfo);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdBlitImage2KHR(snapshotTraceBegin, snapshotTraceBytes,
-                                                            &m_pool, commandBuffer, pBlitImageInfo);
+                    m_state->snapshot()->vkCmdBlitImage2KHR(packet, packetLen, &m_pool,
+                                                            commandBuffer, pBlitImageInfo);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -17055,12 +16109,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdResolveImage2KHR(unboxed_commandBuffer, pResolveImageInfo);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdResolveImage2KHR(snapshotTraceBegin,
-                                                               snapshotTraceBytes, &m_pool,
+                    m_state->snapshot()->vkCmdResolveImage2KHR(packet, packetLen, &m_pool,
                                                                commandBuffer, pResolveImageInfo);
                 }
                 vkReadStream->clearPool();
@@ -17119,13 +16169,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 marshal_VkMemoryRequirements2(vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                               (VkMemoryRequirements2*)(pMemoryRequirements));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetDeviceBufferMemoryRequirementsKHR(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device, pInfo,
-                        pMemoryRequirements);
+                        packet, packetLen, &m_pool, device, pInfo, pMemoryRequirements);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -17181,13 +16227,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 marshal_VkMemoryRequirements2(vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                               (VkMemoryRequirements2*)(pMemoryRequirements));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetDeviceImageMemoryRequirementsKHR(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device, pInfo,
-                        pMemoryRequirements);
+                        packet, packetLen, &m_pool, device, pInfo, pMemoryRequirements);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -17299,13 +16341,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     }
                 }
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetDeviceImageSparseMemoryRequirementsKHR(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device, pInfo,
-                        pSparseMemoryRequirementCount, pSparseMemoryRequirements);
+                        packet, packetLen, &m_pool, device, pInfo, pSparseMemoryRequirementCount,
+                        pSparseMemoryRequirements);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -17352,13 +16391,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vk->vkCmdBindIndexBuffer2KHR(unboxed_commandBuffer, buffer, offset, size,
                                              indexType);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCmdBindIndexBuffer2KHR(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer, buffer,
-                        offset, size, indexType);
+                        packet, packetLen, &m_pool, commandBuffer, buffer, offset, size, indexType);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -17412,13 +16447,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 marshal_VkExtent2D(vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                    (VkExtent2D*)(pGranularity));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetRenderingAreaGranularityKHR(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device, pRenderingAreaInfo,
-                        pGranularity);
+                        packet, packetLen, &m_pool, device, pRenderingAreaInfo, pGranularity);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -17473,12 +16504,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 marshal_VkSubresourceLayout2KHR(vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                 (VkSubresourceLayout2KHR*)(pLayout));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetDeviceImageSubresourceLayoutKHR(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device, pInfo, pLayout);
+                        packet, packetLen, &m_pool, device, pInfo, pLayout);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -17538,13 +16566,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 marshal_VkSubresourceLayout2KHR(vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                 (VkSubresourceLayout2KHR*)(pLayout));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetImageSubresourceLayout2KHR(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device, image,
-                        pSubresource, pLayout);
+                        packet, packetLen, &m_pool, device, image, pSubresource, pLayout);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -17582,13 +16606,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vk->vkCmdSetLineStippleKHR(unboxed_commandBuffer, lineStippleFactor,
                                            lineStipplePattern);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdSetLineStippleKHR(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
-                        lineStippleFactor, lineStipplePattern);
+                    m_state->snapshot()->vkCmdSetLineStippleKHR(packet, packetLen, &m_pool,
+                                                                commandBuffer, lineStippleFactor,
+                                                                lineStipplePattern);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -17639,12 +16660,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write(&vkGetSwapchainGrallocUsageANDROID_VkResult_return,
                                 sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetSwapchainGrallocUsageANDROID(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        packet, packetLen, &m_pool,
                         vkGetSwapchainGrallocUsageANDROID_VkResult_return, device, format,
                         imageUsage, grallocUsage);
                 }
@@ -17699,14 +16717,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 vkStream->write(&vkAcquireImageANDROID_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkAcquireImageANDROID(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkAcquireImageANDROID_VkResult_return, device, image, nativeFenceFd,
-                        semaphore, fence);
+                        packet, packetLen, &m_pool, vkAcquireImageANDROID_VkResult_return, device,
+                        image, nativeFenceFd, semaphore, fence);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -17778,12 +16792,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write(&vkQueueSignalReleaseImageANDROID_VkResult_return,
                                 sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkQueueSignalReleaseImageANDROID(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        packet, packetLen, &m_pool,
                         vkQueueSignalReleaseImageANDROID_VkResult_return, queue, waitSemaphoreCount,
                         pWaitSemaphores, image, pNativeFenceFd);
                 }
@@ -17848,12 +16859,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write(&vkGetSwapchainGrallocUsage2ANDROID_VkResult_return,
                                 sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetSwapchainGrallocUsage2ANDROID(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        packet, packetLen, &m_pool,
                         vkGetSwapchainGrallocUsage2ANDROID_VkResult_return, device, format,
                         imageUsage, swapchainImageUsage, grallocConsumerUsage,
                         grallocProducerUsage);
@@ -17941,14 +16949,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->setHandleMapping(&m_boxedHandleUnwrapMapping);
                 vkStream->write(&vkCreateDebugReportCallbackEXT_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCreateDebugReportCallbackEXT(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkCreateDebugReportCallbackEXT_VkResult_return, instance, pCreateInfo,
-                        pAllocator, pCallback);
+                        packet, packetLen, &m_pool, vkCreateDebugReportCallbackEXT_VkResult_return,
+                        instance, pCreateInfo, pAllocator, pCallback);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -18002,13 +17006,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkDestroyDebugReportCallbackEXT(unboxed_instance, callback, pAllocator);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkDestroyDebugReportCallbackEXT(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, instance,
-                        boxed_callback_preserve, pAllocator);
+                        packet, packetLen, &m_pool, instance, boxed_callback_preserve, pAllocator);
                 }
                 delete_VkDebugReportCallbackEXT(boxed_callback_preserve);
                 vkReadStream->clearPool();
@@ -18063,13 +17063,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vk->vkDebugReportMessageEXT(unboxed_instance, flags, objectType, object, location,
                                             messageCode, pLayerPrefix, pMessage);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkDebugReportMessageEXT(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, instance, flags,
-                        objectType, object, location, messageCode, pLayerPrefix, pMessage);
+                        packet, packetLen, &m_pool, instance, flags, objectType, object, location,
+                        messageCode, pLayerPrefix, pMessage);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -18139,13 +17136,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vk->vkCmdBindTransformFeedbackBuffersEXT(unboxed_commandBuffer, firstBinding,
                                                          bindingCount, pBuffers, pOffsets, pSizes);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCmdBindTransformFeedbackBuffersEXT(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
-                        firstBinding, bindingCount, pBuffers, pOffsets, pSizes);
+                        packet, packetLen, &m_pool, commandBuffer, firstBinding, bindingCount,
+                        pBuffers, pOffsets, pSizes);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -18217,14 +17211,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                    counterBufferCount, pCounterBuffers,
                                                    pCounterBufferOffsets);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCmdBeginTransformFeedbackEXT(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
-                        firstCounterBuffer, counterBufferCount, pCounterBuffers,
-                        pCounterBufferOffsets);
+                        packet, packetLen, &m_pool, commandBuffer, firstCounterBuffer,
+                        counterBufferCount, pCounterBuffers, pCounterBufferOffsets);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -18296,14 +17286,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                  counterBufferCount, pCounterBuffers,
                                                  pCounterBufferOffsets);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCmdEndTransformFeedbackEXT(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
-                        firstCounterBuffer, counterBufferCount, pCounterBuffers,
-                        pCounterBufferOffsets);
+                        packet, packetLen, &m_pool, commandBuffer, firstCounterBuffer,
+                        counterBufferCount, pCounterBuffers, pCounterBufferOffsets);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -18350,13 +17336,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vk->vkCmdBeginQueryIndexedEXT(unboxed_commandBuffer, queryPool, query, flags,
                                               index);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCmdBeginQueryIndexedEXT(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer, queryPool,
-                        query, flags, index);
+                        packet, packetLen, &m_pool, commandBuffer, queryPool, query, flags, index);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -18397,13 +17379,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdEndQueryIndexedEXT(unboxed_commandBuffer, queryPool, query, index);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCmdEndQueryIndexedEXT(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer, queryPool,
-                        query, index);
+                        packet, packetLen, &m_pool, commandBuffer, queryPool, query, index);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -18458,14 +17436,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                                   firstInstance, counterBuffer, counterBufferOffset,
                                                   counterOffset, vertexStride);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCmdDrawIndirectByteCountEXT(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
-                        instanceCount, firstInstance, counterBuffer, counterBufferOffset,
-                        counterOffset, vertexStride);
+                        packet, packetLen, &m_pool, commandBuffer, instanceCount, firstInstance,
+                        counterBuffer, counterBufferOffset, counterOffset, vertexStride);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -18510,13 +17484,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 vkStream->write(&vkSetDebugUtilsObjectNameEXT_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkSetDebugUtilsObjectNameEXT(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkSetDebugUtilsObjectNameEXT_VkResult_return, device, pNameInfo);
+                        packet, packetLen, &m_pool, vkSetDebugUtilsObjectNameEXT_VkResult_return,
+                        device, pNameInfo);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -18558,13 +17529,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 vkStream->write(&vkSetDebugUtilsObjectTagEXT_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkSetDebugUtilsObjectTagEXT(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkSetDebugUtilsObjectTagEXT_VkResult_return, device, pTagInfo);
+                        packet, packetLen, &m_pool, vkSetDebugUtilsObjectTagEXT_VkResult_return,
+                        device, pTagInfo);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -18599,12 +17567,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkQueueBeginDebugUtilsLabelEXT(unboxed_queue, pLabelInfo);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkQueueBeginDebugUtilsLabelEXT(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, queue, pLabelInfo);
+                    m_state->snapshot()->vkQueueBeginDebugUtilsLabelEXT(packet, packetLen, &m_pool,
+                                                                        queue, pLabelInfo);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -18629,12 +17594,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkQueueEndDebugUtilsLabelEXT(unboxed_queue);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkQueueEndDebugUtilsLabelEXT(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, queue);
+                    m_state->snapshot()->vkQueueEndDebugUtilsLabelEXT(packet, packetLen, &m_pool,
+                                                                      queue);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -18669,12 +17631,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkQueueInsertDebugUtilsLabelEXT(unboxed_queue, pLabelInfo);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkQueueInsertDebugUtilsLabelEXT(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, queue, pLabelInfo);
+                    m_state->snapshot()->vkQueueInsertDebugUtilsLabelEXT(packet, packetLen, &m_pool,
+                                                                         queue, pLabelInfo);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -18710,12 +17669,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdBeginDebugUtilsLabelEXT(unboxed_commandBuffer, pLabelInfo);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdBeginDebugUtilsLabelEXT(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer, pLabelInfo);
+                    m_state->snapshot()->vkCmdBeginDebugUtilsLabelEXT(packet, packetLen, &m_pool,
+                                                                      commandBuffer, pLabelInfo);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -18741,12 +17697,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdEndDebugUtilsLabelEXT(unboxed_commandBuffer);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdEndDebugUtilsLabelEXT(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer);
+                    m_state->snapshot()->vkCmdEndDebugUtilsLabelEXT(packet, packetLen, &m_pool,
+                                                                    commandBuffer);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -18783,12 +17736,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdInsertDebugUtilsLabelEXT(unboxed_commandBuffer, pLabelInfo);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdInsertDebugUtilsLabelEXT(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer, pLabelInfo);
+                    m_state->snapshot()->vkCmdInsertDebugUtilsLabelEXT(packet, packetLen, &m_pool,
+                                                                       commandBuffer, pLabelInfo);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -18871,14 +17821,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->setHandleMapping(&m_boxedHandleUnwrapMapping);
                 vkStream->write(&vkCreateDebugUtilsMessengerEXT_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCreateDebugUtilsMessengerEXT(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkCreateDebugUtilsMessengerEXT_VkResult_return, instance, pCreateInfo,
-                        pAllocator, pMessenger);
+                        packet, packetLen, &m_pool, vkCreateDebugUtilsMessengerEXT_VkResult_return,
+                        instance, pCreateInfo, pAllocator, pMessenger);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -18932,13 +17878,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkDestroyDebugUtilsMessengerEXT(unboxed_instance, messenger, pAllocator);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkDestroyDebugUtilsMessengerEXT(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, instance,
-                        boxed_messenger_preserve, pAllocator);
+                        packet, packetLen, &m_pool, instance, boxed_messenger_preserve, pAllocator);
                 }
                 delete_VkDebugUtilsMessengerEXT(boxed_messenger_preserve);
                 vkReadStream->clearPool();
@@ -18987,13 +17929,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vk->vkSubmitDebugUtilsMessageEXT(unboxed_instance, messageSeverity, messageTypes,
                                                  pCallbackData);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkSubmitDebugUtilsMessageEXT(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, instance, messageSeverity,
-                        messageTypes, pCallbackData);
+                    m_state->snapshot()->vkSubmitDebugUtilsMessageEXT(packet, packetLen, &m_pool,
+                                                                      instance, messageSeverity,
+                                                                      messageTypes, pCallbackData);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -19058,12 +17997,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write(&vkGetImageDrmFormatModifierPropertiesEXT_VkResult_return,
                                 sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetImageDrmFormatModifierPropertiesEXT(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        packet, packetLen, &m_pool,
                         vkGetImageDrmFormatModifierPropertiesEXT_VkResult_return, device, image,
                         pProperties);
                 }
@@ -19134,12 +18070,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write(&vkGetMemoryHostPointerPropertiesEXT_VkResult_return,
                                 sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetMemoryHostPointerPropertiesEXT(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        packet, packetLen, &m_pool,
                         vkGetMemoryHostPointerPropertiesEXT_VkResult_return, device, handleType,
                         pHostPointer, pMemoryHostPointerProperties);
                 }
@@ -19245,12 +18178,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write(&vkGetPhysicalDeviceToolPropertiesEXT_VkResult_return,
                                 sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetPhysicalDeviceToolPropertiesEXT(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        packet, packetLen, &m_pool,
                         vkGetPhysicalDeviceToolPropertiesEXT_VkResult_return, physicalDevice,
                         pToolCount, pToolProperties);
                 }
@@ -19290,13 +18220,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vk->vkCmdSetLineStippleEXT(unboxed_commandBuffer, lineStippleFactor,
                                            lineStipplePattern);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdSetLineStippleEXT(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
-                        lineStippleFactor, lineStipplePattern);
+                    m_state->snapshot()->vkCmdSetLineStippleEXT(packet, packetLen, &m_pool,
+                                                                commandBuffer, lineStippleFactor,
+                                                                lineStipplePattern);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -19328,12 +18255,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdSetCullModeEXT(unboxed_commandBuffer, cullMode);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdSetCullModeEXT(snapshotTraceBegin, snapshotTraceBytes,
-                                                             &m_pool, commandBuffer, cullMode);
+                    m_state->snapshot()->vkCmdSetCullModeEXT(packet, packetLen, &m_pool,
+                                                             commandBuffer, cullMode);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -19363,12 +18287,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdSetFrontFaceEXT(unboxed_commandBuffer, frontFace);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdSetFrontFaceEXT(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer, frontFace);
+                    m_state->snapshot()->vkCmdSetFrontFaceEXT(packet, packetLen, &m_pool,
+                                                              commandBuffer, frontFace);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -19399,13 +18320,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdSetPrimitiveTopologyEXT(unboxed_commandBuffer, primitiveTopology);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCmdSetPrimitiveTopologyEXT(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
-                        primitiveTopology);
+                        packet, packetLen, &m_pool, commandBuffer, primitiveTopology);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -19448,13 +18365,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdSetViewportWithCountEXT(unboxed_commandBuffer, viewportCount, pViewports);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCmdSetViewportWithCountEXT(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
-                        viewportCount, pViewports);
+                        packet, packetLen, &m_pool, commandBuffer, viewportCount, pViewports);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -19496,13 +18409,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdSetScissorWithCountEXT(unboxed_commandBuffer, scissorCount, pScissors);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCmdSetScissorWithCountEXT(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
-                        scissorCount, pScissors);
+                        packet, packetLen, &m_pool, commandBuffer, scissorCount, pScissors);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -19590,13 +18499,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vk->vkCmdBindVertexBuffers2EXT(unboxed_commandBuffer, firstBinding, bindingCount,
                                                pBuffers, pOffsets, pSizes, pStrides);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCmdBindVertexBuffers2EXT(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
-                        firstBinding, bindingCount, pBuffers, pOffsets, pSizes, pStrides);
+                        packet, packetLen, &m_pool, commandBuffer, firstBinding, bindingCount,
+                        pBuffers, pOffsets, pSizes, pStrides);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -19626,12 +18532,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdSetDepthTestEnableEXT(unboxed_commandBuffer, depthTestEnable);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdSetDepthTestEnableEXT(snapshotTraceBegin,
-                                                                    snapshotTraceBytes, &m_pool,
+                    m_state->snapshot()->vkCmdSetDepthTestEnableEXT(packet, packetLen, &m_pool,
                                                                     commandBuffer, depthTestEnable);
                 }
                 vkReadStream->clearPool();
@@ -19662,13 +18564,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdSetDepthWriteEnableEXT(unboxed_commandBuffer, depthWriteEnable);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCmdSetDepthWriteEnableEXT(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
-                        depthWriteEnable);
+                        packet, packetLen, &m_pool, commandBuffer, depthWriteEnable);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -19698,12 +18596,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdSetDepthCompareOpEXT(unboxed_commandBuffer, depthCompareOp);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdSetDepthCompareOpEXT(snapshotTraceBegin,
-                                                                   snapshotTraceBytes, &m_pool,
+                    m_state->snapshot()->vkCmdSetDepthCompareOpEXT(packet, packetLen, &m_pool,
                                                                    commandBuffer, depthCompareOp);
                 }
                 vkReadStream->clearPool();
@@ -19735,13 +18629,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdSetDepthBoundsTestEnableEXT(unboxed_commandBuffer, depthBoundsTestEnable);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCmdSetDepthBoundsTestEnableEXT(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
-                        depthBoundsTestEnable);
+                        packet, packetLen, &m_pool, commandBuffer, depthBoundsTestEnable);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -19771,13 +18661,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdSetStencilTestEnableEXT(unboxed_commandBuffer, stencilTestEnable);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCmdSetStencilTestEnableEXT(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
-                        stencilTestEnable);
+                        packet, packetLen, &m_pool, commandBuffer, stencilTestEnable);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -19825,13 +18711,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vk->vkCmdSetStencilOpEXT(unboxed_commandBuffer, faceMask, failOp, passOp,
                                          depthFailOp, compareOp);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdSetStencilOpEXT(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer, faceMask,
-                        failOp, passOp, depthFailOp, compareOp);
+                    m_state->snapshot()->vkCmdSetStencilOpEXT(packet, packetLen, &m_pool,
+                                                              commandBuffer, faceMask, failOp,
+                                                              passOp, depthFailOp, compareOp);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -19877,13 +18760,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 vkStream->write(&vkCopyMemoryToImageEXT_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCopyMemoryToImageEXT(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkCopyMemoryToImageEXT_VkResult_return, device, pCopyMemoryToImageInfo);
+                        packet, packetLen, &m_pool, vkCopyMemoryToImageEXT_VkResult_return, device,
+                        pCopyMemoryToImageInfo);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -19927,13 +18807,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 vkStream->write(&vkCopyImageToMemoryEXT_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCopyImageToMemoryEXT(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkCopyImageToMemoryEXT_VkResult_return, device, pCopyImageToMemoryInfo);
+                        packet, packetLen, &m_pool, vkCopyImageToMemoryEXT_VkResult_return, device,
+                        pCopyImageToMemoryInfo);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -19977,13 +18854,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 vkStream->write(&vkCopyImageToImageEXT_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCopyImageToImageEXT(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkCopyImageToImageEXT_VkResult_return, device, pCopyImageToImageInfo);
+                        packet, packetLen, &m_pool, vkCopyImageToImageEXT_VkResult_return, device,
+                        pCopyImageToImageInfo);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -20036,14 +18910,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 vkStream->write(&vkTransitionImageLayoutEXT_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkTransitionImageLayoutEXT(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkTransitionImageLayoutEXT_VkResult_return, device, transitionCount,
-                        pTransitions);
+                        packet, packetLen, &m_pool, vkTransitionImageLayoutEXT_VkResult_return,
+                        device, transitionCount, pTransitions);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -20103,13 +18973,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 marshal_VkSubresourceLayout2KHR(vkStream, VK_STRUCTURE_TYPE_MAX_ENUM,
                                                 (VkSubresourceLayout2KHR*)(pLayout));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetImageSubresourceLayout2EXT(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device, image,
-                        pSubresource, pLayout);
+                        packet, packetLen, &m_pool, device, image, pSubresource, pLayout);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -20154,13 +19020,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 vkStream->write(&vkReleaseSwapchainImagesEXT_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkReleaseSwapchainImagesEXT(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkReleaseSwapchainImagesEXT_VkResult_return, device, pReleaseInfo);
+                        packet, packetLen, &m_pool, vkReleaseSwapchainImagesEXT_VkResult_return,
+                        device, pReleaseInfo);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -20236,14 +19099,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write((uint64_t*)&cgen_var_3, 8);
                 vkStream->write(&vkCreatePrivateDataSlotEXT_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCreatePrivateDataSlotEXT(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkCreatePrivateDataSlotEXT_VkResult_return, device, pCreateInfo, pAllocator,
-                        pPrivateDataSlot);
+                        packet, packetLen, &m_pool, vkCreatePrivateDataSlotEXT_VkResult_return,
+                        device, pCreateInfo, pAllocator, pPrivateDataSlot);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -20291,13 +19150,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkDestroyPrivateDataSlotEXT(unboxed_device, privateDataSlot, pAllocator);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkDestroyPrivateDataSlotEXT(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device, privateDataSlot,
-                        pAllocator);
+                        packet, packetLen, &m_pool, device, privateDataSlot, pAllocator);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -20348,14 +19203,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 vkStream->write(&vkSetPrivateDataEXT_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkSetPrivateDataEXT(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkSetPrivateDataEXT_VkResult_return, device, objectType, objectHandle,
-                        privateDataSlot, data);
+                        packet, packetLen, &m_pool, vkSetPrivateDataEXT_VkResult_return, device,
+                        objectType, objectHandle, privateDataSlot, data);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -20405,13 +19256,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 vkStream->write((uint64_t*)pData, sizeof(uint64_t));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkGetPrivateDataEXT(snapshotTraceBegin, snapshotTraceBytes,
-                                                             &m_pool, device, objectType,
-                                                             objectHandle, privateDataSlot, pData);
+                    m_state->snapshot()->vkGetPrivateDataEXT(packet, packetLen, &m_pool, device,
+                                                             objectType, objectHandle,
+                                                             privateDataSlot, pData);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -20444,13 +19292,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdSetPatchControlPointsEXT(unboxed_commandBuffer, patchControlPoints);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCmdSetPatchControlPointsEXT(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
-                        patchControlPoints);
+                        packet, packetLen, &m_pool, commandBuffer, patchControlPoints);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -20482,13 +19326,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vk->vkCmdSetRasterizerDiscardEnableEXT(unboxed_commandBuffer,
                                                        rasterizerDiscardEnable);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCmdSetRasterizerDiscardEnableEXT(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
-                        rasterizerDiscardEnable);
+                        packet, packetLen, &m_pool, commandBuffer, rasterizerDiscardEnable);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -20518,12 +19358,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdSetDepthBiasEnableEXT(unboxed_commandBuffer, depthBiasEnable);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdSetDepthBiasEnableEXT(snapshotTraceBegin,
-                                                                    snapshotTraceBytes, &m_pool,
+                    m_state->snapshot()->vkCmdSetDepthBiasEnableEXT(packet, packetLen, &m_pool,
                                                                     commandBuffer, depthBiasEnable);
                 }
                 vkReadStream->clearPool();
@@ -20553,12 +19389,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vk->vkCmdSetLogicOpEXT(unboxed_commandBuffer, logicOp);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdSetLogicOpEXT(snapshotTraceBegin, snapshotTraceBytes,
-                                                            &m_pool, commandBuffer, logicOp);
+                    m_state->snapshot()->vkCmdSetLogicOpEXT(packet, packetLen, &m_pool,
+                                                            commandBuffer, logicOp);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -20590,13 +19423,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vk->vkCmdSetPrimitiveRestartEnableEXT(unboxed_commandBuffer,
                                                       primitiveRestartEnable);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCmdSetPrimitiveRestartEnableEXT(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
-                        primitiveRestartEnable);
+                        packet, packetLen, &m_pool, commandBuffer, primitiveRestartEnable);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -20637,13 +19466,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vk->vkCmdSetColorWriteEnableEXT(unboxed_commandBuffer, attachmentCount,
                                                 pColorWriteEnables);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkCmdSetColorWriteEnableEXT(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
-                        attachmentCount, pColorWriteEnables);
+                    m_state->snapshot()->vkCmdSetColorWriteEnableEXT(packet, packetLen, &m_pool,
+                                                                     commandBuffer, attachmentCount,
+                                                                     pColorWriteEnables);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -20704,12 +19530,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write(&vkMapMemoryIntoAddressSpaceGOOGLE_VkResult_return,
                                 sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkMapMemoryIntoAddressSpaceGOOGLE(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        packet, packetLen, &m_pool,
                         vkMapMemoryIntoAddressSpaceGOOGLE_VkResult_return, device, memory,
                         pAddress);
                 }
@@ -20866,15 +19689,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     pBufferInfoEntryIndices, pBufferViewEntryIndices, pImageInfos, pBufferInfos,
                     pBufferViews);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkUpdateDescriptorSetWithTemplateSizedGOOGLE(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device, descriptorSet,
-                        descriptorUpdateTemplate, imageInfoCount, bufferInfoCount, bufferViewCount,
-                        pImageInfoEntryIndices, pBufferInfoEntryIndices, pBufferViewEntryIndices,
-                        pImageInfos, pBufferInfos, pBufferViews);
+                        packet, packetLen, &m_pool, device, descriptorSet, descriptorUpdateTemplate,
+                        imageInfoCount, bufferInfoCount, bufferViewCount, pImageInfoEntryIndices,
+                        pBufferInfoEntryIndices, pBufferViewEntryIndices, pImageInfos, pBufferInfos,
+                        pBufferViews);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -20909,12 +19729,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 m_state->on_vkBeginCommandBufferAsyncGOOGLE(&m_pool, commandBuffer, pBeginInfo,
                                                             context);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkBeginCommandBufferAsyncGOOGLE(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer, pBeginInfo);
+                    m_state->snapshot()->vkBeginCommandBufferAsyncGOOGLE(packet, packetLen, &m_pool,
+                                                                         commandBuffer, pBeginInfo);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -20937,12 +19754,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 m_state->on_vkEndCommandBufferAsyncGOOGLE(&m_pool, commandBuffer, context);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkEndCommandBufferAsyncGOOGLE(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer);
+                    m_state->snapshot()->vkEndCommandBufferAsyncGOOGLE(packet, packetLen, &m_pool,
+                                                                       commandBuffer);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -20970,12 +19784,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 m_state->on_vkResetCommandBufferAsyncGOOGLE(&m_pool, commandBuffer, flags);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkResetCommandBufferAsyncGOOGLE(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer, flags);
+                    m_state->snapshot()->vkResetCommandBufferAsyncGOOGLE(packet, packetLen, &m_pool,
+                                                                         commandBuffer, flags);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -21007,13 +19818,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 m_state->on_vkCommandBufferHostSyncGOOGLE(&m_pool, commandBuffer, needHostSync,
                                                           sequenceNumber);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCommandBufferHostSyncGOOGLE(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
-                        needHostSync, sequenceNumber);
+                        packet, packetLen, &m_pool, commandBuffer, needHostSync, sequenceNumber);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -21107,12 +19914,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write(&vkCreateImageWithRequirementsGOOGLE_VkResult_return,
                                 sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCreateImageWithRequirementsGOOGLE(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        packet, packetLen, &m_pool,
                         vkCreateImageWithRequirementsGOOGLE_VkResult_return, device, pCreateInfo,
                         pAllocator, pImage, pMemoryRequirements);
                 }
@@ -21208,12 +20012,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write(&vkCreateBufferWithRequirementsGOOGLE_VkResult_return,
                                 sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCreateBufferWithRequirementsGOOGLE(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        packet, packetLen, &m_pool,
                         vkCreateBufferWithRequirementsGOOGLE_VkResult_return, device, pCreateInfo,
                         pAllocator, pBuffer, pMemoryRequirements);
                 }
@@ -21311,12 +20112,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write(&vkGetMemoryHostAddressInfoGOOGLE_VkResult_return,
                                 sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetMemoryHostAddressInfoGOOGLE(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        packet, packetLen, &m_pool,
                         vkGetMemoryHostAddressInfoGOOGLE_VkResult_return, device, memory, pAddress,
                         pSize, pHostmemId);
                 }
@@ -21375,14 +20173,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 vkStream->write(&vkFreeMemorySyncGOOGLE_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkFreeMemorySyncGOOGLE(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkFreeMemorySyncGOOGLE_VkResult_return, device, boxed_memory_preserve,
-                        pAllocator);
+                        packet, packetLen, &m_pool, vkFreeMemorySyncGOOGLE_VkResult_return, device,
+                        boxed_memory_preserve, pAllocator);
                 }
                 delete_VkDeviceMemory(boxed_memory_preserve);
                 vkReadStream->clearPool();
@@ -21412,12 +20206,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 m_state->on_vkQueueHostSyncGOOGLE(&m_pool, queue, needHostSync, sequenceNumber);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkQueueHostSyncGOOGLE(snapshotTraceBegin,
-                                                               snapshotTraceBytes, &m_pool, queue,
+                    m_state->snapshot()->vkQueueHostSyncGOOGLE(packet, packetLen, &m_pool, queue,
                                                                needHostSync, sequenceNumber);
                 }
                 vkReadStream->clearPool();
@@ -21463,13 +20253,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 m_state->on_vkQueueSubmitAsyncGOOGLE(&m_pool, queue, submitCount, pSubmits, fence);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkQueueSubmitAsyncGOOGLE(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, queue, submitCount,
-                        pSubmits, fence);
+                    m_state->snapshot()->vkQueueSubmitAsyncGOOGLE(packet, packetLen, &m_pool, queue,
+                                                                  submitCount, pSubmits, fence);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -21491,12 +20277,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 m_state->on_vkQueueWaitIdleAsyncGOOGLE(&m_pool, queue);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkQueueWaitIdleAsyncGOOGLE(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, queue);
+                    m_state->snapshot()->vkQueueWaitIdleAsyncGOOGLE(packet, packetLen, &m_pool,
+                                                                    queue);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -21544,13 +20327,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 m_state->on_vkQueueBindSparseAsyncGOOGLE(&m_pool, queue, bindInfoCount, pBindInfo,
                                                          fence);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkQueueBindSparseAsyncGOOGLE(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, queue, bindInfoCount,
-                        pBindInfo, fence);
+                        packet, packetLen, &m_pool, queue, bindInfoCount, pBindInfo, fence);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -21594,13 +20373,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write((VkDeviceSize*)pOffset, sizeof(VkDeviceSize));
                 vkStream->write((VkDeviceSize*)pRowPitchAlignment, sizeof(VkDeviceSize));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetLinearImageLayoutGOOGLE(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device, format, pOffset,
-                        pRowPitchAlignment);
+                        packet, packetLen, &m_pool, device, format, pOffset, pRowPitchAlignment);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -21650,13 +20425,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write((VkDeviceSize*)pOffset, sizeof(VkDeviceSize));
                 vkStream->write((VkDeviceSize*)pRowPitchAlignment, sizeof(VkDeviceSize));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkGetLinearImageLayout2GOOGLE(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device, pCreateInfo,
-                        pOffset, pRowPitchAlignment);
+                    m_state->snapshot()->vkGetLinearImageLayout2GOOGLE(packet, packetLen, &m_pool,
+                                                                       device, pCreateInfo, pOffset,
+                                                                       pRowPitchAlignment);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -21698,13 +20470,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 m_state->on_vkQueueFlushCommandsGOOGLE(&m_pool, queue, commandBuffer, dataSize,
                                                        pData, context);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkQueueFlushCommandsGOOGLE(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, queue, commandBuffer,
-                        dataSize, pData);
+                        packet, packetLen, &m_pool, queue, commandBuffer, dataSize, pData);
                 }
                 vkReadStream->clearPool();
                 break;
@@ -21818,13 +20586,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     pDescriptorSetPendingAllocation, pDescriptorWriteStartingIndices,
                     pendingDescriptorWriteCount, pPendingDescriptorWrites);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkQueueCommitDescriptorSetUpdatesGOOGLE(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, queue, descriptorPoolCount,
-                        pDescriptorPools, descriptorSetCount, pSetLayouts, pDescriptorSetPoolIds,
+                        packet, packetLen, &m_pool, queue, descriptorPoolCount, pDescriptorPools,
+                        descriptorSetCount, pSetLayouts, pDescriptorSetPoolIds,
                         pDescriptorSetWhichPool, pDescriptorSetPendingAllocation,
                         pDescriptorWriteStartingIndices, pendingDescriptorWriteCount,
                         pPendingDescriptorWrites);
@@ -21887,13 +20652,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     vkStream->write((uint64_t*)pPoolIds, (*(pPoolIdCount)) * sizeof(uint64_t));
                 }
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCollectDescriptorPoolIdsGOOGLE(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device, descriptorPool,
-                        pPoolIdCount, pPoolIds);
+                        packet, packetLen, &m_pool, device, descriptorPool, pPoolIdCount, pPoolIds);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -21948,13 +20709,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 m_state->on_vkQueueSignalReleaseImageANDROIDAsyncGOOGLE(
                     &m_pool, queue, waitSemaphoreCount, pWaitSemaphores, image);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkQueueSignalReleaseImageANDROIDAsyncGOOGLE(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, queue, waitSemaphoreCount,
-                        pWaitSemaphores, image);
+                        packet, packetLen, &m_pool, queue, waitSemaphoreCount, pWaitSemaphores,
+                        image);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -22000,13 +20758,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 m_state->on_vkQueueFlushCommandsFromAuxMemoryGOOGLE(
                     &m_pool, queue, commandBuffer, deviceMemory, dataOffset, dataSize, context);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkQueueFlushCommandsFromAuxMemoryGOOGLE(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, queue, commandBuffer,
-                        deviceMemory, dataOffset, dataSize);
+                        packet, packetLen, &m_pool, queue, commandBuffer, deviceMemory, dataOffset,
+                        dataSize);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -22041,13 +20796,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 vkStream->write(&vkGetBlobGOOGLE_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkGetBlobGOOGLE(snapshotTraceBegin, snapshotTraceBytes,
-                                                         &m_pool, vkGetBlobGOOGLE_VkResult_return,
-                                                         device, memory);
+                    m_state->snapshot()->vkGetBlobGOOGLE(packet, packetLen, &m_pool,
+                                                         vkGetBlobGOOGLE_VkResult_return, device,
+                                                         memory);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -22219,16 +20971,12 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                     pImageInfoEntryIndices, pBufferInfoEntryIndices, pBufferViewEntryIndices,
                     pImageInfos, pBufferInfos, pBufferViews, pInlineUniformBlockData);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkUpdateDescriptorSetWithTemplateSized2GOOGLE(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, device, descriptorSet,
-                        descriptorUpdateTemplate, imageInfoCount, bufferInfoCount, bufferViewCount,
-                        inlineUniformBlockCount, pImageInfoEntryIndices, pBufferInfoEntryIndices,
-                        pBufferViewEntryIndices, pImageInfos, pBufferInfos, pBufferViews,
-                        pInlineUniformBlockData);
+                        packet, packetLen, &m_pool, device, descriptorSet, descriptorUpdateTemplate,
+                        imageInfoCount, bufferInfoCount, bufferViewCount, inlineUniformBlockCount,
+                        pImageInfoEntryIndices, pBufferInfoEntryIndices, pBufferViewEntryIndices,
+                        pImageInfos, pBufferInfos, pBufferViews, pInlineUniformBlockData);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -22274,13 +21022,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 m_state->on_vkQueueSubmitAsync2GOOGLE(&m_pool, queue, submitCount, pSubmits, fence);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkQueueSubmitAsync2GOOGLE(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, queue, submitCount,
-                        pSubmits, fence);
+                        packet, packetLen, &m_pool, queue, submitCount, pSubmits, fence);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -22319,13 +21063,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->unsetHandleMapping();
                 vkStream->write(&vkGetSemaphoreGOOGLE_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
-                    m_state->snapshot()->vkGetSemaphoreGOOGLE(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkGetSemaphoreGOOGLE_VkResult_return, device, semaphore, syncId);
+                    m_state->snapshot()->vkGetSemaphoreGOOGLE(packet, packetLen, &m_pool,
+                                                              vkGetSemaphoreGOOGLE_VkResult_return,
+                                                              device, semaphore, syncId);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -22414,13 +21155,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                       pMissShaderBindingTable, pHitShaderBindingTable,
                                       pCallableShaderBindingTable, width, height, depth);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCmdTraceRaysKHR(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
-                        pRaygenShaderBindingTable, pMissShaderBindingTable, pHitShaderBindingTable,
+                        packet, packetLen, &m_pool, commandBuffer, pRaygenShaderBindingTable,
+                        pMissShaderBindingTable, pHitShaderBindingTable,
                         pCallableShaderBindingTable, width, height, depth);
                 }
                 vkReadStream->clearPool();
@@ -22525,14 +21263,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 vkStream->write(&vkCreateRayTracingPipelinesKHR_VkResult_return, sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCreateRayTracingPipelinesKHR(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
-                        vkCreateRayTracingPipelinesKHR_VkResult_return, device, deferredOperation,
-                        pipelineCache, createInfoCount, pCreateInfos, pAllocator, pPipelines);
+                        packet, packetLen, &m_pool, vkCreateRayTracingPipelinesKHR_VkResult_return,
+                        device, deferredOperation, pipelineCache, createInfoCount, pCreateInfos,
+                        pAllocator, pPipelines);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)
@@ -22597,12 +21332,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write(&vkGetRayTracingCaptureReplayShaderGroupHandlesKHR_VkResult_return,
                                 sizeof(VkResult));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetRayTracingCaptureReplayShaderGroupHandlesKHR(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        packet, packetLen, &m_pool,
                         vkGetRayTracingCaptureReplayShaderGroupHandlesKHR_VkResult_return, device,
                         pipeline, firstGroup, groupCount, dataSize, pData);
                 }
@@ -22685,13 +21417,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                                               pMissShaderBindingTable, pHitShaderBindingTable,
                                               pCallableShaderBindingTable, indirectDeviceAddress);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCmdTraceRaysIndirectKHR(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
-                        pRaygenShaderBindingTable, pMissShaderBindingTable, pHitShaderBindingTable,
+                        packet, packetLen, &m_pool, commandBuffer, pRaygenShaderBindingTable,
+                        pMissShaderBindingTable, pHitShaderBindingTable,
                         pCallableShaderBindingTable, indirectDeviceAddress);
                 }
                 vkReadStream->clearPool();
@@ -22739,12 +21468,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vkStream->write(&vkGetRayTracingShaderGroupStackSizeKHR_VkDeviceSize_return,
                                 sizeof(VkDeviceSize));
                 vkStream->commitWrite();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkGetRayTracingShaderGroupStackSizeKHR(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool,
+                        packet, packetLen, &m_pool,
                         vkGetRayTracingShaderGroupStackSizeKHR_VkDeviceSize_return, device,
                         pipeline, group, groupShader);
                 }
@@ -22779,13 +21505,9 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 vk->vkCmdSetRayTracingPipelineStackSizeKHR(unboxed_commandBuffer,
                                                            pipelineStackSize);
                 vkStream->unsetHandleMapping();
-                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
-                                         (uintptr_t)snapshotTraceBegin);
-                size_t snapshotTraceBytes = vkReadStream->endTrace();
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkCmdSetRayTracingPipelineStackSizeKHR(
-                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, commandBuffer,
-                        pipelineStackSize);
+                        packet, packetLen, &m_pool, commandBuffer, pipelineStackSize);
                 }
                 vkReadStream->clearPool();
                 if (m_queueSubmitWithCommandsEnabled)

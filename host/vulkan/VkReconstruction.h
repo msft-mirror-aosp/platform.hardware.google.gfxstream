@@ -35,10 +35,7 @@ class VkReconstruction {
               emugl::HealthMonitor<>* healthMonitor);
 
     struct ApiInfo {
-        // Fast
-        uint32_t opCode;
-        std::vector<uint8_t> trace;
-        size_t traceBytes = 0;
+        std::vector<uint8_t> packet;
         // Book-keeping for which handles were created by this API
         std::vector<uint64_t> createdHandles;
     };
@@ -87,8 +84,7 @@ class VkReconstruction {
 
     ApiInfo* getApiInfo(ApiHandle h);
 
-    void setApiTrace(ApiInfo* apiInfo, uint32_t opcode, const uint8_t* traceBegin,
-                     size_t traceBytes);
+    void setApiTrace(ApiInfo* apiInfo, const uint8_t* traceBegin, size_t traceBytes);
 
     void dump();
 

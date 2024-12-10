@@ -24,6 +24,15 @@
 
 namespace gfxstream {
 namespace vk {
+namespace {
+
+uint32_t GetOpcode(const VkReconstruction::ApiInfo& info) {
+    if (info.packet.size() <= 4) return -1;
+
+    return *(reinterpret_cast<const uint32_t*>(info.packet.data()));
+}
+
+}  // namespace
 
 #define DEBUG_RECONSTRUCTION 0
 
@@ -126,10 +135,8 @@ void VkReconstruction::save(android::base::Stream* stream) {
 
     for (size_t i = 0; i < uniqApiRefsByTopoOrder.size(); ++i) {
         for (auto apiHandle : uniqApiRefsByTopoOrder[i]) {
-            auto item = mApiTrace.get(apiHandle);
-            totalApiTraceSize += 4;                 // opcode
-            totalApiTraceSize += 4;                 // buffer size of trace
-            totalApiTraceSize += item->traceBytes;  // the actual trace
+            const ApiInfo* info = mApiTrace.get(apiHandle);
+            totalApiTraceSize += info->packet.size();
         }
     }
 
@@ -156,16 +163,9 @@ void VkReconstruction::save(android::base::Stream* stream) {
         for (auto apiHandle : uniqApiRefsByTopoOrder[i]) {
             auto item = mApiTrace.get(apiHandle);
             // 4 bytes for opcode, and 4 bytes for saveBufferRaw's size field
-            DEBUG_RECON("saving api handle 0x%lx op code %d", apiHandle, item->opCode);
-            memcpy(apiTracePtr, &item->opCode, sizeof(uint32_t));
-            apiTracePtr += 4;
-            uint32_t traceBytesForSnapshot = item->traceBytes + 8;
-            memcpy(apiTracePtr, &traceBytesForSnapshot,
-                   sizeof(uint32_t));  // and 8 bytes for 'self' struct of { opcode, packetlen } as
-                                       // that is what decoder expects
-            apiTracePtr += 4;
-            memcpy(apiTracePtr, item->trace.data(), item->traceBytes);
-            apiTracePtr += item->traceBytes;
+            DEBUG_RECON("saving api handle 0x%lx op code %d", apiHandle, GetOpcode(item));
+            memcpy(apiTracePtr, item->packet.data(), item->packet.size());
+            apiTracePtr += item->packet.size();
         }
     }
 
@@ -295,7 +295,6 @@ void VkReconstruction::destroyApiInfo(VkReconstruction::ApiHandle h) {
 
     if (!item->createdHandles.empty()) return;
 
-    item->traceBytes = 0;
     item->createdHandles.clear();
 
     mApiTrace.remove(h);
@@ -305,12 +304,9 @@ VkReconstruction::ApiInfo* VkReconstruction::getApiInfo(VkReconstruction::ApiHan
     return mApiTrace.get(h);
 }
 
-void VkReconstruction::setApiTrace(VkReconstruction::ApiInfo* apiInfo, uint32_t opCode,
-                                   const uint8_t* traceBegin, size_t traceBytes) {
-    if (apiInfo->trace.size() < traceBytes) apiInfo->trace.resize(traceBytes);
-    apiInfo->opCode = opCode;
-    memcpy(apiInfo->trace.data(), traceBegin, traceBytes);
-    apiInfo->traceBytes = traceBytes;
+void VkReconstruction::setApiTrace(VkReconstruction::ApiInfo* apiInfo, const uint8_t* packet,
+                                   size_t packetLenBytes) {
+    apiInfo->packet.assign(packet, packet + packetLenBytes);
 }
 
 void VkReconstruction::dump() {
@@ -320,9 +316,10 @@ void VkReconstruction::dump() {
 
     mApiTrace.forEachLiveEntry_const(
         [&traceBytesTotal](bool live, uint64_t handle, const ApiInfo& info) {
+            const uint32_t opcode = GetOpcode(info);
             INFO("VkReconstruction::%s: api handle 0x%llx: %s", __func__,
-                    (unsigned long long)handle, api_opcode_to_string(info.opCode));
-            traceBytesTotal += info.traceBytes;
+                 (unsigned long long)handle, api_opcode_to_string(opcode));
+            traceBytesTotal += info.packet.size();
         });
 
     mHandleReconstructions.forEachLiveComponent_const(
@@ -334,7 +331,7 @@ void VkReconstruction::dump() {
                 for (auto apiHandle : state.apiRefs) {
                     auto apiInfo = mApiTrace.get(apiHandle);
                     const char* apiName =
-                        apiInfo ? api_opcode_to_string(apiInfo->opCode) : "unalloced";
+                        apiInfo ? api_opcode_to_string(GetOpcode(*apiInfo)) : "unalloced";
                     INFO("VkReconstruction::%s:     0x%llx: %s", __func__,
                             (unsigned long long)apiHandle, apiName);
                     for (auto createdHandle : apiInfo->createdHandles) {
@@ -352,7 +349,7 @@ void VkReconstruction::dump() {
                 (unsigned long long)entityHandle);
         for (auto apiHandle : modification.apiRefs) {
             auto apiInfo = mApiTrace.get(apiHandle);
-            const char* apiName = apiInfo ? api_opcode_to_string(apiInfo->opCode) : "unalloced";
+            const char* apiName = apiInfo ? api_opcode_to_string(GetOpcode(*apiInfo)) : "unalloced";
             INFO("VkReconstruction::%s: mod:     0x%llx: %s", __func__,
                     (unsigned long long)apiHandle, apiName);
         }

@@ -68,8 +68,7 @@ class VkDecoderSnapshot::Impl {
         mReconstruction.addHandles((const uint64_t*)pInstance, 1);
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCreateInstance, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         mReconstruction.forEachHandleAddApi((const uint64_t*)pInstance, 1, apiHandle,
                                             VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pInstance, 1);
@@ -94,8 +93,7 @@ class VkDecoderSnapshot::Impl {
                                             (uint64_t)(uintptr_t)instance);
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkEnumeratePhysicalDevices, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         if (pPhysicalDeviceCount) {
             mReconstruction.forEachHandleAddApi((const uint64_t*)pPhysicalDevices,
                                                 (*(pPhysicalDeviceCount)), apiHandle,
@@ -151,8 +149,7 @@ class VkDecoderSnapshot::Impl {
                                             (uint64_t)(uintptr_t)physicalDevice);
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCreateDevice, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         mReconstruction.forEachHandleAddApi((const uint64_t*)pDevice, 1, apiHandle,
                                             VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pDevice, 1);
@@ -225,8 +222,7 @@ class VkDecoderSnapshot::Impl {
         }
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkAllocateMemory, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         mReconstruction.forEachHandleAddApi((const uint64_t*)pMemory, 1, apiHandle,
                                             VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pMemory, 1);
@@ -272,8 +268,7 @@ class VkDecoderSnapshot::Impl {
                                             VkReconstruction::BOUND_MEMORY);
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkBindBufferMemory, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         mReconstruction.forEachHandleAddApi((const uint64_t*)&boxed_VkBuffer, 1, apiHandle,
                                             VkReconstruction::BOUND_MEMORY);
     }
@@ -292,8 +287,7 @@ class VkDecoderSnapshot::Impl {
                                             VkReconstruction::BOUND_MEMORY);
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkBindImageMemory, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         mReconstruction.forEachHandleAddApi((const uint64_t*)&boxed_VkImage, 1, apiHandle,
                                             VkReconstruction::BOUND_MEMORY);
     }
@@ -329,8 +323,7 @@ class VkDecoderSnapshot::Impl {
                                             (uint64_t)(uintptr_t)device);
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCreateFence, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         mReconstruction.forEachHandleAddApi((const uint64_t*)pFence, 1, apiHandle,
                                             VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pFence, 1);
@@ -364,8 +357,7 @@ class VkDecoderSnapshot::Impl {
                                             (uint64_t)(uintptr_t)device);
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCreateSemaphore, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         mReconstruction.forEachHandleAddApi((const uint64_t*)pSemaphore, 1, apiHandle,
                                             VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pSemaphore, 1);
@@ -389,8 +381,7 @@ class VkDecoderSnapshot::Impl {
                                             (uint64_t)(uintptr_t)device);
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCreateEvent, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         mReconstruction.forEachHandleAddApi((const uint64_t*)pEvent, 1, apiHandle,
                                             VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pEvent, 1);
@@ -423,8 +414,7 @@ class VkDecoderSnapshot::Impl {
                                             (uint64_t)(uintptr_t)device);
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCreateQueryPool, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         mReconstruction.forEachHandleAddApi((const uint64_t*)pQueryPool, 1, apiHandle,
                                             VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pQueryPool, 1);
@@ -453,8 +443,7 @@ class VkDecoderSnapshot::Impl {
                                             (uint64_t)(uintptr_t)device);
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCreateBuffer, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         mReconstruction.forEachHandleAddApi((const uint64_t*)pBuffer, 1, apiHandle,
                                             VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pBuffer, 1);
@@ -477,8 +466,7 @@ class VkDecoderSnapshot::Impl {
         mReconstruction.addHandleDependency((const uint64_t*)pView, 1, (uint64_t)(uintptr_t)device);
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCreateBufferView, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         mReconstruction.forEachHandleAddApi((const uint64_t*)pView, 1, apiHandle,
                                             VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pView, 1);
@@ -502,8 +490,7 @@ class VkDecoderSnapshot::Impl {
                                             (uint64_t)(uintptr_t)device);
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCreateImage, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         mReconstruction.forEachHandleAddApi((const uint64_t*)pImage, 1, apiHandle,
                                             VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pImage, 1);
@@ -534,8 +521,7 @@ class VkDecoderSnapshot::Impl {
             VkReconstruction::CREATED, VkReconstruction::BOUND_MEMORY);
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCreateImageView, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         mReconstruction.forEachHandleAddApi((const uint64_t*)pView, 1, apiHandle,
                                             VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pView, 1);
@@ -560,8 +546,7 @@ class VkDecoderSnapshot::Impl {
                                             (uint64_t)(uintptr_t)device);
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCreateShaderModule, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         mReconstruction.forEachHandleAddApi((const uint64_t*)pShaderModule, 1, apiHandle,
                                             VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pShaderModule, 1);
@@ -587,8 +572,7 @@ class VkDecoderSnapshot::Impl {
                                             (uint64_t)(uintptr_t)device);
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCreatePipelineCache, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         mReconstruction.forEachHandleAddApi((const uint64_t*)pPipelineCache, 1, apiHandle,
                                             VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pPipelineCache, 1);
@@ -636,8 +620,7 @@ class VkDecoderSnapshot::Impl {
         }
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCreateGraphicsPipelines, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         mReconstruction.forEachHandleAddApi((const uint64_t*)pPipelines, ((createInfoCount)),
                                             apiHandle, VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pPipelines,
@@ -657,8 +640,7 @@ class VkDecoderSnapshot::Impl {
                                             (uint64_t)(uintptr_t)device);
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCreateComputePipelines, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         mReconstruction.forEachHandleAddApi((const uint64_t*)pPipelines, ((createInfoCount)),
                                             apiHandle, VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pPipelines,
@@ -684,8 +666,7 @@ class VkDecoderSnapshot::Impl {
                                             (uint64_t)(uintptr_t)device);
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCreatePipelineLayout, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         mReconstruction.forEachHandleAddApi((const uint64_t*)pPipelineLayout, 1, apiHandle,
                                             VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pPipelineLayout, 1);
@@ -710,8 +691,7 @@ class VkDecoderSnapshot::Impl {
                                             (uint64_t)(uintptr_t)device);
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCreateSampler, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         mReconstruction.forEachHandleAddApi((const uint64_t*)pSampler, 1, apiHandle,
                                             VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pSampler, 1);
@@ -737,8 +717,7 @@ class VkDecoderSnapshot::Impl {
                                             (uint64_t)(uintptr_t)device);
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCreateDescriptorSetLayout, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         mReconstruction.forEachHandleAddApi((const uint64_t*)pSetLayout, 1, apiHandle,
                                             VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pSetLayout, 1);
@@ -764,8 +743,7 @@ class VkDecoderSnapshot::Impl {
                                             (uint64_t)(uintptr_t)device);
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCreateDescriptorPool, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         mReconstruction.forEachHandleAddApi((const uint64_t*)pDescriptorPool, 1, apiHandle,
                                             VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pDescriptorPool, 1);
@@ -801,8 +779,7 @@ class VkDecoderSnapshot::Impl {
                 pAllocateInfo->descriptorPool));
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkAllocateDescriptorSets, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         mReconstruction.forEachHandleAddApi((const uint64_t*)pDescriptorSets,
                                             pAllocateInfo->descriptorSetCount, apiHandle,
                                             VkReconstruction::CREATED);
@@ -834,8 +811,7 @@ class VkDecoderSnapshot::Impl {
         mReconstruction.addHandles((const uint64_t*)(&handle), 1);
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkUpdateDescriptorSets, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < descriptorWriteCount; ++i) {
             mReconstruction.addHandleDependency(
                 (const uint64_t*)(&handle), 1,
@@ -897,8 +873,7 @@ class VkDecoderSnapshot::Impl {
         }
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCreateFramebuffer, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         mReconstruction.forEachHandleAddApi((const uint64_t*)pFramebuffer, 1, apiHandle,
                                             VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pFramebuffer, 1);
@@ -922,8 +897,7 @@ class VkDecoderSnapshot::Impl {
                                             (uint64_t)(uintptr_t)device);
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCreateRenderPass, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         mReconstruction.forEachHandleAddApi((const uint64_t*)pRenderPass, 1, apiHandle,
                                             VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pRenderPass, 1);
@@ -950,8 +924,7 @@ class VkDecoderSnapshot::Impl {
                                             (uint64_t)(uintptr_t)device);
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCreateCommandPool, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         mReconstruction.forEachHandleAddApi((const uint64_t*)pCommandPool, 1, apiHandle,
                                             VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pCommandPool, 1);
@@ -981,8 +954,7 @@ class VkDecoderSnapshot::Impl {
                 pAllocateInfo->commandPool));
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkAllocateCommandBuffers, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         mReconstruction.forEachHandleAddApi((const uint64_t*)pCommandBuffers,
                                             pAllocateInfo->commandBufferCount, apiHandle,
                                             VkReconstruction::CREATED);
@@ -1006,8 +978,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkBeginCommandBuffer, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -1021,8 +992,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkEndCommandBuffer, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -1036,8 +1006,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkResetCommandBuffer, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -1051,8 +1020,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdBindPipeline, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -1067,8 +1035,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdSetViewport, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -1082,8 +1049,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdSetScissor, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -1097,8 +1063,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdSetLineWidth, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -1113,8 +1078,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdSetDepthBias, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -1128,8 +1092,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdSetBlendConstants, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -1143,8 +1106,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdSetDepthBounds, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -1158,8 +1120,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdSetStencilCompareMask, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -1173,8 +1134,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdSetStencilWriteMask, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -1188,8 +1148,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdSetStencilReference, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -1206,8 +1165,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdBindDescriptorSets, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -1221,8 +1179,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdBindIndexBuffer, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -1237,8 +1194,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdBindVertexBuffers, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -1253,7 +1209,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdDraw, snapshotTraceBegin, snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -1268,8 +1224,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdDrawIndexed, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -1284,8 +1239,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdDrawIndirect, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -1300,8 +1254,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdDrawIndexedIndirect, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -1315,8 +1268,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdDispatch, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -1330,8 +1282,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdDispatchIndirect, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -1346,8 +1297,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdCopyBuffer, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -1363,8 +1313,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdCopyImage, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -1380,8 +1329,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdBlitImage, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -1396,8 +1344,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdCopyBufferToImage, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -1412,8 +1359,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdCopyImageToBuffer, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -1428,8 +1374,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdUpdateBuffer, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -1444,8 +1389,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdFillBuffer, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -1461,8 +1405,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdClearColorImage, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -1478,8 +1421,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdClearDepthStencilImage, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -1494,8 +1436,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdClearAttachments, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -1511,8 +1452,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdResolveImage, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -1526,8 +1466,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdSetEvent, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -1541,8 +1480,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdResetEvent, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -1562,8 +1500,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdWaitEvents, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -1583,8 +1520,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdPipelineBarrier, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -1598,8 +1534,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdBeginQuery, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -1613,8 +1548,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdEndQuery, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -1628,8 +1562,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdResetQueryPool, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -1644,8 +1577,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdWriteTimestamp, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -1661,8 +1593,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdCopyQueryPoolResults, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -1677,8 +1608,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdPushConstants, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -1693,8 +1623,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdBeginRenderPass, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -1708,8 +1637,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdNextSubpass, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -1722,8 +1650,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdEndRenderPass, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -1737,8 +1664,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdExecuteCommands, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -1770,8 +1696,7 @@ class VkDecoderSnapshot::Impl {
         }
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkBindImageMemory2, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         // Note: the implementation does not work with bindInfoCount > 1
         for (uint32_t i = 0; i < bindInfoCount; ++i) {
             VkImage boxed_VkImage = unboxed_to_boxed_non_dispatchable_VkImage(pBindInfos[i].image);
@@ -1792,8 +1717,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdSetDeviceMask, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -1808,8 +1732,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdDispatchBase, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -1883,8 +1806,7 @@ class VkDecoderSnapshot::Impl {
                                             (uint64_t)(uintptr_t)device);
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCreateSamplerYcbcrConversion, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         mReconstruction.forEachHandleAddApi((const uint64_t*)pYcbcrConversion, 1, apiHandle,
                                             VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pYcbcrConversion, 1);
@@ -1911,8 +1833,7 @@ class VkDecoderSnapshot::Impl {
                                             (uint64_t)(uintptr_t)device);
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCreateDescriptorUpdateTemplate,
-                                    snapshotTraceBegin, snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         mReconstruction.forEachHandleAddApi((const uint64_t*)pDescriptorUpdateTemplate, 1,
                                             apiHandle, VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle,
@@ -1963,8 +1884,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdDrawIndirectCount, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -1980,8 +1900,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdDrawIndexedIndirectCount, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -2000,8 +1919,7 @@ class VkDecoderSnapshot::Impl {
                                             (uint64_t)(uintptr_t)device);
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCreateRenderPass2, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         mReconstruction.forEachHandleAddApi((const uint64_t*)pRenderPass, 1, apiHandle,
                                             VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pRenderPass, 1);
@@ -2014,8 +1932,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdBeginRenderPass2, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -2030,8 +1947,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdNextSubpass2, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -2045,8 +1961,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdEndRenderPass2, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -2096,8 +2011,7 @@ class VkDecoderSnapshot::Impl {
                                             (uint64_t)(uintptr_t)device);
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCreatePrivateDataSlot, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         mReconstruction.forEachHandleAddApi((const uint64_t*)pPrivateDataSlot, 1, apiHandle,
                                             VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pPrivateDataSlot, 1);
@@ -2125,8 +2039,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdSetEvent2, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -2140,8 +2053,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdResetEvent2, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -2156,8 +2068,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdWaitEvents2, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -2171,8 +2082,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdPipelineBarrier2, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -2186,8 +2096,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdWriteTimestamp2, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -2204,8 +2113,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdCopyBuffer2, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -2219,8 +2127,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdCopyImage2, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -2234,8 +2141,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdCopyBufferToImage2, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -2249,8 +2155,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdCopyImageToBuffer2, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -2264,8 +2169,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdBlitImage2, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -2279,8 +2183,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdResolveImage2, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -2294,8 +2197,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdBeginRendering, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -2308,8 +2210,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdEndRendering, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -2323,8 +2224,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdSetCullMode, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -2338,8 +2238,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdSetFrontFace, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -2353,8 +2252,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdSetPrimitiveTopology, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -2368,8 +2266,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdSetViewportWithCount, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -2383,8 +2280,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdSetScissorWithCount, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -2400,8 +2296,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdBindVertexBuffers2, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -2415,8 +2310,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdSetDepthTestEnable, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -2430,8 +2324,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdSetDepthWriteEnable, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -2445,8 +2338,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdSetDepthCompareOp, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -2460,8 +2352,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdSetDepthBoundsTestEnable, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -2475,8 +2366,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdSetStencilTestEnable, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -2491,8 +2381,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdSetStencilOp, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -2507,8 +2396,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdSetRasterizerDiscardEnable, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -2522,8 +2410,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdSetDepthBiasEnable, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -2538,8 +2425,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdSetPrimitiveRestartEnable, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -2575,8 +2461,7 @@ class VkDecoderSnapshot::Impl {
                                             (uint64_t)(uintptr_t)device);
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCreateSwapchainKHR, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         mReconstruction.forEachHandleAddApi((const uint64_t*)pSwapchain, 1, apiHandle,
                                             VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pSwapchain, 1);
@@ -2626,8 +2511,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdBeginRenderingKHR, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -2640,8 +2524,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdEndRenderingKHR, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -2723,8 +2606,7 @@ class VkDecoderSnapshot::Impl {
                                             (uint64_t)(uintptr_t)device);
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCreateDescriptorUpdateTemplateKHR,
-                                    snapshotTraceBegin, snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         mReconstruction.forEachHandleAddApi((const uint64_t*)pDescriptorUpdateTemplate, 1,
                                             apiHandle, VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle,
@@ -2760,8 +2642,7 @@ class VkDecoderSnapshot::Impl {
                                             (uint64_t)(uintptr_t)device);
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCreateRenderPass2KHR, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         mReconstruction.forEachHandleAddApi((const uint64_t*)pRenderPass, 1, apiHandle,
                                             VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pRenderPass, 1);
@@ -2774,8 +2655,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdBeginRenderPass2KHR, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -2790,8 +2670,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdNextSubpass2KHR, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -2805,8 +2684,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdEndRenderPass2KHR, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -2861,8 +2739,7 @@ class VkDecoderSnapshot::Impl {
                                             (uint64_t)(uintptr_t)device);
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCreateSamplerYcbcrConversionKHR,
-                                    snapshotTraceBegin, snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         mReconstruction.forEachHandleAddApi((const uint64_t*)pYcbcrConversion, 1, apiHandle,
                                             VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pYcbcrConversion, 1);
@@ -2900,8 +2777,7 @@ class VkDecoderSnapshot::Impl {
         }
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkBindImageMemory2KHR, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         // Note: the implementation does not work with bindInfoCount > 1
         for (uint32_t i = 0; i < bindInfoCount; ++i) {
             VkImage boxed_VkImage = unboxed_to_boxed_non_dispatchable_VkImage(pBindInfos[i].image);
@@ -2954,8 +2830,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdSetEvent2KHR, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -2969,8 +2844,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdResetEvent2KHR, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -2985,8 +2859,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdWaitEvents2KHR, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -3000,8 +2873,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdPipelineBarrier2KHR, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -3016,8 +2888,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdWriteTimestamp2KHR, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -3035,8 +2906,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdWriteBufferMarker2AMD, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -3056,8 +2926,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdCopyBuffer2KHR, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -3071,8 +2940,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdCopyImage2KHR, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -3086,8 +2954,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdCopyBufferToImage2KHR, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -3101,8 +2968,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdCopyImageToBuffer2KHR, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -3116,8 +2982,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdBlitImage2KHR, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -3131,8 +2996,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdResolveImage2KHR, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -3166,8 +3030,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdBindIndexBuffer2KHR, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -3198,8 +3061,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdSetLineStippleKHR, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -3241,8 +3103,7 @@ class VkDecoderSnapshot::Impl {
         mReconstruction.addHandles((const uint64_t*)pCallback, 1);
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCreateDebugReportCallbackEXT, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         mReconstruction.forEachHandleAddApi((const uint64_t*)pCallback, 1, apiHandle,
                                             VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pCallback, 1);
@@ -3270,8 +3131,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdBindTransformFeedbackBuffersEXT,
-                                    snapshotTraceBegin, snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -3288,8 +3148,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdBeginTransformFeedbackEXT, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -3305,8 +3164,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdEndTransformFeedbackEXT, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -3321,8 +3179,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdBeginQueryIndexedEXT, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -3336,8 +3193,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdEndQueryIndexedEXT, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -3353,8 +3209,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdDrawIndirectByteCountEXT, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -3386,8 +3241,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdBeginDebugUtilsLabelEXT, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -3400,8 +3254,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdEndDebugUtilsLabelEXT, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -3415,8 +3268,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdInsertDebugUtilsLabelEXT, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -3435,8 +3287,7 @@ class VkDecoderSnapshot::Impl {
         mReconstruction.addHandles((const uint64_t*)pMessenger, 1);
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCreateDebugUtilsMessengerEXT, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         mReconstruction.forEachHandleAddApi((const uint64_t*)pMessenger, 1, apiHandle,
                                             VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pMessenger, 1);
@@ -3482,8 +3333,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdSetLineStippleEXT, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -3499,8 +3349,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdSetCullModeEXT, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -3514,8 +3363,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdSetFrontFaceEXT, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -3529,8 +3377,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdSetPrimitiveTopologyEXT, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -3544,8 +3391,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdSetViewportWithCountEXT, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -3559,8 +3405,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdSetScissorWithCountEXT, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -3576,8 +3421,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdBindVertexBuffers2EXT, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -3591,8 +3435,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdSetDepthTestEnableEXT, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -3606,8 +3449,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdSetDepthWriteEnableEXT, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -3621,8 +3463,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdSetDepthCompareOpEXT, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -3637,8 +3478,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdSetDepthBoundsTestEnableEXT,
-                                    snapshotTraceBegin, snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -3652,8 +3492,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdSetStencilTestEnableEXT, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -3668,8 +3507,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdSetStencilOpEXT, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -3733,8 +3571,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdSetPatchControlPointsEXT, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -3750,8 +3587,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdSetRasterizerDiscardEnableEXT,
-                                    snapshotTraceBegin, snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -3765,8 +3601,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdSetDepthBiasEnableEXT, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -3780,8 +3615,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdSetLogicOpEXT, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -3796,8 +3630,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdSetPrimitiveRestartEnableEXT,
-                                    snapshotTraceBegin, snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -3813,8 +3646,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdSetColorWriteEnableEXT, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -3831,8 +3663,7 @@ class VkDecoderSnapshot::Impl {
         // memory modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkMapMemoryIntoAddressSpaceGOOGLE,
-                                    snapshotTraceBegin, snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             VkDeviceMemory boxed = unboxed_to_boxed_non_dispatchable_VkDeviceMemory((&memory)[i]);
             mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
@@ -3875,8 +3706,7 @@ class VkDecoderSnapshot::Impl {
                                             (uint64_t)(uintptr_t)device);
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCreateImageWithRequirementsGOOGLE,
-                                    snapshotTraceBegin, snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         mReconstruction.forEachHandleAddApi((const uint64_t*)pImage, 1, apiHandle,
                                             VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pImage, 1);
@@ -3894,8 +3724,7 @@ class VkDecoderSnapshot::Impl {
                                             (uint64_t)(uintptr_t)device);
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCreateBufferWithRequirementsGOOGLE,
-                                    snapshotTraceBegin, snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         mReconstruction.forEachHandleAddApi((const uint64_t*)pBuffer, 1, apiHandle,
                                             VkReconstruction::CREATED);
         mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pBuffer, 1);
@@ -3969,8 +3798,7 @@ class VkDecoderSnapshot::Impl {
         // memory modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkGetBlobGOOGLE, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             VkDeviceMemory boxed = unboxed_to_boxed_non_dispatchable_VkDeviceMemory((&memory)[i]);
             mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
@@ -4005,8 +3833,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdTraceRaysKHR, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -4037,8 +3864,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdTraceRaysIndirectKHR, snapshotTraceBegin,
-                                    snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
@@ -4060,8 +3886,7 @@ class VkDecoderSnapshot::Impl {
         // commandBuffer modify
         auto apiHandle = mReconstruction.createApiInfo();
         auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, OP_vkCmdSetRayTracingPipelineStackSizeKHR,
-                                    snapshotTraceBegin, snapshotTraceBytes);
+        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
