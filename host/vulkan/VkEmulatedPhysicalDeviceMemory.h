@@ -49,7 +49,7 @@ class EmulatedPhysicalDeviceMemoryProperties {
         return mHostMemoryProperties;
     }
 
-    const uint32_t getGuestColorBufferMemoryTypeIndex() const {
+    uint32_t getGuestColorBufferMemoryTypeIndex() const {
         return mGuestColorBufferMemoryTypeIndex;
     }
 
