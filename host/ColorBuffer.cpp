@@ -565,14 +565,6 @@ void ColorBuffer::glOpReadbackAsync(GLuint buffer, bool readbackBgra) {
     mColorBufferGl->readbackAsync(buffer, readbackBgra);
 }
 
-bool ColorBuffer::glOpImportEglImage(void* image, bool preserveContent) {
-    if (!mColorBufferGl) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "ColorBufferGl not available.";
-    }
-
-    return mColorBufferGl->importEglImage(image, preserveContent);
-}
-
 bool ColorBuffer::glOpImportEglNativePixmap(void* pixmap, bool preserveContent) {
     if (!mColorBufferGl) {
         GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "ColorBufferGl not available.";
