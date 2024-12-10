@@ -357,10 +357,10 @@ int VirtioGpuResource::GetVulkanInfo(struct stream_renderer_vulkan_info* outInfo
     if (!mBlobMemory) {
         return -EINVAL;
     }
-    if (!std::holds_alternative<ExternalMemoryDescriptor>(*mBlobMemory)) {
+    if (!std::holds_alternative<ExternalMemoryInfo>(*mBlobMemory)) {
         return -EINVAL;
     }
-    auto& memory = std::get<ExternalMemoryDescriptor>(*mBlobMemory);
+    auto& memory = std::get<ExternalMemoryInfo>(*mBlobMemory);
     if (!memory->vulkanInfoOpt) {
         return -EINVAL;
     }
@@ -380,16 +380,17 @@ int VirtioGpuResource::GetCaching(uint32_t* outCaching) const {
         return -EINVAL;
     }
 
-    if (std::holds_alternative<RingBlobMemory>(*mBlobMemory)) {
+    if (!std::holds_alternative<ExternalMemoryMapping>(*mBlobMemory) ||
+        !std::holds_alternative<ExternalMemoryInfo>(*mBlobMemory)) {
         *outCaching = STREAM_RENDERER_MAP_CACHE_CACHED;
         return 0;
     } else if (std::holds_alternative<ExternalMemoryMapping>(*mBlobMemory)) {
         auto& memory = std::get<ExternalMemoryMapping>(*mBlobMemory);
         *outCaching = memory.caching;
         return 0;
-    } else if (std::holds_alternative<ExternalMemoryDescriptor>(*mBlobMemory)) {
-        auto& descriptor = std::get<ExternalMemoryDescriptor>(*mBlobMemory);
-        *outCaching = descriptor->caching;
+    } else if (std::holds_alternative<ExternalMemoryInfo>(*mBlobMemory)) {
+        auto& memory = std::get<ExternalMemoryInfo>(*mBlobMemory);
+        *outCaching = memory->caching;
         return 0;
     }
 
@@ -794,10 +795,10 @@ int VirtioGpuResource::ExportBlob(struct stream_renderer_handle* outHandle) {
 #endif
         outHandle->handle_type = STREAM_MEM_HANDLE_TYPE_SHM;
         return 0;
-    } else if (std::holds_alternative<ExternalMemoryDescriptor>(*mBlobMemory)) {
-        auto& memory = std::get<ExternalMemoryDescriptor>(*mBlobMemory);
+    } else if (std::holds_alternative<ExternalMemoryInfo>(*mBlobMemory)) {
+        auto& memory = std::get<ExternalMemoryInfo>(*mBlobMemory);
 
-        auto rawDescriptorOpt = memory->descriptor.release();
+        auto rawDescriptorOpt = memory->descriptorInfo.descriptor.release();
         if (!rawDescriptorOpt) {
             stream_renderer_error(
                 "failed to export blob for resource %u: failed to get raw handle.", mId);
@@ -810,7 +811,7 @@ int VirtioGpuResource::ExportBlob(struct stream_renderer_handle* outHandle) {
 #else
         outHandle->os_handle = static_cast<int64_t>(rawDescriptor);
 #endif
-        outHandle->handle_type = memory->handleType;
+        outHandle->handle_type = memory->descriptorInfo.streamHandleType;
         return 0;
     }
 
@@ -867,7 +868,7 @@ std::optional<VirtioGpuResourceSnapshot> VirtioGpuResource::Snapshot() const {
                 return std::nullopt;
             }
             resourceSnapshot.mutable_ring_blob()->Swap(&*snapshotRingBlobOpt);
-        } else if (std::holds_alternative<ExternalMemoryDescriptor>(*mBlobMemory)) {
+        } else if (std::holds_alternative<ExternalMemoryInfo>(*mBlobMemory)) {
             if (!mLatestAttachedContext) {
                 stream_renderer_error("Failed to snapshot resource %d: missing blob context?", mId);
                 return std::nullopt;
