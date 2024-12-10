@@ -18,14 +18,13 @@
 #include <functional>
 #include <list>
 #include <memory>
+#include <mutex>
 #include <sstream>
 #include <string>
 #include <unordered_map>
 #include <variant>
 
-#include "aemu/base/synchronization/Lock.h"
 #include "gfxstream/virtio-gpu-gfxstream-renderer.h"
-#include "render-utils/virtio_gpu_ops.h"
 
 typedef uint32_t VirtioGpuCtxId;
 typedef uint8_t VirtioGpuRingIdx;
@@ -80,22 +79,17 @@ class VirtioGpuTimelines {
     using FenceId = uint64_t;
     using Ring = VirtioGpuRing;
     using TaskId = uint64_t;
+    using FenceCompletionCallback = std::function<void(const Ring&, FenceId)>;
+
+    static std::unique_ptr<VirtioGpuTimelines> create(FenceCompletionCallback callback);
 
     TaskId enqueueTask(const Ring&);
-    void enqueueFence(const Ring&, FenceId, FenceCompletionCallback);
+    void enqueueFence(const Ring&, FenceId);
     void notifyTaskCompletion(TaskId);
     void poll();
-    static std::unique_ptr<VirtioGpuTimelines> create(bool withAsyncCallback);
 
    private:
-    VirtioGpuTimelines(bool withAsyncCallback);
-
-    struct Fence {
-        FenceId mId;
-        FenceCompletionCallback mCompletionCallback;
-        Fence(FenceId id, FenceCompletionCallback completionCallback)
-            : mId(id), mCompletionCallback(std::move(completionCallback)) {}
-    };
+    VirtioGpuTimelines(FenceCompletionCallback callback);
 
     struct Task {
         TaskId mId;
@@ -106,8 +100,7 @@ class VirtioGpuTimelines {
             : mId(id), mRing(ring), mTraceId(traceId), mHasCompleted(false) {}
     };
 
-    using TimelineItem =
-        std::variant<std::unique_ptr<Fence>, std::shared_ptr<Task>>;
+    using TimelineItem = std::variant<FenceId, std::shared_ptr<Task>>;
     struct Timeline {
         uint64_t mTraceTrackId;
         std::list<TimelineItem> mQueue;
@@ -115,17 +108,18 @@ class VirtioGpuTimelines {
 
     Timeline& GetOrCreateTimelineLocked(const Ring& ring);
 
-    android::base::Lock mLock;
+    // Go over the timeline, signal any fences without pending tasks, and remove
+    // timeline items that are no longer needed.
+    void poll_locked(const Ring&);
+
     std::atomic<TaskId> mNextId;
+    FenceCompletionCallback mFenceCompletionCallback;
+    std::mutex mTimelinesMutex;
     // The mTaskIdToTask cache must be destroyed after the actual owner of Task,
     // mTimelineQueues, is destroyed, because the deleter of Task will
     // automatically remove the entry in mTaskIdToTask.
     std::unordered_map<TaskId, std::weak_ptr<Task>> mTaskIdToTask;
     std::unordered_map<Ring, Timeline> mTimelineQueues;
-    const bool mWithAsyncCallback;
-    // Go over the timeline, signal any fences without pending tasks, and remove
-    // timeline items that are no longer needed.
-    void poll_locked(const Ring&);
 };
 
 #endif  // VIRTIO_GPU_TIMELINES_H
