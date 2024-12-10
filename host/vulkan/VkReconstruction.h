@@ -13,9 +13,9 @@
 // limitations under the License.
 #pragma once
 
+#include "VkSnapshotApiCall.h"
 #include "VulkanHandleMapping.h"
 #include "VulkanHandles.h"
-#include "aemu/base/containers/EntityManager.h"
 #include "aemu/base/HealthMonitor.h"
 #include "aemu/base/files/Stream.h"
 #include "common/goldfish_vk_marshaling.h"
@@ -34,15 +34,6 @@ class VkReconstruction {
     void load(android::base::Stream* stream, emugl::GfxApiLogger& gfxLogger,
               emugl::HealthMonitor<>* healthMonitor);
 
-    struct ApiInfo {
-        std::vector<uint8_t> packet;
-        // Book-keeping for which handles were created by this API
-        std::vector<uint64_t> createdHandles;
-    };
-
-    using ApiTrace = android::base::EntityManager<32, 16, 16, ApiInfo>;
-    using ApiHandle = ApiTrace::EntityHandle;
-
     enum HandleState { BEGIN = 0, CREATED = 0, BOUND_MEMORY = 1, HANDLE_STATE_COUNT };
 
     typedef std::pair<uint64_t, HandleState> HandleWithState;
@@ -54,7 +45,7 @@ class VkReconstruction {
     };
 
     struct HandleReconstruction {
-        std::vector<ApiHandle> apiRefs;
+        std::vector<VkSnapshotApiCallHandle> apiRefs;
         std::unordered_set<HandleWithState, HandleWithStateHash> childHandles;
         std::vector<HandleWithState> parentHandles;
     };
@@ -70,41 +61,44 @@ class VkReconstruction {
         android::base::UnpackedComponentManager<32, 16, 16, HandleWithStateReconstruction>;
 
     struct HandleModification {
-        std::vector<ApiHandle> apiRefs;
+        std::vector<VkSnapshotApiCallHandle> apiRefs;
         uint32_t order = 0;
     };
 
     using HandleModifications =
         android::base::UnpackedComponentManager<32, 16, 16, HandleModification>;
 
-    ApiHandle createApiInfo();
-    void destroyApiInfo(ApiHandle h);
+    VkSnapshotApiCallHandle createApiInfo();
+    void destroyApiInfo(VkSnapshotApiCallHandle h);
 
-    void removeHandleFromApiInfo(ApiHandle h, uint64_t toRemove);
+    void removeHandleFromApiInfo(VkSnapshotApiCallHandle h, uint64_t toRemove);
 
-    ApiInfo* getApiInfo(ApiHandle h);
+    VkSnapshotApiCallInfo* getApiInfo(VkSnapshotApiCallHandle h);
 
-    void setApiTrace(ApiInfo* apiInfo, const uint8_t* traceBegin, size_t traceBytes);
+    void setApiTrace(VkSnapshotApiCallInfo* apiInfo, const uint8_t* traceBegin, size_t traceBytes);
 
     void dump();
 
     void addHandles(const uint64_t* toAdd, uint32_t count);
     void removeHandles(const uint64_t* toRemove, uint32_t count, bool recursive = true);
 
-    void forEachHandleAddApi(const uint64_t* toProcess, uint32_t count, uint64_t apiHandle,
-                             HandleState state = CREATED);
+    void forEachHandleAddApi(const uint64_t* toProcess, uint32_t count,
+                             uint64_t VkSnapshotApiCallHandle, HandleState state = CREATED);
     void forEachHandleDeleteApi(const uint64_t* toProcess, uint32_t count);
 
     void addHandleDependency(const uint64_t* handles, uint32_t count, uint64_t parentHandle,
                              HandleState childState = CREATED, HandleState parentState = CREATED);
 
-    void setCreatedHandlesForApi(uint64_t apiHandle, const uint64_t* created, uint32_t count);
+    void setCreatedHandlesForApi(VkSnapshotApiCallHandle handle , const uint64_t* created,
+                                 uint32_t count);
 
-    void forEachHandleAddModifyApi(const uint64_t* toProcess, uint32_t count, uint64_t apiHandle);
+    void forEachHandleAddModifyApi(const uint64_t* toProcess, uint32_t count,
+                                   VkSnapshotApiCallHandle handle);
 
     void forEachHandleClearModifyApi(const uint64_t* toProcess, uint32_t count);
 
-    void setModifiedHandlesForApi(uint64_t apiHandle, const uint64_t* modified, uint32_t count);
+    void setModifiedHandlesForApi(VkSnapshotApiCallHandle handle, const uint64_t* modified,
+                                  uint32_t count);
 
     // Used by on_vkCreateDescriptorPool.
     //
@@ -129,7 +123,7 @@ class VkReconstruction {
    private:
     std::vector<uint64_t> getOrderedUniqueModifyApis() const;
 
-    ApiTrace mApiTrace;
+    VkSnapshotApiCallManager mApiCallManager;
 
     HandleWithStateReconstructions mHandleReconstructions;
     HandleModifications mHandleModifications;
