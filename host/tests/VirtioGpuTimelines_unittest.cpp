@@ -21,226 +21,274 @@
 namespace gfxstream {
 namespace {
 
+using testing::ElementsAreArray;
+using testing::Eq;
+using testing::ElementsAreArray;
+using testing::IsEmpty;
+using testing::Pair;
+
+using Ring = VirtioGpuTimelines::Ring;
+using FenceId = VirtioGpuTimelines::FenceId;
 using RingGlobal = VirtioGpuRingGlobal;
 using RingContextSpecific = VirtioGpuRingContextSpecific;
 
+const auto kGlobalRing = Ring{VirtioGpuRingGlobal{}};
+const auto kContext2Ring = Ring{RingContextSpecific{
+    .mCtxId = 2,
+    .mRingIdx = 0,
+}};
+const auto kContext3Ring = Ring{RingContextSpecific{
+    .mCtxId = 3,
+    .mRingIdx = 0,
+}};
+
 TEST(VirtioGpuTimelinesTest, Init) {
-    std::unique_ptr<VirtioGpuTimelines> virtioGpuTimelines = VirtioGpuTimelines::create(true);
-    virtioGpuTimelines = VirtioGpuTimelines::create(false);
+    auto noopCallback = [](const Ring&, FenceId) {};
+    std::unique_ptr<VirtioGpuTimelines> virtioGpuTimelines;
+    virtioGpuTimelines = VirtioGpuTimelines::create(noopCallback);
+    virtioGpuTimelines = VirtioGpuTimelines::create(noopCallback);
 }
 
 TEST(VirtioGpuTimelinesTest, TasksShouldHaveDifferentIds) {
-    std::unique_ptr<VirtioGpuTimelines> virtioGpuTimelines = VirtioGpuTimelines::create(true);
-    auto taskId1 = virtioGpuTimelines->enqueueTask(RingGlobal{});
-    auto taskId2 = virtioGpuTimelines->enqueueTask(RingGlobal{});
+    auto noopCallback = [](const Ring&, FenceId) {};
+    std::unique_ptr<VirtioGpuTimelines> virtioGpuTimelines =
+        VirtioGpuTimelines::create(noopCallback);
+    auto taskId1 = virtioGpuTimelines->enqueueTask(kGlobalRing);
+    auto taskId2 = virtioGpuTimelines->enqueueTask(kGlobalRing);
     ASSERT_NE(taskId1, taskId2);
 }
 
-TEST(VirtioGpuTimelinesTest, CantPollWithAsyncCallbackEnabled) {
-    EXPECT_DEATH(
-        {
-            std::unique_ptr<VirtioGpuTimelines> virtioGpuTimelines =
-                VirtioGpuTimelines::create(true);
-            virtioGpuTimelines->poll();
-        },
-        ".*");
-}
-
-TEST(VirtioGpuTimelinesTest, MultipleTasksAndFencesWithSyncCallback) {
-    std::unique_ptr<VirtioGpuTimelines> virtioGpuTimelines = VirtioGpuTimelines::create(false);
-    using namespace testing;
-    MockFunction<void()> check;
-    MockFunction<void()> fence1Callback;
-    MockFunction<void()> fence2Callback;
-    MockFunction<void()> fence3Callback;
-    VirtioGpuTimelines::FenceId fenceId = 0;
-    {
-        InSequence s;
-
-        EXPECT_CALL(check, Call());
-        EXPECT_CALL(fence1Callback, Call());
-        EXPECT_CALL(fence2Callback, Call());
-        EXPECT_CALL(fence3Callback, Call());
-    }
-
-    auto task1Id = virtioGpuTimelines->enqueueTask(RingGlobal{});
-    virtioGpuTimelines->enqueueFence(RingGlobal{}, fenceId++, fence1Callback.AsStdFunction());
-    auto task2Id = virtioGpuTimelines->enqueueTask(RingGlobal{});
-    virtioGpuTimelines->enqueueFence(RingGlobal{}, fenceId++, fence2Callback.AsStdFunction());
-    virtioGpuTimelines->notifyTaskCompletion(task1Id);
-    auto task3Id = virtioGpuTimelines->enqueueTask(RingGlobal{});
-    virtioGpuTimelines->enqueueFence(RingGlobal{}, fenceId++, fence3Callback.AsStdFunction());
-    virtioGpuTimelines->notifyTaskCompletion(task2Id);
-    virtioGpuTimelines->notifyTaskCompletion(task3Id);
-    check.Call();
-    virtioGpuTimelines->poll();
-}
-
 TEST(VirtioGpuTimelinesTest, MultipleTasksAndFencesWithAsyncCallback) {
-    std::unique_ptr<VirtioGpuTimelines> virtioGpuTimelines = VirtioGpuTimelines::create(true);
-    using namespace testing;
-    MockFunction<void(int)> check;
-    MockFunction<void()> fence1Callback;
-    MockFunction<void()> fence2Callback;
-    MockFunction<void()> fence3Callback;
-    VirtioGpuTimelines::FenceId fenceId = 0;
-    {
-        InSequence s;
+    std::vector<std::pair<Ring, FenceId>> signaledFences;
 
-        EXPECT_CALL(check, Call(1));
-        EXPECT_CALL(fence1Callback, Call());
-        EXPECT_CALL(check, Call(2));
-        EXPECT_CALL(check, Call(3));
-        EXPECT_CALL(fence2Callback, Call());
-        EXPECT_CALL(check, Call(4));
-        EXPECT_CALL(fence3Callback, Call());
-    }
+    auto fenceCallback =
+        [&](const Ring& ring, FenceId fenceId) {
+            signaledFences.push_back(std::make_pair(ring, fenceId));
+        };
+    std::unique_ptr<VirtioGpuTimelines> virtioGpuTimelines =
+        VirtioGpuTimelines::create(fenceCallback);
 
-    auto task1Id = virtioGpuTimelines->enqueueTask(RingGlobal{});
-    virtioGpuTimelines->enqueueFence(RingGlobal{}, fenceId++, fence1Callback.AsStdFunction());
-    auto task2Id = virtioGpuTimelines->enqueueTask(RingGlobal{});
-    virtioGpuTimelines->enqueueFence(RingGlobal{}, fenceId++, fence2Callback.AsStdFunction());
-    check.Call(1);
+    FenceId fenceId = 0;
+
+    auto task1Id = virtioGpuTimelines->enqueueTask(kGlobalRing);
+    EXPECT_THAT(signaledFences, IsEmpty());
+
+    auto fence1Id = fenceId++;
+
+    virtioGpuTimelines->enqueueFence(kGlobalRing, fence1Id);
+    EXPECT_THAT(signaledFences, IsEmpty());
+
+    auto task2Id = virtioGpuTimelines->enqueueTask(kGlobalRing);
+    EXPECT_THAT(signaledFences, IsEmpty());
+
+    auto fence2Id = fenceId++;
+
+    virtioGpuTimelines->enqueueFence(kGlobalRing, fence2Id);
+    EXPECT_THAT(signaledFences, IsEmpty());
+
     virtioGpuTimelines->notifyTaskCompletion(task1Id);
-    check.Call(2);
-    auto task3Id = virtioGpuTimelines->enqueueTask(RingGlobal{});
-    virtioGpuTimelines->enqueueFence(RingGlobal{}, fenceId++, fence3Callback.AsStdFunction());
-    check.Call(3);
+    EXPECT_THAT(signaledFences,
+                ElementsAreArray({
+                    Pair(Eq(kGlobalRing), Eq(fence1Id)),
+                }));
+
+    auto task3Id = virtioGpuTimelines->enqueueTask(kGlobalRing);
+    EXPECT_THAT(signaledFences,
+                ElementsAreArray({
+                    Pair(Eq(kGlobalRing), Eq(fence1Id)),
+                }));
+
+    auto fence3Id = fenceId++;
+    virtioGpuTimelines->enqueueFence(kGlobalRing, fence3Id);
+    EXPECT_THAT(signaledFences,
+                ElementsAreArray({
+                    Pair(Eq(kGlobalRing), Eq(fence1Id)),
+                }));
+
     virtioGpuTimelines->notifyTaskCompletion(task2Id);
-    check.Call(4);
+    EXPECT_THAT(signaledFences,
+                ElementsAreArray({
+                    Pair(Eq(kGlobalRing), Eq(fence1Id)),
+                    Pair(Eq(kGlobalRing), Eq(fence2Id)),
+                }));
+
     virtioGpuTimelines->notifyTaskCompletion(task3Id);
+    EXPECT_THAT(signaledFences,
+                ElementsAreArray({
+                    Pair(Eq(kGlobalRing), Eq(fence1Id)),
+                    Pair(Eq(kGlobalRing), Eq(fence2Id)),
+                    Pair(Eq(kGlobalRing), Eq(fence3Id)),
+                }));
 }
 
 TEST(VirtioGpuTimelinesTest, FencesWithoutPendingTasksWithAsyncCallback) {
-    std::unique_ptr<VirtioGpuTimelines> virtioGpuTimelines = VirtioGpuTimelines::create(true);
-    using namespace testing;
-    MockFunction<void()> fenceCallback1;
-    MockFunction<void()> fenceCallback2;
-    VirtioGpuTimelines::FenceId fenceId = 0;
-    {
-        InSequence s;
-        EXPECT_CALL(fenceCallback1, Call());
-        EXPECT_CALL(fenceCallback2, Call());
-    }
+    std::vector<std::pair<Ring, FenceId>> signaledFences;
 
-    virtioGpuTimelines->enqueueFence(RingGlobal{}, fenceId++, fenceCallback1.AsStdFunction());
-    virtioGpuTimelines->enqueueFence(RingGlobal{}, fenceId++, fenceCallback2.AsStdFunction());
+    auto fenceCallback =
+        [&](const Ring& ring, FenceId fenceId) {
+            signaledFences.push_back(std::make_pair(ring, fenceId));
+        };
+    std::unique_ptr<VirtioGpuTimelines> virtioGpuTimelines =
+        VirtioGpuTimelines::create(fenceCallback);
+
+    FenceId fenceId = 0;
+
+    auto fence1Id = fenceId++;
+    virtioGpuTimelines->enqueueFence(kGlobalRing, fence1Id);
+    EXPECT_THAT(signaledFences,
+                ElementsAreArray({
+                    Pair(Eq(kGlobalRing), Eq(fence1Id)),
+                }));
+
+    auto fence2Id = fenceId++;
+    virtioGpuTimelines->enqueueFence(kGlobalRing, fence2Id);
+    EXPECT_THAT(signaledFences,
+                ElementsAreArray({
+                    Pair(Eq(kGlobalRing), Eq(fence1Id)),
+                    Pair(Eq(kGlobalRing), Eq(fence2Id)),
+                }));
 }
 
 TEST(VirtioGpuTimelinesTest, FencesSharingSamePendingTasksWithAsyncCallback) {
-    std::unique_ptr<VirtioGpuTimelines> virtioGpuTimelines = VirtioGpuTimelines::create(true);
-    using namespace testing;
-    MockFunction<void()> fenceCallback1;
-    MockFunction<void()> fenceCallback2;
-    MockFunction<void(int)> check;
-    VirtioGpuTimelines::FenceId fenceId = 0;
-    {
-        InSequence s;
-        EXPECT_CALL(check, Call(1));
-        EXPECT_CALL(fenceCallback1, Call());
-        EXPECT_CALL(fenceCallback2, Call());
-    }
+   std::vector<std::pair<Ring, FenceId>> signaledFences;
 
-    auto taskId = virtioGpuTimelines->enqueueTask(RingGlobal{});
-    virtioGpuTimelines->enqueueFence(RingGlobal{}, fenceId++, fenceCallback1.AsStdFunction());
-    virtioGpuTimelines->enqueueFence(RingGlobal{}, fenceId++, fenceCallback2.AsStdFunction());
-    check.Call(1);
+    auto fenceCallback =
+        [&](const Ring& ring, FenceId fenceId) {
+            signaledFences.push_back(std::make_pair(ring, fenceId));
+        };
+    std::unique_ptr<VirtioGpuTimelines> virtioGpuTimelines =
+        VirtioGpuTimelines::create(fenceCallback);
+
+    FenceId fenceId = 0;
+
+    auto taskId = virtioGpuTimelines->enqueueTask(kGlobalRing);
+    EXPECT_THAT(signaledFences, IsEmpty());
+
+    auto fence1Id = fenceId++;
+    virtioGpuTimelines->enqueueFence(kGlobalRing, fence1Id);
+    EXPECT_THAT(signaledFences, IsEmpty());
+
+    auto fence2Id = fenceId++;
+    virtioGpuTimelines->enqueueFence(kGlobalRing, fence2Id);
+    EXPECT_THAT(signaledFences, IsEmpty());
+
     virtioGpuTimelines->notifyTaskCompletion(taskId);
+    EXPECT_THAT(signaledFences,
+                ElementsAreArray({
+                    Pair(Eq(kGlobalRing), Eq(fence1Id)),
+                    Pair(Eq(kGlobalRing), Eq(fence2Id)),
+                }));
 }
 
 TEST(VirtioGpuTimelinesTest, TasksAndFencesOnMultipleContextsWithAsyncCallback) {
-    std::unique_ptr<VirtioGpuTimelines> virtioGpuTimelines = VirtioGpuTimelines::create(true);
-    using namespace testing;
-    MockFunction<void()> fence1Callback;
-    MockFunction<void()> fence2Callback;
-    MockFunction<void()> fence3Callback;
-    MockFunction<void(int)> check;
-    {
-        InSequence s;
+    std::vector<std::pair<Ring, FenceId>> signaledFences;
 
-        EXPECT_CALL(check, Call(1));
-        EXPECT_CALL(fence1Callback, Call());
-        EXPECT_CALL(check, Call(2));
-        EXPECT_CALL(fence2Callback, Call());
-        EXPECT_CALL(check, Call(3));
-        EXPECT_CALL(fence3Callback, Call());
-    }
-    auto taskId2 = virtioGpuTimelines->enqueueTask(RingContextSpecific{
-        .mCtxId = 2,
-        .mRingIdx = 0,
-    });
-    auto taskId3 = virtioGpuTimelines->enqueueTask(RingContextSpecific{
-        .mCtxId = 3,
-        .mRingIdx = 0,
-    });
-    check.Call(1);
-    virtioGpuTimelines->enqueueFence(RingGlobal{}, 1, fence1Callback.AsStdFunction());
-    check.Call(2);
-    virtioGpuTimelines->enqueueFence(
-        RingContextSpecific{
-            .mCtxId = 2,
-            .mRingIdx = 0,
-        },
-        2, fence2Callback.AsStdFunction());
-    virtioGpuTimelines->enqueueFence(
-        RingContextSpecific{
-            .mCtxId = 3,
-            .mRingIdx = 0,
-        },
-        3, fence3Callback.AsStdFunction());
+    auto fenceCallback =
+        [&](const Ring& ring, FenceId fenceId) {
+            signaledFences.push_back(std::make_pair(ring, fenceId));
+        };
+    std::unique_ptr<VirtioGpuTimelines> virtioGpuTimelines =
+        VirtioGpuTimelines::create(fenceCallback);
+
+    auto taskId2 = virtioGpuTimelines->enqueueTask(kContext2Ring);
+    EXPECT_THAT(signaledFences, IsEmpty());
+
+    auto taskId3 = virtioGpuTimelines->enqueueTask(kContext3Ring);
+    EXPECT_THAT(signaledFences, IsEmpty());
+
+    virtioGpuTimelines->enqueueFence(kGlobalRing, 1);
+    EXPECT_THAT(signaledFences,
+                ElementsAreArray({
+                    Pair(Eq(kGlobalRing), Eq(1)),
+                }));
+
+    virtioGpuTimelines->enqueueFence(kContext2Ring, 2);
+    EXPECT_THAT(signaledFences,
+                ElementsAreArray({
+                    Pair(Eq(kGlobalRing), Eq(1)),
+                }));
+
+    virtioGpuTimelines->enqueueFence(kContext3Ring, 3);
+    EXPECT_THAT(signaledFences,
+                ElementsAreArray({
+                    Pair(Eq(kGlobalRing), Eq(1)),
+                }));
+
     virtioGpuTimelines->notifyTaskCompletion(taskId2);
-    check.Call(3);
+    EXPECT_THAT(signaledFences,
+                ElementsAreArray({
+                    Pair(Eq(kGlobalRing), Eq(1)),
+                    Pair(Eq(kContext2Ring), Eq(2)),
+                }));
+
     virtioGpuTimelines->notifyTaskCompletion(taskId3);
+    EXPECT_THAT(signaledFences,
+                ElementsAreArray({
+                    Pair(Eq(kGlobalRing), Eq(1)),
+                    Pair(Eq(kContext2Ring), Eq(2)),
+                    Pair(Eq(kContext3Ring), Eq(3)),
+                }));
 }
 
 TEST(VirtioGpuTimelinesTest, TasksAndFencesOnMultipleRingsWithAsyncCallback) {
-    std::unique_ptr<VirtioGpuTimelines> virtioGpuTimelines = VirtioGpuTimelines::create(true);
-    using namespace testing;
-    MockFunction<void()> fence1Callback;
-    MockFunction<void()> fence2Callback;
-    MockFunction<void()> fence3Callback;
-    MockFunction<void(int)> check;
-    {
-        InSequence s;
+    std::vector<std::pair<Ring, FenceId>> signaledFences;
 
-        EXPECT_CALL(check, Call(1));
-        EXPECT_CALL(fence1Callback, Call());
-        EXPECT_CALL(check, Call(2));
-        EXPECT_CALL(fence2Callback, Call());
-        EXPECT_CALL(check, Call(3));
-        EXPECT_CALL(fence3Callback, Call());
-    }
-    auto taskId2 = virtioGpuTimelines->enqueueTask(RingContextSpecific{
+    auto fenceCallback =
+        [&](const Ring& ring, FenceId fenceId) {
+            signaledFences.push_back(std::make_pair(ring, fenceId));
+        };
+    std::unique_ptr<VirtioGpuTimelines> virtioGpuTimelines =
+        VirtioGpuTimelines::create(fenceCallback);
+
+    const auto kContext1Ring1 = Ring{RingContextSpecific{
+        .mCtxId = 1,
+        .mRingIdx = 1,
+    }};
+    const auto kContext1Ring2 = Ring{RingContextSpecific{
         .mCtxId = 1,
         .mRingIdx = 2,
-    });
-    auto taskId3 = virtioGpuTimelines->enqueueTask(RingContextSpecific{
+    }};
+    const auto kContext1Ring3 = Ring{RingContextSpecific{
         .mCtxId = 1,
         .mRingIdx = 3,
-    });
-    check.Call(1);
-    virtioGpuTimelines->enqueueFence(
-        RingContextSpecific{
-            .mCtxId = 1,
-            .mRingIdx = 1,
-        },
-        1, fence1Callback.AsStdFunction());
-    check.Call(2);
-    virtioGpuTimelines->enqueueFence(
-        RingContextSpecific{
-            .mCtxId = 1,
-            .mRingIdx = 2,
-        },
-        2, fence2Callback.AsStdFunction());
-    virtioGpuTimelines->enqueueFence(
-        RingContextSpecific{
-            .mCtxId = 1,
-            .mRingIdx = 3,
-        },
-        3, fence3Callback.AsStdFunction());
+    }};
+
+    auto taskId2 = virtioGpuTimelines->enqueueTask(kContext1Ring2);
+    auto taskId3 = virtioGpuTimelines->enqueueTask(kContext1Ring3);
+    EXPECT_THAT(signaledFences, IsEmpty());
+
+    virtioGpuTimelines->enqueueFence(kContext1Ring1, 1);
+    EXPECT_THAT(signaledFences,
+                ElementsAreArray({
+                    Pair(Eq(kContext1Ring1), Eq(1)),
+                }));
+
+    virtioGpuTimelines->enqueueFence(kContext1Ring2, 2);
+    EXPECT_THAT(signaledFences,
+                ElementsAreArray({
+                    Pair(Eq(kContext1Ring1), Eq(1)),
+                }));
+
+    virtioGpuTimelines->enqueueFence(kContext1Ring3, 3);
+    EXPECT_THAT(signaledFences,
+                ElementsAreArray({
+                    Pair(Eq(kContext1Ring1), Eq(1)),
+                }));
+
     virtioGpuTimelines->notifyTaskCompletion(taskId2);
-    check.Call(3);
+    EXPECT_THAT(signaledFences,
+                ElementsAreArray({
+                    Pair(Eq(kContext1Ring1), Eq(1)),
+                    Pair(Eq(kContext1Ring2), Eq(2)),
+                }));
+
     virtioGpuTimelines->notifyTaskCompletion(taskId3);
+        EXPECT_THAT(signaledFences,
+                ElementsAreArray({
+                    Pair(Eq(kContext1Ring1), Eq(1)),
+                    Pair(Eq(kContext1Ring2), Eq(2)),
+                    Pair(Eq(kContext1Ring3), Eq(3)),
+                }));
 }
 
 }  // namespace
