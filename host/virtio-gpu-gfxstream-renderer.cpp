@@ -114,7 +114,6 @@ static char translate_severity(uint32_t type) {
 }
 
 using android::AndroidPipe;
-using android::base::ManagedDescriptor;
 using android::base::MetricsLogger;
 using gfxstream::host::VirtioGpuFrontend;
 
