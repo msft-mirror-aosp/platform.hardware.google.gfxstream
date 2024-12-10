@@ -70,13 +70,12 @@ bool ColorBufferVk::updateFromBytes(uint32_t x, uint32_t y, uint32_t w, uint32_t
     return updateColorBufferFromBytes(mHandle, x, y, w, h, bytes);
 }
 
-bool ColorBufferVk::importExtMemoryHandle(void* nativeResource, uint32_t type,
-                                          bool preserveContent) {
-    // TODO: Any need to support preserveContent?
-    assert(!preserveContent);
-    VK_EXT_MEMORY_HANDLE extMemoryHandle =
-        *reinterpret_cast<VK_EXT_MEMORY_HANDLE*>(&nativeResource);
-    return importExtMemoryHandleToVkColorBuffer(mHandle, type, extMemoryHandle);
+bool ColorBufferVk::importExtMemoryHandle(void* extMemHandle, uint32_t extMemStreamHandleType) {
+    ExternalHandleInfo handleInfo = {
+        .handle = (ExternalHandleType)extMemHandle,
+        .streamHandleType = extMemStreamHandleType,
+    };
+    return importExtMemoryHandleToVkColorBuffer(mHandle, handleInfo);
 }
 
 int ColorBufferVk::waitSync() { return waitSyncVkColorBuffer(mHandle); }
@@ -85,8 +84,17 @@ std::optional<BlobDescriptorInfo> ColorBufferVk::exportBlob() {
     auto info = exportColorBufferMemory(mHandle);
     if (info) {
         return BlobDescriptorInfo{
-            .descriptor = std::move((*info).descriptor),
-            .handleType = (*info).streamHandleType,
+            .descriptorInfo =
+                {
+#ifdef _WIN32
+                    .descriptor = ManagedDescriptor(static_cast<DescriptorType>(
+                        reinterpret_cast<void*>(info->handleInfo.handle))),
+#else
+                    .descriptor =
+                        ManagedDescriptor(static_cast<DescriptorType>(info->handleInfo.handle)),
+#endif
+                    .streamHandleType = info->handleInfo.streamHandleType,
+                },
             .caching = 0,
             .vulkanInfoOpt = std::nullopt,
         };
