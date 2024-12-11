@@ -387,9 +387,7 @@ bool FrameBuffer::initialize(int width, int height, gfxstream::host::FeatureSet 
     std::unique_ptr<VkEmulationFeatures> vkEmulationFeatures =
         std::make_unique<VkEmulationFeatures>(VkEmulationFeatures{
             .glInteropSupported = false,  // Set later.
-            .deferredCommands =
-                android::base::getEnvironmentVariable("ANDROID_EMU_VK_DISABLE_DEFERRED_COMMANDS")
-                    .empty(),
+            .deferredCommands = fb->m_features.VulkanQueueSubmitWithCommands.enabled,
             .createResourceWithRequirements =
                 android::base::getEnvironmentVariable(
                     "ANDROID_EMU_VK_DISABLE_USE_CREATE_RESOURCES_WITH_REQUIREMENTS")
@@ -2943,12 +2941,12 @@ void FrameBuffer::setDisplayActiveConfig(int configId) {
     INFO("setDisplayActiveConfig %d", configId);
 }
 
-const int FrameBuffer::getDisplayConfigsCount() {
+int FrameBuffer::getDisplayConfigsCount() {
     AutoLock mutex(m_lock);
     return mDisplayConfigs.size();
 }
 
-const int FrameBuffer::getDisplayConfigsParam(int configId, EGLint param) {
+int FrameBuffer::getDisplayConfigsParam(int configId, EGLint param) {
     AutoLock mutex(m_lock);
     if (mDisplayConfigs.find(configId) == mDisplayConfigs.end()) {
         return -1;
@@ -2973,7 +2971,7 @@ const int FrameBuffer::getDisplayConfigsParam(int configId, EGLint param) {
     }
 }
 
-const int FrameBuffer::getDisplayActiveConfig() {
+int FrameBuffer::getDisplayActiveConfig() {
     AutoLock mutex(m_lock);
     return mDisplayActiveConfigId >= 0 ? mDisplayActiveConfigId : -1;
 }

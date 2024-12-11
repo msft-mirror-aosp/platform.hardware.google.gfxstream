@@ -512,9 +512,6 @@ void EglOsEglDisplay::queryConfigs(int renderableType,
                                    AddConfigCallback* addConfigFunc,
                                    void* addConfigOpaque) {
     D("%s\n", __FUNCTION__);
-    // ANGLE does not support GLES1 uses core profile engine.
-    // Querying underlying EGL with a conservative set of bits.
-    renderableType &= ~EGL_OPENGL_ES_BIT;
 
     const EGLint framebuffer_config_attributes[] = {
         EGL_SURFACE_TYPE, EGL_PBUFFER_BIT,
