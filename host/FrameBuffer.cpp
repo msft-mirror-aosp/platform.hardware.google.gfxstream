@@ -2827,8 +2827,6 @@ bool FrameBuffer::platformImportResource(uint32_t handle, uint32_t info, void* r
 #if GFXSTREAM_ENABLE_HOST_GLES
         case RESOURCE_TYPE_EGL_NATIVE_PIXMAP:
             return colorBuffer->glOpImportEglNativePixmap(resource, preserveContent);
-        case RESOURCE_TYPE_EGL_IMAGE:
-            return colorBuffer->glOpImportEglImage(resource, preserveContent);
 #endif
         // Note: Additional non-EGL resource-types can be added here, and will
         // be propagated through color-buffer import functionality
@@ -2941,12 +2939,12 @@ void FrameBuffer::setDisplayActiveConfig(int configId) {
     INFO("setDisplayActiveConfig %d", configId);
 }
 
-const int FrameBuffer::getDisplayConfigsCount() {
+int FrameBuffer::getDisplayConfigsCount() {
     AutoLock mutex(m_lock);
     return mDisplayConfigs.size();
 }
 
-const int FrameBuffer::getDisplayConfigsParam(int configId, EGLint param) {
+int FrameBuffer::getDisplayConfigsParam(int configId, EGLint param) {
     AutoLock mutex(m_lock);
     if (mDisplayConfigs.find(configId) == mDisplayConfigs.end()) {
         return -1;
@@ -2971,7 +2969,7 @@ const int FrameBuffer::getDisplayConfigsParam(int configId, EGLint param) {
     }
 }
 
-const int FrameBuffer::getDisplayActiveConfig() {
+int FrameBuffer::getDisplayActiveConfig() {
     AutoLock mutex(m_lock);
     return mDisplayActiveConfigId >= 0 ? mDisplayActiveConfigId : -1;
 }
