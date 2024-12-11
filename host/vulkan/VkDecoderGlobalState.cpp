@@ -21,7 +21,6 @@
 #include <unordered_map>
 #include <vector>
 
-#include "ExternalObjectManager.h"
 #include "RenderThreadInfoVk.h"
 #include "VkAndroidNativeBuffer.h"
 #include "VkCommonOperations.h"
@@ -32,7 +31,6 @@
 #include "VkEmulatedPhysicalDeviceMemory.h"
 #include "VulkanDispatch.h"
 #include "VulkanStream.h"
-#include "aemu/base/ManagedDescriptor.hpp"
 #include "aemu/base/Optional.h"
 #include "aemu/base/containers/EntityManager.h"
 #include "aemu/base/containers/HybridEntityManager.h"
@@ -86,7 +84,6 @@ using android::base::AutoLock;
 using android::base::ConditionVariable;
 using android::base::DescriptorType;
 using android::base::Lock;
-using android::base::ManagedDescriptor;
 using android::base::MetricEventBadPacketLength;
 using android::base::MetricEventDuplicateSequenceNum;
 using android::base::MetricEventVulkanOutOfMemory;
@@ -5009,28 +5006,22 @@ class VkDecoderGlobalState::Impl {
             vk_find_struct<VkCreateBlobGOOGLE>(pAllocateInfo);
 
 #ifdef _WIN32
-        VkImportMemoryWin32HandleInfoKHR importInfo{
+        VkImportMemoryWin32HandleInfoKHR importWin32HandleInfo{
             VK_STRUCTURE_TYPE_IMPORT_MEMORY_WIN32_HANDLE_INFO_KHR,
             0,
-            VK_EXT_MEMORY_HANDLE_TYPE_BIT,
-            VK_EXT_MEMORY_HANDLE_INVALID,
+            VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT,
+            static_cast<HANDLE>(NULL),
             L"",
         };
-#elif defined(__QNX__)
-        VkImportScreenBufferInfoQNX importInfo{
+#else
+
+#if defined(__QNX__)
+        VkImportScreenBufferInfoQNX importScreenBufferInfo{
             VK_STRUCTURE_TYPE_IMPORT_SCREEN_BUFFER_INFO_QNX,
             0,
-            VK_EXT_MEMORY_HANDLE_INVALID,
+            static_cast<screen_buffer_t>(NULL),
         };
-#else
-        VkImportMemoryFdInfoKHR importInfo{
-            VK_STRUCTURE_TYPE_IMPORT_MEMORY_FD_INFO_KHR,
-            0,
-            VK_EXT_MEMORY_HANDLE_TYPE_BIT,
-            VK_EXT_MEMORY_HANDLE_INVALID,
-        };
-
-#if defined(__APPLE__)
+#elif defined(__APPLE__)
         VkImportMemoryMetalHandleInfoEXT importInfoMetalHandle = {
             VK_STRUCTURE_TYPE_IMPORT_MEMORY_METAL_HANDLE_INFO_EXT,
             0,
@@ -5039,10 +5030,19 @@ class VkDecoderGlobalState::Impl {
         };
 #endif
 
+        VkImportMemoryFdInfoKHR importFdInfo{
+            VK_STRUCTURE_TYPE_IMPORT_MEMORY_FD_INFO_KHR,
+            0,
+            VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT,
+            -1,
+        };
 #endif
 
         void* mappedPtr = nullptr;
-        ManagedDescriptor externalMemoryHandle;
+        // If required by the platform, wrap the descriptor received from VkEmulation for
+        // a ColorBuffer or Buffer import as a ManagedDescriptor, so it will be closed
+        // appropriately when it goes out of scope.
+        ManagedDescriptor managedHandle;
         if (importCbInfoPtr) {
             bool colorBufferMemoryUsesDedicatedAlloc = false;
             if (!getColorBufferAllocationInfo(importCbInfoPtr->colorBuffer,
@@ -5106,30 +5106,45 @@ class VkDecoderGlobalState::Impl {
 #endif
 
                 if (opaqueFd && m_emu->deviceInfo.supportsExternalMemoryImport) {
-                    VK_EXT_MEMORY_HANDLE cbExtMemoryHandle =
-                        getColorBufferExtMemoryHandle(importCbInfoPtr->colorBuffer);
-
-                    if (cbExtMemoryHandle == VK_EXT_MEMORY_HANDLE_INVALID) {
-                        fprintf(stderr,
-                                "%s: VK_ERROR_OUT_OF_DEVICE_MEMORY: "
-                                "colorBuffer 0x%x does not have Vulkan external memory backing\n",
-                                __func__, importCbInfoPtr->colorBuffer);
+                    auto dupHandleInfo =
+                        dupColorBufferExtMemoryHandle(importCbInfoPtr->colorBuffer);
+                    if (!dupHandleInfo) {
+                        ERR("Failed to duplicate external memory handle/descriptor for ColorBuffer "
+                            "object, with internal handle: %d",
+                            importCbInfoPtr->colorBuffer);
                         return VK_ERROR_OUT_OF_DEVICE_MEMORY;
                     }
-
-#if defined(__QNX__)
-                    importInfo.buffer = cbExtMemoryHandle;
+#if defined(_WIN32)
+                    // Wrap the dup'd handle in a ManagedDescriptor, and let it close the underlying
+                    // HANDLE when it goes out of scope. From the VkImportMemoryWin32HandleInfoKHR
+                    // spec: Importing memory object payloads from Windows handles does not transfer
+                    // ownership of the handle to the Vulkan implementation. For handle types
+                    // defined as NT handles, the application must release handle ownership using
+                    // the CloseHandle system call when the handle is no longer needed. For handle
+                    // types defined as NT handles, the imported memory object holds a reference to
+                    // its payload
+                    managedHandle = ManagedDescriptor(static_cast<DescriptorType>(
+                        reinterpret_cast<void*>(dupHandleInfo->handle)));
+                    importWin32HandleInfo.handle =
+                        managedHandle.get().value_or(static_cast<HANDLE>(NULL));
+                    vk_append_struct(&structChainIter, &importWin32HandleInfo);
+#elif defined(__QNX__)
+                    if (STREAM_MEM_HANDLE_TYPE_SCREEN_BUFFER_QNX ==
+                        dupHandleInfo->streamHandleType) {
+                        importScreenBufferInfo.buffer = static_cast<screen_buffer_t>(
+                            reinterpret_cast<void*>(dupHandleInfo->handle));
+                        vk_append_struct(&structChainIter, &importScreenBufferInfo);
+                    } else {
+                        // TODO(aruby@blackberry.com): Fall through to the importFdInfo sequence
+                        // below to support non-screenbuffer external object imports on QNX?
+                        ERR("Stream mem handleType: 0x%x not support for ColorBuffer import",
+                            dupHandleInfo->streamHandleType);
+                        return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+                    }
 #else
-                    externalMemoryHandle = ManagedDescriptor(dupExternalMemory(cbExtMemoryHandle));
-
-#ifdef _WIN32
-                    importInfo.handle =
-                        externalMemoryHandle.get().value_or(static_cast<HANDLE>(NULL));
-#else
-                    importInfo.fd = externalMemoryHandle.get().value_or(-1);
+                    importFdInfo.fd = static_cast<int>(dupHandleInfo->handle);
+                    vk_append_struct(&structChainIter, &importFdInfo);
 #endif
-#endif
-                    vk_append_struct(&structChainIter, &importInfo);
                 }
             }
         } else if (importBufferInfoPtr) {
@@ -5168,31 +5183,44 @@ class VkDecoderGlobalState::Impl {
 #endif
 
             if (opaqueFd && m_emu->deviceInfo.supportsExternalMemoryImport) {
-                uint32_t outStreamHandleType;
-                VK_EXT_MEMORY_HANDLE bufferExtMemoryHandle =
-                    getBufferExtMemoryHandle(importBufferInfoPtr->buffer, &outStreamHandleType);
-
-                if (bufferExtMemoryHandle == VK_EXT_MEMORY_HANDLE_INVALID) {
-                    fprintf(stderr,
-                            "%s: VK_ERROR_OUT_OF_DEVICE_MEMORY: "
-                            "buffer 0x%x does not have Vulkan external memory "
-                            "backing\n",
-                            __func__, importBufferInfoPtr->buffer);
+                auto dupHandleInfo = dupBufferExtMemoryHandle(importBufferInfoPtr->buffer);
+                if (!dupHandleInfo) {
+                    ERR("Failed to duplicate external memory handle/descriptor for Buffer object, "
+                        "with internal handle: %d",
+                        importBufferInfoPtr->buffer);
                     return VK_ERROR_OUT_OF_DEVICE_MEMORY;
                 }
 
-#if defined(__QNX__)
-                importInfo.buffer = bufferExtMemoryHandle;
+#if defined(_WIN32)
+                // Wrap the dup'd handle in a ManagedDescriptor, and let it close the underlying
+                // HANDLE when it goes out of scope. From the VkImportMemoryWin32HandleInfoKHR
+                // spec: Importing memory object payloads from Windows handles does not transfer
+                // ownership of the handle to the Vulkan implementation. For handle types defined
+                // as NT handles, the application must release handle ownership using the
+                // CloseHandle system call when the handle is no longer needed. For handle types
+                // defined as NT handles, the imported memory object holds a reference to its
+                // payload
+                managedHandle = ManagedDescriptor(
+                    static_cast<DescriptorType>(reinterpret_cast<void*>(dupHandleInfo->handle)));
+                importWin32HandleInfo.handle =
+                    managedHandle.get().value_or(static_cast<HANDLE>(NULL));
+                vk_append_struct(&structChainIter, &importWin32HandleInfo);
+#elif defined(__QNX__)
+                if (STREAM_MEM_HANDLE_TYPE_SCREEN_BUFFER_QNX == dupHandleInfo->streamHandleType) {
+                    importScreenBufferInfo.buffer = static_cast<screen_buffer_t>(
+                        reinterpret_cast<void*>(dupHandleInfo->handle));
+                    vk_append_struct(&structChainIter, &importScreenBufferInfo);
+                } else {
+                    // TODO(aruby@blackberry.com): Fall through to the importFdInfo sequence below
+                    // to support non-screenbuffer external object imports on QNX?
+                    ERR("Stream mem handleType: 0x%x not support for Buffer object import",
+                        dupHandleInfo->streamHandleType);
+                    return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+                }
 #else
-                bufferExtMemoryHandle = dupExternalMemory(bufferExtMemoryHandle);
-
-#ifdef _WIN32
-                importInfo.handle = bufferExtMemoryHandle;
-#else
-                importInfo.fd = bufferExtMemoryHandle;
+                importFdInfo.fd = static_cast<int>(dupHandleInfo->handle);
+                vk_append_struct(&structChainIter, &importFdInfo);
 #endif
-#endif
-                vk_append_struct(&structChainIter, &importInfo);
             }
         }
 
@@ -5246,7 +5274,7 @@ class VkDecoderGlobalState::Impl {
             auto descriptorInfoOpt = ExternalObjectManager::get()->removeBlobDescriptorInfo(
                 virtioGpuContextId, createBlobInfoPtr->blobId);
             if (descriptorInfoOpt) {
-                auto rawDescriptorOpt = (*descriptorInfoOpt).descriptor.release();
+                auto rawDescriptorOpt = (*descriptorInfoOpt).descriptorInfo.descriptor.release();
                 if (rawDescriptorOpt) {
                     rawDescriptor = *rawDescriptorOpt;
                 } else {
@@ -5257,17 +5285,18 @@ class VkDecoderGlobalState::Impl {
                 ERR("Failed vkAllocateMemory: missing descriptor info.");
                 return VK_ERROR_OUT_OF_DEVICE_MEMORY;
             }
-#if defined(__linux__)
-            importInfo.fd = rawDescriptor;
-#endif
 
-#ifdef __linux__
+#if defined(_WIN32)
+            importWin32HandleInfo.handle = rawDescriptor;
+            vk_append_struct(&structChainIter, &importWin32HandleInfo);
+#else
+            importFdInfo.fd = rawDescriptor;
             if (m_emu->deviceInfo.supportsDmaBuf &&
                 hasDeviceExtension(device, VK_EXT_EXTERNAL_MEMORY_DMA_BUF_EXTENSION_NAME)) {
-                importInfo.handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT;
+                importFdInfo.handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT;
             }
+            vk_append_struct(&structChainIter, &importFdInfo);
 #endif
-            vk_append_struct(&structChainIter, &importInfo);
         }
 
         const bool isImport = importCbInfoPtr || importBufferInfoPtr;
@@ -5407,23 +5436,6 @@ class VkDecoderGlobalState::Impl {
         if (result != VK_SUCCESS) {
             return result;
         }
-
-#ifdef _WIN32
-        // Let ManagedDescriptor to close the underlying HANDLE when going out of scope. From the
-        // VkImportMemoryWin32HandleInfoKHR spec: Importing memory object payloads from Windows
-        // handles does not transfer ownership of the handle to the Vulkan implementation. For
-        // handle types defined as NT handles, the application must release handle ownership using
-        // the CloseHandle system call when the handle is no longer needed. For handle types defined
-        // as NT handles, the imported memory object holds a reference to its payload.
-#else
-        // Tell ManagedDescriptor not to close the underlying fd, because the ownership has already
-        // been transferred to the Vulkan implementation. From VkImportMemoryFdInfoKHR spec:
-        // Importing memory from a file descriptor transfers ownership of the file descriptor from
-        // the application to the Vulkan implementation. The application must not perform any
-        // operations on the file descriptor after a successful import. The imported memory object
-        // holds a reference to its payload.
-        externalMemoryHandle.release();
-#endif
 
         std::lock_guard<std::recursive_mutex> lock(mLock);
 
@@ -5818,18 +5830,17 @@ class VkDecoderGlobalState::Impl {
         hostBlobId = (info->blobId && !hostBlobId) ? info->blobId : hostBlobId;
 
         if (m_emu->features.SystemBlob.enabled && info->sharedMemory.has_value()) {
-            uint32_t handleType = STREAM_MEM_HANDLE_TYPE_SHM;
             // We transfer ownership of the shared memory handle to the descriptor info.
             // The memory itself is destroyed only when all processes unmap / release their
             // handles.
             ExternalObjectManager::get()->addBlobDescriptorInfo(
-                virtioGpuContextId, hostBlobId, info->sharedMemory->releaseHandle(), handleType,
-                info->caching, std::nullopt);
+                virtioGpuContextId, hostBlobId, info->sharedMemory->releaseHandle(),
+                STREAM_MEM_HANDLE_TYPE_SHM, info->caching, std::nullopt);
         } else if (m_emu->features.ExternalBlob.enabled) {
             VkResult result;
 
             DescriptorType handle;
-            uint32_t handleType;
+            uint32_t streamHandleType;
             struct VulkanInfo vulkanInfo = {
                 .memoryIndex = info->memoryIndex,
             };
@@ -5855,14 +5866,14 @@ class VkDecoderGlobalState::Impl {
                 .handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT,
             };
 
-            handleType = STREAM_MEM_HANDLE_TYPE_OPAQUE_FD;
+            streamHandleType = STREAM_MEM_HANDLE_TYPE_OPAQUE_FD;
 #endif
 
 #ifdef __linux__
             if (m_emu->deviceInfo.supportsDmaBuf &&
                 hasDeviceExtension(device, VK_EXT_EXTERNAL_MEMORY_DMA_BUF_EXTENSION_NAME)) {
                 getFd.handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT;
-                handleType = STREAM_MEM_HANDLE_TYPE_DMABUF;
+                streamHandleType = STREAM_MEM_HANDLE_TYPE_DMABUF;
             }
 #endif
 
@@ -5881,7 +5892,7 @@ class VkDecoderGlobalState::Impl {
                 .handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT,
             };
 
-            handleType = STREAM_MEM_HANDLE_TYPE_OPAQUE_WIN32;
+            streamHandleType = STREAM_MEM_HANDLE_TYPE_OPAQUE_WIN32;
 
             result = m_emu->deviceInfo.getMemoryHandleFunc(device, &getHandle, &handle);
             if (result != VK_SUCCESS) {
@@ -5898,8 +5909,8 @@ class VkDecoderGlobalState::Impl {
 
             ManagedDescriptor managedHandle(handle);
             ExternalObjectManager::get()->addBlobDescriptorInfo(
-                virtioGpuContextId, hostBlobId, std::move(managedHandle), handleType, info->caching,
-                std::optional<VulkanInfo>(vulkanInfo));
+                virtioGpuContextId, hostBlobId, std::move(managedHandle), streamHandleType,
+                info->caching, std::optional<VulkanInfo>(vulkanInfo));
         } else if (!info->needUnmap) {
             auto device = unbox_VkDevice(boxed_device);
             auto vk = dispatch_VkDevice(boxed_device);
@@ -6187,10 +6198,7 @@ class VkDecoderGlobalState::Impl {
         }
 
         VkDevice device = VK_NULL_HANDLE;
-        Lock* ql = nullptr;
-        DeviceOpTrackerPtr opTracker = nullptr;
-        VkFence usedFence = fence;
-        DeviceOpWaitable queueCompletedWaitable;
+        Lock* ql;
         {
             std::lock_guard<std::recursive_mutex> lock(mLock);
             auto* queueInfo = android::base::find(mQueueInfo, queue);
@@ -6201,13 +6209,6 @@ class VkDecoderGlobalState::Impl {
             device = queueInfo->device;
             ql = queueInfo->physicalQueueLock.get();
 
-            auto* deviceInfo = android::base::find(mDeviceInfo, device);
-            if (!deviceInfo) {
-                ERR("vkQueueSubmit cannot find device info for %p", device);
-                return VK_ERROR_INITIALIZATION_FAILED;
-            }
-            opTracker = deviceInfo->deviceOpTracker;
-
             // Unsafe to release when snapshot enabled.
             // Snapshot load might fail to find the shader modules if we release them here.
             if (!snapshotsEnabled()) {
@@ -6217,7 +6218,15 @@ class VkDecoderGlobalState::Impl {
             for (uint32_t i = 0; i < submitCount; i++) {
                 executePreprocessRecursive(pSubmits[i]);
             }
-            DeviceOpBuilder builder = DeviceOpBuilder(*opTracker);
+        }
+
+        VkFence usedFence = fence;
+        DeviceOpWaitable queueCompletedWaitable;
+        {
+            std::lock_guard<std::recursive_mutex> lock(mLock);
+            auto* deviceInfo = android::base::find(mDeviceInfo, device);
+            if (!deviceInfo) return VK_ERROR_INITIALIZATION_FAILED;
+            DeviceOpBuilder builder(*deviceInfo->deviceOpTracker);
             if (VK_NULL_HANDLE == usedFence) {
                 // Note: This fence will be managed by the DeviceOpTracker after the
                 // OnQueueSubmittedWithFence call, so it does not need to be destroyed in the scope
@@ -6225,6 +6234,29 @@ class VkDecoderGlobalState::Impl {
                 usedFence = builder.CreateFenceForOp();
             }
             queueCompletedWaitable = builder.OnQueueSubmittedWithFence(usedFence);
+
+            deviceInfo->deviceOpTracker->PollAndProcessGarbage();
+        }
+
+        {
+            std::lock_guard<std::recursive_mutex> lock(mLock);
+            std::unordered_set<HandleType> imageBarrierColorBuffers;
+            for (int i = 0; i < submitCount; i++) {
+                for (int j = 0; j < getCommandBufferCount(pSubmits[i]); j++) {
+                    VkCommandBuffer cmdBuffer = getCommandBuffer(pSubmits[i], j);
+                    CommandBufferInfo* cmdBufferInfo =
+                        android::base::find(mCommandBufferInfo, cmdBuffer);
+                    if (cmdBufferInfo) {
+                        imageBarrierColorBuffers.merge(cmdBufferInfo->imageBarrierColorBuffers);
+                    }
+                }
+            }
+            auto* deviceInfo = android::base::find(mDeviceInfo, device);
+            if (!deviceInfo) return VK_ERROR_INITIALIZATION_FAILED;
+            for (const auto& colorBuffer : imageBarrierColorBuffers) {
+                setColorBufferLatestUse(colorBuffer, queueCompletedWaitable,
+                                        deviceInfo->deviceOpTracker);
+            }
         }
 
         AutoLock qlock(*ql);
@@ -6234,53 +6266,44 @@ class VkDecoderGlobalState::Impl {
             WARN("dispatchVkQueueSubmit failed: %s [%d]", string_VkResult(result), result);
             return result;
         }
-
         {
             std::lock_guard<std::recursive_mutex> lock(mLock);
-
-            std::unordered_set<HandleType> imageBarrierColorBuffers;
+            // Update image layouts
             for (int i = 0; i < submitCount; i++) {
                 for (int j = 0; j < getCommandBufferCount(pSubmits[i]); j++) {
                     VkCommandBuffer cmdBuffer = getCommandBuffer(pSubmits[i], j);
                     CommandBufferInfo* cmdBufferInfo =
                         android::base::find(mCommandBufferInfo, cmdBuffer);
-
-                    if (cmdBufferInfo) {
-                        imageBarrierColorBuffers.merge(cmdBufferInfo->imageBarrierColorBuffers);
-
-                        // Update image layouts
-                        for (const auto& ite : cmdBufferInfo->imageLayouts) {
-                            auto imageIte = mImageInfo.find(ite.first);
-                            if (imageIte == mImageInfo.end()) {
-                                continue;
-                            }
-                            imageIte->second.layout = ite.second;
-                        }
+                    if (!cmdBufferInfo) {
+                        continue;
                     }
-
-                    // Update latestUse for all wait/signal semaphores, to ensure that they
-                    // are never asynchronously destroyed before the queue submissions referencing
-                    // them have completed
-                    for (int j = 0; j < getWaitSemaphoreCount(pSubmits[i]); j++) {
-                        SemaphoreInfo* semaphoreInfo =
-                            android::base::find(mSemaphoreInfo, getWaitSemaphore(pSubmits[i], j));
-                        if (semaphoreInfo) {
-                            semaphoreInfo->latestUse = queueCompletedWaitable;
+                    for (const auto& ite : cmdBufferInfo->imageLayouts) {
+                        auto imageIte = mImageInfo.find(ite.first);
+                        if (imageIte == mImageInfo.end()) {
+                            continue;
                         }
-                    }
-                    for (int j = 0; j < getSignalSemaphoreCount(pSubmits[i]); j++) {
-                        SemaphoreInfo* semaphoreInfo =
-                            android::base::find(mSemaphoreInfo, getSignalSemaphore(pSubmits[i], j));
-                        if (semaphoreInfo) {
-                            semaphoreInfo->latestUse = queueCompletedWaitable;
-                        }
+                        imageIte->second.layout = ite.second;
                     }
                 }
             }
-
-            // Update latest use for color buffers
-            for (const auto& colorBuffer : imageBarrierColorBuffers) {
-                setColorBufferLatestUse(colorBuffer, queueCompletedWaitable, opTracker);
+            // Update latestUse for all wait/signal semaphores, to ensure that they
+            // are never asynchronously destroyed before the queue submissions referencing
+            // them have completed
+            for (int i = 0; i < submitCount; i++) {
+                for (int j = 0; j < getWaitSemaphoreCount(pSubmits[i]); j++) {
+                    SemaphoreInfo* semaphoreInfo =
+                        android::base::find(mSemaphoreInfo, getWaitSemaphore(pSubmits[i], j));
+                    if (semaphoreInfo) {
+                        semaphoreInfo->latestUse = queueCompletedWaitable;
+                    }
+                }
+                for (int j = 0; j < getSignalSemaphoreCount(pSubmits[i]); j++) {
+                    SemaphoreInfo* semaphoreInfo =
+                        android::base::find(mSemaphoreInfo, getSignalSemaphore(pSubmits[i], j));
+                    if (semaphoreInfo) {
+                        semaphoreInfo->latestUse = queueCompletedWaitable;
+                    }
+                }
             }
 
             // After vkQueueSubmit is called, we can signal the conditional variable
@@ -6296,10 +6319,7 @@ class VkDecoderGlobalState::Impl {
                 // referencing it
                 fenceInfo->latestUse = queueCompletedWaitable;
             }
-
-            opTracker->PollAndProcessGarbage();
         }
-
         if (!releasedColorBuffers.empty()) {
             result = vk->vkWaitForFences(device, 1, &usedFence, VK_TRUE, /* 1 sec */ 1000000000L);
             if (result != VK_SUCCESS) {
