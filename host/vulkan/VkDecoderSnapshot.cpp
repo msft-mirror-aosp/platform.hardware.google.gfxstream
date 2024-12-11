@@ -38,9 +38,11 @@
 #include "VulkanHandleMapping.h"
 #include "aemu/base/synchronization/Lock.h"
 
-using namespace gfxstream::vk;
 using emugl::GfxApiLogger;
 using emugl::HealthMonitor;
+
+namespace gfxstream {
+namespace vk {
 
 class VkDecoderSnapshot::Impl {
    public:
@@ -53,36 +55,42 @@ class VkDecoderSnapshot::Impl {
         mReconstruction.load(stream, gfx_logger, healthMonitor);
     }
 
-    void createExtraHandlesForNextApi(const uint64_t* created, uint32_t count) {
-        mLock.lock();
-        mReconstruction.createExtraHandlesForNextApi(created, count);
+    VkSnapshotApiCallInfo* createApiCallInfo() {
+        android::base::AutoLock lock(mLock);
+        return mReconstruction.createApiCallInfo();
+    }
+
+    void destroyApiCallInfoIfUnused(VkSnapshotApiCallInfo* info) {
+        android::base::AutoLock lock(mLock);
+        return mReconstruction.destroyApiCallInfoIfUnused(info);
     }
 #ifdef VK_VERSION_1_0
-    void vkCreateInstance(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                          android::base::BumpPool* pool, VkResult input_result,
-                          const VkInstanceCreateInfo* pCreateInfo,
+    void vkCreateInstance(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                          const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                          VkResult input_result, const VkInstanceCreateInfo* pCreateInfo,
                           const VkAllocationCallbacks* pAllocator, VkInstance* pInstance) {
         if (!pInstance) return;
         android::base::AutoLock lock(mLock);
         // pInstance create
         mReconstruction.addHandles((const uint64_t*)pInstance, 1);
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)pInstance, 1, apiHandle,
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pInstance, 1, apiCallHandle,
                                             VkReconstruction::CREATED);
-        mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pInstance, 1);
+        mReconstruction.setCreatedHandlesForApi(apiCallHandle, (const uint64_t*)pInstance, 1);
     }
-    void vkDestroyInstance(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                           android::base::BumpPool* pool, VkInstance instance,
-                           const VkAllocationCallbacks* pAllocator) {
+    void vkDestroyInstance(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                           const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                           VkInstance instance, const VkAllocationCallbacks* pAllocator) {
         android::base::AutoLock lock(mLock);
         // instance destroy
         mReconstruction.removeHandles((const uint64_t*)(&instance), 1, true);
     }
-    void vkEnumeratePhysicalDevices(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                    android::base::BumpPool* pool, VkResult input_result,
-                                    VkInstance instance, uint32_t* pPhysicalDeviceCount,
+    void vkEnumeratePhysicalDevices(android::base::BumpPool* pool,
+                                    VkSnapshotApiCallInfo* apiCallInfo,
+                                    const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                    VkResult input_result, VkInstance instance,
+                                    uint32_t* pPhysicalDeviceCount,
                                     VkPhysicalDevice* pPhysicalDevices) {
         if (!pPhysicalDevices) return;
         android::base::AutoLock lock(mLock);
@@ -91,55 +99,60 @@ class VkDecoderSnapshot::Impl {
         mReconstruction.addHandleDependency((const uint64_t*)pPhysicalDevices,
                                             (*(pPhysicalDeviceCount)),
                                             (uint64_t)(uintptr_t)instance);
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         if (pPhysicalDeviceCount) {
             mReconstruction.forEachHandleAddApi((const uint64_t*)pPhysicalDevices,
-                                                (*(pPhysicalDeviceCount)), apiHandle,
+                                                (*(pPhysicalDeviceCount)), apiCallHandle,
                                                 VkReconstruction::CREATED);
-            mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pPhysicalDevices,
-                                                    (*(pPhysicalDeviceCount)));
+            mReconstruction.setCreatedHandlesForApi(
+                apiCallHandle, (const uint64_t*)pPhysicalDevices, (*(pPhysicalDeviceCount)));
         }
     }
-    void vkGetPhysicalDeviceFeatures(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                     android::base::BumpPool* pool, VkPhysicalDevice physicalDevice,
+    void vkGetPhysicalDeviceFeatures(android::base::BumpPool* pool,
+                                     VkSnapshotApiCallInfo* apiCallInfo,
+                                     const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                     VkPhysicalDevice physicalDevice,
                                      VkPhysicalDeviceFeatures* pFeatures) {}
-    void vkGetPhysicalDeviceFormatProperties(const uint8_t* snapshotTraceBegin,
-                                             size_t snapshotTraceBytes,
-                                             android::base::BumpPool* pool,
+    void vkGetPhysicalDeviceFormatProperties(android::base::BumpPool* pool,
+                                             VkSnapshotApiCallInfo* apiCallInfo,
+                                             const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                              VkPhysicalDevice physicalDevice, VkFormat format,
                                              VkFormatProperties* pFormatProperties) {}
-    void vkGetPhysicalDeviceImageFormatProperties(
-        const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-        VkResult input_result, VkPhysicalDevice physicalDevice, VkFormat format, VkImageType type,
-        VkImageTiling tiling, VkImageUsageFlags usage, VkImageCreateFlags flags,
-        VkImageFormatProperties* pImageFormatProperties) {}
-    void vkGetPhysicalDeviceProperties(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                       android::base::BumpPool* pool,
+    void vkGetPhysicalDeviceImageFormatProperties(android::base::BumpPool* pool,
+                                                  VkSnapshotApiCallInfo* apiCallInfo,
+                                                  const uint8_t* apiCallPacket,
+                                                  size_t apiCallPacketSize, VkResult input_result,
+                                                  VkPhysicalDevice physicalDevice, VkFormat format,
+                                                  VkImageType type, VkImageTiling tiling,
+                                                  VkImageUsageFlags usage, VkImageCreateFlags flags,
+                                                  VkImageFormatProperties* pImageFormatProperties) {
+    }
+    void vkGetPhysicalDeviceProperties(android::base::BumpPool* pool,
+                                       VkSnapshotApiCallInfo* apiCallInfo,
+                                       const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                        VkPhysicalDevice physicalDevice,
                                        VkPhysicalDeviceProperties* pProperties) {}
-    void vkGetPhysicalDeviceQueueFamilyProperties(const uint8_t* snapshotTraceBegin,
-                                                  size_t snapshotTraceBytes,
-                                                  android::base::BumpPool* pool,
-                                                  VkPhysicalDevice physicalDevice,
-                                                  uint32_t* pQueueFamilyPropertyCount,
-                                                  VkQueueFamilyProperties* pQueueFamilyProperties) {
-    }
-    void vkGetPhysicalDeviceMemoryProperties(const uint8_t* snapshotTraceBegin,
-                                             size_t snapshotTraceBytes,
-                                             android::base::BumpPool* pool,
+    void vkGetPhysicalDeviceQueueFamilyProperties(
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+        const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkPhysicalDevice physicalDevice,
+        uint32_t* pQueueFamilyPropertyCount, VkQueueFamilyProperties* pQueueFamilyProperties) {}
+    void vkGetPhysicalDeviceMemoryProperties(android::base::BumpPool* pool,
+                                             VkSnapshotApiCallInfo* apiCallInfo,
+                                             const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                              VkPhysicalDevice physicalDevice,
                                              VkPhysicalDeviceMemoryProperties* pMemoryProperties) {}
-    void vkGetInstanceProcAddr(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                               android::base::BumpPool* pool, PFN_vkVoidFunction input_result,
-                               VkInstance instance, const char* pName) {}
-    void vkGetDeviceProcAddr(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                             android::base::BumpPool* pool, PFN_vkVoidFunction input_result,
-                             VkDevice device, const char* pName) {}
-    void vkCreateDevice(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                        android::base::BumpPool* pool, VkResult input_result,
-                        VkPhysicalDevice physicalDevice, const VkDeviceCreateInfo* pCreateInfo,
+    void vkGetInstanceProcAddr(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                               const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                               PFN_vkVoidFunction input_result, VkInstance instance,
+                               const char* pName) {}
+    void vkGetDeviceProcAddr(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                             const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                             PFN_vkVoidFunction input_result, VkDevice device, const char* pName) {}
+    void vkCreateDevice(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                        const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                        VkResult input_result, VkPhysicalDevice physicalDevice,
+                        const VkDeviceCreateInfo* pCreateInfo,
                         const VkAllocationCallbacks* pAllocator, VkDevice* pDevice) {
         if (!pDevice) return;
         mLock.tryLock();
@@ -147,55 +160,60 @@ class VkDecoderSnapshot::Impl {
         mReconstruction.addHandles((const uint64_t*)pDevice, 1);
         mReconstruction.addHandleDependency((const uint64_t*)pDevice, 1,
                                             (uint64_t)(uintptr_t)physicalDevice);
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)pDevice, 1, apiHandle,
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pDevice, 1, apiCallHandle,
                                             VkReconstruction::CREATED);
-        mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pDevice, 1);
+        mReconstruction.setCreatedHandlesForApi(apiCallHandle, (const uint64_t*)pDevice, 1);
         mLock.unlock();
     }
-    void vkDestroyDevice(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                         android::base::BumpPool* pool, VkDevice device,
+    void vkDestroyDevice(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                         const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkDevice device,
                          const VkAllocationCallbacks* pAllocator) {
         android::base::AutoLock lock(mLock);
         // device destroy
         mReconstruction.removeHandles((const uint64_t*)(&device), 1, true);
     }
-    void vkEnumerateInstanceExtensionProperties(const uint8_t* snapshotTraceBegin,
-                                                size_t snapshotTraceBytes,
-                                                android::base::BumpPool* pool,
-                                                VkResult input_result, const char* pLayerName,
-                                                uint32_t* pPropertyCount,
+    void vkEnumerateInstanceExtensionProperties(android::base::BumpPool* pool,
+                                                VkSnapshotApiCallInfo* apiCallInfo,
+                                                const uint8_t* apiCallPacket,
+                                                size_t apiCallPacketSize, VkResult input_result,
+                                                const char* pLayerName, uint32_t* pPropertyCount,
                                                 VkExtensionProperties* pProperties) {}
-    void vkEnumerateDeviceExtensionProperties(const uint8_t* snapshotTraceBegin,
-                                              size_t snapshotTraceBytes,
-                                              android::base::BumpPool* pool, VkResult input_result,
+    void vkEnumerateDeviceExtensionProperties(android::base::BumpPool* pool,
+                                              VkSnapshotApiCallInfo* apiCallInfo,
+                                              const uint8_t* apiCallPacket,
+                                              size_t apiCallPacketSize, VkResult input_result,
                                               VkPhysicalDevice physicalDevice,
                                               const char* pLayerName, uint32_t* pPropertyCount,
                                               VkExtensionProperties* pProperties) {}
-    void vkEnumerateInstanceLayerProperties(const uint8_t* snapshotTraceBegin,
-                                            size_t snapshotTraceBytes,
-                                            android::base::BumpPool* pool, VkResult input_result,
-                                            uint32_t* pPropertyCount,
+    void vkEnumerateInstanceLayerProperties(android::base::BumpPool* pool,
+                                            VkSnapshotApiCallInfo* apiCallInfo,
+                                            const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                            VkResult input_result, uint32_t* pPropertyCount,
                                             VkLayerProperties* pProperties) {}
-    void vkEnumerateDeviceLayerProperties(const uint8_t* snapshotTraceBegin,
-                                          size_t snapshotTraceBytes, android::base::BumpPool* pool,
+    void vkEnumerateDeviceLayerProperties(android::base::BumpPool* pool,
+                                          VkSnapshotApiCallInfo* apiCallInfo,
+                                          const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                           VkResult input_result, VkPhysicalDevice physicalDevice,
                                           uint32_t* pPropertyCount,
                                           VkLayerProperties* pProperties) {}
-    void vkGetDeviceQueue(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                          android::base::BumpPool* pool, VkDevice device, uint32_t queueFamilyIndex,
-                          uint32_t queueIndex, VkQueue* pQueue) {}
-    void vkQueueSubmit(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                       android::base::BumpPool* pool, VkResult input_result, VkQueue queue,
-                       uint32_t submitCount, const VkSubmitInfo* pSubmits, VkFence fence) {}
-    void vkQueueWaitIdle(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                         android::base::BumpPool* pool, VkResult input_result, VkQueue queue) {}
-    void vkDeviceWaitIdle(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                          android::base::BumpPool* pool, VkResult input_result, VkDevice device) {}
-    void vkAllocateMemory(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                          android::base::BumpPool* pool, VkResult input_result, VkDevice device,
+    void vkGetDeviceQueue(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                          const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkDevice device,
+                          uint32_t queueFamilyIndex, uint32_t queueIndex, VkQueue* pQueue) {}
+    void vkQueueSubmit(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                       const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                       VkResult input_result, VkQueue queue, uint32_t submitCount,
+                       const VkSubmitInfo* pSubmits, VkFence fence) {}
+    void vkQueueWaitIdle(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                         const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                         VkResult input_result, VkQueue queue) {}
+    void vkDeviceWaitIdle(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                          const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                          VkResult input_result, VkDevice device) {}
+    void vkAllocateMemory(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                          const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                          VkResult input_result, VkDevice device,
                           const VkMemoryAllocateInfo* pAllocateInfo,
                           const VkAllocationCallbacks* pAllocator, VkDeviceMemory* pMemory) {
         if (!pMemory) return;
@@ -220,42 +238,46 @@ class VkDecoderSnapshot::Impl {
                         dedicatedAllocateInfo->buffer));
             }
         }
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)pMemory, 1, apiHandle,
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pMemory, 1, apiCallHandle,
                                             VkReconstruction::CREATED);
-        mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pMemory, 1);
+        mReconstruction.setCreatedHandlesForApi(apiCallHandle, (const uint64_t*)pMemory, 1);
     }
-    void vkFreeMemory(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                      android::base::BumpPool* pool, VkDevice device, VkDeviceMemory memory,
-                      const VkAllocationCallbacks* pAllocator) {
+    void vkFreeMemory(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                      const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkDevice device,
+                      VkDeviceMemory memory, const VkAllocationCallbacks* pAllocator) {
         android::base::AutoLock lock(mLock);
         // memory destroy
         mReconstruction.removeHandles((const uint64_t*)(&memory), 1, true);
     }
-    void vkMapMemory(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                     android::base::BumpPool* pool, VkResult input_result, VkDevice device,
-                     VkDeviceMemory memory, VkDeviceSize offset, VkDeviceSize size,
+    void vkMapMemory(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                     const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkResult input_result,
+                     VkDevice device, VkDeviceMemory memory, VkDeviceSize offset, VkDeviceSize size,
                      VkMemoryMapFlags flags, void** ppData) {}
-    void vkUnmapMemory(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                       android::base::BumpPool* pool, VkDevice device, VkDeviceMemory memory) {}
-    void vkFlushMappedMemoryRanges(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                   android::base::BumpPool* pool, VkResult input_result,
-                                   VkDevice device, uint32_t memoryRangeCount,
+    void vkUnmapMemory(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                       const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkDevice device,
+                       VkDeviceMemory memory) {}
+    void vkFlushMappedMemoryRanges(android::base::BumpPool* pool,
+                                   VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+                                   size_t apiCallPacketSize, VkResult input_result, VkDevice device,
+                                   uint32_t memoryRangeCount,
                                    const VkMappedMemoryRange* pMemoryRanges) {}
-    void vkInvalidateMappedMemoryRanges(const uint8_t* snapshotTraceBegin,
-                                        size_t snapshotTraceBytes, android::base::BumpPool* pool,
+    void vkInvalidateMappedMemoryRanges(android::base::BumpPool* pool,
+                                        VkSnapshotApiCallInfo* apiCallInfo,
+                                        const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                         VkResult input_result, VkDevice device,
                                         uint32_t memoryRangeCount,
                                         const VkMappedMemoryRange* pMemoryRanges) {}
-    void vkGetDeviceMemoryCommitment(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                     android::base::BumpPool* pool, VkDevice device,
-                                     VkDeviceMemory memory, VkDeviceSize* pCommittedMemoryInBytes) {
-    }
-    void vkBindBufferMemory(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                            android::base::BumpPool* pool, VkResult input_result, VkDevice device,
-                            VkBuffer buffer, VkDeviceMemory memory, VkDeviceSize memoryOffset) {
+    void vkGetDeviceMemoryCommitment(android::base::BumpPool* pool,
+                                     VkSnapshotApiCallInfo* apiCallInfo,
+                                     const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                     VkDevice device, VkDeviceMemory memory,
+                                     VkDeviceSize* pCommittedMemoryInBytes) {}
+    void vkBindBufferMemory(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                            const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                            VkResult input_result, VkDevice device, VkBuffer buffer,
+                            VkDeviceMemory memory, VkDeviceSize memoryOffset) {
         VkBuffer boxed_VkBuffer = unboxed_to_boxed_non_dispatchable_VkBuffer((&buffer)[0]);
         android::base::AutoLock lock(mLock);
         // buffer create
@@ -266,15 +288,15 @@ class VkDecoderSnapshot::Impl {
         mReconstruction.addHandleDependency((const uint64_t*)&boxed_VkBuffer, 1,
                                             (uint64_t)(uintptr_t)((&boxed_VkBuffer)[0]),
                                             VkReconstruction::BOUND_MEMORY);
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)&boxed_VkBuffer, 1, apiHandle,
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)&boxed_VkBuffer, 1, apiCallHandle,
                                             VkReconstruction::BOUND_MEMORY);
     }
-    void vkBindImageMemory(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                           android::base::BumpPool* pool, VkResult input_result, VkDevice device,
-                           VkImage image, VkDeviceMemory memory, VkDeviceSize memoryOffset) {
+    void vkBindImageMemory(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                           const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                           VkResult input_result, VkDevice device, VkImage image,
+                           VkDeviceMemory memory, VkDeviceSize memoryOffset) {
         VkImage boxed_VkImage = unboxed_to_boxed_non_dispatchable_VkImage((&image)[0]);
         android::base::AutoLock lock(mLock);
         // image create
@@ -285,35 +307,39 @@ class VkDecoderSnapshot::Impl {
         mReconstruction.addHandleDependency((const uint64_t*)&boxed_VkImage, 1,
                                             (uint64_t)(uintptr_t)((&boxed_VkImage)[0]),
                                             VkReconstruction::BOUND_MEMORY);
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)&boxed_VkImage, 1, apiHandle,
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)&boxed_VkImage, 1, apiCallHandle,
                                             VkReconstruction::BOUND_MEMORY);
     }
-    void vkGetBufferMemoryRequirements(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                       android::base::BumpPool* pool, VkDevice device,
-                                       VkBuffer buffer, VkMemoryRequirements* pMemoryRequirements) {
-    }
-    void vkGetImageMemoryRequirements(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                      android::base::BumpPool* pool, VkDevice device, VkImage image,
+    void vkGetBufferMemoryRequirements(android::base::BumpPool* pool,
+                                       VkSnapshotApiCallInfo* apiCallInfo,
+                                       const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                       VkDevice device, VkBuffer buffer,
+                                       VkMemoryRequirements* pMemoryRequirements) {}
+    void vkGetImageMemoryRequirements(android::base::BumpPool* pool,
+                                      VkSnapshotApiCallInfo* apiCallInfo,
+                                      const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                      VkDevice device, VkImage image,
                                       VkMemoryRequirements* pMemoryRequirements) {}
     void vkGetImageSparseMemoryRequirements(
-        const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-        VkDevice device, VkImage image, uint32_t* pSparseMemoryRequirementCount,
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+        const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkDevice device, VkImage image,
+        uint32_t* pSparseMemoryRequirementCount,
         VkSparseImageMemoryRequirements* pSparseMemoryRequirements) {}
     void vkGetPhysicalDeviceSparseImageFormatProperties(
-        const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-        VkPhysicalDevice physicalDevice, VkFormat format, VkImageType type,
-        VkSampleCountFlagBits samples, VkImageUsageFlags usage, VkImageTiling tiling,
-        uint32_t* pPropertyCount, VkSparseImageFormatProperties* pProperties) {}
-    void vkQueueBindSparse(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                           android::base::BumpPool* pool, VkResult input_result, VkQueue queue,
-                           uint32_t bindInfoCount, const VkBindSparseInfo* pBindInfo,
-                           VkFence fence) {}
-    void vkCreateFence(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                       android::base::BumpPool* pool, VkResult input_result, VkDevice device,
-                       const VkFenceCreateInfo* pCreateInfo,
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+        const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkPhysicalDevice physicalDevice,
+        VkFormat format, VkImageType type, VkSampleCountFlagBits samples, VkImageUsageFlags usage,
+        VkImageTiling tiling, uint32_t* pPropertyCount,
+        VkSparseImageFormatProperties* pProperties) {}
+    void vkQueueBindSparse(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                           const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                           VkResult input_result, VkQueue queue, uint32_t bindInfoCount,
+                           const VkBindSparseInfo* pBindInfo, VkFence fence) {}
+    void vkCreateFence(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                       const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                       VkResult input_result, VkDevice device, const VkFenceCreateInfo* pCreateInfo,
                        const VkAllocationCallbacks* pAllocator, VkFence* pFence) {
         if (!pFence) return;
         android::base::AutoLock lock(mLock);
@@ -321,32 +347,33 @@ class VkDecoderSnapshot::Impl {
         mReconstruction.addHandles((const uint64_t*)pFence, 1);
         mReconstruction.addHandleDependency((const uint64_t*)pFence, 1,
                                             (uint64_t)(uintptr_t)device);
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)pFence, 1, apiHandle,
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pFence, 1, apiCallHandle,
                                             VkReconstruction::CREATED);
-        mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pFence, 1);
+        mReconstruction.setCreatedHandlesForApi(apiCallHandle, (const uint64_t*)pFence, 1);
     }
-    void vkDestroyFence(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                        android::base::BumpPool* pool, VkDevice device, VkFence fence,
-                        const VkAllocationCallbacks* pAllocator) {
+    void vkDestroyFence(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                        const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkDevice device,
+                        VkFence fence, const VkAllocationCallbacks* pAllocator) {
         android::base::AutoLock lock(mLock);
         // fence destroy
         mReconstruction.removeHandles((const uint64_t*)(&fence), 1, true);
     }
-    void vkResetFences(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                       android::base::BumpPool* pool, VkResult input_result, VkDevice device,
-                       uint32_t fenceCount, const VkFence* pFences) {}
-    void vkGetFenceStatus(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                          android::base::BumpPool* pool, VkResult input_result, VkDevice device,
-                          VkFence fence) {}
-    void vkWaitForFences(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                         android::base::BumpPool* pool, VkResult input_result, VkDevice device,
-                         uint32_t fenceCount, const VkFence* pFences, VkBool32 waitAll,
-                         uint64_t timeout) {}
-    void vkCreateSemaphore(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                           android::base::BumpPool* pool, VkResult input_result, VkDevice device,
+    void vkResetFences(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                       const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                       VkResult input_result, VkDevice device, uint32_t fenceCount,
+                       const VkFence* pFences) {}
+    void vkGetFenceStatus(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                          const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                          VkResult input_result, VkDevice device, VkFence fence) {}
+    void vkWaitForFences(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                         const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                         VkResult input_result, VkDevice device, uint32_t fenceCount,
+                         const VkFence* pFences, VkBool32 waitAll, uint64_t timeout) {}
+    void vkCreateSemaphore(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                           const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                           VkResult input_result, VkDevice device,
                            const VkSemaphoreCreateInfo* pCreateInfo,
                            const VkAllocationCallbacks* pAllocator, VkSemaphore* pSemaphore) {
         if (!pSemaphore) return;
@@ -355,23 +382,22 @@ class VkDecoderSnapshot::Impl {
         mReconstruction.addHandles((const uint64_t*)pSemaphore, 1);
         mReconstruction.addHandleDependency((const uint64_t*)pSemaphore, 1,
                                             (uint64_t)(uintptr_t)device);
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)pSemaphore, 1, apiHandle,
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pSemaphore, 1, apiCallHandle,
                                             VkReconstruction::CREATED);
-        mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pSemaphore, 1);
+        mReconstruction.setCreatedHandlesForApi(apiCallHandle, (const uint64_t*)pSemaphore, 1);
     }
-    void vkDestroySemaphore(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                            android::base::BumpPool* pool, VkDevice device, VkSemaphore semaphore,
-                            const VkAllocationCallbacks* pAllocator) {
+    void vkDestroySemaphore(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                            const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkDevice device,
+                            VkSemaphore semaphore, const VkAllocationCallbacks* pAllocator) {
         android::base::AutoLock lock(mLock);
         // semaphore destroy
         mReconstruction.removeHandles((const uint64_t*)(&semaphore), 1, true);
     }
-    void vkCreateEvent(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                       android::base::BumpPool* pool, VkResult input_result, VkDevice device,
-                       const VkEventCreateInfo* pCreateInfo,
+    void vkCreateEvent(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                       const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                       VkResult input_result, VkDevice device, const VkEventCreateInfo* pCreateInfo,
                        const VkAllocationCallbacks* pAllocator, VkEvent* pEvent) {
         if (!pEvent) return;
         android::base::AutoLock lock(mLock);
@@ -379,31 +405,31 @@ class VkDecoderSnapshot::Impl {
         mReconstruction.addHandles((const uint64_t*)pEvent, 1);
         mReconstruction.addHandleDependency((const uint64_t*)pEvent, 1,
                                             (uint64_t)(uintptr_t)device);
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)pEvent, 1, apiHandle,
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pEvent, 1, apiCallHandle,
                                             VkReconstruction::CREATED);
-        mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pEvent, 1);
+        mReconstruction.setCreatedHandlesForApi(apiCallHandle, (const uint64_t*)pEvent, 1);
     }
-    void vkDestroyEvent(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                        android::base::BumpPool* pool, VkDevice device, VkEvent event,
-                        const VkAllocationCallbacks* pAllocator) {
+    void vkDestroyEvent(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                        const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkDevice device,
+                        VkEvent event, const VkAllocationCallbacks* pAllocator) {
         android::base::AutoLock lock(mLock);
         // event destroy
         mReconstruction.removeHandles((const uint64_t*)(&event), 1, true);
     }
-    void vkGetEventStatus(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                          android::base::BumpPool* pool, VkResult input_result, VkDevice device,
-                          VkEvent event) {}
-    void vkSetEvent(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                    android::base::BumpPool* pool, VkResult input_result, VkDevice device,
-                    VkEvent event) {}
-    void vkResetEvent(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                      android::base::BumpPool* pool, VkResult input_result, VkDevice device,
-                      VkEvent event) {}
-    void vkCreateQueryPool(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                           android::base::BumpPool* pool, VkResult input_result, VkDevice device,
+    void vkGetEventStatus(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                          const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                          VkResult input_result, VkDevice device, VkEvent event) {}
+    void vkSetEvent(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                    const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkResult input_result,
+                    VkDevice device, VkEvent event) {}
+    void vkResetEvent(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                      const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkResult input_result,
+                      VkDevice device, VkEvent event) {}
+    void vkCreateQueryPool(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                           const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                           VkResult input_result, VkDevice device,
                            const VkQueryPoolCreateInfo* pCreateInfo,
                            const VkAllocationCallbacks* pAllocator, VkQueryPool* pQueryPool) {
         if (!pQueryPool) return;
@@ -412,27 +438,27 @@ class VkDecoderSnapshot::Impl {
         mReconstruction.addHandles((const uint64_t*)pQueryPool, 1);
         mReconstruction.addHandleDependency((const uint64_t*)pQueryPool, 1,
                                             (uint64_t)(uintptr_t)device);
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)pQueryPool, 1, apiHandle,
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pQueryPool, 1, apiCallHandle,
                                             VkReconstruction::CREATED);
-        mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pQueryPool, 1);
+        mReconstruction.setCreatedHandlesForApi(apiCallHandle, (const uint64_t*)pQueryPool, 1);
     }
-    void vkDestroyQueryPool(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                            android::base::BumpPool* pool, VkDevice device, VkQueryPool queryPool,
-                            const VkAllocationCallbacks* pAllocator) {
+    void vkDestroyQueryPool(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                            const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkDevice device,
+                            VkQueryPool queryPool, const VkAllocationCallbacks* pAllocator) {
         android::base::AutoLock lock(mLock);
         // queryPool destroy
         mReconstruction.removeHandles((const uint64_t*)(&queryPool), 1, true);
     }
-    void vkGetQueryPoolResults(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                               android::base::BumpPool* pool, VkResult input_result,
-                               VkDevice device, VkQueryPool queryPool, uint32_t firstQuery,
-                               uint32_t queryCount, size_t dataSize, void* pData,
-                               VkDeviceSize stride, VkQueryResultFlags flags) {}
-    void vkCreateBuffer(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                        android::base::BumpPool* pool, VkResult input_result, VkDevice device,
+    void vkGetQueryPoolResults(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                               const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                               VkResult input_result, VkDevice device, VkQueryPool queryPool,
+                               uint32_t firstQuery, uint32_t queryCount, size_t dataSize,
+                               void* pData, VkDeviceSize stride, VkQueryResultFlags flags) {}
+    void vkCreateBuffer(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                        const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                        VkResult input_result, VkDevice device,
                         const VkBufferCreateInfo* pCreateInfo,
                         const VkAllocationCallbacks* pAllocator, VkBuffer* pBuffer) {
         if (!pBuffer) return;
@@ -441,22 +467,22 @@ class VkDecoderSnapshot::Impl {
         mReconstruction.addHandles((const uint64_t*)pBuffer, 1);
         mReconstruction.addHandleDependency((const uint64_t*)pBuffer, 1,
                                             (uint64_t)(uintptr_t)device);
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)pBuffer, 1, apiHandle,
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pBuffer, 1, apiCallHandle,
                                             VkReconstruction::CREATED);
-        mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pBuffer, 1);
+        mReconstruction.setCreatedHandlesForApi(apiCallHandle, (const uint64_t*)pBuffer, 1);
     }
-    void vkDestroyBuffer(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                         android::base::BumpPool* pool, VkDevice device, VkBuffer buffer,
-                         const VkAllocationCallbacks* pAllocator) {
+    void vkDestroyBuffer(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                         const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkDevice device,
+                         VkBuffer buffer, const VkAllocationCallbacks* pAllocator) {
         android::base::AutoLock lock(mLock);
         // buffer destroy
         mReconstruction.removeHandles((const uint64_t*)(&buffer), 1, true);
     }
-    void vkCreateBufferView(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                            android::base::BumpPool* pool, VkResult input_result, VkDevice device,
+    void vkCreateBufferView(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                            const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                            VkResult input_result, VkDevice device,
                             const VkBufferViewCreateInfo* pCreateInfo,
                             const VkAllocationCallbacks* pAllocator, VkBufferView* pView) {
         if (!pView) return;
@@ -464,23 +490,23 @@ class VkDecoderSnapshot::Impl {
         // pView create
         mReconstruction.addHandles((const uint64_t*)pView, 1);
         mReconstruction.addHandleDependency((const uint64_t*)pView, 1, (uint64_t)(uintptr_t)device);
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)pView, 1, apiHandle,
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pView, 1, apiCallHandle,
                                             VkReconstruction::CREATED);
-        mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pView, 1);
+        mReconstruction.setCreatedHandlesForApi(apiCallHandle, (const uint64_t*)pView, 1);
     }
-    void vkDestroyBufferView(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                             android::base::BumpPool* pool, VkDevice device,
-                             VkBufferView bufferView, const VkAllocationCallbacks* pAllocator) {
+    void vkDestroyBufferView(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                             const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                             VkDevice device, VkBufferView bufferView,
+                             const VkAllocationCallbacks* pAllocator) {
         android::base::AutoLock lock(mLock);
         // bufferView destroy
         mReconstruction.removeHandles((const uint64_t*)(&bufferView), 1, true);
     }
-    void vkCreateImage(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                       android::base::BumpPool* pool, VkResult input_result, VkDevice device,
-                       const VkImageCreateInfo* pCreateInfo,
+    void vkCreateImage(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                       const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                       VkResult input_result, VkDevice device, const VkImageCreateInfo* pCreateInfo,
                        const VkAllocationCallbacks* pAllocator, VkImage* pImage) {
         if (!pImage) return;
         android::base::AutoLock lock(mLock);
@@ -488,26 +514,28 @@ class VkDecoderSnapshot::Impl {
         mReconstruction.addHandles((const uint64_t*)pImage, 1);
         mReconstruction.addHandleDependency((const uint64_t*)pImage, 1,
                                             (uint64_t)(uintptr_t)device);
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)pImage, 1, apiHandle,
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pImage, 1, apiCallHandle,
                                             VkReconstruction::CREATED);
-        mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pImage, 1);
+        mReconstruction.setCreatedHandlesForApi(apiCallHandle, (const uint64_t*)pImage, 1);
     }
-    void vkDestroyImage(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                        android::base::BumpPool* pool, VkDevice device, VkImage image,
-                        const VkAllocationCallbacks* pAllocator) {
+    void vkDestroyImage(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                        const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkDevice device,
+                        VkImage image, const VkAllocationCallbacks* pAllocator) {
         android::base::AutoLock lock(mLock);
         // image destroy
         mReconstruction.removeHandles((const uint64_t*)(&image), 1, true);
     }
-    void vkGetImageSubresourceLayout(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                     android::base::BumpPool* pool, VkDevice device, VkImage image,
+    void vkGetImageSubresourceLayout(android::base::BumpPool* pool,
+                                     VkSnapshotApiCallInfo* apiCallInfo,
+                                     const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                     VkDevice device, VkImage image,
                                      const VkImageSubresource* pSubresource,
                                      VkSubresourceLayout* pLayout) {}
-    void vkCreateImageView(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                           android::base::BumpPool* pool, VkResult input_result, VkDevice device,
+    void vkCreateImageView(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                           const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                           VkResult input_result, VkDevice device,
                            const VkImageViewCreateInfo* pCreateInfo,
                            const VkAllocationCallbacks* pAllocator, VkImageView* pView) {
         if (!pView) return;
@@ -519,22 +547,22 @@ class VkDecoderSnapshot::Impl {
             (const uint64_t*)pView, 1,
             (uint64_t)(uintptr_t)unboxed_to_boxed_non_dispatchable_VkImage(pCreateInfo->image),
             VkReconstruction::CREATED, VkReconstruction::BOUND_MEMORY);
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)pView, 1, apiHandle,
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pView, 1, apiCallHandle,
                                             VkReconstruction::CREATED);
-        mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pView, 1);
+        mReconstruction.setCreatedHandlesForApi(apiCallHandle, (const uint64_t*)pView, 1);
     }
-    void vkDestroyImageView(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                            android::base::BumpPool* pool, VkDevice device, VkImageView imageView,
-                            const VkAllocationCallbacks* pAllocator) {
+    void vkDestroyImageView(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                            const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkDevice device,
+                            VkImageView imageView, const VkAllocationCallbacks* pAllocator) {
         android::base::AutoLock lock(mLock);
         // imageView destroy
         mReconstruction.removeHandles((const uint64_t*)(&imageView), 1, true);
     }
-    void vkCreateShaderModule(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                              android::base::BumpPool* pool, VkResult input_result, VkDevice device,
+    void vkCreateShaderModule(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                              const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                              VkResult input_result, VkDevice device,
                               const VkShaderModuleCreateInfo* pCreateInfo,
                               const VkAllocationCallbacks* pAllocator,
                               VkShaderModule* pShaderModule) {
@@ -544,24 +572,24 @@ class VkDecoderSnapshot::Impl {
         mReconstruction.addHandles((const uint64_t*)pShaderModule, 1);
         mReconstruction.addHandleDependency((const uint64_t*)pShaderModule, 1,
                                             (uint64_t)(uintptr_t)device);
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)pShaderModule, 1, apiHandle,
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pShaderModule, 1, apiCallHandle,
                                             VkReconstruction::CREATED);
-        mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pShaderModule, 1);
+        mReconstruction.setCreatedHandlesForApi(apiCallHandle, (const uint64_t*)pShaderModule, 1);
     }
-    void vkDestroyShaderModule(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                               android::base::BumpPool* pool, VkDevice device,
-                               VkShaderModule shaderModule,
+    void vkDestroyShaderModule(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                               const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                               VkDevice device, VkShaderModule shaderModule,
                                const VkAllocationCallbacks* pAllocator) {
         android::base::AutoLock lock(mLock);
         // shaderModule destroy
         mReconstruction.removeHandles((const uint64_t*)(&shaderModule), 1, false);
     }
-    void vkCreatePipelineCache(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                               android::base::BumpPool* pool, VkResult input_result,
-                               VkDevice device, const VkPipelineCacheCreateInfo* pCreateInfo,
+    void vkCreatePipelineCache(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                               const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                               VkResult input_result, VkDevice device,
+                               const VkPipelineCacheCreateInfo* pCreateInfo,
                                const VkAllocationCallbacks* pAllocator,
                                VkPipelineCache* pPipelineCache) {
         if (!pPipelineCache) return;
@@ -570,33 +598,32 @@ class VkDecoderSnapshot::Impl {
         mReconstruction.addHandles((const uint64_t*)pPipelineCache, 1);
         mReconstruction.addHandleDependency((const uint64_t*)pPipelineCache, 1,
                                             (uint64_t)(uintptr_t)device);
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)pPipelineCache, 1, apiHandle,
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pPipelineCache, 1, apiCallHandle,
                                             VkReconstruction::CREATED);
-        mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pPipelineCache, 1);
+        mReconstruction.setCreatedHandlesForApi(apiCallHandle, (const uint64_t*)pPipelineCache, 1);
     }
-    void vkDestroyPipelineCache(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                android::base::BumpPool* pool, VkDevice device,
-                                VkPipelineCache pipelineCache,
+    void vkDestroyPipelineCache(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                                const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                VkDevice device, VkPipelineCache pipelineCache,
                                 const VkAllocationCallbacks* pAllocator) {
         android::base::AutoLock lock(mLock);
         // pipelineCache destroy
         mReconstruction.removeHandles((const uint64_t*)(&pipelineCache), 1, true);
     }
-    void vkGetPipelineCacheData(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                android::base::BumpPool* pool, VkResult input_result,
-                                VkDevice device, VkPipelineCache pipelineCache, size_t* pDataSize,
-                                void* pData) {}
-    void vkMergePipelineCaches(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                               android::base::BumpPool* pool, VkResult input_result,
-                               VkDevice device, VkPipelineCache dstCache, uint32_t srcCacheCount,
-                               const VkPipelineCache* pSrcCaches) {}
-    void vkCreateGraphicsPipelines(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                   android::base::BumpPool* pool, VkResult input_result,
-                                   VkDevice device, VkPipelineCache pipelineCache,
-                                   uint32_t createInfoCount,
+    void vkGetPipelineCacheData(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                                const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                VkResult input_result, VkDevice device,
+                                VkPipelineCache pipelineCache, size_t* pDataSize, void* pData) {}
+    void vkMergePipelineCaches(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                               const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                               VkResult input_result, VkDevice device, VkPipelineCache dstCache,
+                               uint32_t srcCacheCount, const VkPipelineCache* pSrcCaches) {}
+    void vkCreateGraphicsPipelines(android::base::BumpPool* pool,
+                                   VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+                                   size_t apiCallPacketSize, VkResult input_result, VkDevice device,
+                                   VkPipelineCache pipelineCache, uint32_t createInfoCount,
                                    const VkGraphicsPipelineCreateInfo* pCreateInfos,
                                    const VkAllocationCallbacks* pAllocator,
                                    VkPipeline* pPipelines) {
@@ -618,18 +645,17 @@ class VkDecoderSnapshot::Impl {
                 (uint64_t)(uintptr_t)unboxed_to_boxed_non_dispatchable_VkRenderPass(
                     pCreateInfos[i].renderPass));
         }
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         mReconstruction.forEachHandleAddApi((const uint64_t*)pPipelines, ((createInfoCount)),
-                                            apiHandle, VkReconstruction::CREATED);
-        mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pPipelines,
+                                            apiCallHandle, VkReconstruction::CREATED);
+        mReconstruction.setCreatedHandlesForApi(apiCallHandle, (const uint64_t*)pPipelines,
                                                 ((createInfoCount)));
     }
-    void vkCreateComputePipelines(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                  android::base::BumpPool* pool, VkResult input_result,
-                                  VkDevice device, VkPipelineCache pipelineCache,
-                                  uint32_t createInfoCount,
+    void vkCreateComputePipelines(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                                  const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                  VkResult input_result, VkDevice device,
+                                  VkPipelineCache pipelineCache, uint32_t createInfoCount,
                                   const VkComputePipelineCreateInfo* pCreateInfos,
                                   const VkAllocationCallbacks* pAllocator, VkPipeline* pPipelines) {
         if (!pPipelines) return;
@@ -638,24 +664,24 @@ class VkDecoderSnapshot::Impl {
         mReconstruction.addHandles((const uint64_t*)pPipelines, ((createInfoCount)));
         mReconstruction.addHandleDependency((const uint64_t*)pPipelines, ((createInfoCount)),
                                             (uint64_t)(uintptr_t)device);
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         mReconstruction.forEachHandleAddApi((const uint64_t*)pPipelines, ((createInfoCount)),
-                                            apiHandle, VkReconstruction::CREATED);
-        mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pPipelines,
+                                            apiCallHandle, VkReconstruction::CREATED);
+        mReconstruction.setCreatedHandlesForApi(apiCallHandle, (const uint64_t*)pPipelines,
                                                 ((createInfoCount)));
     }
-    void vkDestroyPipeline(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                           android::base::BumpPool* pool, VkDevice device, VkPipeline pipeline,
-                           const VkAllocationCallbacks* pAllocator) {
+    void vkDestroyPipeline(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                           const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkDevice device,
+                           VkPipeline pipeline, const VkAllocationCallbacks* pAllocator) {
         android::base::AutoLock lock(mLock);
         // pipeline destroy
         mReconstruction.removeHandles((const uint64_t*)(&pipeline), 1, true);
     }
-    void vkCreatePipelineLayout(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                android::base::BumpPool* pool, VkResult input_result,
-                                VkDevice device, const VkPipelineLayoutCreateInfo* pCreateInfo,
+    void vkCreatePipelineLayout(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                                const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                VkResult input_result, VkDevice device,
+                                const VkPipelineLayoutCreateInfo* pCreateInfo,
                                 const VkAllocationCallbacks* pAllocator,
                                 VkPipelineLayout* pPipelineLayout) {
         if (!pPipelineLayout) return;
@@ -664,23 +690,23 @@ class VkDecoderSnapshot::Impl {
         mReconstruction.addHandles((const uint64_t*)pPipelineLayout, 1);
         mReconstruction.addHandleDependency((const uint64_t*)pPipelineLayout, 1,
                                             (uint64_t)(uintptr_t)device);
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)pPipelineLayout, 1, apiHandle,
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pPipelineLayout, 1, apiCallHandle,
                                             VkReconstruction::CREATED);
-        mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pPipelineLayout, 1);
+        mReconstruction.setCreatedHandlesForApi(apiCallHandle, (const uint64_t*)pPipelineLayout, 1);
     }
-    void vkDestroyPipelineLayout(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                 android::base::BumpPool* pool, VkDevice device,
-                                 VkPipelineLayout pipelineLayout,
+    void vkDestroyPipelineLayout(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                                 const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                 VkDevice device, VkPipelineLayout pipelineLayout,
                                  const VkAllocationCallbacks* pAllocator) {
         android::base::AutoLock lock(mLock);
         // pipelineLayout destroy
         mReconstruction.removeHandles((const uint64_t*)(&pipelineLayout), 1, true);
     }
-    void vkCreateSampler(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                         android::base::BumpPool* pool, VkResult input_result, VkDevice device,
+    void vkCreateSampler(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                         const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                         VkResult input_result, VkDevice device,
                          const VkSamplerCreateInfo* pCreateInfo,
                          const VkAllocationCallbacks* pAllocator, VkSampler* pSampler) {
         if (!pSampler) return;
@@ -689,23 +715,23 @@ class VkDecoderSnapshot::Impl {
         mReconstruction.addHandles((const uint64_t*)pSampler, 1);
         mReconstruction.addHandleDependency((const uint64_t*)pSampler, 1,
                                             (uint64_t)(uintptr_t)device);
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)pSampler, 1, apiHandle,
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pSampler, 1, apiCallHandle,
                                             VkReconstruction::CREATED);
-        mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pSampler, 1);
+        mReconstruction.setCreatedHandlesForApi(apiCallHandle, (const uint64_t*)pSampler, 1);
     }
-    void vkDestroySampler(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                          android::base::BumpPool* pool, VkDevice device, VkSampler sampler,
-                          const VkAllocationCallbacks* pAllocator) {
+    void vkDestroySampler(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                          const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkDevice device,
+                          VkSampler sampler, const VkAllocationCallbacks* pAllocator) {
         android::base::AutoLock lock(mLock);
         // sampler destroy
         mReconstruction.removeHandles((const uint64_t*)(&sampler), 1, true);
     }
-    void vkCreateDescriptorSetLayout(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                     android::base::BumpPool* pool, VkResult input_result,
-                                     VkDevice device,
+    void vkCreateDescriptorSetLayout(android::base::BumpPool* pool,
+                                     VkSnapshotApiCallInfo* apiCallInfo,
+                                     const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                     VkResult input_result, VkDevice device,
                                      const VkDescriptorSetLayoutCreateInfo* pCreateInfo,
                                      const VkAllocationCallbacks* pAllocator,
                                      VkDescriptorSetLayout* pSetLayout) {
@@ -715,24 +741,25 @@ class VkDecoderSnapshot::Impl {
         mReconstruction.addHandles((const uint64_t*)pSetLayout, 1);
         mReconstruction.addHandleDependency((const uint64_t*)pSetLayout, 1,
                                             (uint64_t)(uintptr_t)device);
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)pSetLayout, 1, apiHandle,
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pSetLayout, 1, apiCallHandle,
                                             VkReconstruction::CREATED);
-        mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pSetLayout, 1);
+        mReconstruction.setCreatedHandlesForApi(apiCallHandle, (const uint64_t*)pSetLayout, 1);
     }
-    void vkDestroyDescriptorSetLayout(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                      android::base::BumpPool* pool, VkDevice device,
-                                      VkDescriptorSetLayout descriptorSetLayout,
+    void vkDestroyDescriptorSetLayout(android::base::BumpPool* pool,
+                                      VkSnapshotApiCallInfo* apiCallInfo,
+                                      const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                      VkDevice device, VkDescriptorSetLayout descriptorSetLayout,
                                       const VkAllocationCallbacks* pAllocator) {
         android::base::AutoLock lock(mLock);
         // descriptorSetLayout destroy
         mReconstruction.removeHandles((const uint64_t*)(&descriptorSetLayout), 1, true);
     }
-    void vkCreateDescriptorPool(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                android::base::BumpPool* pool, VkResult input_result,
-                                VkDevice device, const VkDescriptorPoolCreateInfo* pCreateInfo,
+    void vkCreateDescriptorPool(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                                const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                VkResult input_result, VkDevice device,
+                                const VkDescriptorPoolCreateInfo* pCreateInfo,
                                 const VkAllocationCallbacks* pAllocator,
                                 VkDescriptorPool* pDescriptorPool) {
         if (!pDescriptorPool) return;
@@ -741,29 +768,29 @@ class VkDecoderSnapshot::Impl {
         mReconstruction.addHandles((const uint64_t*)pDescriptorPool, 1);
         mReconstruction.addHandleDependency((const uint64_t*)pDescriptorPool, 1,
                                             (uint64_t)(uintptr_t)device);
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)pDescriptorPool, 1, apiHandle,
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pDescriptorPool, 1, apiCallHandle,
                                             VkReconstruction::CREATED);
-        mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pDescriptorPool, 1);
+        mReconstruction.setCreatedHandlesForApi(apiCallHandle, (const uint64_t*)pDescriptorPool, 1);
         mLock.unlock();
     }
-    void vkDestroyDescriptorPool(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                 android::base::BumpPool* pool, VkDevice device,
-                                 VkDescriptorPool descriptorPool,
+    void vkDestroyDescriptorPool(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                                 const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                 VkDevice device, VkDescriptorPool descriptorPool,
                                  const VkAllocationCallbacks* pAllocator) {
         android::base::AutoLock lock(mLock);
         // descriptorPool destroy
         mReconstruction.removeHandles((const uint64_t*)(&descriptorPool), 1, true);
     }
-    void vkResetDescriptorPool(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                               android::base::BumpPool* pool, VkResult input_result,
-                               VkDevice device, VkDescriptorPool descriptorPool,
-                               VkDescriptorPoolResetFlags flags) {}
-    void vkAllocateDescriptorSets(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                  android::base::BumpPool* pool, VkResult input_result,
-                                  VkDevice device, const VkDescriptorSetAllocateInfo* pAllocateInfo,
+    void vkResetDescriptorPool(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                               const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                               VkResult input_result, VkDevice device,
+                               VkDescriptorPool descriptorPool, VkDescriptorPoolResetFlags flags) {}
+    void vkAllocateDescriptorSets(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                                  const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                  VkResult input_result, VkDevice device,
+                                  const VkDescriptorSetAllocateInfo* pAllocateInfo,
                                   VkDescriptorSet* pDescriptorSets) {
         if (!pDescriptorSets) return;
         android::base::AutoLock lock(mLock);
@@ -777,17 +804,17 @@ class VkDecoderSnapshot::Impl {
             (const uint64_t*)pDescriptorSets, pAllocateInfo->descriptorSetCount,
             (uint64_t)(uintptr_t)unboxed_to_boxed_non_dispatchable_VkDescriptorPool(
                 pAllocateInfo->descriptorPool));
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         mReconstruction.forEachHandleAddApi((const uint64_t*)pDescriptorSets,
-                                            pAllocateInfo->descriptorSetCount, apiHandle,
+                                            pAllocateInfo->descriptorSetCount, apiCallHandle,
                                             VkReconstruction::CREATED);
-        mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pDescriptorSets,
+        mReconstruction.setCreatedHandlesForApi(apiCallHandle, (const uint64_t*)pDescriptorSets,
                                                 pAllocateInfo->descriptorSetCount);
     }
-    void vkFreeDescriptorSets(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                              android::base::BumpPool* pool, VkResult input_result, VkDevice device,
+    void vkFreeDescriptorSets(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                              const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                              VkResult input_result, VkDevice device,
                               VkDescriptorPool descriptorPool, uint32_t descriptorSetCount,
                               const VkDescriptorSet* pDescriptorSets) {
         android::base::AutoLock lock(mLock);
@@ -795,9 +822,9 @@ class VkDecoderSnapshot::Impl {
         mReconstruction.removeHandles((const uint64_t*)pDescriptorSets, ((descriptorSetCount)),
                                       true);
     }
-    void vkUpdateDescriptorSets(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                android::base::BumpPool* pool, VkDevice device,
-                                uint32_t descriptorWriteCount,
+    void vkUpdateDescriptorSets(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                                const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                VkDevice device, uint32_t descriptorWriteCount,
                                 const VkWriteDescriptorSet* pDescriptorWrites,
                                 uint32_t descriptorCopyCount,
                                 const VkCopyDescriptorSet* pDescriptorCopies) {
@@ -809,9 +836,8 @@ class VkDecoderSnapshot::Impl {
         }
         uint64_t handle = m_state->newGlobalVkGenericHandle();
         mReconstruction.addHandles((const uint64_t*)(&handle), 1);
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < descriptorWriteCount; ++i) {
             mReconstruction.addHandleDependency(
                 (const uint64_t*)(&handle), 1,
@@ -847,12 +873,13 @@ class VkDecoderSnapshot::Impl {
                 }
             }
         }
-        mReconstruction.forEachHandleAddApi((const uint64_t*)(&handle), 1, apiHandle,
+        mReconstruction.forEachHandleAddApi((const uint64_t*)(&handle), 1, apiCallHandle,
                                             VkReconstruction::CREATED);
-        mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)(&handle), 1);
+        mReconstruction.setCreatedHandlesForApi(apiCallHandle, (const uint64_t*)(&handle), 1);
     }
-    void vkCreateFramebuffer(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                             android::base::BumpPool* pool, VkResult input_result, VkDevice device,
+    void vkCreateFramebuffer(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                             const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                             VkResult input_result, VkDevice device,
                              const VkFramebufferCreateInfo* pCreateInfo,
                              const VkAllocationCallbacks* pAllocator, VkFramebuffer* pFramebuffer) {
         if (!pFramebuffer) return;
@@ -871,22 +898,23 @@ class VkDecoderSnapshot::Impl {
                 (uint64_t)(uintptr_t)unboxed_to_boxed_non_dispatchable_VkImageView(
                     pCreateInfo->pAttachments[i]));
         }
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)pFramebuffer, 1, apiHandle,
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pFramebuffer, 1, apiCallHandle,
                                             VkReconstruction::CREATED);
-        mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pFramebuffer, 1);
+        mReconstruction.setCreatedHandlesForApi(apiCallHandle, (const uint64_t*)pFramebuffer, 1);
     }
-    void vkDestroyFramebuffer(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                              android::base::BumpPool* pool, VkDevice device,
-                              VkFramebuffer framebuffer, const VkAllocationCallbacks* pAllocator) {
+    void vkDestroyFramebuffer(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                              const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                              VkDevice device, VkFramebuffer framebuffer,
+                              const VkAllocationCallbacks* pAllocator) {
         android::base::AutoLock lock(mLock);
         // framebuffer destroy
         mReconstruction.removeHandles((const uint64_t*)(&framebuffer), 1, true);
     }
-    void vkCreateRenderPass(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                            android::base::BumpPool* pool, VkResult input_result, VkDevice device,
+    void vkCreateRenderPass(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                            const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                            VkResult input_result, VkDevice device,
                             const VkRenderPassCreateInfo* pCreateInfo,
                             const VkAllocationCallbacks* pAllocator, VkRenderPass* pRenderPass) {
         if (!pRenderPass) return;
@@ -895,25 +923,28 @@ class VkDecoderSnapshot::Impl {
         mReconstruction.addHandles((const uint64_t*)pRenderPass, 1);
         mReconstruction.addHandleDependency((const uint64_t*)pRenderPass, 1,
                                             (uint64_t)(uintptr_t)device);
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)pRenderPass, 1, apiHandle,
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pRenderPass, 1, apiCallHandle,
                                             VkReconstruction::CREATED);
-        mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pRenderPass, 1);
+        mReconstruction.setCreatedHandlesForApi(apiCallHandle, (const uint64_t*)pRenderPass, 1);
     }
-    void vkDestroyRenderPass(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                             android::base::BumpPool* pool, VkDevice device,
-                             VkRenderPass renderPass, const VkAllocationCallbacks* pAllocator) {
+    void vkDestroyRenderPass(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                             const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                             VkDevice device, VkRenderPass renderPass,
+                             const VkAllocationCallbacks* pAllocator) {
         android::base::AutoLock lock(mLock);
         // renderPass destroy
         mReconstruction.removeHandles((const uint64_t*)(&renderPass), 1, true);
     }
-    void vkGetRenderAreaGranularity(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                    android::base::BumpPool* pool, VkDevice device,
-                                    VkRenderPass renderPass, VkExtent2D* pGranularity) {}
-    void vkCreateCommandPool(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                             android::base::BumpPool* pool, VkResult input_result, VkDevice device,
+    void vkGetRenderAreaGranularity(android::base::BumpPool* pool,
+                                    VkSnapshotApiCallInfo* apiCallInfo,
+                                    const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                    VkDevice device, VkRenderPass renderPass,
+                                    VkExtent2D* pGranularity) {}
+    void vkCreateCommandPool(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                             const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                             VkResult input_result, VkDevice device,
                              const VkCommandPoolCreateInfo* pCreateInfo,
                              const VkAllocationCallbacks* pAllocator, VkCommandPool* pCommandPool) {
         if (!pCommandPool) return;
@@ -922,26 +953,28 @@ class VkDecoderSnapshot::Impl {
         mReconstruction.addHandles((const uint64_t*)pCommandPool, 1);
         mReconstruction.addHandleDependency((const uint64_t*)pCommandPool, 1,
                                             (uint64_t)(uintptr_t)device);
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)pCommandPool, 1, apiHandle,
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pCommandPool, 1, apiCallHandle,
                                             VkReconstruction::CREATED);
-        mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pCommandPool, 1);
+        mReconstruction.setCreatedHandlesForApi(apiCallHandle, (const uint64_t*)pCommandPool, 1);
     }
-    void vkDestroyCommandPool(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                              android::base::BumpPool* pool, VkDevice device,
-                              VkCommandPool commandPool, const VkAllocationCallbacks* pAllocator) {
+    void vkDestroyCommandPool(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                              const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                              VkDevice device, VkCommandPool commandPool,
+                              const VkAllocationCallbacks* pAllocator) {
         android::base::AutoLock lock(mLock);
         // commandPool destroy
         mReconstruction.removeHandles((const uint64_t*)(&commandPool), 1, true);
     }
-    void vkResetCommandPool(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                            android::base::BumpPool* pool, VkResult input_result, VkDevice device,
-                            VkCommandPool commandPool, VkCommandPoolResetFlags flags) {}
-    void vkAllocateCommandBuffers(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                  android::base::BumpPool* pool, VkResult input_result,
-                                  VkDevice device, const VkCommandBufferAllocateInfo* pAllocateInfo,
+    void vkResetCommandPool(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                            const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                            VkResult input_result, VkDevice device, VkCommandPool commandPool,
+                            VkCommandPoolResetFlags flags) {}
+    void vkAllocateCommandBuffers(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                                  const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                  VkResult input_result, VkDevice device,
+                                  const VkCommandBufferAllocateInfo* pAllocateInfo,
                                   VkCommandBuffer* pCommandBuffers) {
         if (!pCommandBuffers) return;
         android::base::AutoLock lock(mLock);
@@ -952,544 +985,532 @@ class VkDecoderSnapshot::Impl {
             (const uint64_t*)pCommandBuffers, pAllocateInfo->commandBufferCount,
             (uint64_t)(uintptr_t)unboxed_to_boxed_non_dispatchable_VkCommandPool(
                 pAllocateInfo->commandPool));
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         mReconstruction.forEachHandleAddApi((const uint64_t*)pCommandBuffers,
-                                            pAllocateInfo->commandBufferCount, apiHandle,
+                                            pAllocateInfo->commandBufferCount, apiCallHandle,
                                             VkReconstruction::CREATED);
-        mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pCommandBuffers,
+        mReconstruction.setCreatedHandlesForApi(apiCallHandle, (const uint64_t*)pCommandBuffers,
                                                 pAllocateInfo->commandBufferCount);
     }
-    void vkFreeCommandBuffers(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                              android::base::BumpPool* pool, VkDevice device,
-                              VkCommandPool commandPool, uint32_t commandBufferCount,
-                              const VkCommandBuffer* pCommandBuffers) {
+    void vkFreeCommandBuffers(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                              const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                              VkDevice device, VkCommandPool commandPool,
+                              uint32_t commandBufferCount, const VkCommandBuffer* pCommandBuffers) {
         android::base::AutoLock lock(mLock);
         // pCommandBuffers destroy
         mReconstruction.removeHandles((const uint64_t*)pCommandBuffers, ((commandBufferCount)),
                                       true);
     }
-    void vkBeginCommandBuffer(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                              android::base::BumpPool* pool, VkResult input_result,
-                              VkCommandBuffer commandBuffer,
+    void vkBeginCommandBuffer(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                              const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                              VkResult input_result, VkCommandBuffer commandBuffer,
                               const VkCommandBufferBeginInfo* pBeginInfo) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkEndCommandBuffer(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                            android::base::BumpPool* pool, VkResult input_result,
-                            VkCommandBuffer commandBuffer) {
+    void vkEndCommandBuffer(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                            const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                            VkResult input_result, VkCommandBuffer commandBuffer) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkResetCommandBuffer(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                              android::base::BumpPool* pool, VkResult input_result,
-                              VkCommandBuffer commandBuffer, VkCommandBufferResetFlags flags) {
+    void vkResetCommandBuffer(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                              const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                              VkResult input_result, VkCommandBuffer commandBuffer,
+                              VkCommandBufferResetFlags flags) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
             mReconstruction.forEachHandleClearModifyApi((const uint64_t*)(&boxed), 1);
         }
     }
-    void vkCmdBindPipeline(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                           android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                           VkPipelineBindPoint pipelineBindPoint, VkPipeline pipeline) {
+    void vkCmdBindPipeline(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                           const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                           VkCommandBuffer commandBuffer, VkPipelineBindPoint pipelineBindPoint,
+                           VkPipeline pipeline) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdSetViewport(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                          android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                          uint32_t firstViewport, uint32_t viewportCount,
-                          const VkViewport* pViewports) {
+    void vkCmdSetViewport(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                          const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                          VkCommandBuffer commandBuffer, uint32_t firstViewport,
+                          uint32_t viewportCount, const VkViewport* pViewports) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdSetScissor(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                         android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                         uint32_t firstScissor, uint32_t scissorCount, const VkRect2D* pScissors) {
+    void vkCmdSetScissor(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                         const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                         VkCommandBuffer commandBuffer, uint32_t firstScissor,
+                         uint32_t scissorCount, const VkRect2D* pScissors) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdSetLineWidth(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                           android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                           float lineWidth) {
+    void vkCmdSetLineWidth(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                           const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                           VkCommandBuffer commandBuffer, float lineWidth) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdSetDepthBias(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                           android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                           float depthBiasConstantFactor, float depthBiasClamp,
-                           float depthBiasSlopeFactor) {
+    void vkCmdSetDepthBias(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                           const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                           VkCommandBuffer commandBuffer, float depthBiasConstantFactor,
+                           float depthBiasClamp, float depthBiasSlopeFactor) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdSetBlendConstants(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                                const float blendConstants[4]) {
+    void vkCmdSetBlendConstants(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                                const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                VkCommandBuffer commandBuffer, const float blendConstants[4]) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdSetDepthBounds(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                             android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                             float minDepthBounds, float maxDepthBounds) {
+    void vkCmdSetDepthBounds(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                             const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                             VkCommandBuffer commandBuffer, float minDepthBounds,
+                             float maxDepthBounds) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdSetStencilCompareMask(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                    android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                                    VkStencilFaceFlags faceMask, uint32_t compareMask) {
+    void vkCmdSetStencilCompareMask(android::base::BumpPool* pool,
+                                    VkSnapshotApiCallInfo* apiCallInfo,
+                                    const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                    VkCommandBuffer commandBuffer, VkStencilFaceFlags faceMask,
+                                    uint32_t compareMask) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdSetStencilWriteMask(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                  android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                                  VkStencilFaceFlags faceMask, uint32_t writeMask) {
+    void vkCmdSetStencilWriteMask(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                                  const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                  VkCommandBuffer commandBuffer, VkStencilFaceFlags faceMask,
+                                  uint32_t writeMask) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdSetStencilReference(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                  android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                                  VkStencilFaceFlags faceMask, uint32_t reference) {
+    void vkCmdSetStencilReference(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                                  const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                  VkCommandBuffer commandBuffer, VkStencilFaceFlags faceMask,
+                                  uint32_t reference) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdBindDescriptorSets(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                 android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
+    void vkCmdBindDescriptorSets(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                                 const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                 VkCommandBuffer commandBuffer,
                                  VkPipelineBindPoint pipelineBindPoint, VkPipelineLayout layout,
                                  uint32_t firstSet, uint32_t descriptorSetCount,
                                  const VkDescriptorSet* pDescriptorSets,
                                  uint32_t dynamicOffsetCount, const uint32_t* pDynamicOffsets) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdBindIndexBuffer(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                              android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                              VkBuffer buffer, VkDeviceSize offset, VkIndexType indexType) {
+    void vkCmdBindIndexBuffer(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                              const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                              VkCommandBuffer commandBuffer, VkBuffer buffer, VkDeviceSize offset,
+                              VkIndexType indexType) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdBindVertexBuffers(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                                uint32_t firstBinding, uint32_t bindingCount,
-                                const VkBuffer* pBuffers, const VkDeviceSize* pOffsets) {
+    void vkCmdBindVertexBuffers(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                                const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                VkCommandBuffer commandBuffer, uint32_t firstBinding,
+                                uint32_t bindingCount, const VkBuffer* pBuffers,
+                                const VkDeviceSize* pOffsets) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdDraw(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                   android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                   uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex,
-                   uint32_t firstInstance) {
+    void vkCmdDraw(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                   const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                   VkCommandBuffer commandBuffer, uint32_t vertexCount, uint32_t instanceCount,
+                   uint32_t firstVertex, uint32_t firstInstance) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdDrawIndexed(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                          android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                          uint32_t indexCount, uint32_t instanceCount, uint32_t firstIndex,
-                          int32_t vertexOffset, uint32_t firstInstance) {
+    void vkCmdDrawIndexed(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                          const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                          VkCommandBuffer commandBuffer, uint32_t indexCount,
+                          uint32_t instanceCount, uint32_t firstIndex, int32_t vertexOffset,
+                          uint32_t firstInstance) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdDrawIndirect(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                           android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                           VkBuffer buffer, VkDeviceSize offset, uint32_t drawCount,
-                           uint32_t stride) {
+    void vkCmdDrawIndirect(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                           const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                           VkCommandBuffer commandBuffer, VkBuffer buffer, VkDeviceSize offset,
+                           uint32_t drawCount, uint32_t stride) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdDrawIndexedIndirect(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                  android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                                  VkBuffer buffer, VkDeviceSize offset, uint32_t drawCount,
-                                  uint32_t stride) {
+    void vkCmdDrawIndexedIndirect(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                                  const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                  VkCommandBuffer commandBuffer, VkBuffer buffer,
+                                  VkDeviceSize offset, uint32_t drawCount, uint32_t stride) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdDispatch(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                       android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                       uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ) {
+    void vkCmdDispatch(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                       const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                       VkCommandBuffer commandBuffer, uint32_t groupCountX, uint32_t groupCountY,
+                       uint32_t groupCountZ) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdDispatchIndirect(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                               android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                               VkBuffer buffer, VkDeviceSize offset) {
+    void vkCmdDispatchIndirect(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                               const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                               VkCommandBuffer commandBuffer, VkBuffer buffer,
+                               VkDeviceSize offset) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdCopyBuffer(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                         android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                         VkBuffer srcBuffer, VkBuffer dstBuffer, uint32_t regionCount,
-                         const VkBufferCopy* pRegions) {
+    void vkCmdCopyBuffer(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                         const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                         VkCommandBuffer commandBuffer, VkBuffer srcBuffer, VkBuffer dstBuffer,
+                         uint32_t regionCount, const VkBufferCopy* pRegions) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdCopyImage(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                        android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                        VkImage srcImage, VkImageLayout srcImageLayout, VkImage dstImage,
+    void vkCmdCopyImage(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                        const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                        VkCommandBuffer commandBuffer, VkImage srcImage,
+                        VkImageLayout srcImageLayout, VkImage dstImage,
                         VkImageLayout dstImageLayout, uint32_t regionCount,
                         const VkImageCopy* pRegions) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdBlitImage(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                        android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                        VkImage srcImage, VkImageLayout srcImageLayout, VkImage dstImage,
+    void vkCmdBlitImage(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                        const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                        VkCommandBuffer commandBuffer, VkImage srcImage,
+                        VkImageLayout srcImageLayout, VkImage dstImage,
                         VkImageLayout dstImageLayout, uint32_t regionCount,
                         const VkImageBlit* pRegions, VkFilter filter) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdCopyBufferToImage(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                                VkBuffer srcBuffer, VkImage dstImage, VkImageLayout dstImageLayout,
+    void vkCmdCopyBufferToImage(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                                const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                VkCommandBuffer commandBuffer, VkBuffer srcBuffer, VkImage dstImage,
+                                VkImageLayout dstImageLayout, uint32_t regionCount,
+                                const VkBufferImageCopy* pRegions) {
+        android::base::AutoLock lock(mLock);
+        // commandBuffer modify
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
+        for (uint32_t i = 0; i < 1; ++i) {
+            // commandBuffer is already boxed, no need to box again
+            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
+        }
+    }
+    void vkCmdCopyImageToBuffer(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                                const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                VkCommandBuffer commandBuffer, VkImage srcImage,
+                                VkImageLayout srcImageLayout, VkBuffer dstBuffer,
                                 uint32_t regionCount, const VkBufferImageCopy* pRegions) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdCopyImageToBuffer(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                                VkImage srcImage, VkImageLayout srcImageLayout, VkBuffer dstBuffer,
-                                uint32_t regionCount, const VkBufferImageCopy* pRegions) {
+    void vkCmdUpdateBuffer(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                           const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                           VkCommandBuffer commandBuffer, VkBuffer dstBuffer,
+                           VkDeviceSize dstOffset, VkDeviceSize dataSize, const void* pData) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdUpdateBuffer(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                           android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                           VkBuffer dstBuffer, VkDeviceSize dstOffset, VkDeviceSize dataSize,
-                           const void* pData) {
+    void vkCmdFillBuffer(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                         const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                         VkCommandBuffer commandBuffer, VkBuffer dstBuffer, VkDeviceSize dstOffset,
+                         VkDeviceSize size, uint32_t data) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdFillBuffer(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                         android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                         VkBuffer dstBuffer, VkDeviceSize dstOffset, VkDeviceSize size,
-                         uint32_t data) {
+    void vkCmdClearColorImage(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                              const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                              VkCommandBuffer commandBuffer, VkImage image,
+                              VkImageLayout imageLayout, const VkClearColorValue* pColor,
+                              uint32_t rangeCount, const VkImageSubresourceRange* pRanges) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdClearColorImage(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                              android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                              VkImage image, VkImageLayout imageLayout,
-                              const VkClearColorValue* pColor, uint32_t rangeCount,
-                              const VkImageSubresourceRange* pRanges) {
-        android::base::AutoLock lock(mLock);
-        // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
-        for (uint32_t i = 0; i < 1; ++i) {
-            // commandBuffer is already boxed, no need to box again
-            VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
-        }
-    }
-    void vkCmdClearDepthStencilImage(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                     android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                                     VkImage image, VkImageLayout imageLayout,
+    void vkCmdClearDepthStencilImage(android::base::BumpPool* pool,
+                                     VkSnapshotApiCallInfo* apiCallInfo,
+                                     const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                     VkCommandBuffer commandBuffer, VkImage image,
+                                     VkImageLayout imageLayout,
                                      const VkClearDepthStencilValue* pDepthStencil,
                                      uint32_t rangeCount, const VkImageSubresourceRange* pRanges) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdClearAttachments(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                               android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                               uint32_t attachmentCount, const VkClearAttachment* pAttachments,
-                               uint32_t rectCount, const VkClearRect* pRects) {
+    void vkCmdClearAttachments(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                               const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                               VkCommandBuffer commandBuffer, uint32_t attachmentCount,
+                               const VkClearAttachment* pAttachments, uint32_t rectCount,
+                               const VkClearRect* pRects) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdResolveImage(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                           android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                           VkImage srcImage, VkImageLayout srcImageLayout, VkImage dstImage,
+    void vkCmdResolveImage(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                           const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                           VkCommandBuffer commandBuffer, VkImage srcImage,
+                           VkImageLayout srcImageLayout, VkImage dstImage,
                            VkImageLayout dstImageLayout, uint32_t regionCount,
                            const VkImageResolve* pRegions) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdSetEvent(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                       android::base::BumpPool* pool, VkCommandBuffer commandBuffer, VkEvent event,
+    void vkCmdSetEvent(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                       const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                       VkCommandBuffer commandBuffer, VkEvent event,
                        VkPipelineStageFlags stageMask) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdResetEvent(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                         android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                         VkEvent event, VkPipelineStageFlags stageMask) {
+    void vkCmdResetEvent(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                         const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                         VkCommandBuffer commandBuffer, VkEvent event,
+                         VkPipelineStageFlags stageMask) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdWaitEvents(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                         android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                         uint32_t eventCount, const VkEvent* pEvents,
+    void vkCmdWaitEvents(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                         const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                         VkCommandBuffer commandBuffer, uint32_t eventCount, const VkEvent* pEvents,
                          VkPipelineStageFlags srcStageMask, VkPipelineStageFlags dstStageMask,
                          uint32_t memoryBarrierCount, const VkMemoryBarrier* pMemoryBarriers,
                          uint32_t bufferMemoryBarrierCount,
@@ -1498,190 +1519,188 @@ class VkDecoderSnapshot::Impl {
                          const VkImageMemoryBarrier* pImageMemoryBarriers) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdPipelineBarrier(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                              android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                              VkPipelineStageFlags srcStageMask, VkPipelineStageFlags dstStageMask,
-                              VkDependencyFlags dependencyFlags, uint32_t memoryBarrierCount,
-                              const VkMemoryBarrier* pMemoryBarriers,
+    void vkCmdPipelineBarrier(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                              const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                              VkCommandBuffer commandBuffer, VkPipelineStageFlags srcStageMask,
+                              VkPipelineStageFlags dstStageMask, VkDependencyFlags dependencyFlags,
+                              uint32_t memoryBarrierCount, const VkMemoryBarrier* pMemoryBarriers,
                               uint32_t bufferMemoryBarrierCount,
                               const VkBufferMemoryBarrier* pBufferMemoryBarriers,
                               uint32_t imageMemoryBarrierCount,
                               const VkImageMemoryBarrier* pImageMemoryBarriers) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdBeginQuery(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                         android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                         VkQueryPool queryPool, uint32_t query, VkQueryControlFlags flags) {
+    void vkCmdBeginQuery(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                         const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                         VkCommandBuffer commandBuffer, VkQueryPool queryPool, uint32_t query,
+                         VkQueryControlFlags flags) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdEndQuery(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                       android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                       VkQueryPool queryPool, uint32_t query) {
+    void vkCmdEndQuery(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                       const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                       VkCommandBuffer commandBuffer, VkQueryPool queryPool, uint32_t query) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdResetQueryPool(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                             android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                             VkQueryPool queryPool, uint32_t firstQuery, uint32_t queryCount) {
+    void vkCmdResetQueryPool(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                             const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                             VkCommandBuffer commandBuffer, VkQueryPool queryPool,
+                             uint32_t firstQuery, uint32_t queryCount) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdWriteTimestamp(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                             android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                             VkPipelineStageFlagBits pipelineStage, VkQueryPool queryPool,
-                             uint32_t query) {
+    void vkCmdWriteTimestamp(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                             const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                             VkCommandBuffer commandBuffer, VkPipelineStageFlagBits pipelineStage,
+                             VkQueryPool queryPool, uint32_t query) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdCopyQueryPoolResults(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                   android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
+    void vkCmdCopyQueryPoolResults(android::base::BumpPool* pool,
+                                   VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+                                   size_t apiCallPacketSize, VkCommandBuffer commandBuffer,
                                    VkQueryPool queryPool, uint32_t firstQuery, uint32_t queryCount,
                                    VkBuffer dstBuffer, VkDeviceSize dstOffset, VkDeviceSize stride,
                                    VkQueryResultFlags flags) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdPushConstants(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                            android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                            VkPipelineLayout layout, VkShaderStageFlags stageFlags, uint32_t offset,
-                            uint32_t size, const void* pValues) {
+    void vkCmdPushConstants(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                            const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                            VkCommandBuffer commandBuffer, VkPipelineLayout layout,
+                            VkShaderStageFlags stageFlags, uint32_t offset, uint32_t size,
+                            const void* pValues) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdBeginRenderPass(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                              android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
+    void vkCmdBeginRenderPass(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                              const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                              VkCommandBuffer commandBuffer,
                               const VkRenderPassBeginInfo* pRenderPassBegin,
                               VkSubpassContents contents) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdNextSubpass(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                          android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                          VkSubpassContents contents) {
+    void vkCmdNextSubpass(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                          const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                          VkCommandBuffer commandBuffer, VkSubpassContents contents) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdEndRenderPass(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                            android::base::BumpPool* pool, VkCommandBuffer commandBuffer) {
+    void vkCmdEndRenderPass(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                            const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                            VkCommandBuffer commandBuffer) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdExecuteCommands(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                              android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                              uint32_t commandBufferCount, const VkCommandBuffer* pCommandBuffers) {
+    void vkCmdExecuteCommands(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                              const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                              VkCommandBuffer commandBuffer, uint32_t commandBufferCount,
+                              const VkCommandBuffer* pCommandBuffers) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
 #endif
 #ifdef VK_VERSION_1_1
-    void vkEnumerateInstanceVersion(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                    android::base::BumpPool* pool, VkResult input_result,
-                                    uint32_t* pApiVersion) {}
-    void vkBindBufferMemory2(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                             android::base::BumpPool* pool, VkResult input_result, VkDevice device,
-                             uint32_t bindInfoCount, const VkBindBufferMemoryInfo* pBindInfos) {}
-    void vkBindImageMemory2(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                            android::base::BumpPool* pool, VkResult input_result, VkDevice device,
-                            uint32_t bindInfoCount, const VkBindImageMemoryInfo* pBindInfos) {
+    void vkEnumerateInstanceVersion(android::base::BumpPool* pool,
+                                    VkSnapshotApiCallInfo* apiCallInfo,
+                                    const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                    VkResult input_result, uint32_t* pApiVersion) {}
+    void vkBindBufferMemory2(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                             const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                             VkResult input_result, VkDevice device, uint32_t bindInfoCount,
+                             const VkBindBufferMemoryInfo* pBindInfos) {}
+    void vkBindImageMemory2(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                            const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                            VkResult input_result, VkDevice device, uint32_t bindInfoCount,
+                            const VkBindImageMemoryInfo* pBindInfos) {
         android::base::AutoLock lock(mLock);
         for (uint32_t i = 0; i < bindInfoCount; ++i) {
             VkImage boxed_VkImage = unboxed_to_boxed_non_dispatchable_VkImage(pBindInfos[i].image);
@@ -1694,106 +1713,113 @@ class VkDecoderSnapshot::Impl {
                                                 (uint64_t)(uintptr_t)boxed_VkImage,
                                                 VkReconstruction::BOUND_MEMORY);
         }
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         // Note: the implementation does not work with bindInfoCount > 1
         for (uint32_t i = 0; i < bindInfoCount; ++i) {
             VkImage boxed_VkImage = unboxed_to_boxed_non_dispatchable_VkImage(pBindInfos[i].image);
-            mReconstruction.forEachHandleAddApi((const uint64_t*)&boxed_VkImage, 1, apiHandle,
+            mReconstruction.forEachHandleAddApi((const uint64_t*)&boxed_VkImage, 1, apiCallHandle,
                                                 VkReconstruction::BOUND_MEMORY);
         }
     }
-    void vkGetDeviceGroupPeerMemoryFeatures(const uint8_t* snapshotTraceBegin,
-                                            size_t snapshotTraceBytes,
-                                            android::base::BumpPool* pool, VkDevice device,
-                                            uint32_t heapIndex, uint32_t localDeviceIndex,
-                                            uint32_t remoteDeviceIndex,
+    void vkGetDeviceGroupPeerMemoryFeatures(android::base::BumpPool* pool,
+                                            VkSnapshotApiCallInfo* apiCallInfo,
+                                            const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                            VkDevice device, uint32_t heapIndex,
+                                            uint32_t localDeviceIndex, uint32_t remoteDeviceIndex,
                                             VkPeerMemoryFeatureFlags* pPeerMemoryFeatures) {}
-    void vkCmdSetDeviceMask(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                            android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                            uint32_t deviceMask) {
+    void vkCmdSetDeviceMask(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                            const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                            VkCommandBuffer commandBuffer, uint32_t deviceMask) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdDispatchBase(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                           android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                           uint32_t baseGroupX, uint32_t baseGroupY, uint32_t baseGroupZ,
-                           uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ) {
+    void vkCmdDispatchBase(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                           const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                           VkCommandBuffer commandBuffer, uint32_t baseGroupX, uint32_t baseGroupY,
+                           uint32_t baseGroupZ, uint32_t groupCountX, uint32_t groupCountY,
+                           uint32_t groupCountZ) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
     void vkEnumeratePhysicalDeviceGroups(
-        const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-        VkResult input_result, VkInstance instance, uint32_t* pPhysicalDeviceGroupCount,
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+        const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkResult input_result,
+        VkInstance instance, uint32_t* pPhysicalDeviceGroupCount,
         VkPhysicalDeviceGroupProperties* pPhysicalDeviceGroupProperties) {}
-    void vkGetImageMemoryRequirements2(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                       android::base::BumpPool* pool, VkDevice device,
-                                       const VkImageMemoryRequirementsInfo2* pInfo,
+    void vkGetImageMemoryRequirements2(android::base::BumpPool* pool,
+                                       VkSnapshotApiCallInfo* apiCallInfo,
+                                       const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                       VkDevice device, const VkImageMemoryRequirementsInfo2* pInfo,
                                        VkMemoryRequirements2* pMemoryRequirements) {}
-    void vkGetBufferMemoryRequirements2(const uint8_t* snapshotTraceBegin,
-                                        size_t snapshotTraceBytes, android::base::BumpPool* pool,
+    void vkGetBufferMemoryRequirements2(android::base::BumpPool* pool,
+                                        VkSnapshotApiCallInfo* apiCallInfo,
+                                        const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                         VkDevice device,
                                         const VkBufferMemoryRequirementsInfo2* pInfo,
                                         VkMemoryRequirements2* pMemoryRequirements) {}
     void vkGetImageSparseMemoryRequirements2(
-        const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-        VkDevice device, const VkImageSparseMemoryRequirementsInfo2* pInfo,
-        uint32_t* pSparseMemoryRequirementCount,
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+        const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkDevice device,
+        const VkImageSparseMemoryRequirementsInfo2* pInfo, uint32_t* pSparseMemoryRequirementCount,
         VkSparseImageMemoryRequirements2* pSparseMemoryRequirements) {}
-    void vkGetPhysicalDeviceFeatures2(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                      android::base::BumpPool* pool,
+    void vkGetPhysicalDeviceFeatures2(android::base::BumpPool* pool,
+                                      VkSnapshotApiCallInfo* apiCallInfo,
+                                      const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                       VkPhysicalDevice physicalDevice,
                                       VkPhysicalDeviceFeatures2* pFeatures) {}
-    void vkGetPhysicalDeviceProperties2(const uint8_t* snapshotTraceBegin,
-                                        size_t snapshotTraceBytes, android::base::BumpPool* pool,
+    void vkGetPhysicalDeviceProperties2(android::base::BumpPool* pool,
+                                        VkSnapshotApiCallInfo* apiCallInfo,
+                                        const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                         VkPhysicalDevice physicalDevice,
                                         VkPhysicalDeviceProperties2* pProperties) {}
-    void vkGetPhysicalDeviceFormatProperties2(const uint8_t* snapshotTraceBegin,
-                                              size_t snapshotTraceBytes,
-                                              android::base::BumpPool* pool,
+    void vkGetPhysicalDeviceFormatProperties2(android::base::BumpPool* pool,
+                                              VkSnapshotApiCallInfo* apiCallInfo,
+                                              const uint8_t* apiCallPacket,
+                                              size_t apiCallPacketSize,
                                               VkPhysicalDevice physicalDevice, VkFormat format,
                                               VkFormatProperties2* pFormatProperties) {}
     void vkGetPhysicalDeviceImageFormatProperties2(
-        const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-        VkResult input_result, VkPhysicalDevice physicalDevice,
-        const VkPhysicalDeviceImageFormatInfo2* pImageFormatInfo,
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+        const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkResult input_result,
+        VkPhysicalDevice physicalDevice, const VkPhysicalDeviceImageFormatInfo2* pImageFormatInfo,
         VkImageFormatProperties2* pImageFormatProperties) {}
     void vkGetPhysicalDeviceQueueFamilyProperties2(
-        const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-        VkPhysicalDevice physicalDevice, uint32_t* pQueueFamilyPropertyCount,
-        VkQueueFamilyProperties2* pQueueFamilyProperties) {}
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+        const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkPhysicalDevice physicalDevice,
+        uint32_t* pQueueFamilyPropertyCount, VkQueueFamilyProperties2* pQueueFamilyProperties) {}
     void vkGetPhysicalDeviceMemoryProperties2(
-        const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-        VkPhysicalDevice physicalDevice, VkPhysicalDeviceMemoryProperties2* pMemoryProperties) {}
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+        const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkPhysicalDevice physicalDevice,
+        VkPhysicalDeviceMemoryProperties2* pMemoryProperties) {}
     void vkGetPhysicalDeviceSparseImageFormatProperties2(
-        const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-        VkPhysicalDevice physicalDevice, const VkPhysicalDeviceSparseImageFormatInfo2* pFormatInfo,
-        uint32_t* pPropertyCount, VkSparseImageFormatProperties2* pProperties) {}
-    void vkTrimCommandPool(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                           android::base::BumpPool* pool, VkDevice device,
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+        const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkPhysicalDevice physicalDevice,
+        const VkPhysicalDeviceSparseImageFormatInfo2* pFormatInfo, uint32_t* pPropertyCount,
+        VkSparseImageFormatProperties2* pProperties) {}
+    void vkTrimCommandPool(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                           const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkDevice device,
                            VkCommandPool commandPool, VkCommandPoolTrimFlags flags) {}
-    void vkGetDeviceQueue2(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                           android::base::BumpPool* pool, VkDevice device,
+    void vkGetDeviceQueue2(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                           const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkDevice device,
                            const VkDeviceQueueInfo2* pQueueInfo, VkQueue* pQueue) {}
-    void vkCreateSamplerYcbcrConversion(const uint8_t* snapshotTraceBegin,
-                                        size_t snapshotTraceBytes, android::base::BumpPool* pool,
+    void vkCreateSamplerYcbcrConversion(android::base::BumpPool* pool,
+                                        VkSnapshotApiCallInfo* apiCallInfo,
+                                        const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                         VkResult input_result, VkDevice device,
                                         const VkSamplerYcbcrConversionCreateInfo* pCreateInfo,
                                         const VkAllocationCallbacks* pAllocator,
@@ -1804,23 +1830,25 @@ class VkDecoderSnapshot::Impl {
         mReconstruction.addHandles((const uint64_t*)pYcbcrConversion, 1);
         mReconstruction.addHandleDependency((const uint64_t*)pYcbcrConversion, 1,
                                             (uint64_t)(uintptr_t)device);
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)pYcbcrConversion, 1, apiHandle,
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pYcbcrConversion, 1, apiCallHandle,
                                             VkReconstruction::CREATED);
-        mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pYcbcrConversion, 1);
+        mReconstruction.setCreatedHandlesForApi(apiCallHandle, (const uint64_t*)pYcbcrConversion,
+                                                1);
     }
-    void vkDestroySamplerYcbcrConversion(const uint8_t* snapshotTraceBegin,
-                                         size_t snapshotTraceBytes, android::base::BumpPool* pool,
+    void vkDestroySamplerYcbcrConversion(android::base::BumpPool* pool,
+                                         VkSnapshotApiCallInfo* apiCallInfo,
+                                         const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                          VkDevice device, VkSamplerYcbcrConversion ycbcrConversion,
                                          const VkAllocationCallbacks* pAllocator) {
         android::base::AutoLock lock(mLock);
         // ycbcrConversion destroy
         mReconstruction.removeHandles((const uint64_t*)(&ycbcrConversion), 1, true);
     }
-    void vkCreateDescriptorUpdateTemplate(const uint8_t* snapshotTraceBegin,
-                                          size_t snapshotTraceBytes, android::base::BumpPool* pool,
+    void vkCreateDescriptorUpdateTemplate(android::base::BumpPool* pool,
+                                          VkSnapshotApiCallInfo* apiCallInfo,
+                                          const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                           VkResult input_result, VkDevice device,
                                           const VkDescriptorUpdateTemplateCreateInfo* pCreateInfo,
                                           const VkAllocationCallbacks* pAllocator,
@@ -1831,16 +1859,16 @@ class VkDecoderSnapshot::Impl {
         mReconstruction.addHandles((const uint64_t*)pDescriptorUpdateTemplate, 1);
         mReconstruction.addHandleDependency((const uint64_t*)pDescriptorUpdateTemplate, 1,
                                             (uint64_t)(uintptr_t)device);
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         mReconstruction.forEachHandleAddApi((const uint64_t*)pDescriptorUpdateTemplate, 1,
-                                            apiHandle, VkReconstruction::CREATED);
-        mReconstruction.setCreatedHandlesForApi(apiHandle,
+                                            apiCallHandle, VkReconstruction::CREATED);
+        mReconstruction.setCreatedHandlesForApi(apiCallHandle,
                                                 (const uint64_t*)pDescriptorUpdateTemplate, 1);
     }
-    void vkDestroyDescriptorUpdateTemplate(const uint8_t* snapshotTraceBegin,
-                                           size_t snapshotTraceBytes, android::base::BumpPool* pool,
+    void vkDestroyDescriptorUpdateTemplate(android::base::BumpPool* pool,
+                                           VkSnapshotApiCallInfo* apiCallInfo,
+                                           const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                            VkDevice device,
                                            VkDescriptorUpdateTemplate descriptorUpdateTemplate,
                                            const VkAllocationCallbacks* pAllocator) {
@@ -1848,67 +1876,70 @@ class VkDecoderSnapshot::Impl {
         // descriptorUpdateTemplate destroy
         mReconstruction.removeHandles((const uint64_t*)(&descriptorUpdateTemplate), 1, true);
     }
-    void vkUpdateDescriptorSetWithTemplate(const uint8_t* snapshotTraceBegin,
-                                           size_t snapshotTraceBytes, android::base::BumpPool* pool,
+    void vkUpdateDescriptorSetWithTemplate(android::base::BumpPool* pool,
+                                           VkSnapshotApiCallInfo* apiCallInfo,
+                                           const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                            VkDevice device, VkDescriptorSet descriptorSet,
                                            VkDescriptorUpdateTemplate descriptorUpdateTemplate,
                                            const void* pData) {}
     void vkGetPhysicalDeviceExternalBufferProperties(
-        const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-        VkPhysicalDevice physicalDevice,
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+        const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkPhysicalDevice physicalDevice,
         const VkPhysicalDeviceExternalBufferInfo* pExternalBufferInfo,
         VkExternalBufferProperties* pExternalBufferProperties) {}
     void vkGetPhysicalDeviceExternalFenceProperties(
-        const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-        VkPhysicalDevice physicalDevice,
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+        const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkPhysicalDevice physicalDevice,
         const VkPhysicalDeviceExternalFenceInfo* pExternalFenceInfo,
         VkExternalFenceProperties* pExternalFenceProperties) {}
     void vkGetPhysicalDeviceExternalSemaphoreProperties(
-        const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-        VkPhysicalDevice physicalDevice,
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+        const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkPhysicalDevice physicalDevice,
         const VkPhysicalDeviceExternalSemaphoreInfo* pExternalSemaphoreInfo,
         VkExternalSemaphoreProperties* pExternalSemaphoreProperties) {}
-    void vkGetDescriptorSetLayoutSupport(const uint8_t* snapshotTraceBegin,
-                                         size_t snapshotTraceBytes, android::base::BumpPool* pool,
+    void vkGetDescriptorSetLayoutSupport(android::base::BumpPool* pool,
+                                         VkSnapshotApiCallInfo* apiCallInfo,
+                                         const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                          VkDevice device,
                                          const VkDescriptorSetLayoutCreateInfo* pCreateInfo,
                                          VkDescriptorSetLayoutSupport* pSupport) {}
 #endif
 #ifdef VK_VERSION_1_2
-    void vkCmdDrawIndirectCount(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                                VkBuffer buffer, VkDeviceSize offset, VkBuffer countBuffer,
-                                VkDeviceSize countBufferOffset, uint32_t maxDrawCount,
-                                uint32_t stride) {
+    void vkCmdDrawIndirectCount(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                                const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                VkCommandBuffer commandBuffer, VkBuffer buffer, VkDeviceSize offset,
+                                VkBuffer countBuffer, VkDeviceSize countBufferOffset,
+                                uint32_t maxDrawCount, uint32_t stride) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdDrawIndexedIndirectCount(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                       android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                                       VkBuffer buffer, VkDeviceSize offset, VkBuffer countBuffer,
+    void vkCmdDrawIndexedIndirectCount(android::base::BumpPool* pool,
+                                       VkSnapshotApiCallInfo* apiCallInfo,
+                                       const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                       VkCommandBuffer commandBuffer, VkBuffer buffer,
+                                       VkDeviceSize offset, VkBuffer countBuffer,
                                        VkDeviceSize countBufferOffset, uint32_t maxDrawCount,
                                        uint32_t stride) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCreateRenderPass2(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                             android::base::BumpPool* pool, VkResult input_result, VkDevice device,
+    void vkCreateRenderPass2(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                             const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                             VkResult input_result, VkDevice device,
                              const VkRenderPassCreateInfo2* pCreateInfo,
                              const VkAllocationCallbacks* pAllocator, VkRenderPass* pRenderPass) {
         if (!pRenderPass) return;
@@ -1917,90 +1948,97 @@ class VkDecoderSnapshot::Impl {
         mReconstruction.addHandles((const uint64_t*)pRenderPass, 1);
         mReconstruction.addHandleDependency((const uint64_t*)pRenderPass, 1,
                                             (uint64_t)(uintptr_t)device);
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)pRenderPass, 1, apiHandle,
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pRenderPass, 1, apiCallHandle,
                                             VkReconstruction::CREATED);
-        mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pRenderPass, 1);
+        mReconstruction.setCreatedHandlesForApi(apiCallHandle, (const uint64_t*)pRenderPass, 1);
     }
-    void vkCmdBeginRenderPass2(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                               android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
+    void vkCmdBeginRenderPass2(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                               const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                               VkCommandBuffer commandBuffer,
                                const VkRenderPassBeginInfo* pRenderPassBegin,
                                const VkSubpassBeginInfo* pSubpassBeginInfo) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdNextSubpass2(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                           android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
+    void vkCmdNextSubpass2(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                           const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                           VkCommandBuffer commandBuffer,
                            const VkSubpassBeginInfo* pSubpassBeginInfo,
                            const VkSubpassEndInfo* pSubpassEndInfo) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdEndRenderPass2(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                             android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
+    void vkCmdEndRenderPass2(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                             const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                             VkCommandBuffer commandBuffer,
                              const VkSubpassEndInfo* pSubpassEndInfo) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkResetQueryPool(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                          android::base::BumpPool* pool, VkDevice device, VkQueryPool queryPool,
-                          uint32_t firstQuery, uint32_t queryCount) {}
-    void vkGetSemaphoreCounterValue(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                    android::base::BumpPool* pool, VkResult input_result,
-                                    VkDevice device, VkSemaphore semaphore, uint64_t* pValue) {}
-    void vkWaitSemaphores(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                          android::base::BumpPool* pool, VkResult input_result, VkDevice device,
+    void vkResetQueryPool(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                          const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkDevice device,
+                          VkQueryPool queryPool, uint32_t firstQuery, uint32_t queryCount) {}
+    void vkGetSemaphoreCounterValue(android::base::BumpPool* pool,
+                                    VkSnapshotApiCallInfo* apiCallInfo,
+                                    const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                    VkResult input_result, VkDevice device, VkSemaphore semaphore,
+                                    uint64_t* pValue) {}
+    void vkWaitSemaphores(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                          const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                          VkResult input_result, VkDevice device,
                           const VkSemaphoreWaitInfo* pWaitInfo, uint64_t timeout) {}
-    void vkSignalSemaphore(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                           android::base::BumpPool* pool, VkResult input_result, VkDevice device,
+    void vkSignalSemaphore(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                           const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                           VkResult input_result, VkDevice device,
                            const VkSemaphoreSignalInfo* pSignalInfo) {}
-    void vkGetBufferDeviceAddress(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                  android::base::BumpPool* pool, VkDeviceAddress input_result,
-                                  VkDevice device, const VkBufferDeviceAddressInfo* pInfo) {}
-    void vkGetBufferOpaqueCaptureAddress(const uint8_t* snapshotTraceBegin,
-                                         size_t snapshotTraceBytes, android::base::BumpPool* pool,
+    void vkGetBufferDeviceAddress(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                                  const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                  VkDeviceAddress input_result, VkDevice device,
+                                  const VkBufferDeviceAddressInfo* pInfo) {}
+    void vkGetBufferOpaqueCaptureAddress(android::base::BumpPool* pool,
+                                         VkSnapshotApiCallInfo* apiCallInfo,
+                                         const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                          uint64_t input_result, VkDevice device,
                                          const VkBufferDeviceAddressInfo* pInfo) {}
     void vkGetDeviceMemoryOpaqueCaptureAddress(
-        const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-        uint64_t input_result, VkDevice device,
-        const VkDeviceMemoryOpaqueCaptureAddressInfo* pInfo) {}
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+        const uint8_t* apiCallPacket, size_t apiCallPacketSize, uint64_t input_result,
+        VkDevice device, const VkDeviceMemoryOpaqueCaptureAddressInfo* pInfo) {}
 #endif
 #ifdef VK_VERSION_1_3
-    void vkGetPhysicalDeviceToolProperties(const uint8_t* snapshotTraceBegin,
-                                           size_t snapshotTraceBytes, android::base::BumpPool* pool,
+    void vkGetPhysicalDeviceToolProperties(android::base::BumpPool* pool,
+                                           VkSnapshotApiCallInfo* apiCallInfo,
+                                           const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                            VkResult input_result, VkPhysicalDevice physicalDevice,
                                            uint32_t* pToolCount,
                                            VkPhysicalDeviceToolProperties* pToolProperties) {}
-    void vkCreatePrivateDataSlot(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                 android::base::BumpPool* pool, VkResult input_result,
-                                 VkDevice device, const VkPrivateDataSlotCreateInfo* pCreateInfo,
+    void vkCreatePrivateDataSlot(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                                 const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                 VkResult input_result, VkDevice device,
+                                 const VkPrivateDataSlotCreateInfo* pCreateInfo,
                                  const VkAllocationCallbacks* pAllocator,
                                  VkPrivateDataSlot* pPrivateDataSlot) {
         if (!pPrivateDataSlot) return;
@@ -2009,448 +2047,443 @@ class VkDecoderSnapshot::Impl {
         mReconstruction.addHandles((const uint64_t*)pPrivateDataSlot, 1);
         mReconstruction.addHandleDependency((const uint64_t*)pPrivateDataSlot, 1,
                                             (uint64_t)(uintptr_t)device);
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)pPrivateDataSlot, 1, apiHandle,
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pPrivateDataSlot, 1, apiCallHandle,
                                             VkReconstruction::CREATED);
-        mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pPrivateDataSlot, 1);
+        mReconstruction.setCreatedHandlesForApi(apiCallHandle, (const uint64_t*)pPrivateDataSlot,
+                                                1);
     }
-    void vkDestroyPrivateDataSlot(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                  android::base::BumpPool* pool, VkDevice device,
-                                  VkPrivateDataSlot privateDataSlot,
+    void vkDestroyPrivateDataSlot(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                                  const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                  VkDevice device, VkPrivateDataSlot privateDataSlot,
                                   const VkAllocationCallbacks* pAllocator) {
         android::base::AutoLock lock(mLock);
         // privateDataSlot destroy
         mReconstruction.removeHandles((const uint64_t*)(&privateDataSlot), 1, true);
     }
-    void vkSetPrivateData(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                          android::base::BumpPool* pool, VkResult input_result, VkDevice device,
+    void vkSetPrivateData(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                          const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                          VkResult input_result, VkDevice device, VkObjectType objectType,
+                          uint64_t objectHandle, VkPrivateDataSlot privateDataSlot, uint64_t data) {
+    }
+    void vkGetPrivateData(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                          const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkDevice device,
                           VkObjectType objectType, uint64_t objectHandle,
-                          VkPrivateDataSlot privateDataSlot, uint64_t data) {}
-    void vkGetPrivateData(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                          android::base::BumpPool* pool, VkDevice device, VkObjectType objectType,
-                          uint64_t objectHandle, VkPrivateDataSlot privateDataSlot,
-                          uint64_t* pData) {}
-    void vkCmdSetEvent2(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                        android::base::BumpPool* pool, VkCommandBuffer commandBuffer, VkEvent event,
+                          VkPrivateDataSlot privateDataSlot, uint64_t* pData) {}
+    void vkCmdSetEvent2(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                        const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                        VkCommandBuffer commandBuffer, VkEvent event,
                         const VkDependencyInfo* pDependencyInfo) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdResetEvent2(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                          android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                          VkEvent event, VkPipelineStageFlags2 stageMask) {
+    void vkCmdResetEvent2(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                          const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                          VkCommandBuffer commandBuffer, VkEvent event,
+                          VkPipelineStageFlags2 stageMask) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdWaitEvents2(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                          android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                          uint32_t eventCount, const VkEvent* pEvents,
-                          const VkDependencyInfo* pDependencyInfos) {
+    void vkCmdWaitEvents2(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                          const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                          VkCommandBuffer commandBuffer, uint32_t eventCount,
+                          const VkEvent* pEvents, const VkDependencyInfo* pDependencyInfos) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdPipelineBarrier2(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                               android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
+    void vkCmdPipelineBarrier2(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                               const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                               VkCommandBuffer commandBuffer,
                                const VkDependencyInfo* pDependencyInfo) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdWriteTimestamp2(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                              android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                              VkPipelineStageFlags2 stage, VkQueryPool queryPool, uint32_t query) {
+    void vkCmdWriteTimestamp2(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                              const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                              VkCommandBuffer commandBuffer, VkPipelineStageFlags2 stage,
+                              VkQueryPool queryPool, uint32_t query) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkQueueSubmit2(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                        android::base::BumpPool* pool, VkResult input_result, VkQueue queue,
-                        uint32_t submitCount, const VkSubmitInfo2* pSubmits, VkFence fence) {}
-    void vkCmdCopyBuffer2(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                          android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                          const VkCopyBufferInfo2* pCopyBufferInfo) {
+    void vkQueueSubmit2(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                        const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                        VkResult input_result, VkQueue queue, uint32_t submitCount,
+                        const VkSubmitInfo2* pSubmits, VkFence fence) {}
+    void vkCmdCopyBuffer2(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                          const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                          VkCommandBuffer commandBuffer, const VkCopyBufferInfo2* pCopyBufferInfo) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdCopyImage2(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                         android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                         const VkCopyImageInfo2* pCopyImageInfo) {
+    void vkCmdCopyImage2(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                         const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                         VkCommandBuffer commandBuffer, const VkCopyImageInfo2* pCopyImageInfo) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdCopyBufferToImage2(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                 android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
+    void vkCmdCopyBufferToImage2(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                                 const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                 VkCommandBuffer commandBuffer,
                                  const VkCopyBufferToImageInfo2* pCopyBufferToImageInfo) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdCopyImageToBuffer2(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                 android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
+    void vkCmdCopyImageToBuffer2(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                                 const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                 VkCommandBuffer commandBuffer,
                                  const VkCopyImageToBufferInfo2* pCopyImageToBufferInfo) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdBlitImage2(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                         android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                         const VkBlitImageInfo2* pBlitImageInfo) {
+    void vkCmdBlitImage2(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                         const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                         VkCommandBuffer commandBuffer, const VkBlitImageInfo2* pBlitImageInfo) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdResolveImage2(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                            android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
+    void vkCmdResolveImage2(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                            const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                            VkCommandBuffer commandBuffer,
                             const VkResolveImageInfo2* pResolveImageInfo) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdBeginRendering(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                             android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                             const VkRenderingInfo* pRenderingInfo) {
+    void vkCmdBeginRendering(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                             const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                             VkCommandBuffer commandBuffer, const VkRenderingInfo* pRenderingInfo) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdEndRendering(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                           android::base::BumpPool* pool, VkCommandBuffer commandBuffer) {
+    void vkCmdEndRendering(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                           const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                           VkCommandBuffer commandBuffer) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdSetCullMode(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                          android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                          VkCullModeFlags cullMode) {
+    void vkCmdSetCullMode(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                          const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                          VkCommandBuffer commandBuffer, VkCullModeFlags cullMode) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdSetFrontFace(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                           android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                           VkFrontFace frontFace) {
+    void vkCmdSetFrontFace(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                           const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                           VkCommandBuffer commandBuffer, VkFrontFace frontFace) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdSetPrimitiveTopology(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                   android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
+    void vkCmdSetPrimitiveTopology(android::base::BumpPool* pool,
+                                   VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+                                   size_t apiCallPacketSize, VkCommandBuffer commandBuffer,
                                    VkPrimitiveTopology primitiveTopology) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdSetViewportWithCount(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                   android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
+    void vkCmdSetViewportWithCount(android::base::BumpPool* pool,
+                                   VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+                                   size_t apiCallPacketSize, VkCommandBuffer commandBuffer,
                                    uint32_t viewportCount, const VkViewport* pViewports) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdSetScissorWithCount(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                  android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                                  uint32_t scissorCount, const VkRect2D* pScissors) {
+    void vkCmdSetScissorWithCount(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                                  const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                  VkCommandBuffer commandBuffer, uint32_t scissorCount,
+                                  const VkRect2D* pScissors) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdBindVertexBuffers2(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                 android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                                 uint32_t firstBinding, uint32_t bindingCount,
-                                 const VkBuffer* pBuffers, const VkDeviceSize* pOffsets,
-                                 const VkDeviceSize* pSizes, const VkDeviceSize* pStrides) {
+    void vkCmdBindVertexBuffers2(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                                 const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                 VkCommandBuffer commandBuffer, uint32_t firstBinding,
+                                 uint32_t bindingCount, const VkBuffer* pBuffers,
+                                 const VkDeviceSize* pOffsets, const VkDeviceSize* pSizes,
+                                 const VkDeviceSize* pStrides) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdSetDepthTestEnable(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                 android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                                 VkBool32 depthTestEnable) {
+    void vkCmdSetDepthTestEnable(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                                 const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                 VkCommandBuffer commandBuffer, VkBool32 depthTestEnable) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdSetDepthWriteEnable(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                  android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                                  VkBool32 depthWriteEnable) {
+    void vkCmdSetDepthWriteEnable(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                                  const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                  VkCommandBuffer commandBuffer, VkBool32 depthWriteEnable) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdSetDepthCompareOp(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                                VkCompareOp depthCompareOp) {
+    void vkCmdSetDepthCompareOp(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                                const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                VkCommandBuffer commandBuffer, VkCompareOp depthCompareOp) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdSetDepthBoundsTestEnable(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                       android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
+    void vkCmdSetDepthBoundsTestEnable(android::base::BumpPool* pool,
+                                       VkSnapshotApiCallInfo* apiCallInfo,
+                                       const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                       VkCommandBuffer commandBuffer,
                                        VkBool32 depthBoundsTestEnable) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdSetStencilTestEnable(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                   android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
+    void vkCmdSetStencilTestEnable(android::base::BumpPool* pool,
+                                   VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+                                   size_t apiCallPacketSize, VkCommandBuffer commandBuffer,
                                    VkBool32 stencilTestEnable) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdSetStencilOp(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                           android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                           VkStencilFaceFlags faceMask, VkStencilOp failOp, VkStencilOp passOp,
-                           VkStencilOp depthFailOp, VkCompareOp compareOp) {
+    void vkCmdSetStencilOp(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                           const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                           VkCommandBuffer commandBuffer, VkStencilFaceFlags faceMask,
+                           VkStencilOp failOp, VkStencilOp passOp, VkStencilOp depthFailOp,
+                           VkCompareOp compareOp) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdSetRasterizerDiscardEnable(const uint8_t* snapshotTraceBegin,
-                                         size_t snapshotTraceBytes, android::base::BumpPool* pool,
+    void vkCmdSetRasterizerDiscardEnable(android::base::BumpPool* pool,
+                                         VkSnapshotApiCallInfo* apiCallInfo,
+                                         const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                          VkCommandBuffer commandBuffer,
                                          VkBool32 rasterizerDiscardEnable) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdSetDepthBiasEnable(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                 android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                                 VkBool32 depthBiasEnable) {
+    void vkCmdSetDepthBiasEnable(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                                 const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                 VkCommandBuffer commandBuffer, VkBool32 depthBiasEnable) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdSetPrimitiveRestartEnable(const uint8_t* snapshotTraceBegin,
-                                        size_t snapshotTraceBytes, android::base::BumpPool* pool,
+    void vkCmdSetPrimitiveRestartEnable(android::base::BumpPool* pool,
+                                        VkSnapshotApiCallInfo* apiCallInfo,
+                                        const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                         VkCommandBuffer commandBuffer,
                                         VkBool32 primitiveRestartEnable) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkGetDeviceBufferMemoryRequirements(const uint8_t* snapshotTraceBegin,
-                                             size_t snapshotTraceBytes,
-                                             android::base::BumpPool* pool, VkDevice device,
+    void vkGetDeviceBufferMemoryRequirements(android::base::BumpPool* pool,
+                                             VkSnapshotApiCallInfo* apiCallInfo,
+                                             const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                             VkDevice device,
                                              const VkDeviceBufferMemoryRequirements* pInfo,
                                              VkMemoryRequirements2* pMemoryRequirements) {}
-    void vkGetDeviceImageMemoryRequirements(const uint8_t* snapshotTraceBegin,
-                                            size_t snapshotTraceBytes,
-                                            android::base::BumpPool* pool, VkDevice device,
+    void vkGetDeviceImageMemoryRequirements(android::base::BumpPool* pool,
+                                            VkSnapshotApiCallInfo* apiCallInfo,
+                                            const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                            VkDevice device,
                                             const VkDeviceImageMemoryRequirements* pInfo,
                                             VkMemoryRequirements2* pMemoryRequirements) {}
     void vkGetDeviceImageSparseMemoryRequirements(
-        const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-        VkDevice device, const VkDeviceImageMemoryRequirements* pInfo,
-        uint32_t* pSparseMemoryRequirementCount,
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+        const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkDevice device,
+        const VkDeviceImageMemoryRequirements* pInfo, uint32_t* pSparseMemoryRequirementCount,
         VkSparseImageMemoryRequirements2* pSparseMemoryRequirements) {}
 #endif
 #ifdef VK_KHR_swapchain
-    void vkCreateSwapchainKHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                              android::base::BumpPool* pool, VkResult input_result, VkDevice device,
+    void vkCreateSwapchainKHR(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                              const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                              VkResult input_result, VkDevice device,
                               const VkSwapchainCreateInfoKHR* pCreateInfo,
                               const VkAllocationCallbacks* pAllocator, VkSwapchainKHR* pSwapchain) {
         if (!pSwapchain) return;
@@ -2459,143 +2492,156 @@ class VkDecoderSnapshot::Impl {
         mReconstruction.addHandles((const uint64_t*)pSwapchain, 1);
         mReconstruction.addHandleDependency((const uint64_t*)pSwapchain, 1,
                                             (uint64_t)(uintptr_t)device);
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)pSwapchain, 1, apiHandle,
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pSwapchain, 1, apiCallHandle,
                                             VkReconstruction::CREATED);
-        mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pSwapchain, 1);
+        mReconstruction.setCreatedHandlesForApi(apiCallHandle, (const uint64_t*)pSwapchain, 1);
     }
-    void vkDestroySwapchainKHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                               android::base::BumpPool* pool, VkDevice device,
-                               VkSwapchainKHR swapchain, const VkAllocationCallbacks* pAllocator) {
+    void vkDestroySwapchainKHR(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                               const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                               VkDevice device, VkSwapchainKHR swapchain,
+                               const VkAllocationCallbacks* pAllocator) {
         android::base::AutoLock lock(mLock);
         // swapchain destroy
         mReconstruction.removeHandles((const uint64_t*)(&swapchain), 1, true);
     }
-    void vkGetSwapchainImagesKHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                 android::base::BumpPool* pool, VkResult input_result,
-                                 VkDevice device, VkSwapchainKHR swapchain,
+    void vkGetSwapchainImagesKHR(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                                 const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                 VkResult input_result, VkDevice device, VkSwapchainKHR swapchain,
                                  uint32_t* pSwapchainImageCount, VkImage* pSwapchainImages) {}
-    void vkAcquireNextImageKHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                               android::base::BumpPool* pool, VkResult input_result,
-                               VkDevice device, VkSwapchainKHR swapchain, uint64_t timeout,
-                               VkSemaphore semaphore, VkFence fence, uint32_t* pImageIndex) {}
-    void vkQueuePresentKHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                           android::base::BumpPool* pool, VkResult input_result, VkQueue queue,
+    void vkAcquireNextImageKHR(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                               const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                               VkResult input_result, VkDevice device, VkSwapchainKHR swapchain,
+                               uint64_t timeout, VkSemaphore semaphore, VkFence fence,
+                               uint32_t* pImageIndex) {}
+    void vkQueuePresentKHR(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                           const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                           VkResult input_result, VkQueue queue,
                            const VkPresentInfoKHR* pPresentInfo) {}
     void vkGetDeviceGroupPresentCapabilitiesKHR(
-        const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-        VkResult input_result, VkDevice device,
-        VkDeviceGroupPresentCapabilitiesKHR* pDeviceGroupPresentCapabilities) {}
-    void vkGetDeviceGroupSurfacePresentModesKHR(const uint8_t* snapshotTraceBegin,
-                                                size_t snapshotTraceBytes,
-                                                android::base::BumpPool* pool,
-                                                VkResult input_result, VkDevice device,
-                                                VkSurfaceKHR surface,
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+        const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkResult input_result,
+        VkDevice device, VkDeviceGroupPresentCapabilitiesKHR* pDeviceGroupPresentCapabilities) {}
+    void vkGetDeviceGroupSurfacePresentModesKHR(android::base::BumpPool* pool,
+                                                VkSnapshotApiCallInfo* apiCallInfo,
+                                                const uint8_t* apiCallPacket,
+                                                size_t apiCallPacketSize, VkResult input_result,
+                                                VkDevice device, VkSurfaceKHR surface,
                                                 VkDeviceGroupPresentModeFlagsKHR* pModes) {}
-    void vkGetPhysicalDevicePresentRectanglesKHR(
-        const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-        VkResult input_result, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface,
-        uint32_t* pRectCount, VkRect2D* pRects) {}
-    void vkAcquireNextImage2KHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                android::base::BumpPool* pool, VkResult input_result,
-                                VkDevice device, const VkAcquireNextImageInfoKHR* pAcquireInfo,
+    void vkGetPhysicalDevicePresentRectanglesKHR(android::base::BumpPool* pool,
+                                                 VkSnapshotApiCallInfo* apiCallInfo,
+                                                 const uint8_t* apiCallPacket,
+                                                 size_t apiCallPacketSize, VkResult input_result,
+                                                 VkPhysicalDevice physicalDevice,
+                                                 VkSurfaceKHR surface, uint32_t* pRectCount,
+                                                 VkRect2D* pRects) {}
+    void vkAcquireNextImage2KHR(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                                const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                VkResult input_result, VkDevice device,
+                                const VkAcquireNextImageInfoKHR* pAcquireInfo,
                                 uint32_t* pImageIndex) {}
 #endif
 #ifdef VK_KHR_dynamic_rendering
-    void vkCmdBeginRenderingKHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
+    void vkCmdBeginRenderingKHR(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                                const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                VkCommandBuffer commandBuffer,
                                 const VkRenderingInfo* pRenderingInfo) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdEndRenderingKHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                              android::base::BumpPool* pool, VkCommandBuffer commandBuffer) {
+    void vkCmdEndRenderingKHR(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                              const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                              VkCommandBuffer commandBuffer) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
 #endif
 #ifdef VK_KHR_get_physical_device_properties2
-    void vkGetPhysicalDeviceFeatures2KHR(const uint8_t* snapshotTraceBegin,
-                                         size_t snapshotTraceBytes, android::base::BumpPool* pool,
+    void vkGetPhysicalDeviceFeatures2KHR(android::base::BumpPool* pool,
+                                         VkSnapshotApiCallInfo* apiCallInfo,
+                                         const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                          VkPhysicalDevice physicalDevice,
                                          VkPhysicalDeviceFeatures2* pFeatures) {}
-    void vkGetPhysicalDeviceProperties2KHR(const uint8_t* snapshotTraceBegin,
-                                           size_t snapshotTraceBytes, android::base::BumpPool* pool,
+    void vkGetPhysicalDeviceProperties2KHR(android::base::BumpPool* pool,
+                                           VkSnapshotApiCallInfo* apiCallInfo,
+                                           const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                            VkPhysicalDevice physicalDevice,
                                            VkPhysicalDeviceProperties2* pProperties) {}
-    void vkGetPhysicalDeviceFormatProperties2KHR(const uint8_t* snapshotTraceBegin,
-                                                 size_t snapshotTraceBytes,
-                                                 android::base::BumpPool* pool,
+    void vkGetPhysicalDeviceFormatProperties2KHR(android::base::BumpPool* pool,
+                                                 VkSnapshotApiCallInfo* apiCallInfo,
+                                                 const uint8_t* apiCallPacket,
+                                                 size_t apiCallPacketSize,
                                                  VkPhysicalDevice physicalDevice, VkFormat format,
                                                  VkFormatProperties2* pFormatProperties) {}
     void vkGetPhysicalDeviceImageFormatProperties2KHR(
-        const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-        VkResult input_result, VkPhysicalDevice physicalDevice,
-        const VkPhysicalDeviceImageFormatInfo2* pImageFormatInfo,
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+        const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkResult input_result,
+        VkPhysicalDevice physicalDevice, const VkPhysicalDeviceImageFormatInfo2* pImageFormatInfo,
         VkImageFormatProperties2* pImageFormatProperties) {}
     void vkGetPhysicalDeviceQueueFamilyProperties2KHR(
-        const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-        VkPhysicalDevice physicalDevice, uint32_t* pQueueFamilyPropertyCount,
-        VkQueueFamilyProperties2* pQueueFamilyProperties) {}
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+        const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkPhysicalDevice physicalDevice,
+        uint32_t* pQueueFamilyPropertyCount, VkQueueFamilyProperties2* pQueueFamilyProperties) {}
     void vkGetPhysicalDeviceMemoryProperties2KHR(
-        const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-        VkPhysicalDevice physicalDevice, VkPhysicalDeviceMemoryProperties2* pMemoryProperties) {}
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+        const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkPhysicalDevice physicalDevice,
+        VkPhysicalDeviceMemoryProperties2* pMemoryProperties) {}
     void vkGetPhysicalDeviceSparseImageFormatProperties2KHR(
-        const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-        VkPhysicalDevice physicalDevice, const VkPhysicalDeviceSparseImageFormatInfo2* pFormatInfo,
-        uint32_t* pPropertyCount, VkSparseImageFormatProperties2* pProperties) {}
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+        const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkPhysicalDevice physicalDevice,
+        const VkPhysicalDeviceSparseImageFormatInfo2* pFormatInfo, uint32_t* pPropertyCount,
+        VkSparseImageFormatProperties2* pProperties) {}
 #endif
 #ifdef VK_KHR_maintenance1
-    void vkTrimCommandPoolKHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                              android::base::BumpPool* pool, VkDevice device,
-                              VkCommandPool commandPool, VkCommandPoolTrimFlags flags) {}
+    void vkTrimCommandPoolKHR(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                              const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                              VkDevice device, VkCommandPool commandPool,
+                              VkCommandPoolTrimFlags flags) {}
 #endif
 #ifdef VK_KHR_external_memory_capabilities
     void vkGetPhysicalDeviceExternalBufferPropertiesKHR(
-        const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-        VkPhysicalDevice physicalDevice,
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+        const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkPhysicalDevice physicalDevice,
         const VkPhysicalDeviceExternalBufferInfo* pExternalBufferInfo,
         VkExternalBufferProperties* pExternalBufferProperties) {}
 #endif
 #ifdef VK_KHR_external_semaphore_capabilities
     void vkGetPhysicalDeviceExternalSemaphorePropertiesKHR(
-        const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-        VkPhysicalDevice physicalDevice,
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+        const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkPhysicalDevice physicalDevice,
         const VkPhysicalDeviceExternalSemaphoreInfo* pExternalSemaphoreInfo,
         VkExternalSemaphoreProperties* pExternalSemaphoreProperties) {}
 #endif
 #ifdef VK_KHR_external_semaphore_fd
-    void vkImportSemaphoreFdKHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                android::base::BumpPool* pool, VkResult input_result,
-                                VkDevice device,
+    void vkImportSemaphoreFdKHR(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                                const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                VkResult input_result, VkDevice device,
                                 const VkImportSemaphoreFdInfoKHR* pImportSemaphoreFdInfo) {}
-    void vkGetSemaphoreFdKHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                             android::base::BumpPool* pool, VkResult input_result, VkDevice device,
+    void vkGetSemaphoreFdKHR(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                             const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                             VkResult input_result, VkDevice device,
                              const VkSemaphoreGetFdInfoKHR* pGetFdInfo, int* pFd) {}
 #endif
 #ifdef VK_KHR_descriptor_update_template
     void vkCreateDescriptorUpdateTemplateKHR(
-        const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-        VkResult input_result, VkDevice device,
-        const VkDescriptorUpdateTemplateCreateInfo* pCreateInfo,
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+        const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkResult input_result,
+        VkDevice device, const VkDescriptorUpdateTemplateCreateInfo* pCreateInfo,
         const VkAllocationCallbacks* pAllocator,
         VkDescriptorUpdateTemplate* pDescriptorUpdateTemplate) {
         if (!pDescriptorUpdateTemplate) return;
@@ -2604,34 +2650,36 @@ class VkDecoderSnapshot::Impl {
         mReconstruction.addHandles((const uint64_t*)pDescriptorUpdateTemplate, 1);
         mReconstruction.addHandleDependency((const uint64_t*)pDescriptorUpdateTemplate, 1,
                                             (uint64_t)(uintptr_t)device);
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         mReconstruction.forEachHandleAddApi((const uint64_t*)pDescriptorUpdateTemplate, 1,
-                                            apiHandle, VkReconstruction::CREATED);
-        mReconstruction.setCreatedHandlesForApi(apiHandle,
+                                            apiCallHandle, VkReconstruction::CREATED);
+        mReconstruction.setCreatedHandlesForApi(apiCallHandle,
                                                 (const uint64_t*)pDescriptorUpdateTemplate, 1);
     }
-    void vkDestroyDescriptorUpdateTemplateKHR(const uint8_t* snapshotTraceBegin,
-                                              size_t snapshotTraceBytes,
-                                              android::base::BumpPool* pool, VkDevice device,
+    void vkDestroyDescriptorUpdateTemplateKHR(android::base::BumpPool* pool,
+                                              VkSnapshotApiCallInfo* apiCallInfo,
+                                              const uint8_t* apiCallPacket,
+                                              size_t apiCallPacketSize, VkDevice device,
                                               VkDescriptorUpdateTemplate descriptorUpdateTemplate,
                                               const VkAllocationCallbacks* pAllocator) {
         android::base::AutoLock lock(mLock);
         // descriptorUpdateTemplate destroy
         mReconstruction.removeHandles((const uint64_t*)(&descriptorUpdateTemplate), 1, true);
     }
-    void vkUpdateDescriptorSetWithTemplateKHR(const uint8_t* snapshotTraceBegin,
-                                              size_t snapshotTraceBytes,
-                                              android::base::BumpPool* pool, VkDevice device,
+    void vkUpdateDescriptorSetWithTemplateKHR(android::base::BumpPool* pool,
+                                              VkSnapshotApiCallInfo* apiCallInfo,
+                                              const uint8_t* apiCallPacket,
+                                              size_t apiCallPacketSize, VkDevice device,
                                               VkDescriptorSet descriptorSet,
                                               VkDescriptorUpdateTemplate descriptorUpdateTemplate,
                                               const void* pData) {}
 #endif
 #ifdef VK_KHR_create_renderpass2
-    void vkCreateRenderPass2KHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                android::base::BumpPool* pool, VkResult input_result,
-                                VkDevice device, const VkRenderPassCreateInfo2* pCreateInfo,
+    void vkCreateRenderPass2KHR(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                                const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                VkResult input_result, VkDevice device,
+                                const VkRenderPassCreateInfo2* pCreateInfo,
                                 const VkAllocationCallbacks* pAllocator,
                                 VkRenderPass* pRenderPass) {
         if (!pRenderPass) return;
@@ -2640,93 +2688,97 @@ class VkDecoderSnapshot::Impl {
         mReconstruction.addHandles((const uint64_t*)pRenderPass, 1);
         mReconstruction.addHandleDependency((const uint64_t*)pRenderPass, 1,
                                             (uint64_t)(uintptr_t)device);
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)pRenderPass, 1, apiHandle,
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pRenderPass, 1, apiCallHandle,
                                             VkReconstruction::CREATED);
-        mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pRenderPass, 1);
+        mReconstruction.setCreatedHandlesForApi(apiCallHandle, (const uint64_t*)pRenderPass, 1);
     }
-    void vkCmdBeginRenderPass2KHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                  android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
+    void vkCmdBeginRenderPass2KHR(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                                  const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                  VkCommandBuffer commandBuffer,
                                   const VkRenderPassBeginInfo* pRenderPassBegin,
                                   const VkSubpassBeginInfo* pSubpassBeginInfo) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdNextSubpass2KHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                              android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
+    void vkCmdNextSubpass2KHR(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                              const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                              VkCommandBuffer commandBuffer,
                               const VkSubpassBeginInfo* pSubpassBeginInfo,
                               const VkSubpassEndInfo* pSubpassEndInfo) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdEndRenderPass2KHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
+    void vkCmdEndRenderPass2KHR(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                                const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                VkCommandBuffer commandBuffer,
                                 const VkSubpassEndInfo* pSubpassEndInfo) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
 #endif
 #ifdef VK_KHR_external_fence_capabilities
     void vkGetPhysicalDeviceExternalFencePropertiesKHR(
-        const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-        VkPhysicalDevice physicalDevice,
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+        const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkPhysicalDevice physicalDevice,
         const VkPhysicalDeviceExternalFenceInfo* pExternalFenceInfo,
         VkExternalFenceProperties* pExternalFenceProperties) {}
 #endif
 #ifdef VK_KHR_external_fence_fd
-    void vkImportFenceFdKHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                            android::base::BumpPool* pool, VkResult input_result, VkDevice device,
+    void vkImportFenceFdKHR(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                            const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                            VkResult input_result, VkDevice device,
                             const VkImportFenceFdInfoKHR* pImportFenceFdInfo) {}
-    void vkGetFenceFdKHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                         android::base::BumpPool* pool, VkResult input_result, VkDevice device,
+    void vkGetFenceFdKHR(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                         const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                         VkResult input_result, VkDevice device,
                          const VkFenceGetFdInfoKHR* pGetFdInfo, int* pFd) {}
 #endif
 #ifdef VK_KHR_get_memory_requirements2
-    void vkGetImageMemoryRequirements2KHR(const uint8_t* snapshotTraceBegin,
-                                          size_t snapshotTraceBytes, android::base::BumpPool* pool,
+    void vkGetImageMemoryRequirements2KHR(android::base::BumpPool* pool,
+                                          VkSnapshotApiCallInfo* apiCallInfo,
+                                          const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                           VkDevice device,
                                           const VkImageMemoryRequirementsInfo2* pInfo,
                                           VkMemoryRequirements2* pMemoryRequirements) {}
-    void vkGetBufferMemoryRequirements2KHR(const uint8_t* snapshotTraceBegin,
-                                           size_t snapshotTraceBytes, android::base::BumpPool* pool,
+    void vkGetBufferMemoryRequirements2KHR(android::base::BumpPool* pool,
+                                           VkSnapshotApiCallInfo* apiCallInfo,
+                                           const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                            VkDevice device,
                                            const VkBufferMemoryRequirementsInfo2* pInfo,
                                            VkMemoryRequirements2* pMemoryRequirements) {}
     void vkGetImageSparseMemoryRequirements2KHR(
-        const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-        VkDevice device, const VkImageSparseMemoryRequirementsInfo2* pInfo,
-        uint32_t* pSparseMemoryRequirementCount,
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+        const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkDevice device,
+        const VkImageSparseMemoryRequirementsInfo2* pInfo, uint32_t* pSparseMemoryRequirementCount,
         VkSparseImageMemoryRequirements2* pSparseMemoryRequirements) {}
 #endif
 #ifdef VK_KHR_sampler_ycbcr_conversion
-    void vkCreateSamplerYcbcrConversionKHR(const uint8_t* snapshotTraceBegin,
-                                           size_t snapshotTraceBytes, android::base::BumpPool* pool,
+    void vkCreateSamplerYcbcrConversionKHR(android::base::BumpPool* pool,
+                                           VkSnapshotApiCallInfo* apiCallInfo,
+                                           const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                            VkResult input_result, VkDevice device,
                                            const VkSamplerYcbcrConversionCreateInfo* pCreateInfo,
                                            const VkAllocationCallbacks* pAllocator,
@@ -2737,16 +2789,17 @@ class VkDecoderSnapshot::Impl {
         mReconstruction.addHandles((const uint64_t*)pYcbcrConversion, 1);
         mReconstruction.addHandleDependency((const uint64_t*)pYcbcrConversion, 1,
                                             (uint64_t)(uintptr_t)device);
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)pYcbcrConversion, 1, apiHandle,
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pYcbcrConversion, 1, apiCallHandle,
                                             VkReconstruction::CREATED);
-        mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pYcbcrConversion, 1);
+        mReconstruction.setCreatedHandlesForApi(apiCallHandle, (const uint64_t*)pYcbcrConversion,
+                                                1);
     }
-    void vkDestroySamplerYcbcrConversionKHR(const uint8_t* snapshotTraceBegin,
-                                            size_t snapshotTraceBytes,
-                                            android::base::BumpPool* pool, VkDevice device,
+    void vkDestroySamplerYcbcrConversionKHR(android::base::BumpPool* pool,
+                                            VkSnapshotApiCallInfo* apiCallInfo,
+                                            const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                            VkDevice device,
                                             VkSamplerYcbcrConversion ycbcrConversion,
                                             const VkAllocationCallbacks* pAllocator) {
         android::base::AutoLock lock(mLock);
@@ -2755,13 +2808,13 @@ class VkDecoderSnapshot::Impl {
     }
 #endif
 #ifdef VK_KHR_bind_memory2
-    void vkBindBufferMemory2KHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                android::base::BumpPool* pool, VkResult input_result,
-                                VkDevice device, uint32_t bindInfoCount,
+    void vkBindBufferMemory2KHR(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                                const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                VkResult input_result, VkDevice device, uint32_t bindInfoCount,
                                 const VkBindBufferMemoryInfo* pBindInfos) {}
-    void vkBindImageMemory2KHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                               android::base::BumpPool* pool, VkResult input_result,
-                               VkDevice device, uint32_t bindInfoCount,
+    void vkBindImageMemory2KHR(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                               const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                               VkResult input_result, VkDevice device, uint32_t bindInfoCount,
                                const VkBindImageMemoryInfo* pBindInfos) {
         android::base::AutoLock lock(mLock);
         for (uint32_t i = 0; i < bindInfoCount; ++i) {
@@ -2775,324 +2828,339 @@ class VkDecoderSnapshot::Impl {
                                                 (uint64_t)(uintptr_t)boxed_VkImage,
                                                 VkReconstruction::BOUND_MEMORY);
         }
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         // Note: the implementation does not work with bindInfoCount > 1
         for (uint32_t i = 0; i < bindInfoCount; ++i) {
             VkImage boxed_VkImage = unboxed_to_boxed_non_dispatchable_VkImage(pBindInfos[i].image);
-            mReconstruction.forEachHandleAddApi((const uint64_t*)&boxed_VkImage, 1, apiHandle,
+            mReconstruction.forEachHandleAddApi((const uint64_t*)&boxed_VkImage, 1, apiCallHandle,
                                                 VkReconstruction::BOUND_MEMORY);
         }
     }
 #endif
 #ifdef VK_KHR_maintenance3
-    void vkGetDescriptorSetLayoutSupportKHR(const uint8_t* snapshotTraceBegin,
-                                            size_t snapshotTraceBytes,
-                                            android::base::BumpPool* pool, VkDevice device,
+    void vkGetDescriptorSetLayoutSupportKHR(android::base::BumpPool* pool,
+                                            VkSnapshotApiCallInfo* apiCallInfo,
+                                            const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                            VkDevice device,
                                             const VkDescriptorSetLayoutCreateInfo* pCreateInfo,
                                             VkDescriptorSetLayoutSupport* pSupport) {}
 #endif
 #ifdef VK_KHR_buffer_device_address
-    void vkGetBufferDeviceAddressKHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                     android::base::BumpPool* pool, VkDeviceAddress input_result,
-                                     VkDevice device, const VkBufferDeviceAddressInfo* pInfo) {}
-    void vkGetBufferOpaqueCaptureAddressKHR(const uint8_t* snapshotTraceBegin,
-                                            size_t snapshotTraceBytes,
-                                            android::base::BumpPool* pool, uint64_t input_result,
-                                            VkDevice device,
+    void vkGetBufferDeviceAddressKHR(android::base::BumpPool* pool,
+                                     VkSnapshotApiCallInfo* apiCallInfo,
+                                     const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                     VkDeviceAddress input_result, VkDevice device,
+                                     const VkBufferDeviceAddressInfo* pInfo) {}
+    void vkGetBufferOpaqueCaptureAddressKHR(android::base::BumpPool* pool,
+                                            VkSnapshotApiCallInfo* apiCallInfo,
+                                            const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                            uint64_t input_result, VkDevice device,
                                             const VkBufferDeviceAddressInfo* pInfo) {}
     void vkGetDeviceMemoryOpaqueCaptureAddressKHR(
-        const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-        uint64_t input_result, VkDevice device,
-        const VkDeviceMemoryOpaqueCaptureAddressInfo* pInfo) {}
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+        const uint8_t* apiCallPacket, size_t apiCallPacketSize, uint64_t input_result,
+        VkDevice device, const VkDeviceMemoryOpaqueCaptureAddressInfo* pInfo) {}
 #endif
 #ifdef VK_KHR_pipeline_executable_properties
     void vkGetPipelineExecutablePropertiesKHR(
-        const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-        VkResult input_result, VkDevice device, const VkPipelineInfoKHR* pPipelineInfo,
-        uint32_t* pExecutableCount, VkPipelineExecutablePropertiesKHR* pProperties) {}
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+        const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkResult input_result,
+        VkDevice device, const VkPipelineInfoKHR* pPipelineInfo, uint32_t* pExecutableCount,
+        VkPipelineExecutablePropertiesKHR* pProperties) {}
     void vkGetPipelineExecutableStatisticsKHR(
-        const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-        VkResult input_result, VkDevice device, const VkPipelineExecutableInfoKHR* pExecutableInfo,
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+        const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkResult input_result,
+        VkDevice device, const VkPipelineExecutableInfoKHR* pExecutableInfo,
         uint32_t* pStatisticCount, VkPipelineExecutableStatisticKHR* pStatistics) {}
     void vkGetPipelineExecutableInternalRepresentationsKHR(
-        const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-        VkResult input_result, VkDevice device, const VkPipelineExecutableInfoKHR* pExecutableInfo,
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+        const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkResult input_result,
+        VkDevice device, const VkPipelineExecutableInfoKHR* pExecutableInfo,
         uint32_t* pInternalRepresentationCount,
         VkPipelineExecutableInternalRepresentationKHR* pInternalRepresentations) {}
 #endif
 #ifdef VK_KHR_synchronization2
-    void vkCmdSetEvent2KHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                           android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                           VkEvent event, const VkDependencyInfo* pDependencyInfo) {
+    void vkCmdSetEvent2KHR(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                           const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                           VkCommandBuffer commandBuffer, VkEvent event,
+                           const VkDependencyInfo* pDependencyInfo) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdResetEvent2KHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                             android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                             VkEvent event, VkPipelineStageFlags2 stageMask) {
+    void vkCmdResetEvent2KHR(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                             const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                             VkCommandBuffer commandBuffer, VkEvent event,
+                             VkPipelineStageFlags2 stageMask) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdWaitEvents2KHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                             android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                             uint32_t eventCount, const VkEvent* pEvents,
-                             const VkDependencyInfo* pDependencyInfos) {
+    void vkCmdWaitEvents2KHR(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                             const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                             VkCommandBuffer commandBuffer, uint32_t eventCount,
+                             const VkEvent* pEvents, const VkDependencyInfo* pDependencyInfos) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdPipelineBarrier2KHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                  android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
+    void vkCmdPipelineBarrier2KHR(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                                  const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                  VkCommandBuffer commandBuffer,
                                   const VkDependencyInfo* pDependencyInfo) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdWriteTimestamp2KHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                 android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                                 VkPipelineStageFlags2 stage, VkQueryPool queryPool,
-                                 uint32_t query) {
+    void vkCmdWriteTimestamp2KHR(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                                 const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                 VkCommandBuffer commandBuffer, VkPipelineStageFlags2 stage,
+                                 VkQueryPool queryPool, uint32_t query) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkQueueSubmit2KHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                           android::base::BumpPool* pool, VkResult input_result, VkQueue queue,
-                           uint32_t submitCount, const VkSubmitInfo2* pSubmits, VkFence fence) {}
-    void vkCmdWriteBufferMarker2AMD(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                    android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                                    VkPipelineStageFlags2 stage, VkBuffer dstBuffer,
-                                    VkDeviceSize dstOffset, uint32_t marker) {
+    void vkQueueSubmit2KHR(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                           const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                           VkResult input_result, VkQueue queue, uint32_t submitCount,
+                           const VkSubmitInfo2* pSubmits, VkFence fence) {}
+    void vkCmdWriteBufferMarker2AMD(android::base::BumpPool* pool,
+                                    VkSnapshotApiCallInfo* apiCallInfo,
+                                    const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                    VkCommandBuffer commandBuffer, VkPipelineStageFlags2 stage,
+                                    VkBuffer dstBuffer, VkDeviceSize dstOffset, uint32_t marker) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkGetQueueCheckpointData2NV(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                     android::base::BumpPool* pool, VkQueue queue,
-                                     uint32_t* pCheckpointDataCount,
+    void vkGetQueueCheckpointData2NV(android::base::BumpPool* pool,
+                                     VkSnapshotApiCallInfo* apiCallInfo,
+                                     const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                     VkQueue queue, uint32_t* pCheckpointDataCount,
                                      VkCheckpointData2NV* pCheckpointData) {}
 #endif
 #ifdef VK_KHR_copy_commands2
-    void vkCmdCopyBuffer2KHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                             android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
+    void vkCmdCopyBuffer2KHR(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                             const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                             VkCommandBuffer commandBuffer,
                              const VkCopyBufferInfo2* pCopyBufferInfo) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdCopyImage2KHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                            android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                            const VkCopyImageInfo2* pCopyImageInfo) {
+    void vkCmdCopyImage2KHR(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                            const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                            VkCommandBuffer commandBuffer, const VkCopyImageInfo2* pCopyImageInfo) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdCopyBufferToImage2KHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                    android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
+    void vkCmdCopyBufferToImage2KHR(android::base::BumpPool* pool,
+                                    VkSnapshotApiCallInfo* apiCallInfo,
+                                    const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                    VkCommandBuffer commandBuffer,
                                     const VkCopyBufferToImageInfo2* pCopyBufferToImageInfo) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdCopyImageToBuffer2KHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                    android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
+    void vkCmdCopyImageToBuffer2KHR(android::base::BumpPool* pool,
+                                    VkSnapshotApiCallInfo* apiCallInfo,
+                                    const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                    VkCommandBuffer commandBuffer,
                                     const VkCopyImageToBufferInfo2* pCopyImageToBufferInfo) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdBlitImage2KHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                            android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                            const VkBlitImageInfo2* pBlitImageInfo) {
+    void vkCmdBlitImage2KHR(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                            const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                            VkCommandBuffer commandBuffer, const VkBlitImageInfo2* pBlitImageInfo) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdResolveImage2KHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                               android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
+    void vkCmdResolveImage2KHR(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                               const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                               VkCommandBuffer commandBuffer,
                                const VkResolveImageInfo2* pResolveImageInfo) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
 #endif
 #ifdef VK_KHR_maintenance4
-    void vkGetDeviceBufferMemoryRequirementsKHR(const uint8_t* snapshotTraceBegin,
-                                                size_t snapshotTraceBytes,
-                                                android::base::BumpPool* pool, VkDevice device,
+    void vkGetDeviceBufferMemoryRequirementsKHR(android::base::BumpPool* pool,
+                                                VkSnapshotApiCallInfo* apiCallInfo,
+                                                const uint8_t* apiCallPacket,
+                                                size_t apiCallPacketSize, VkDevice device,
                                                 const VkDeviceBufferMemoryRequirements* pInfo,
                                                 VkMemoryRequirements2* pMemoryRequirements) {}
-    void vkGetDeviceImageMemoryRequirementsKHR(const uint8_t* snapshotTraceBegin,
-                                               size_t snapshotTraceBytes,
-                                               android::base::BumpPool* pool, VkDevice device,
+    void vkGetDeviceImageMemoryRequirementsKHR(android::base::BumpPool* pool,
+                                               VkSnapshotApiCallInfo* apiCallInfo,
+                                               const uint8_t* apiCallPacket,
+                                               size_t apiCallPacketSize, VkDevice device,
                                                const VkDeviceImageMemoryRequirements* pInfo,
                                                VkMemoryRequirements2* pMemoryRequirements) {}
     void vkGetDeviceImageSparseMemoryRequirementsKHR(
-        const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-        VkDevice device, const VkDeviceImageMemoryRequirements* pInfo,
-        uint32_t* pSparseMemoryRequirementCount,
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+        const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkDevice device,
+        const VkDeviceImageMemoryRequirements* pInfo, uint32_t* pSparseMemoryRequirementCount,
         VkSparseImageMemoryRequirements2* pSparseMemoryRequirements) {}
 #endif
 #ifdef VK_KHR_maintenance5
-    void vkCmdBindIndexBuffer2KHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                  android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                                  VkBuffer buffer, VkDeviceSize offset, VkDeviceSize size,
-                                  VkIndexType indexType) {
+    void vkCmdBindIndexBuffer2KHR(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                                  const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                  VkCommandBuffer commandBuffer, VkBuffer buffer,
+                                  VkDeviceSize offset, VkDeviceSize size, VkIndexType indexType) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkGetRenderingAreaGranularityKHR(const uint8_t* snapshotTraceBegin,
-                                          size_t snapshotTraceBytes, android::base::BumpPool* pool,
+    void vkGetRenderingAreaGranularityKHR(android::base::BumpPool* pool,
+                                          VkSnapshotApiCallInfo* apiCallInfo,
+                                          const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                           VkDevice device,
                                           const VkRenderingAreaInfoKHR* pRenderingAreaInfo,
                                           VkExtent2D* pGranularity) {}
-    void vkGetDeviceImageSubresourceLayoutKHR(const uint8_t* snapshotTraceBegin,
-                                              size_t snapshotTraceBytes,
-                                              android::base::BumpPool* pool, VkDevice device,
+    void vkGetDeviceImageSubresourceLayoutKHR(android::base::BumpPool* pool,
+                                              VkSnapshotApiCallInfo* apiCallInfo,
+                                              const uint8_t* apiCallPacket,
+                                              size_t apiCallPacketSize, VkDevice device,
                                               const VkDeviceImageSubresourceInfoKHR* pInfo,
                                               VkSubresourceLayout2KHR* pLayout) {}
-    void vkGetImageSubresourceLayout2KHR(const uint8_t* snapshotTraceBegin,
-                                         size_t snapshotTraceBytes, android::base::BumpPool* pool,
+    void vkGetImageSubresourceLayout2KHR(android::base::BumpPool* pool,
+                                         VkSnapshotApiCallInfo* apiCallInfo,
+                                         const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                          VkDevice device, VkImage image,
                                          const VkImageSubresource2KHR* pSubresource,
                                          VkSubresourceLayout2KHR* pLayout) {}
 #endif
 #ifdef VK_KHR_line_rasterization
-    void vkCmdSetLineStippleKHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                                uint32_t lineStippleFactor, uint16_t lineStipplePattern) {
+    void vkCmdSetLineStippleKHR(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                                const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                VkCommandBuffer commandBuffer, uint32_t lineStippleFactor,
+                                uint16_t lineStipplePattern) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
 #endif
 #ifdef VK_ANDROID_native_buffer
-    void vkGetSwapchainGrallocUsageANDROID(const uint8_t* snapshotTraceBegin,
-                                           size_t snapshotTraceBytes, android::base::BumpPool* pool,
+    void vkGetSwapchainGrallocUsageANDROID(android::base::BumpPool* pool,
+                                           VkSnapshotApiCallInfo* apiCallInfo,
+                                           const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                            VkResult input_result, VkDevice device, VkFormat format,
                                            VkImageUsageFlags imageUsage, int* grallocUsage) {}
-    void vkAcquireImageANDROID(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                               android::base::BumpPool* pool, VkResult input_result,
-                               VkDevice device, VkImage image, int nativeFenceFd,
-                               VkSemaphore semaphore, VkFence fence) {}
-    void vkQueueSignalReleaseImageANDROID(const uint8_t* snapshotTraceBegin,
-                                          size_t snapshotTraceBytes, android::base::BumpPool* pool,
+    void vkAcquireImageANDROID(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                               const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                               VkResult input_result, VkDevice device, VkImage image,
+                               int nativeFenceFd, VkSemaphore semaphore, VkFence fence) {}
+    void vkQueueSignalReleaseImageANDROID(android::base::BumpPool* pool,
+                                          VkSnapshotApiCallInfo* apiCallInfo,
+                                          const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                           VkResult input_result, VkQueue queue,
                                           uint32_t waitSemaphoreCount,
                                           const VkSemaphore* pWaitSemaphores, VkImage image,
                                           int* pNativeFenceFd) {}
-    void vkGetSwapchainGrallocUsage2ANDROID(
-        const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-        VkResult input_result, VkDevice device, VkFormat format, VkImageUsageFlags imageUsage,
-        VkSwapchainImageUsageFlagsANDROID swapchainImageUsage, uint64_t* grallocConsumerUsage,
-        uint64_t* grallocProducerUsage) {}
+    void vkGetSwapchainGrallocUsage2ANDROID(android::base::BumpPool* pool,
+                                            VkSnapshotApiCallInfo* apiCallInfo,
+                                            const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                            VkResult input_result, VkDevice device, VkFormat format,
+                                            VkImageUsageFlags imageUsage,
+                                            VkSwapchainImageUsageFlagsANDROID swapchainImageUsage,
+                                            uint64_t* grallocConsumerUsage,
+                                            uint64_t* grallocProducerUsage) {}
 #endif
 #ifdef VK_EXT_debug_report
-    void vkCreateDebugReportCallbackEXT(const uint8_t* snapshotTraceBegin,
-                                        size_t snapshotTraceBytes, android::base::BumpPool* pool,
+    void vkCreateDebugReportCallbackEXT(android::base::BumpPool* pool,
+                                        VkSnapshotApiCallInfo* apiCallInfo,
+                                        const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                         VkResult input_result, VkInstance instance,
                                         const VkDebugReportCallbackCreateInfoEXT* pCreateInfo,
                                         const VkAllocationCallbacks* pAllocator,
@@ -3101,182 +3169,194 @@ class VkDecoderSnapshot::Impl {
         android::base::AutoLock lock(mLock);
         // pCallback create
         mReconstruction.addHandles((const uint64_t*)pCallback, 1);
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)pCallback, 1, apiHandle,
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pCallback, 1, apiCallHandle,
                                             VkReconstruction::CREATED);
-        mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pCallback, 1);
+        mReconstruction.setCreatedHandlesForApi(apiCallHandle, (const uint64_t*)pCallback, 1);
     }
-    void vkDestroyDebugReportCallbackEXT(const uint8_t* snapshotTraceBegin,
-                                         size_t snapshotTraceBytes, android::base::BumpPool* pool,
+    void vkDestroyDebugReportCallbackEXT(android::base::BumpPool* pool,
+                                         VkSnapshotApiCallInfo* apiCallInfo,
+                                         const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                          VkInstance instance, VkDebugReportCallbackEXT callback,
                                          const VkAllocationCallbacks* pAllocator) {
         android::base::AutoLock lock(mLock);
         // callback destroy
         mReconstruction.removeHandles((const uint64_t*)(&callback), 1, true);
     }
-    void vkDebugReportMessageEXT(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                 android::base::BumpPool* pool, VkInstance instance,
-                                 VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objectType,
-                                 uint64_t object, size_t location, int32_t messageCode,
-                                 const char* pLayerPrefix, const char* pMessage) {}
+    void vkDebugReportMessageEXT(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                                 const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                 VkInstance instance, VkDebugReportFlagsEXT flags,
+                                 VkDebugReportObjectTypeEXT objectType, uint64_t object,
+                                 size_t location, int32_t messageCode, const char* pLayerPrefix,
+                                 const char* pMessage) {}
 #endif
 #ifdef VK_EXT_transform_feedback
     void vkCmdBindTransformFeedbackBuffersEXT(
-        const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-        VkCommandBuffer commandBuffer, uint32_t firstBinding, uint32_t bindingCount,
-        const VkBuffer* pBuffers, const VkDeviceSize* pOffsets, const VkDeviceSize* pSizes) {
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+        const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkCommandBuffer commandBuffer,
+        uint32_t firstBinding, uint32_t bindingCount, const VkBuffer* pBuffers,
+        const VkDeviceSize* pOffsets, const VkDeviceSize* pSizes) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdBeginTransformFeedbackEXT(const uint8_t* snapshotTraceBegin,
-                                        size_t snapshotTraceBytes, android::base::BumpPool* pool,
+    void vkCmdBeginTransformFeedbackEXT(android::base::BumpPool* pool,
+                                        VkSnapshotApiCallInfo* apiCallInfo,
+                                        const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                         VkCommandBuffer commandBuffer, uint32_t firstCounterBuffer,
                                         uint32_t counterBufferCount,
                                         const VkBuffer* pCounterBuffers,
                                         const VkDeviceSize* pCounterBufferOffsets) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdEndTransformFeedbackEXT(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                      android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                                      uint32_t firstCounterBuffer, uint32_t counterBufferCount,
-                                      const VkBuffer* pCounterBuffers,
+    void vkCmdEndTransformFeedbackEXT(android::base::BumpPool* pool,
+                                      VkSnapshotApiCallInfo* apiCallInfo,
+                                      const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                      VkCommandBuffer commandBuffer, uint32_t firstCounterBuffer,
+                                      uint32_t counterBufferCount, const VkBuffer* pCounterBuffers,
                                       const VkDeviceSize* pCounterBufferOffsets) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdBeginQueryIndexedEXT(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                   android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
+    void vkCmdBeginQueryIndexedEXT(android::base::BumpPool* pool,
+                                   VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+                                   size_t apiCallPacketSize, VkCommandBuffer commandBuffer,
                                    VkQueryPool queryPool, uint32_t query, VkQueryControlFlags flags,
                                    uint32_t index) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdEndQueryIndexedEXT(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                 android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                                 VkQueryPool queryPool, uint32_t query, uint32_t index) {
+    void vkCmdEndQueryIndexedEXT(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                                 const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                 VkCommandBuffer commandBuffer, VkQueryPool queryPool,
+                                 uint32_t query, uint32_t index) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdDrawIndirectByteCountEXT(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                       android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                                       uint32_t instanceCount, uint32_t firstInstance,
-                                       VkBuffer counterBuffer, VkDeviceSize counterBufferOffset,
-                                       uint32_t counterOffset, uint32_t vertexStride) {
+    void vkCmdDrawIndirectByteCountEXT(android::base::BumpPool* pool,
+                                       VkSnapshotApiCallInfo* apiCallInfo,
+                                       const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                       VkCommandBuffer commandBuffer, uint32_t instanceCount,
+                                       uint32_t firstInstance, VkBuffer counterBuffer,
+                                       VkDeviceSize counterBufferOffset, uint32_t counterOffset,
+                                       uint32_t vertexStride) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
 #endif
 #ifdef VK_EXT_debug_utils
-    void vkSetDebugUtilsObjectNameEXT(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                      android::base::BumpPool* pool, VkResult input_result,
-                                      VkDevice device,
+    void vkSetDebugUtilsObjectNameEXT(android::base::BumpPool* pool,
+                                      VkSnapshotApiCallInfo* apiCallInfo,
+                                      const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                      VkResult input_result, VkDevice device,
                                       const VkDebugUtilsObjectNameInfoEXT* pNameInfo) {}
-    void vkSetDebugUtilsObjectTagEXT(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                     android::base::BumpPool* pool, VkResult input_result,
-                                     VkDevice device,
+    void vkSetDebugUtilsObjectTagEXT(android::base::BumpPool* pool,
+                                     VkSnapshotApiCallInfo* apiCallInfo,
+                                     const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                     VkResult input_result, VkDevice device,
                                      const VkDebugUtilsObjectTagInfoEXT* pTagInfo) {}
-    void vkQueueBeginDebugUtilsLabelEXT(const uint8_t* snapshotTraceBegin,
-                                        size_t snapshotTraceBytes, android::base::BumpPool* pool,
+    void vkQueueBeginDebugUtilsLabelEXT(android::base::BumpPool* pool,
+                                        VkSnapshotApiCallInfo* apiCallInfo,
+                                        const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                         VkQueue queue, const VkDebugUtilsLabelEXT* pLabelInfo) {}
-    void vkQueueEndDebugUtilsLabelEXT(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                      android::base::BumpPool* pool, VkQueue queue) {}
-    void vkQueueInsertDebugUtilsLabelEXT(const uint8_t* snapshotTraceBegin,
-                                         size_t snapshotTraceBytes, android::base::BumpPool* pool,
+    void vkQueueEndDebugUtilsLabelEXT(android::base::BumpPool* pool,
+                                      VkSnapshotApiCallInfo* apiCallInfo,
+                                      const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                      VkQueue queue) {}
+    void vkQueueInsertDebugUtilsLabelEXT(android::base::BumpPool* pool,
+                                         VkSnapshotApiCallInfo* apiCallInfo,
+                                         const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                          VkQueue queue, const VkDebugUtilsLabelEXT* pLabelInfo) {}
-    void vkCmdBeginDebugUtilsLabelEXT(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                      android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
+    void vkCmdBeginDebugUtilsLabelEXT(android::base::BumpPool* pool,
+                                      VkSnapshotApiCallInfo* apiCallInfo,
+                                      const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                      VkCommandBuffer commandBuffer,
                                       const VkDebugUtilsLabelEXT* pLabelInfo) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdEndDebugUtilsLabelEXT(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                    android::base::BumpPool* pool, VkCommandBuffer commandBuffer) {
+    void vkCmdEndDebugUtilsLabelEXT(android::base::BumpPool* pool,
+                                    VkSnapshotApiCallInfo* apiCallInfo,
+                                    const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                    VkCommandBuffer commandBuffer) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdInsertDebugUtilsLabelEXT(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                       android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
+    void vkCmdInsertDebugUtilsLabelEXT(android::base::BumpPool* pool,
+                                       VkSnapshotApiCallInfo* apiCallInfo,
+                                       const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                       VkCommandBuffer commandBuffer,
                                        const VkDebugUtilsLabelEXT* pLabelInfo) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCreateDebugUtilsMessengerEXT(const uint8_t* snapshotTraceBegin,
-                                        size_t snapshotTraceBytes, android::base::BumpPool* pool,
+    void vkCreateDebugUtilsMessengerEXT(android::base::BumpPool* pool,
+                                        VkSnapshotApiCallInfo* apiCallInfo,
+                                        const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                         VkResult input_result, VkInstance instance,
                                         const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
                                         const VkAllocationCallbacks* pAllocator,
@@ -3285,416 +3365,435 @@ class VkDecoderSnapshot::Impl {
         android::base::AutoLock lock(mLock);
         // pMessenger create
         mReconstruction.addHandles((const uint64_t*)pMessenger, 1);
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)pMessenger, 1, apiHandle,
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pMessenger, 1, apiCallHandle,
                                             VkReconstruction::CREATED);
-        mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pMessenger, 1);
+        mReconstruction.setCreatedHandlesForApi(apiCallHandle, (const uint64_t*)pMessenger, 1);
     }
-    void vkDestroyDebugUtilsMessengerEXT(const uint8_t* snapshotTraceBegin,
-                                         size_t snapshotTraceBytes, android::base::BumpPool* pool,
+    void vkDestroyDebugUtilsMessengerEXT(android::base::BumpPool* pool,
+                                         VkSnapshotApiCallInfo* apiCallInfo,
+                                         const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                          VkInstance instance, VkDebugUtilsMessengerEXT messenger,
                                          const VkAllocationCallbacks* pAllocator) {
         android::base::AutoLock lock(mLock);
         // messenger destroy
         mReconstruction.removeHandles((const uint64_t*)(&messenger), 1, true);
     }
-    void vkSubmitDebugUtilsMessageEXT(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                      android::base::BumpPool* pool, VkInstance instance,
+    void vkSubmitDebugUtilsMessageEXT(android::base::BumpPool* pool,
+                                      VkSnapshotApiCallInfo* apiCallInfo,
+                                      const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                      VkInstance instance,
                                       VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
                                       VkDebugUtilsMessageTypeFlagsEXT messageTypes,
                                       const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData) {}
 #endif
 #ifdef VK_EXT_image_drm_format_modifier
     void vkGetImageDrmFormatModifierPropertiesEXT(
-        const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-        VkResult input_result, VkDevice device, VkImage image,
-        VkImageDrmFormatModifierPropertiesEXT* pProperties) {}
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+        const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkResult input_result,
+        VkDevice device, VkImage image, VkImageDrmFormatModifierPropertiesEXT* pProperties) {}
 #endif
 #ifdef VK_EXT_external_memory_host
     void vkGetMemoryHostPointerPropertiesEXT(
-        const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-        VkResult input_result, VkDevice device, VkExternalMemoryHandleTypeFlagBits handleType,
-        const void* pHostPointer, VkMemoryHostPointerPropertiesEXT* pMemoryHostPointerProperties) {}
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+        const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkResult input_result,
+        VkDevice device, VkExternalMemoryHandleTypeFlagBits handleType, const void* pHostPointer,
+        VkMemoryHostPointerPropertiesEXT* pMemoryHostPointerProperties) {}
 #endif
 #ifdef VK_EXT_tooling_info
-    void vkGetPhysicalDeviceToolPropertiesEXT(const uint8_t* snapshotTraceBegin,
-                                              size_t snapshotTraceBytes,
-                                              android::base::BumpPool* pool, VkResult input_result,
+    void vkGetPhysicalDeviceToolPropertiesEXT(android::base::BumpPool* pool,
+                                              VkSnapshotApiCallInfo* apiCallInfo,
+                                              const uint8_t* apiCallPacket,
+                                              size_t apiCallPacketSize, VkResult input_result,
                                               VkPhysicalDevice physicalDevice, uint32_t* pToolCount,
                                               VkPhysicalDeviceToolProperties* pToolProperties) {}
 #endif
 #ifdef VK_EXT_line_rasterization
-    void vkCmdSetLineStippleEXT(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                                uint32_t lineStippleFactor, uint16_t lineStipplePattern) {
+    void vkCmdSetLineStippleEXT(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                                const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                VkCommandBuffer commandBuffer, uint32_t lineStippleFactor,
+                                uint16_t lineStipplePattern) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
 #endif
 #ifdef VK_EXT_extended_dynamic_state
-    void vkCmdSetCullModeEXT(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                             android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                             VkCullModeFlags cullMode) {
+    void vkCmdSetCullModeEXT(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                             const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                             VkCommandBuffer commandBuffer, VkCullModeFlags cullMode) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdSetFrontFaceEXT(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                              android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                              VkFrontFace frontFace) {
+    void vkCmdSetFrontFaceEXT(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                              const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                              VkCommandBuffer commandBuffer, VkFrontFace frontFace) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdSetPrimitiveTopologyEXT(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                      android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
+    void vkCmdSetPrimitiveTopologyEXT(android::base::BumpPool* pool,
+                                      VkSnapshotApiCallInfo* apiCallInfo,
+                                      const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                      VkCommandBuffer commandBuffer,
                                       VkPrimitiveTopology primitiveTopology) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdSetViewportWithCountEXT(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                      android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                                      uint32_t viewportCount, const VkViewport* pViewports) {
+    void vkCmdSetViewportWithCountEXT(android::base::BumpPool* pool,
+                                      VkSnapshotApiCallInfo* apiCallInfo,
+                                      const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                      VkCommandBuffer commandBuffer, uint32_t viewportCount,
+                                      const VkViewport* pViewports) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdSetScissorWithCountEXT(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                     android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                                     uint32_t scissorCount, const VkRect2D* pScissors) {
+    void vkCmdSetScissorWithCountEXT(android::base::BumpPool* pool,
+                                     VkSnapshotApiCallInfo* apiCallInfo,
+                                     const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                     VkCommandBuffer commandBuffer, uint32_t scissorCount,
+                                     const VkRect2D* pScissors) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdBindVertexBuffers2EXT(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                    android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                                    uint32_t firstBinding, uint32_t bindingCount,
-                                    const VkBuffer* pBuffers, const VkDeviceSize* pOffsets,
-                                    const VkDeviceSize* pSizes, const VkDeviceSize* pStrides) {
+    void vkCmdBindVertexBuffers2EXT(android::base::BumpPool* pool,
+                                    VkSnapshotApiCallInfo* apiCallInfo,
+                                    const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                    VkCommandBuffer commandBuffer, uint32_t firstBinding,
+                                    uint32_t bindingCount, const VkBuffer* pBuffers,
+                                    const VkDeviceSize* pOffsets, const VkDeviceSize* pSizes,
+                                    const VkDeviceSize* pStrides) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdSetDepthTestEnableEXT(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                    android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                                    VkBool32 depthTestEnable) {
+    void vkCmdSetDepthTestEnableEXT(android::base::BumpPool* pool,
+                                    VkSnapshotApiCallInfo* apiCallInfo,
+                                    const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                    VkCommandBuffer commandBuffer, VkBool32 depthTestEnable) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdSetDepthWriteEnableEXT(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                     android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                                     VkBool32 depthWriteEnable) {
+    void vkCmdSetDepthWriteEnableEXT(android::base::BumpPool* pool,
+                                     VkSnapshotApiCallInfo* apiCallInfo,
+                                     const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                     VkCommandBuffer commandBuffer, VkBool32 depthWriteEnable) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdSetDepthCompareOpEXT(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                   android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
+    void vkCmdSetDepthCompareOpEXT(android::base::BumpPool* pool,
+                                   VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+                                   size_t apiCallPacketSize, VkCommandBuffer commandBuffer,
                                    VkCompareOp depthCompareOp) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdSetDepthBoundsTestEnableEXT(const uint8_t* snapshotTraceBegin,
-                                          size_t snapshotTraceBytes, android::base::BumpPool* pool,
+    void vkCmdSetDepthBoundsTestEnableEXT(android::base::BumpPool* pool,
+                                          VkSnapshotApiCallInfo* apiCallInfo,
+                                          const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                           VkCommandBuffer commandBuffer,
                                           VkBool32 depthBoundsTestEnable) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdSetStencilTestEnableEXT(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                      android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                                      VkBool32 stencilTestEnable) {
+    void vkCmdSetStencilTestEnableEXT(android::base::BumpPool* pool,
+                                      VkSnapshotApiCallInfo* apiCallInfo,
+                                      const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                      VkCommandBuffer commandBuffer, VkBool32 stencilTestEnable) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdSetStencilOpEXT(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                              android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                              VkStencilFaceFlags faceMask, VkStencilOp failOp, VkStencilOp passOp,
-                              VkStencilOp depthFailOp, VkCompareOp compareOp) {
+    void vkCmdSetStencilOpEXT(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                              const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                              VkCommandBuffer commandBuffer, VkStencilFaceFlags faceMask,
+                              VkStencilOp failOp, VkStencilOp passOp, VkStencilOp depthFailOp,
+                              VkCompareOp compareOp) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
 #endif
 #ifdef VK_EXT_host_image_copy
-    void vkCopyMemoryToImageEXT(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                android::base::BumpPool* pool, VkResult input_result,
-                                VkDevice device,
+    void vkCopyMemoryToImageEXT(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                                const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                VkResult input_result, VkDevice device,
                                 const VkCopyMemoryToImageInfoEXT* pCopyMemoryToImageInfo) {}
-    void vkCopyImageToMemoryEXT(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                android::base::BumpPool* pool, VkResult input_result,
-                                VkDevice device,
+    void vkCopyImageToMemoryEXT(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                                const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                VkResult input_result, VkDevice device,
                                 const VkCopyImageToMemoryInfoEXT* pCopyImageToMemoryInfo) {}
-    void vkCopyImageToImageEXT(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                               android::base::BumpPool* pool, VkResult input_result,
-                               VkDevice device,
+    void vkCopyImageToImageEXT(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                               const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                               VkResult input_result, VkDevice device,
                                const VkCopyImageToImageInfoEXT* pCopyImageToImageInfo) {}
-    void vkTransitionImageLayoutEXT(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                    android::base::BumpPool* pool, VkResult input_result,
-                                    VkDevice device, uint32_t transitionCount,
+    void vkTransitionImageLayoutEXT(android::base::BumpPool* pool,
+                                    VkSnapshotApiCallInfo* apiCallInfo,
+                                    const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                    VkResult input_result, VkDevice device,
+                                    uint32_t transitionCount,
                                     const VkHostImageLayoutTransitionInfoEXT* pTransitions) {}
-    void vkGetImageSubresourceLayout2EXT(const uint8_t* snapshotTraceBegin,
-                                         size_t snapshotTraceBytes, android::base::BumpPool* pool,
+    void vkGetImageSubresourceLayout2EXT(android::base::BumpPool* pool,
+                                         VkSnapshotApiCallInfo* apiCallInfo,
+                                         const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                          VkDevice device, VkImage image,
                                          const VkImageSubresource2KHR* pSubresource,
                                          VkSubresourceLayout2KHR* pLayout) {}
 #endif
 #ifdef VK_EXT_swapchain_maintenance1
-    void vkReleaseSwapchainImagesEXT(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                     android::base::BumpPool* pool, VkResult input_result,
-                                     VkDevice device,
+    void vkReleaseSwapchainImagesEXT(android::base::BumpPool* pool,
+                                     VkSnapshotApiCallInfo* apiCallInfo,
+                                     const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                     VkResult input_result, VkDevice device,
                                      const VkReleaseSwapchainImagesInfoEXT* pReleaseInfo) {}
 #endif
 #ifdef VK_EXT_private_data
-    void vkCreatePrivateDataSlotEXT(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                    android::base::BumpPool* pool, VkResult input_result,
-                                    VkDevice device, const VkPrivateDataSlotCreateInfo* pCreateInfo,
+    void vkCreatePrivateDataSlotEXT(android::base::BumpPool* pool,
+                                    VkSnapshotApiCallInfo* apiCallInfo,
+                                    const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                    VkResult input_result, VkDevice device,
+                                    const VkPrivateDataSlotCreateInfo* pCreateInfo,
                                     const VkAllocationCallbacks* pAllocator,
                                     VkPrivateDataSlot* pPrivateDataSlot) {}
-    void vkDestroyPrivateDataSlotEXT(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                     android::base::BumpPool* pool, VkDevice device,
-                                     VkPrivateDataSlot privateDataSlot,
+    void vkDestroyPrivateDataSlotEXT(android::base::BumpPool* pool,
+                                     VkSnapshotApiCallInfo* apiCallInfo,
+                                     const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                     VkDevice device, VkPrivateDataSlot privateDataSlot,
                                      const VkAllocationCallbacks* pAllocator) {}
-    void vkSetPrivateDataEXT(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                             android::base::BumpPool* pool, VkResult input_result, VkDevice device,
-                             VkObjectType objectType, uint64_t objectHandle,
-                             VkPrivateDataSlot privateDataSlot, uint64_t data) {}
-    void vkGetPrivateDataEXT(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                             android::base::BumpPool* pool, VkDevice device,
-                             VkObjectType objectType, uint64_t objectHandle,
+    void vkSetPrivateDataEXT(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                             const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                             VkResult input_result, VkDevice device, VkObjectType objectType,
+                             uint64_t objectHandle, VkPrivateDataSlot privateDataSlot,
+                             uint64_t data) {}
+    void vkGetPrivateDataEXT(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                             const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                             VkDevice device, VkObjectType objectType, uint64_t objectHandle,
                              VkPrivateDataSlot privateDataSlot, uint64_t* pData) {}
 #endif
 #ifdef VK_EXT_extended_dynamic_state2
-    void vkCmdSetPatchControlPointsEXT(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                       android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                                       uint32_t patchControlPoints) {
+    void vkCmdSetPatchControlPointsEXT(android::base::BumpPool* pool,
+                                       VkSnapshotApiCallInfo* apiCallInfo,
+                                       const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                       VkCommandBuffer commandBuffer, uint32_t patchControlPoints) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdSetRasterizerDiscardEnableEXT(const uint8_t* snapshotTraceBegin,
-                                            size_t snapshotTraceBytes,
-                                            android::base::BumpPool* pool,
+    void vkCmdSetRasterizerDiscardEnableEXT(android::base::BumpPool* pool,
+                                            VkSnapshotApiCallInfo* apiCallInfo,
+                                            const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                             VkCommandBuffer commandBuffer,
                                             VkBool32 rasterizerDiscardEnable) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdSetDepthBiasEnableEXT(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                    android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                                    VkBool32 depthBiasEnable) {
+    void vkCmdSetDepthBiasEnableEXT(android::base::BumpPool* pool,
+                                    VkSnapshotApiCallInfo* apiCallInfo,
+                                    const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                    VkCommandBuffer commandBuffer, VkBool32 depthBiasEnable) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdSetLogicOpEXT(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                            android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                            VkLogicOp logicOp) {
+    void vkCmdSetLogicOpEXT(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                            const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                            VkCommandBuffer commandBuffer, VkLogicOp logicOp) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCmdSetPrimitiveRestartEnableEXT(const uint8_t* snapshotTraceBegin,
-                                           size_t snapshotTraceBytes, android::base::BumpPool* pool,
+    void vkCmdSetPrimitiveRestartEnableEXT(android::base::BumpPool* pool,
+                                           VkSnapshotApiCallInfo* apiCallInfo,
+                                           const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                            VkCommandBuffer commandBuffer,
                                            VkBool32 primitiveRestartEnable) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
 #endif
 #ifdef VK_EXT_color_write_enable
-    void vkCmdSetColorWriteEnableEXT(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                     android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                                     uint32_t attachmentCount, const VkBool32* pColorWriteEnables) {
+    void vkCmdSetColorWriteEnableEXT(android::base::BumpPool* pool,
+                                     VkSnapshotApiCallInfo* apiCallInfo,
+                                     const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                     VkCommandBuffer commandBuffer, uint32_t attachmentCount,
+                                     const VkBool32* pColorWriteEnables) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
 #endif
 #ifdef VK_GOOGLE_gfxstream
-    void vkMapMemoryIntoAddressSpaceGOOGLE(const uint8_t* snapshotTraceBegin,
-                                           size_t snapshotTraceBytes, android::base::BumpPool* pool,
+    void vkMapMemoryIntoAddressSpaceGOOGLE(android::base::BumpPool* pool,
+                                           VkSnapshotApiCallInfo* apiCallInfo,
+                                           const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                            VkResult input_result, VkDevice device,
                                            VkDeviceMemory memory, uint64_t* pAddress) {
         android::base::AutoLock lock(mLock);
         // memory modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             VkDeviceMemory boxed = unboxed_to_boxed_non_dispatchable_VkDeviceMemory((&memory)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
     void vkUpdateDescriptorSetWithTemplateSizedGOOGLE(
-        const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-        VkDevice device, VkDescriptorSet descriptorSet,
-        VkDescriptorUpdateTemplate descriptorUpdateTemplate, uint32_t imageInfoCount,
-        uint32_t bufferInfoCount, uint32_t bufferViewCount, const uint32_t* pImageInfoEntryIndices,
-        const uint32_t* pBufferInfoEntryIndices, const uint32_t* pBufferViewEntryIndices,
-        const VkDescriptorImageInfo* pImageInfos, const VkDescriptorBufferInfo* pBufferInfos,
-        const VkBufferView* pBufferViews) {}
-    void vkBeginCommandBufferAsyncGOOGLE(const uint8_t* snapshotTraceBegin,
-                                         size_t snapshotTraceBytes, android::base::BumpPool* pool,
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+        const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkDevice device,
+        VkDescriptorSet descriptorSet, VkDescriptorUpdateTemplate descriptorUpdateTemplate,
+        uint32_t imageInfoCount, uint32_t bufferInfoCount, uint32_t bufferViewCount,
+        const uint32_t* pImageInfoEntryIndices, const uint32_t* pBufferInfoEntryIndices,
+        const uint32_t* pBufferViewEntryIndices, const VkDescriptorImageInfo* pImageInfos,
+        const VkDescriptorBufferInfo* pBufferInfos, const VkBufferView* pBufferViews) {}
+    void vkBeginCommandBufferAsyncGOOGLE(android::base::BumpPool* pool,
+                                         VkSnapshotApiCallInfo* apiCallInfo,
+                                         const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                          VkCommandBuffer commandBuffer,
                                          const VkCommandBufferBeginInfo* pBeginInfo) {}
-    void vkEndCommandBufferAsyncGOOGLE(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                       android::base::BumpPool* pool,
+    void vkEndCommandBufferAsyncGOOGLE(android::base::BumpPool* pool,
+                                       VkSnapshotApiCallInfo* apiCallInfo,
+                                       const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                        VkCommandBuffer commandBuffer) {}
-    void vkResetCommandBufferAsyncGOOGLE(const uint8_t* snapshotTraceBegin,
-                                         size_t snapshotTraceBytes, android::base::BumpPool* pool,
+    void vkResetCommandBufferAsyncGOOGLE(android::base::BumpPool* pool,
+                                         VkSnapshotApiCallInfo* apiCallInfo,
+                                         const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                          VkCommandBuffer commandBuffer,
                                          VkCommandBufferResetFlags flags) {}
-    void vkCommandBufferHostSyncGOOGLE(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                       android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                                       uint32_t needHostSync, uint32_t sequenceNumber) {}
-    void vkCreateImageWithRequirementsGOOGLE(const uint8_t* snapshotTraceBegin,
-                                             size_t snapshotTraceBytes,
-                                             android::base::BumpPool* pool, VkResult input_result,
-                                             VkDevice device, const VkImageCreateInfo* pCreateInfo,
+    void vkCommandBufferHostSyncGOOGLE(android::base::BumpPool* pool,
+                                       VkSnapshotApiCallInfo* apiCallInfo,
+                                       const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                       VkCommandBuffer commandBuffer, uint32_t needHostSync,
+                                       uint32_t sequenceNumber) {}
+    void vkCreateImageWithRequirementsGOOGLE(android::base::BumpPool* pool,
+                                             VkSnapshotApiCallInfo* apiCallInfo,
+                                             const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                             VkResult input_result, VkDevice device,
+                                             const VkImageCreateInfo* pCreateInfo,
                                              const VkAllocationCallbacks* pAllocator,
                                              VkImage* pImage,
                                              VkMemoryRequirements* pMemoryRequirements) {
@@ -3704,16 +3803,16 @@ class VkDecoderSnapshot::Impl {
         mReconstruction.addHandles((const uint64_t*)pImage, 1);
         mReconstruction.addHandleDependency((const uint64_t*)pImage, 1,
                                             (uint64_t)(uintptr_t)device);
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)pImage, 1, apiHandle,
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pImage, 1, apiCallHandle,
                                             VkReconstruction::CREATED);
-        mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pImage, 1);
+        mReconstruction.setCreatedHandlesForApi(apiCallHandle, (const uint64_t*)pImage, 1);
     }
     void vkCreateBufferWithRequirementsGOOGLE(
-        const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-        VkResult input_result, VkDevice device, const VkBufferCreateInfo* pCreateInfo,
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+        const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkResult input_result,
+        VkDevice device, const VkBufferCreateInfo* pCreateInfo,
         const VkAllocationCallbacks* pAllocator, VkBuffer* pBuffer,
         VkMemoryRequirements* pMemoryRequirements) {
         if (!pBuffer) return;
@@ -3722,108 +3821,116 @@ class VkDecoderSnapshot::Impl {
         mReconstruction.addHandles((const uint64_t*)pBuffer, 1);
         mReconstruction.addHandleDependency((const uint64_t*)pBuffer, 1,
                                             (uint64_t)(uintptr_t)device);
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
-        mReconstruction.forEachHandleAddApi((const uint64_t*)pBuffer, 1, apiHandle,
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
+        mReconstruction.forEachHandleAddApi((const uint64_t*)pBuffer, 1, apiCallHandle,
                                             VkReconstruction::CREATED);
-        mReconstruction.setCreatedHandlesForApi(apiHandle, (const uint64_t*)pBuffer, 1);
+        mReconstruction.setCreatedHandlesForApi(apiCallHandle, (const uint64_t*)pBuffer, 1);
     }
-    void vkGetMemoryHostAddressInfoGOOGLE(const uint8_t* snapshotTraceBegin,
-                                          size_t snapshotTraceBytes, android::base::BumpPool* pool,
+    void vkGetMemoryHostAddressInfoGOOGLE(android::base::BumpPool* pool,
+                                          VkSnapshotApiCallInfo* apiCallInfo,
+                                          const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                           VkResult input_result, VkDevice device,
                                           VkDeviceMemory memory, uint64_t* pAddress,
                                           uint64_t* pSize, uint64_t* pHostmemId) {}
-    void vkFreeMemorySyncGOOGLE(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                android::base::BumpPool* pool, VkResult input_result,
-                                VkDevice device, VkDeviceMemory memory,
+    void vkFreeMemorySyncGOOGLE(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                                const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                VkResult input_result, VkDevice device, VkDeviceMemory memory,
                                 const VkAllocationCallbacks* pAllocator) {
         android::base::AutoLock lock(mLock);
         // memory destroy
         mReconstruction.removeHandles((const uint64_t*)(&memory), 1, true);
     }
-    void vkQueueHostSyncGOOGLE(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                               android::base::BumpPool* pool, VkQueue queue, uint32_t needHostSync,
-                               uint32_t sequenceNumber) {}
-    void vkQueueSubmitAsyncGOOGLE(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                  android::base::BumpPool* pool, VkQueue queue,
-                                  uint32_t submitCount, const VkSubmitInfo* pSubmits,
+    void vkQueueHostSyncGOOGLE(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                               const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                               VkQueue queue, uint32_t needHostSync, uint32_t sequenceNumber) {}
+    void vkQueueSubmitAsyncGOOGLE(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                                  const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                  VkQueue queue, uint32_t submitCount, const VkSubmitInfo* pSubmits,
                                   VkFence fence) {}
-    void vkQueueWaitIdleAsyncGOOGLE(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                    android::base::BumpPool* pool, VkQueue queue) {}
-    void vkQueueBindSparseAsyncGOOGLE(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                      android::base::BumpPool* pool, VkQueue queue,
-                                      uint32_t bindInfoCount, const VkBindSparseInfo* pBindInfo,
-                                      VkFence fence) {}
-    void vkGetLinearImageLayoutGOOGLE(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                      android::base::BumpPool* pool, VkDevice device,
-                                      VkFormat format, VkDeviceSize* pOffset,
+    void vkQueueWaitIdleAsyncGOOGLE(android::base::BumpPool* pool,
+                                    VkSnapshotApiCallInfo* apiCallInfo,
+                                    const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                    VkQueue queue) {}
+    void vkQueueBindSparseAsyncGOOGLE(android::base::BumpPool* pool,
+                                      VkSnapshotApiCallInfo* apiCallInfo,
+                                      const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                      VkQueue queue, uint32_t bindInfoCount,
+                                      const VkBindSparseInfo* pBindInfo, VkFence fence) {}
+    void vkGetLinearImageLayoutGOOGLE(android::base::BumpPool* pool,
+                                      VkSnapshotApiCallInfo* apiCallInfo,
+                                      const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                      VkDevice device, VkFormat format, VkDeviceSize* pOffset,
                                       VkDeviceSize* pRowPitchAlignment) {}
-    void vkGetLinearImageLayout2GOOGLE(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                       android::base::BumpPool* pool, VkDevice device,
-                                       const VkImageCreateInfo* pCreateInfo, VkDeviceSize* pOffset,
-                                       VkDeviceSize* pRowPitchAlignment) {}
-    void vkQueueFlushCommandsGOOGLE(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                    android::base::BumpPool* pool, VkQueue queue,
-                                    VkCommandBuffer commandBuffer, VkDeviceSize dataSize,
-                                    const void* pData) {}
+    void vkGetLinearImageLayout2GOOGLE(android::base::BumpPool* pool,
+                                       VkSnapshotApiCallInfo* apiCallInfo,
+                                       const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                       VkDevice device, const VkImageCreateInfo* pCreateInfo,
+                                       VkDeviceSize* pOffset, VkDeviceSize* pRowPitchAlignment) {}
+    void vkQueueFlushCommandsGOOGLE(android::base::BumpPool* pool,
+                                    VkSnapshotApiCallInfo* apiCallInfo,
+                                    const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                    VkQueue queue, VkCommandBuffer commandBuffer,
+                                    VkDeviceSize dataSize, const void* pData) {}
     void vkQueueCommitDescriptorSetUpdatesGOOGLE(
-        const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-        VkQueue queue, uint32_t descriptorPoolCount, const VkDescriptorPool* pDescriptorPools,
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+        const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkQueue queue,
+        uint32_t descriptorPoolCount, const VkDescriptorPool* pDescriptorPools,
         uint32_t descriptorSetCount, const VkDescriptorSetLayout* pSetLayouts,
         const uint64_t* pDescriptorSetPoolIds, const uint32_t* pDescriptorSetWhichPool,
         const uint32_t* pDescriptorSetPendingAllocation,
         const uint32_t* pDescriptorWriteStartingIndices, uint32_t pendingDescriptorWriteCount,
         const VkWriteDescriptorSet* pPendingDescriptorWrites) {}
-    void vkCollectDescriptorPoolIdsGOOGLE(const uint8_t* snapshotTraceBegin,
-                                          size_t snapshotTraceBytes, android::base::BumpPool* pool,
+    void vkCollectDescriptorPoolIdsGOOGLE(android::base::BumpPool* pool,
+                                          VkSnapshotApiCallInfo* apiCallInfo,
+                                          const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                           VkDevice device, VkDescriptorPool descriptorPool,
                                           uint32_t* pPoolIdCount, uint64_t* pPoolIds) {}
-    void vkQueueSignalReleaseImageANDROIDAsyncGOOGLE(const uint8_t* snapshotTraceBegin,
-                                                     size_t snapshotTraceBytes,
-                                                     android::base::BumpPool* pool, VkQueue queue,
-                                                     uint32_t waitSemaphoreCount,
-                                                     const VkSemaphore* pWaitSemaphores,
-                                                     VkImage image) {}
-    void vkQueueFlushCommandsFromAuxMemoryGOOGLE(const uint8_t* snapshotTraceBegin,
-                                                 size_t snapshotTraceBytes,
-                                                 android::base::BumpPool* pool, VkQueue queue,
+    void vkQueueSignalReleaseImageANDROIDAsyncGOOGLE(
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+        const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkQueue queue,
+        uint32_t waitSemaphoreCount, const VkSemaphore* pWaitSemaphores, VkImage image) {}
+    void vkQueueFlushCommandsFromAuxMemoryGOOGLE(android::base::BumpPool* pool,
+                                                 VkSnapshotApiCallInfo* apiCallInfo,
+                                                 const uint8_t* apiCallPacket,
+                                                 size_t apiCallPacketSize, VkQueue queue,
                                                  VkCommandBuffer commandBuffer,
                                                  VkDeviceMemory deviceMemory,
                                                  VkDeviceSize dataOffset, VkDeviceSize dataSize) {}
-    void vkGetBlobGOOGLE(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                         android::base::BumpPool* pool, VkResult input_result, VkDevice device,
-                         VkDeviceMemory memory) {
+    void vkGetBlobGOOGLE(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                         const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                         VkResult input_result, VkDevice device, VkDeviceMemory memory) {
         android::base::AutoLock lock(mLock);
         // memory modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             VkDeviceMemory boxed = unboxed_to_boxed_non_dispatchable_VkDeviceMemory((&memory)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
     void vkUpdateDescriptorSetWithTemplateSized2GOOGLE(
-        const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-        VkDevice device, VkDescriptorSet descriptorSet,
-        VkDescriptorUpdateTemplate descriptorUpdateTemplate, uint32_t imageInfoCount,
-        uint32_t bufferInfoCount, uint32_t bufferViewCount, uint32_t inlineUniformBlockCount,
-        const uint32_t* pImageInfoEntryIndices, const uint32_t* pBufferInfoEntryIndices,
-        const uint32_t* pBufferViewEntryIndices, const VkDescriptorImageInfo* pImageInfos,
-        const VkDescriptorBufferInfo* pBufferInfos, const VkBufferView* pBufferViews,
-        const uint8_t* pInlineUniformBlockData) {}
-    void vkQueueSubmitAsync2GOOGLE(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                   android::base::BumpPool* pool, VkQueue queue,
-                                   uint32_t submitCount, const VkSubmitInfo2* pSubmits,
-                                   VkFence fence) {}
-    void vkGetSemaphoreGOOGLE(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                              android::base::BumpPool* pool, VkResult input_result, VkDevice device,
-                              VkSemaphore semaphore, uint64_t syncId) {}
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+        const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkDevice device,
+        VkDescriptorSet descriptorSet, VkDescriptorUpdateTemplate descriptorUpdateTemplate,
+        uint32_t imageInfoCount, uint32_t bufferInfoCount, uint32_t bufferViewCount,
+        uint32_t inlineUniformBlockCount, const uint32_t* pImageInfoEntryIndices,
+        const uint32_t* pBufferInfoEntryIndices, const uint32_t* pBufferViewEntryIndices,
+        const VkDescriptorImageInfo* pImageInfos, const VkDescriptorBufferInfo* pBufferInfos,
+        const VkBufferView* pBufferViews, const uint8_t* pInlineUniformBlockData) {}
+    void vkQueueSubmitAsync2GOOGLE(android::base::BumpPool* pool,
+                                   VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+                                   size_t apiCallPacketSize, VkQueue queue, uint32_t submitCount,
+                                   const VkSubmitInfo2* pSubmits, VkFence fence) {}
+    void vkGetSemaphoreGOOGLE(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                              const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                              VkResult input_result, VkDevice device, VkSemaphore semaphore,
+                              uint64_t syncId) {}
 #endif
 #ifdef VK_KHR_ray_tracing_pipeline
-    void vkCmdTraceRaysKHR(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                           android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
+    void vkCmdTraceRaysKHR(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                           const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                           VkCommandBuffer commandBuffer,
                            const VkStridedDeviceAddressRegionKHR* pRaygenShaderBindingTable,
                            const VkStridedDeviceAddressRegionKHR* pMissShaderBindingTable,
                            const VkStridedDeviceAddressRegionKHR* pHitShaderBindingTable,
@@ -3831,30 +3938,28 @@ class VkDecoderSnapshot::Impl {
                            uint32_t width, uint32_t height, uint32_t depth) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkCreateRayTracingPipelinesKHR(const uint8_t* snapshotTraceBegin,
-                                        size_t snapshotTraceBytes, android::base::BumpPool* pool,
-                                        VkResult input_result, VkDevice device,
-                                        VkDeferredOperationKHR deferredOperation,
-                                        VkPipelineCache pipelineCache, uint32_t createInfoCount,
-                                        const VkRayTracingPipelineCreateInfoKHR* pCreateInfos,
-                                        const VkAllocationCallbacks* pAllocator,
-                                        VkPipeline* pPipelines) {}
+    void vkCreateRayTracingPipelinesKHR(
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+        const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkResult input_result,
+        VkDevice device, VkDeferredOperationKHR deferredOperation, VkPipelineCache pipelineCache,
+        uint32_t createInfoCount, const VkRayTracingPipelineCreateInfoKHR* pCreateInfos,
+        const VkAllocationCallbacks* pAllocator, VkPipeline* pPipelines) {}
     void vkGetRayTracingCaptureReplayShaderGroupHandlesKHR(
-        const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-        VkResult input_result, VkDevice device, VkPipeline pipeline, uint32_t firstGroup,
-        uint32_t groupCount, size_t dataSize, void* pData) {}
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+        const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkResult input_result,
+        VkDevice device, VkPipeline pipeline, uint32_t firstGroup, uint32_t groupCount,
+        size_t dataSize, void* pData) {}
     void vkCmdTraceRaysIndirectKHR(
-        const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-        VkCommandBuffer commandBuffer,
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+        const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkCommandBuffer commandBuffer,
         const VkStridedDeviceAddressRegionKHR* pRaygenShaderBindingTable,
         const VkStridedDeviceAddressRegionKHR* pMissShaderBindingTable,
         const VkStridedDeviceAddressRegionKHR* pHitShaderBindingTable,
@@ -3862,35 +3967,32 @@ class VkDecoderSnapshot::Impl {
         VkDeviceAddress indirectDeviceAddress) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
-    void vkGetRayTracingShaderGroupStackSizeKHR(const uint8_t* snapshotTraceBegin,
-                                                size_t snapshotTraceBytes,
-                                                android::base::BumpPool* pool,
-                                                VkDeviceSize input_result, VkDevice device,
-                                                VkPipeline pipeline, uint32_t group,
-                                                VkShaderGroupShaderKHR groupShader) {}
-    void vkCmdSetRayTracingPipelineStackSizeKHR(const uint8_t* snapshotTraceBegin,
-                                                size_t snapshotTraceBytes,
-                                                android::base::BumpPool* pool,
+    void vkGetRayTracingShaderGroupStackSizeKHR(
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+        const uint8_t* apiCallPacket, size_t apiCallPacketSize, VkDeviceSize input_result,
+        VkDevice device, VkPipeline pipeline, uint32_t group, VkShaderGroupShaderKHR groupShader) {}
+    void vkCmdSetRayTracingPipelineStackSizeKHR(android::base::BumpPool* pool,
+                                                VkSnapshotApiCallInfo* apiCallInfo,
+                                                const uint8_t* apiCallPacket,
+                                                size_t apiCallPacketSize,
                                                 VkCommandBuffer commandBuffer,
                                                 uint32_t pipelineStackSize) {
         android::base::AutoLock lock(mLock);
         // commandBuffer modify
-        auto apiHandle = mReconstruction.createApiInfo();
-        auto apiInfo = mReconstruction.getApiInfo(apiHandle);
-        mReconstruction.setApiTrace(apiInfo, snapshotTraceBegin, snapshotTraceBytes);
+        auto apiCallHandle = apiCallInfo->handle;
+        mReconstruction.setApiTrace(apiCallInfo, apiCallPacket, apiCallPacketSize);
         for (uint32_t i = 0; i < 1; ++i) {
             // commandBuffer is already boxed, no need to box again
             VkCommandBuffer boxed = VkCommandBuffer((&commandBuffer)[i]);
-            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiHandle);
+            mReconstruction.forEachHandleAddModifyApi((const uint64_t*)(&boxed), 1, apiCallHandle);
         }
     }
 #endif
@@ -3908,3307 +4010,3477 @@ void VkDecoderSnapshot::load(android::base::Stream* stream, GfxApiLogger& gfx_lo
     mImpl->load(stream, gfx_logger, healthMonitor);
 }
 
-void VkDecoderSnapshot::createExtraHandlesForNextApi(const uint64_t* created, uint32_t count) {
-    mImpl->createExtraHandlesForNextApi(created, count);
+VkSnapshotApiCallInfo* VkDecoderSnapshot::createApiCallInfo() { return mImpl->createApiCallInfo(); }
+
+void VkDecoderSnapshot::destroyApiCallInfoIfUnused(VkSnapshotApiCallInfo* info) {
+    mImpl->destroyApiCallInfoIfUnused(info);
 }
 
 VkDecoderSnapshot::~VkDecoderSnapshot() = default;
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkCreateInstance(const uint8_t* snapshotTraceBegin,
-                                         size_t snapshotTraceBytes, android::base::BumpPool* pool,
-                                         VkResult input_result,
-                                         const VkInstanceCreateInfo* pCreateInfo,
-                                         const VkAllocationCallbacks* pAllocator,
-                                         VkInstance* pInstance) {
-    mImpl->vkCreateInstance(snapshotTraceBegin, snapshotTraceBytes, pool, input_result, pCreateInfo,
-                            pAllocator, pInstance);
+void VkDecoderSnapshot::vkCreateInstance(
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkResult input_result, const VkInstanceCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator, VkInstance* pInstance) {
+    mImpl->vkCreateInstance(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result,
+                            pCreateInfo, pAllocator, pInstance);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkDestroyInstance(const uint8_t* snapshotTraceBegin,
-                                          size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkDestroyInstance(android::base::BumpPool* pool,
+                                          VkSnapshotApiCallInfo* apiCallInfo,
+                                          const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                           VkInstance instance,
                                           const VkAllocationCallbacks* pAllocator) {
-    mImpl->vkDestroyInstance(snapshotTraceBegin, snapshotTraceBytes, pool, instance, pAllocator);
+    mImpl->vkDestroyInstance(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, instance,
+                             pAllocator);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkEnumeratePhysicalDevices(const uint8_t* snapshotTraceBegin,
-                                                   size_t snapshotTraceBytes,
-                                                   android::base::BumpPool* pool,
-                                                   VkResult input_result, VkInstance instance,
-                                                   uint32_t* pPhysicalDeviceCount,
-                                                   VkPhysicalDevice* pPhysicalDevices) {
-    mImpl->vkEnumeratePhysicalDevices(snapshotTraceBegin, snapshotTraceBytes, pool, input_result,
-                                      instance, pPhysicalDeviceCount, pPhysicalDevices);
+void VkDecoderSnapshot::vkEnumeratePhysicalDevices(
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkResult input_result, VkInstance instance,
+    uint32_t* pPhysicalDeviceCount, VkPhysicalDevice* pPhysicalDevices) {
+    mImpl->vkEnumeratePhysicalDevices(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                      input_result, instance, pPhysicalDeviceCount,
+                                      pPhysicalDevices);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkGetPhysicalDeviceFeatures(const uint8_t* snapshotTraceBegin,
-                                                    size_t snapshotTraceBytes,
-                                                    android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkGetPhysicalDeviceFeatures(android::base::BumpPool* pool,
+                                                    VkSnapshotApiCallInfo* apiCallInfo,
+                                                    const uint8_t* apiCallPacket,
+                                                    size_t apiCallPacketSize,
                                                     VkPhysicalDevice physicalDevice,
                                                     VkPhysicalDeviceFeatures* pFeatures) {
-    mImpl->vkGetPhysicalDeviceFeatures(snapshotTraceBegin, snapshotTraceBytes, pool, physicalDevice,
-                                       pFeatures);
+    mImpl->vkGetPhysicalDeviceFeatures(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                       physicalDevice, pFeatures);
 }
 #endif
 #ifdef VK_VERSION_1_0
 void VkDecoderSnapshot::vkGetPhysicalDeviceFormatProperties(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkPhysicalDevice physicalDevice, VkFormat format, VkFormatProperties* pFormatProperties) {
-    mImpl->vkGetPhysicalDeviceFormatProperties(snapshotTraceBegin, snapshotTraceBytes, pool,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkPhysicalDevice physicalDevice, VkFormat format,
+    VkFormatProperties* pFormatProperties) {
+    mImpl->vkGetPhysicalDeviceFormatProperties(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
                                                physicalDevice, format, pFormatProperties);
 }
 #endif
 #ifdef VK_VERSION_1_0
 void VkDecoderSnapshot::vkGetPhysicalDeviceImageFormatProperties(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkResult input_result, VkPhysicalDevice physicalDevice, VkFormat format, VkImageType type,
-    VkImageTiling tiling, VkImageUsageFlags usage, VkImageCreateFlags flags,
-    VkImageFormatProperties* pImageFormatProperties) {
-    mImpl->vkGetPhysicalDeviceImageFormatProperties(snapshotTraceBegin, snapshotTraceBytes, pool,
-                                                    input_result, physicalDevice, format, type,
-                                                    tiling, usage, flags, pImageFormatProperties);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkResult input_result, VkPhysicalDevice physicalDevice,
+    VkFormat format, VkImageType type, VkImageTiling tiling, VkImageUsageFlags usage,
+    VkImageCreateFlags flags, VkImageFormatProperties* pImageFormatProperties) {
+    mImpl->vkGetPhysicalDeviceImageFormatProperties(
+        pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result, physicalDevice, format,
+        type, tiling, usage, flags, pImageFormatProperties);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkGetPhysicalDeviceProperties(const uint8_t* snapshotTraceBegin,
-                                                      size_t snapshotTraceBytes,
-                                                      android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkGetPhysicalDeviceProperties(android::base::BumpPool* pool,
+                                                      VkSnapshotApiCallInfo* apiCallInfo,
+                                                      const uint8_t* apiCallPacket,
+                                                      size_t apiCallPacketSize,
                                                       VkPhysicalDevice physicalDevice,
                                                       VkPhysicalDeviceProperties* pProperties) {
-    mImpl->vkGetPhysicalDeviceProperties(snapshotTraceBegin, snapshotTraceBytes, pool,
+    mImpl->vkGetPhysicalDeviceProperties(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
                                          physicalDevice, pProperties);
 }
 #endif
 #ifdef VK_VERSION_1_0
 void VkDecoderSnapshot::vkGetPhysicalDeviceQueueFamilyProperties(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkPhysicalDevice physicalDevice, uint32_t* pQueueFamilyPropertyCount,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkPhysicalDevice physicalDevice, uint32_t* pQueueFamilyPropertyCount,
     VkQueueFamilyProperties* pQueueFamilyProperties) {
-    mImpl->vkGetPhysicalDeviceQueueFamilyProperties(snapshotTraceBegin, snapshotTraceBytes, pool,
-                                                    physicalDevice, pQueueFamilyPropertyCount,
-                                                    pQueueFamilyProperties);
+    mImpl->vkGetPhysicalDeviceQueueFamilyProperties(
+        pool, apiCallInfo, apiCallPacket, apiCallPacketSize, physicalDevice,
+        pQueueFamilyPropertyCount, pQueueFamilyProperties);
 }
 #endif
 #ifdef VK_VERSION_1_0
 void VkDecoderSnapshot::vkGetPhysicalDeviceMemoryProperties(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkPhysicalDevice physicalDevice, VkPhysicalDeviceMemoryProperties* pMemoryProperties) {
-    mImpl->vkGetPhysicalDeviceMemoryProperties(snapshotTraceBegin, snapshotTraceBytes, pool,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkPhysicalDevice physicalDevice,
+    VkPhysicalDeviceMemoryProperties* pMemoryProperties) {
+    mImpl->vkGetPhysicalDeviceMemoryProperties(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
                                                physicalDevice, pMemoryProperties);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkGetInstanceProcAddr(const uint8_t* snapshotTraceBegin,
-                                              size_t snapshotTraceBytes,
-                                              android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkGetInstanceProcAddr(android::base::BumpPool* pool,
+                                              VkSnapshotApiCallInfo* apiCallInfo,
+                                              const uint8_t* apiCallPacket,
+                                              size_t apiCallPacketSize,
                                               PFN_vkVoidFunction input_result, VkInstance instance,
                                               const char* pName) {
-    mImpl->vkGetInstanceProcAddr(snapshotTraceBegin, snapshotTraceBytes, pool, input_result,
+    mImpl->vkGetInstanceProcAddr(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result,
                                  instance, pName);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkGetDeviceProcAddr(const uint8_t* snapshotTraceBegin,
-                                            size_t snapshotTraceBytes,
-                                            android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkGetDeviceProcAddr(android::base::BumpPool* pool,
+                                            VkSnapshotApiCallInfo* apiCallInfo,
+                                            const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                             PFN_vkVoidFunction input_result, VkDevice device,
                                             const char* pName) {
-    mImpl->vkGetDeviceProcAddr(snapshotTraceBegin, snapshotTraceBytes, pool, input_result, device,
-                               pName);
+    mImpl->vkGetDeviceProcAddr(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result,
+                               device, pName);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkCreateDevice(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                       android::base::BumpPool* pool, VkResult input_result,
-                                       VkPhysicalDevice physicalDevice,
+void VkDecoderSnapshot::vkCreateDevice(android::base::BumpPool* pool,
+                                       VkSnapshotApiCallInfo* apiCallInfo,
+                                       const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                       VkResult input_result, VkPhysicalDevice physicalDevice,
                                        const VkDeviceCreateInfo* pCreateInfo,
                                        const VkAllocationCallbacks* pAllocator, VkDevice* pDevice) {
-    mImpl->vkCreateDevice(snapshotTraceBegin, snapshotTraceBytes, pool, input_result,
+    mImpl->vkCreateDevice(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result,
                           physicalDevice, pCreateInfo, pAllocator, pDevice);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkDestroyDevice(const uint8_t* snapshotTraceBegin,
-                                        size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkDestroyDevice(android::base::BumpPool* pool,
+                                        VkSnapshotApiCallInfo* apiCallInfo,
+                                        const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                         VkDevice device, const VkAllocationCallbacks* pAllocator) {
-    mImpl->vkDestroyDevice(snapshotTraceBegin, snapshotTraceBytes, pool, device, pAllocator);
+    mImpl->vkDestroyDevice(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, device, pAllocator);
 }
 #endif
 #ifdef VK_VERSION_1_0
 void VkDecoderSnapshot::vkEnumerateInstanceExtensionProperties(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkResult input_result, const char* pLayerName, uint32_t* pPropertyCount,
-    VkExtensionProperties* pProperties) {
-    mImpl->vkEnumerateInstanceExtensionProperties(snapshotTraceBegin, snapshotTraceBytes, pool,
-                                                  input_result, pLayerName, pPropertyCount,
-                                                  pProperties);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkResult input_result, const char* pLayerName,
+    uint32_t* pPropertyCount, VkExtensionProperties* pProperties) {
+    mImpl->vkEnumerateInstanceExtensionProperties(pool, apiCallInfo, apiCallPacket,
+                                                  apiCallPacketSize, input_result, pLayerName,
+                                                  pPropertyCount, pProperties);
 }
 #endif
 #ifdef VK_VERSION_1_0
 void VkDecoderSnapshot::vkEnumerateDeviceExtensionProperties(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkResult input_result, VkPhysicalDevice physicalDevice, const char* pLayerName,
-    uint32_t* pPropertyCount, VkExtensionProperties* pProperties) {
-    mImpl->vkEnumerateDeviceExtensionProperties(snapshotTraceBegin, snapshotTraceBytes, pool,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkResult input_result, VkPhysicalDevice physicalDevice,
+    const char* pLayerName, uint32_t* pPropertyCount, VkExtensionProperties* pProperties) {
+    mImpl->vkEnumerateDeviceExtensionProperties(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
                                                 input_result, physicalDevice, pLayerName,
                                                 pPropertyCount, pProperties);
 }
 #endif
 #ifdef VK_VERSION_1_0
 void VkDecoderSnapshot::vkEnumerateInstanceLayerProperties(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkResult input_result, uint32_t* pPropertyCount, VkLayerProperties* pProperties) {
-    mImpl->vkEnumerateInstanceLayerProperties(snapshotTraceBegin, snapshotTraceBytes, pool,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkResult input_result, uint32_t* pPropertyCount,
+    VkLayerProperties* pProperties) {
+    mImpl->vkEnumerateInstanceLayerProperties(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
                                               input_result, pPropertyCount, pProperties);
 }
 #endif
 #ifdef VK_VERSION_1_0
 void VkDecoderSnapshot::vkEnumerateDeviceLayerProperties(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkResult input_result, VkPhysicalDevice physicalDevice, uint32_t* pPropertyCount,
-    VkLayerProperties* pProperties) {
-    mImpl->vkEnumerateDeviceLayerProperties(snapshotTraceBegin, snapshotTraceBytes, pool,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkResult input_result, VkPhysicalDevice physicalDevice,
+    uint32_t* pPropertyCount, VkLayerProperties* pProperties) {
+    mImpl->vkEnumerateDeviceLayerProperties(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
                                             input_result, physicalDevice, pPropertyCount,
                                             pProperties);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkGetDeviceQueue(const uint8_t* snapshotTraceBegin,
-                                         size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkGetDeviceQueue(android::base::BumpPool* pool,
+                                         VkSnapshotApiCallInfo* apiCallInfo,
+                                         const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                          VkDevice device, uint32_t queueFamilyIndex,
                                          uint32_t queueIndex, VkQueue* pQueue) {
-    mImpl->vkGetDeviceQueue(snapshotTraceBegin, snapshotTraceBytes, pool, device, queueFamilyIndex,
-                            queueIndex, pQueue);
+    mImpl->vkGetDeviceQueue(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, device,
+                            queueFamilyIndex, queueIndex, pQueue);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkQueueSubmit(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                      android::base::BumpPool* pool, VkResult input_result,
-                                      VkQueue queue, uint32_t submitCount,
+void VkDecoderSnapshot::vkQueueSubmit(android::base::BumpPool* pool,
+                                      VkSnapshotApiCallInfo* apiCallInfo,
+                                      const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                      VkResult input_result, VkQueue queue, uint32_t submitCount,
                                       const VkSubmitInfo* pSubmits, VkFence fence) {
-    mImpl->vkQueueSubmit(snapshotTraceBegin, snapshotTraceBytes, pool, input_result, queue,
+    mImpl->vkQueueSubmit(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result, queue,
                          submitCount, pSubmits, fence);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkQueueWaitIdle(const uint8_t* snapshotTraceBegin,
-                                        size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkQueueWaitIdle(android::base::BumpPool* pool,
+                                        VkSnapshotApiCallInfo* apiCallInfo,
+                                        const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                         VkResult input_result, VkQueue queue) {
-    mImpl->vkQueueWaitIdle(snapshotTraceBegin, snapshotTraceBytes, pool, input_result, queue);
+    mImpl->vkQueueWaitIdle(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result,
+                           queue);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkDeviceWaitIdle(const uint8_t* snapshotTraceBegin,
-                                         size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkDeviceWaitIdle(android::base::BumpPool* pool,
+                                         VkSnapshotApiCallInfo* apiCallInfo,
+                                         const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                          VkResult input_result, VkDevice device) {
-    mImpl->vkDeviceWaitIdle(snapshotTraceBegin, snapshotTraceBytes, pool, input_result, device);
+    mImpl->vkDeviceWaitIdle(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result,
+                            device);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkAllocateMemory(const uint8_t* snapshotTraceBegin,
-                                         size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkAllocateMemory(android::base::BumpPool* pool,
+                                         VkSnapshotApiCallInfo* apiCallInfo,
+                                         const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                          VkResult input_result, VkDevice device,
                                          const VkMemoryAllocateInfo* pAllocateInfo,
                                          const VkAllocationCallbacks* pAllocator,
                                          VkDeviceMemory* pMemory) {
-    mImpl->vkAllocateMemory(snapshotTraceBegin, snapshotTraceBytes, pool, input_result, device,
-                            pAllocateInfo, pAllocator, pMemory);
+    mImpl->vkAllocateMemory(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result,
+                            device, pAllocateInfo, pAllocator, pMemory);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkFreeMemory(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                     android::base::BumpPool* pool, VkDevice device,
-                                     VkDeviceMemory memory,
+void VkDecoderSnapshot::vkFreeMemory(android::base::BumpPool* pool,
+                                     VkSnapshotApiCallInfo* apiCallInfo,
+                                     const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                     VkDevice device, VkDeviceMemory memory,
                                      const VkAllocationCallbacks* pAllocator) {
-    mImpl->vkFreeMemory(snapshotTraceBegin, snapshotTraceBytes, pool, device, memory, pAllocator);
+    mImpl->vkFreeMemory(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, device, memory,
+                        pAllocator);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkMapMemory(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                    android::base::BumpPool* pool, VkResult input_result,
-                                    VkDevice device, VkDeviceMemory memory, VkDeviceSize offset,
-                                    VkDeviceSize size, VkMemoryMapFlags flags, void** ppData) {
-    mImpl->vkMapMemory(snapshotTraceBegin, snapshotTraceBytes, pool, input_result, device, memory,
-                       offset, size, flags, ppData);
+void VkDecoderSnapshot::vkMapMemory(android::base::BumpPool* pool,
+                                    VkSnapshotApiCallInfo* apiCallInfo,
+                                    const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                    VkResult input_result, VkDevice device, VkDeviceMemory memory,
+                                    VkDeviceSize offset, VkDeviceSize size, VkMemoryMapFlags flags,
+                                    void** ppData) {
+    mImpl->vkMapMemory(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result, device,
+                       memory, offset, size, flags, ppData);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkUnmapMemory(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                      android::base::BumpPool* pool, VkDevice device,
-                                      VkDeviceMemory memory) {
-    mImpl->vkUnmapMemory(snapshotTraceBegin, snapshotTraceBytes, pool, device, memory);
+void VkDecoderSnapshot::vkUnmapMemory(android::base::BumpPool* pool,
+                                      VkSnapshotApiCallInfo* apiCallInfo,
+                                      const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                      VkDevice device, VkDeviceMemory memory) {
+    mImpl->vkUnmapMemory(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, device, memory);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkFlushMappedMemoryRanges(const uint8_t* snapshotTraceBegin,
-                                                  size_t snapshotTraceBytes,
-                                                  android::base::BumpPool* pool,
-                                                  VkResult input_result, VkDevice device,
-                                                  uint32_t memoryRangeCount,
+void VkDecoderSnapshot::vkFlushMappedMemoryRanges(android::base::BumpPool* pool,
+                                                  VkSnapshotApiCallInfo* apiCallInfo,
+                                                  const uint8_t* apiCallPacket,
+                                                  size_t apiCallPacketSize, VkResult input_result,
+                                                  VkDevice device, uint32_t memoryRangeCount,
                                                   const VkMappedMemoryRange* pMemoryRanges) {
-    mImpl->vkFlushMappedMemoryRanges(snapshotTraceBegin, snapshotTraceBytes, pool, input_result,
-                                     device, memoryRangeCount, pMemoryRanges);
+    mImpl->vkFlushMappedMemoryRanges(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                     input_result, device, memoryRangeCount, pMemoryRanges);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkInvalidateMappedMemoryRanges(const uint8_t* snapshotTraceBegin,
-                                                       size_t snapshotTraceBytes,
-                                                       android::base::BumpPool* pool,
-                                                       VkResult input_result, VkDevice device,
-                                                       uint32_t memoryRangeCount,
-                                                       const VkMappedMemoryRange* pMemoryRanges) {
-    mImpl->vkInvalidateMappedMemoryRanges(snapshotTraceBegin, snapshotTraceBytes, pool,
+void VkDecoderSnapshot::vkInvalidateMappedMemoryRanges(
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkResult input_result, VkDevice device, uint32_t memoryRangeCount,
+    const VkMappedMemoryRange* pMemoryRanges) {
+    mImpl->vkInvalidateMappedMemoryRanges(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
                                           input_result, device, memoryRangeCount, pMemoryRanges);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkGetDeviceMemoryCommitment(const uint8_t* snapshotTraceBegin,
-                                                    size_t snapshotTraceBytes,
-                                                    android::base::BumpPool* pool, VkDevice device,
+void VkDecoderSnapshot::vkGetDeviceMemoryCommitment(android::base::BumpPool* pool,
+                                                    VkSnapshotApiCallInfo* apiCallInfo,
+                                                    const uint8_t* apiCallPacket,
+                                                    size_t apiCallPacketSize, VkDevice device,
                                                     VkDeviceMemory memory,
                                                     VkDeviceSize* pCommittedMemoryInBytes) {
-    mImpl->vkGetDeviceMemoryCommitment(snapshotTraceBegin, snapshotTraceBytes, pool, device, memory,
-                                       pCommittedMemoryInBytes);
+    mImpl->vkGetDeviceMemoryCommitment(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, device,
+                                       memory, pCommittedMemoryInBytes);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkBindBufferMemory(const uint8_t* snapshotTraceBegin,
-                                           size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkBindBufferMemory(android::base::BumpPool* pool,
+                                           VkSnapshotApiCallInfo* apiCallInfo,
+                                           const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                            VkResult input_result, VkDevice device, VkBuffer buffer,
                                            VkDeviceMemory memory, VkDeviceSize memoryOffset) {
-    mImpl->vkBindBufferMemory(snapshotTraceBegin, snapshotTraceBytes, pool, input_result, device,
-                              buffer, memory, memoryOffset);
+    mImpl->vkBindBufferMemory(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result,
+                              device, buffer, memory, memoryOffset);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkBindImageMemory(const uint8_t* snapshotTraceBegin,
-                                          size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkBindImageMemory(android::base::BumpPool* pool,
+                                          VkSnapshotApiCallInfo* apiCallInfo,
+                                          const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                           VkResult input_result, VkDevice device, VkImage image,
                                           VkDeviceMemory memory, VkDeviceSize memoryOffset) {
-    mImpl->vkBindImageMemory(snapshotTraceBegin, snapshotTraceBytes, pool, input_result, device,
-                             image, memory, memoryOffset);
+    mImpl->vkBindImageMemory(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result,
+                             device, image, memory, memoryOffset);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkGetBufferMemoryRequirements(const uint8_t* snapshotTraceBegin,
-                                                      size_t snapshotTraceBytes,
-                                                      android::base::BumpPool* pool,
-                                                      VkDevice device, VkBuffer buffer,
+void VkDecoderSnapshot::vkGetBufferMemoryRequirements(android::base::BumpPool* pool,
+                                                      VkSnapshotApiCallInfo* apiCallInfo,
+                                                      const uint8_t* apiCallPacket,
+                                                      size_t apiCallPacketSize, VkDevice device,
+                                                      VkBuffer buffer,
                                                       VkMemoryRequirements* pMemoryRequirements) {
-    mImpl->vkGetBufferMemoryRequirements(snapshotTraceBegin, snapshotTraceBytes, pool, device,
-                                         buffer, pMemoryRequirements);
+    mImpl->vkGetBufferMemoryRequirements(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                         device, buffer, pMemoryRequirements);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkGetImageMemoryRequirements(const uint8_t* snapshotTraceBegin,
-                                                     size_t snapshotTraceBytes,
-                                                     android::base::BumpPool* pool, VkDevice device,
+void VkDecoderSnapshot::vkGetImageMemoryRequirements(android::base::BumpPool* pool,
+                                                     VkSnapshotApiCallInfo* apiCallInfo,
+                                                     const uint8_t* apiCallPacket,
+                                                     size_t apiCallPacketSize, VkDevice device,
                                                      VkImage image,
                                                      VkMemoryRequirements* pMemoryRequirements) {
-    mImpl->vkGetImageMemoryRequirements(snapshotTraceBegin, snapshotTraceBytes, pool, device, image,
-                                        pMemoryRequirements);
+    mImpl->vkGetImageMemoryRequirements(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, device,
+                                        image, pMemoryRequirements);
 }
 #endif
 #ifdef VK_VERSION_1_0
 void VkDecoderSnapshot::vkGetImageSparseMemoryRequirements(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkDevice device, VkImage image, uint32_t* pSparseMemoryRequirementCount,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkDevice device, VkImage image,
+    uint32_t* pSparseMemoryRequirementCount,
     VkSparseImageMemoryRequirements* pSparseMemoryRequirements) {
-    mImpl->vkGetImageSparseMemoryRequirements(snapshotTraceBegin, snapshotTraceBytes, pool, device,
-                                              image, pSparseMemoryRequirementCount,
+    mImpl->vkGetImageSparseMemoryRequirements(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                              device, image, pSparseMemoryRequirementCount,
                                               pSparseMemoryRequirements);
 }
 #endif
 #ifdef VK_VERSION_1_0
 void VkDecoderSnapshot::vkGetPhysicalDeviceSparseImageFormatProperties(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkPhysicalDevice physicalDevice, VkFormat format, VkImageType type,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkPhysicalDevice physicalDevice, VkFormat format, VkImageType type,
     VkSampleCountFlagBits samples, VkImageUsageFlags usage, VkImageTiling tiling,
     uint32_t* pPropertyCount, VkSparseImageFormatProperties* pProperties) {
     mImpl->vkGetPhysicalDeviceSparseImageFormatProperties(
-        snapshotTraceBegin, snapshotTraceBytes, pool, physicalDevice, format, type, samples, usage,
-        tiling, pPropertyCount, pProperties);
+        pool, apiCallInfo, apiCallPacket, apiCallPacketSize, physicalDevice, format, type, samples,
+        usage, tiling, pPropertyCount, pProperties);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkQueueBindSparse(const uint8_t* snapshotTraceBegin,
-                                          size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkQueueBindSparse(android::base::BumpPool* pool,
+                                          VkSnapshotApiCallInfo* apiCallInfo,
+                                          const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                           VkResult input_result, VkQueue queue,
                                           uint32_t bindInfoCount, const VkBindSparseInfo* pBindInfo,
                                           VkFence fence) {
-    mImpl->vkQueueBindSparse(snapshotTraceBegin, snapshotTraceBytes, pool, input_result, queue,
-                             bindInfoCount, pBindInfo, fence);
+    mImpl->vkQueueBindSparse(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result,
+                             queue, bindInfoCount, pBindInfo, fence);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkCreateFence(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                      android::base::BumpPool* pool, VkResult input_result,
-                                      VkDevice device, const VkFenceCreateInfo* pCreateInfo,
+void VkDecoderSnapshot::vkCreateFence(android::base::BumpPool* pool,
+                                      VkSnapshotApiCallInfo* apiCallInfo,
+                                      const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                      VkResult input_result, VkDevice device,
+                                      const VkFenceCreateInfo* pCreateInfo,
                                       const VkAllocationCallbacks* pAllocator, VkFence* pFence) {
-    mImpl->vkCreateFence(snapshotTraceBegin, snapshotTraceBytes, pool, input_result, device,
+    mImpl->vkCreateFence(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result, device,
                          pCreateInfo, pAllocator, pFence);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkDestroyFence(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                       android::base::BumpPool* pool, VkDevice device,
-                                       VkFence fence, const VkAllocationCallbacks* pAllocator) {
-    mImpl->vkDestroyFence(snapshotTraceBegin, snapshotTraceBytes, pool, device, fence, pAllocator);
+void VkDecoderSnapshot::vkDestroyFence(android::base::BumpPool* pool,
+                                       VkSnapshotApiCallInfo* apiCallInfo,
+                                       const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                       VkDevice device, VkFence fence,
+                                       const VkAllocationCallbacks* pAllocator) {
+    mImpl->vkDestroyFence(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, device, fence,
+                          pAllocator);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkResetFences(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                      android::base::BumpPool* pool, VkResult input_result,
-                                      VkDevice device, uint32_t fenceCount,
+void VkDecoderSnapshot::vkResetFences(android::base::BumpPool* pool,
+                                      VkSnapshotApiCallInfo* apiCallInfo,
+                                      const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                      VkResult input_result, VkDevice device, uint32_t fenceCount,
                                       const VkFence* pFences) {
-    mImpl->vkResetFences(snapshotTraceBegin, snapshotTraceBytes, pool, input_result, device,
+    mImpl->vkResetFences(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result, device,
                          fenceCount, pFences);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkGetFenceStatus(const uint8_t* snapshotTraceBegin,
-                                         size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkGetFenceStatus(android::base::BumpPool* pool,
+                                         VkSnapshotApiCallInfo* apiCallInfo,
+                                         const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                          VkResult input_result, VkDevice device, VkFence fence) {
-    mImpl->vkGetFenceStatus(snapshotTraceBegin, snapshotTraceBytes, pool, input_result, device,
-                            fence);
+    mImpl->vkGetFenceStatus(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result,
+                            device, fence);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkWaitForFences(const uint8_t* snapshotTraceBegin,
-                                        size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkWaitForFences(android::base::BumpPool* pool,
+                                        VkSnapshotApiCallInfo* apiCallInfo,
+                                        const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                         VkResult input_result, VkDevice device, uint32_t fenceCount,
                                         const VkFence* pFences, VkBool32 waitAll,
                                         uint64_t timeout) {
-    mImpl->vkWaitForFences(snapshotTraceBegin, snapshotTraceBytes, pool, input_result, device,
-                           fenceCount, pFences, waitAll, timeout);
+    mImpl->vkWaitForFences(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result,
+                           device, fenceCount, pFences, waitAll, timeout);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkCreateSemaphore(const uint8_t* snapshotTraceBegin,
-                                          size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCreateSemaphore(android::base::BumpPool* pool,
+                                          VkSnapshotApiCallInfo* apiCallInfo,
+                                          const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                           VkResult input_result, VkDevice device,
                                           const VkSemaphoreCreateInfo* pCreateInfo,
                                           const VkAllocationCallbacks* pAllocator,
                                           VkSemaphore* pSemaphore) {
-    mImpl->vkCreateSemaphore(snapshotTraceBegin, snapshotTraceBytes, pool, input_result, device,
-                             pCreateInfo, pAllocator, pSemaphore);
+    mImpl->vkCreateSemaphore(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result,
+                             device, pCreateInfo, pAllocator, pSemaphore);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkDestroySemaphore(const uint8_t* snapshotTraceBegin,
-                                           size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkDestroySemaphore(android::base::BumpPool* pool,
+                                           VkSnapshotApiCallInfo* apiCallInfo,
+                                           const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                            VkDevice device, VkSemaphore semaphore,
                                            const VkAllocationCallbacks* pAllocator) {
-    mImpl->vkDestroySemaphore(snapshotTraceBegin, snapshotTraceBytes, pool, device, semaphore,
-                              pAllocator);
+    mImpl->vkDestroySemaphore(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, device,
+                              semaphore, pAllocator);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkCreateEvent(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                      android::base::BumpPool* pool, VkResult input_result,
-                                      VkDevice device, const VkEventCreateInfo* pCreateInfo,
+void VkDecoderSnapshot::vkCreateEvent(android::base::BumpPool* pool,
+                                      VkSnapshotApiCallInfo* apiCallInfo,
+                                      const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                      VkResult input_result, VkDevice device,
+                                      const VkEventCreateInfo* pCreateInfo,
                                       const VkAllocationCallbacks* pAllocator, VkEvent* pEvent) {
-    mImpl->vkCreateEvent(snapshotTraceBegin, snapshotTraceBytes, pool, input_result, device,
+    mImpl->vkCreateEvent(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result, device,
                          pCreateInfo, pAllocator, pEvent);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkDestroyEvent(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                       android::base::BumpPool* pool, VkDevice device,
-                                       VkEvent event, const VkAllocationCallbacks* pAllocator) {
-    mImpl->vkDestroyEvent(snapshotTraceBegin, snapshotTraceBytes, pool, device, event, pAllocator);
+void VkDecoderSnapshot::vkDestroyEvent(android::base::BumpPool* pool,
+                                       VkSnapshotApiCallInfo* apiCallInfo,
+                                       const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                       VkDevice device, VkEvent event,
+                                       const VkAllocationCallbacks* pAllocator) {
+    mImpl->vkDestroyEvent(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, device, event,
+                          pAllocator);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkGetEventStatus(const uint8_t* snapshotTraceBegin,
-                                         size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkGetEventStatus(android::base::BumpPool* pool,
+                                         VkSnapshotApiCallInfo* apiCallInfo,
+                                         const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                          VkResult input_result, VkDevice device, VkEvent event) {
-    mImpl->vkGetEventStatus(snapshotTraceBegin, snapshotTraceBytes, pool, input_result, device,
-                            event);
+    mImpl->vkGetEventStatus(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result,
+                            device, event);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkSetEvent(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                   android::base::BumpPool* pool, VkResult input_result,
-                                   VkDevice device, VkEvent event) {
-    mImpl->vkSetEvent(snapshotTraceBegin, snapshotTraceBytes, pool, input_result, device, event);
+void VkDecoderSnapshot::vkSetEvent(android::base::BumpPool* pool,
+                                   VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+                                   size_t apiCallPacketSize, VkResult input_result, VkDevice device,
+                                   VkEvent event) {
+    mImpl->vkSetEvent(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result, device,
+                      event);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkResetEvent(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                     android::base::BumpPool* pool, VkResult input_result,
-                                     VkDevice device, VkEvent event) {
-    mImpl->vkResetEvent(snapshotTraceBegin, snapshotTraceBytes, pool, input_result, device, event);
+void VkDecoderSnapshot::vkResetEvent(android::base::BumpPool* pool,
+                                     VkSnapshotApiCallInfo* apiCallInfo,
+                                     const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                     VkResult input_result, VkDevice device, VkEvent event) {
+    mImpl->vkResetEvent(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result, device,
+                        event);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkCreateQueryPool(const uint8_t* snapshotTraceBegin,
-                                          size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCreateQueryPool(android::base::BumpPool* pool,
+                                          VkSnapshotApiCallInfo* apiCallInfo,
+                                          const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                           VkResult input_result, VkDevice device,
                                           const VkQueryPoolCreateInfo* pCreateInfo,
                                           const VkAllocationCallbacks* pAllocator,
                                           VkQueryPool* pQueryPool) {
-    mImpl->vkCreateQueryPool(snapshotTraceBegin, snapshotTraceBytes, pool, input_result, device,
-                             pCreateInfo, pAllocator, pQueryPool);
+    mImpl->vkCreateQueryPool(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result,
+                             device, pCreateInfo, pAllocator, pQueryPool);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkDestroyQueryPool(const uint8_t* snapshotTraceBegin,
-                                           size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkDestroyQueryPool(android::base::BumpPool* pool,
+                                           VkSnapshotApiCallInfo* apiCallInfo,
+                                           const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                            VkDevice device, VkQueryPool queryPool,
                                            const VkAllocationCallbacks* pAllocator) {
-    mImpl->vkDestroyQueryPool(snapshotTraceBegin, snapshotTraceBytes, pool, device, queryPool,
-                              pAllocator);
+    mImpl->vkDestroyQueryPool(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, device,
+                              queryPool, pAllocator);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkGetQueryPoolResults(const uint8_t* snapshotTraceBegin,
-                                              size_t snapshotTraceBytes,
-                                              android::base::BumpPool* pool, VkResult input_result,
-                                              VkDevice device, VkQueryPool queryPool,
-                                              uint32_t firstQuery, uint32_t queryCount,
-                                              size_t dataSize, void* pData, VkDeviceSize stride,
-                                              VkQueryResultFlags flags) {
-    mImpl->vkGetQueryPoolResults(snapshotTraceBegin, snapshotTraceBytes, pool, input_result, device,
-                                 queryPool, firstQuery, queryCount, dataSize, pData, stride, flags);
+void VkDecoderSnapshot::vkGetQueryPoolResults(
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkResult input_result, VkDevice device, VkQueryPool queryPool,
+    uint32_t firstQuery, uint32_t queryCount, size_t dataSize, void* pData, VkDeviceSize stride,
+    VkQueryResultFlags flags) {
+    mImpl->vkGetQueryPoolResults(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result,
+                                 device, queryPool, firstQuery, queryCount, dataSize, pData, stride,
+                                 flags);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkCreateBuffer(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                       android::base::BumpPool* pool, VkResult input_result,
-                                       VkDevice device, const VkBufferCreateInfo* pCreateInfo,
+void VkDecoderSnapshot::vkCreateBuffer(android::base::BumpPool* pool,
+                                       VkSnapshotApiCallInfo* apiCallInfo,
+                                       const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                       VkResult input_result, VkDevice device,
+                                       const VkBufferCreateInfo* pCreateInfo,
                                        const VkAllocationCallbacks* pAllocator, VkBuffer* pBuffer) {
-    mImpl->vkCreateBuffer(snapshotTraceBegin, snapshotTraceBytes, pool, input_result, device,
+    mImpl->vkCreateBuffer(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result, device,
                           pCreateInfo, pAllocator, pBuffer);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkDestroyBuffer(const uint8_t* snapshotTraceBegin,
-                                        size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkDestroyBuffer(android::base::BumpPool* pool,
+                                        VkSnapshotApiCallInfo* apiCallInfo,
+                                        const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                         VkDevice device, VkBuffer buffer,
                                         const VkAllocationCallbacks* pAllocator) {
-    mImpl->vkDestroyBuffer(snapshotTraceBegin, snapshotTraceBytes, pool, device, buffer,
+    mImpl->vkDestroyBuffer(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, device, buffer,
                            pAllocator);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkCreateBufferView(const uint8_t* snapshotTraceBegin,
-                                           size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCreateBufferView(android::base::BumpPool* pool,
+                                           VkSnapshotApiCallInfo* apiCallInfo,
+                                           const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                            VkResult input_result, VkDevice device,
                                            const VkBufferViewCreateInfo* pCreateInfo,
                                            const VkAllocationCallbacks* pAllocator,
                                            VkBufferView* pView) {
-    mImpl->vkCreateBufferView(snapshotTraceBegin, snapshotTraceBytes, pool, input_result, device,
-                              pCreateInfo, pAllocator, pView);
+    mImpl->vkCreateBufferView(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result,
+                              device, pCreateInfo, pAllocator, pView);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkDestroyBufferView(const uint8_t* snapshotTraceBegin,
-                                            size_t snapshotTraceBytes,
-                                            android::base::BumpPool* pool, VkDevice device,
-                                            VkBufferView bufferView,
+void VkDecoderSnapshot::vkDestroyBufferView(android::base::BumpPool* pool,
+                                            VkSnapshotApiCallInfo* apiCallInfo,
+                                            const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                            VkDevice device, VkBufferView bufferView,
                                             const VkAllocationCallbacks* pAllocator) {
-    mImpl->vkDestroyBufferView(snapshotTraceBegin, snapshotTraceBytes, pool, device, bufferView,
-                               pAllocator);
+    mImpl->vkDestroyBufferView(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, device,
+                               bufferView, pAllocator);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkCreateImage(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                      android::base::BumpPool* pool, VkResult input_result,
-                                      VkDevice device, const VkImageCreateInfo* pCreateInfo,
+void VkDecoderSnapshot::vkCreateImage(android::base::BumpPool* pool,
+                                      VkSnapshotApiCallInfo* apiCallInfo,
+                                      const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                      VkResult input_result, VkDevice device,
+                                      const VkImageCreateInfo* pCreateInfo,
                                       const VkAllocationCallbacks* pAllocator, VkImage* pImage) {
-    mImpl->vkCreateImage(snapshotTraceBegin, snapshotTraceBytes, pool, input_result, device,
+    mImpl->vkCreateImage(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result, device,
                          pCreateInfo, pAllocator, pImage);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkDestroyImage(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                       android::base::BumpPool* pool, VkDevice device,
-                                       VkImage image, const VkAllocationCallbacks* pAllocator) {
-    mImpl->vkDestroyImage(snapshotTraceBegin, snapshotTraceBytes, pool, device, image, pAllocator);
+void VkDecoderSnapshot::vkDestroyImage(android::base::BumpPool* pool,
+                                       VkSnapshotApiCallInfo* apiCallInfo,
+                                       const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                       VkDevice device, VkImage image,
+                                       const VkAllocationCallbacks* pAllocator) {
+    mImpl->vkDestroyImage(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, device, image,
+                          pAllocator);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkGetImageSubresourceLayout(const uint8_t* snapshotTraceBegin,
-                                                    size_t snapshotTraceBytes,
-                                                    android::base::BumpPool* pool, VkDevice device,
-                                                    VkImage image,
-                                                    const VkImageSubresource* pSubresource,
-                                                    VkSubresourceLayout* pLayout) {
-    mImpl->vkGetImageSubresourceLayout(snapshotTraceBegin, snapshotTraceBytes, pool, device, image,
-                                       pSubresource, pLayout);
+void VkDecoderSnapshot::vkGetImageSubresourceLayout(
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkDevice device, VkImage image,
+    const VkImageSubresource* pSubresource, VkSubresourceLayout* pLayout) {
+    mImpl->vkGetImageSubresourceLayout(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, device,
+                                       image, pSubresource, pLayout);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkCreateImageView(const uint8_t* snapshotTraceBegin,
-                                          size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCreateImageView(android::base::BumpPool* pool,
+                                          VkSnapshotApiCallInfo* apiCallInfo,
+                                          const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                           VkResult input_result, VkDevice device,
                                           const VkImageViewCreateInfo* pCreateInfo,
                                           const VkAllocationCallbacks* pAllocator,
                                           VkImageView* pView) {
-    mImpl->vkCreateImageView(snapshotTraceBegin, snapshotTraceBytes, pool, input_result, device,
-                             pCreateInfo, pAllocator, pView);
+    mImpl->vkCreateImageView(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result,
+                             device, pCreateInfo, pAllocator, pView);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkDestroyImageView(const uint8_t* snapshotTraceBegin,
-                                           size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkDestroyImageView(android::base::BumpPool* pool,
+                                           VkSnapshotApiCallInfo* apiCallInfo,
+                                           const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                            VkDevice device, VkImageView imageView,
                                            const VkAllocationCallbacks* pAllocator) {
-    mImpl->vkDestroyImageView(snapshotTraceBegin, snapshotTraceBytes, pool, device, imageView,
-                              pAllocator);
+    mImpl->vkDestroyImageView(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, device,
+                              imageView, pAllocator);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkCreateShaderModule(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkResult input_result, VkDevice device, const VkShaderModuleCreateInfo* pCreateInfo,
-    const VkAllocationCallbacks* pAllocator, VkShaderModule* pShaderModule) {
-    mImpl->vkCreateShaderModule(snapshotTraceBegin, snapshotTraceBytes, pool, input_result, device,
-                                pCreateInfo, pAllocator, pShaderModule);
+void VkDecoderSnapshot::vkCreateShaderModule(android::base::BumpPool* pool,
+                                             VkSnapshotApiCallInfo* apiCallInfo,
+                                             const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                             VkResult input_result, VkDevice device,
+                                             const VkShaderModuleCreateInfo* pCreateInfo,
+                                             const VkAllocationCallbacks* pAllocator,
+                                             VkShaderModule* pShaderModule) {
+    mImpl->vkCreateShaderModule(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result,
+                                device, pCreateInfo, pAllocator, pShaderModule);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkDestroyShaderModule(const uint8_t* snapshotTraceBegin,
-                                              size_t snapshotTraceBytes,
-                                              android::base::BumpPool* pool, VkDevice device,
+void VkDecoderSnapshot::vkDestroyShaderModule(android::base::BumpPool* pool,
+                                              VkSnapshotApiCallInfo* apiCallInfo,
+                                              const uint8_t* apiCallPacket,
+                                              size_t apiCallPacketSize, VkDevice device,
                                               VkShaderModule shaderModule,
                                               const VkAllocationCallbacks* pAllocator) {
-    mImpl->vkDestroyShaderModule(snapshotTraceBegin, snapshotTraceBytes, pool, device, shaderModule,
-                                 pAllocator);
+    mImpl->vkDestroyShaderModule(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, device,
+                                 shaderModule, pAllocator);
 }
 #endif
 #ifdef VK_VERSION_1_0
 void VkDecoderSnapshot::vkCreatePipelineCache(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkResult input_result, VkDevice device, const VkPipelineCacheCreateInfo* pCreateInfo,
-    const VkAllocationCallbacks* pAllocator, VkPipelineCache* pPipelineCache) {
-    mImpl->vkCreatePipelineCache(snapshotTraceBegin, snapshotTraceBytes, pool, input_result, device,
-                                 pCreateInfo, pAllocator, pPipelineCache);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkResult input_result, VkDevice device,
+    const VkPipelineCacheCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator,
+    VkPipelineCache* pPipelineCache) {
+    mImpl->vkCreatePipelineCache(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result,
+                                 device, pCreateInfo, pAllocator, pPipelineCache);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkDestroyPipelineCache(const uint8_t* snapshotTraceBegin,
-                                               size_t snapshotTraceBytes,
-                                               android::base::BumpPool* pool, VkDevice device,
+void VkDecoderSnapshot::vkDestroyPipelineCache(android::base::BumpPool* pool,
+                                               VkSnapshotApiCallInfo* apiCallInfo,
+                                               const uint8_t* apiCallPacket,
+                                               size_t apiCallPacketSize, VkDevice device,
                                                VkPipelineCache pipelineCache,
                                                const VkAllocationCallbacks* pAllocator) {
-    mImpl->vkDestroyPipelineCache(snapshotTraceBegin, snapshotTraceBytes, pool, device,
+    mImpl->vkDestroyPipelineCache(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, device,
                                   pipelineCache, pAllocator);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkGetPipelineCacheData(const uint8_t* snapshotTraceBegin,
-                                               size_t snapshotTraceBytes,
-                                               android::base::BumpPool* pool, VkResult input_result,
+void VkDecoderSnapshot::vkGetPipelineCacheData(android::base::BumpPool* pool,
+                                               VkSnapshotApiCallInfo* apiCallInfo,
+                                               const uint8_t* apiCallPacket,
+                                               size_t apiCallPacketSize, VkResult input_result,
                                                VkDevice device, VkPipelineCache pipelineCache,
                                                size_t* pDataSize, void* pData) {
-    mImpl->vkGetPipelineCacheData(snapshotTraceBegin, snapshotTraceBytes, pool, input_result,
+    mImpl->vkGetPipelineCacheData(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result,
                                   device, pipelineCache, pDataSize, pData);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkMergePipelineCaches(const uint8_t* snapshotTraceBegin,
-                                              size_t snapshotTraceBytes,
-                                              android::base::BumpPool* pool, VkResult input_result,
-                                              VkDevice device, VkPipelineCache dstCache,
-                                              uint32_t srcCacheCount,
-                                              const VkPipelineCache* pSrcCaches) {
-    mImpl->vkMergePipelineCaches(snapshotTraceBegin, snapshotTraceBytes, pool, input_result, device,
-                                 dstCache, srcCacheCount, pSrcCaches);
+void VkDecoderSnapshot::vkMergePipelineCaches(
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkResult input_result, VkDevice device, VkPipelineCache dstCache,
+    uint32_t srcCacheCount, const VkPipelineCache* pSrcCaches) {
+    mImpl->vkMergePipelineCaches(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result,
+                                 device, dstCache, srcCacheCount, pSrcCaches);
 }
 #endif
 #ifdef VK_VERSION_1_0
 void VkDecoderSnapshot::vkCreateGraphicsPipelines(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkResult input_result, VkDevice device, VkPipelineCache pipelineCache, uint32_t createInfoCount,
-    const VkGraphicsPipelineCreateInfo* pCreateInfos, const VkAllocationCallbacks* pAllocator,
-    VkPipeline* pPipelines) {
-    mImpl->vkCreateGraphicsPipelines(snapshotTraceBegin, snapshotTraceBytes, pool, input_result,
-                                     device, pipelineCache, createInfoCount, pCreateInfos,
-                                     pAllocator, pPipelines);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkResult input_result, VkDevice device, VkPipelineCache pipelineCache,
+    uint32_t createInfoCount, const VkGraphicsPipelineCreateInfo* pCreateInfos,
+    const VkAllocationCallbacks* pAllocator, VkPipeline* pPipelines) {
+    mImpl->vkCreateGraphicsPipelines(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                     input_result, device, pipelineCache, createInfoCount,
+                                     pCreateInfos, pAllocator, pPipelines);
 }
 #endif
 #ifdef VK_VERSION_1_0
 void VkDecoderSnapshot::vkCreateComputePipelines(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkResult input_result, VkDevice device, VkPipelineCache pipelineCache, uint32_t createInfoCount,
-    const VkComputePipelineCreateInfo* pCreateInfos, const VkAllocationCallbacks* pAllocator,
-    VkPipeline* pPipelines) {
-    mImpl->vkCreateComputePipelines(snapshotTraceBegin, snapshotTraceBytes, pool, input_result,
-                                    device, pipelineCache, createInfoCount, pCreateInfos,
-                                    pAllocator, pPipelines);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkResult input_result, VkDevice device, VkPipelineCache pipelineCache,
+    uint32_t createInfoCount, const VkComputePipelineCreateInfo* pCreateInfos,
+    const VkAllocationCallbacks* pAllocator, VkPipeline* pPipelines) {
+    mImpl->vkCreateComputePipelines(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                    input_result, device, pipelineCache, createInfoCount,
+                                    pCreateInfos, pAllocator, pPipelines);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkDestroyPipeline(const uint8_t* snapshotTraceBegin,
-                                          size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkDestroyPipeline(android::base::BumpPool* pool,
+                                          VkSnapshotApiCallInfo* apiCallInfo,
+                                          const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                           VkDevice device, VkPipeline pipeline,
                                           const VkAllocationCallbacks* pAllocator) {
-    mImpl->vkDestroyPipeline(snapshotTraceBegin, snapshotTraceBytes, pool, device, pipeline,
+    mImpl->vkDestroyPipeline(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, device, pipeline,
                              pAllocator);
 }
 #endif
 #ifdef VK_VERSION_1_0
 void VkDecoderSnapshot::vkCreatePipelineLayout(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkResult input_result, VkDevice device, const VkPipelineLayoutCreateInfo* pCreateInfo,
-    const VkAllocationCallbacks* pAllocator, VkPipelineLayout* pPipelineLayout) {
-    mImpl->vkCreatePipelineLayout(snapshotTraceBegin, snapshotTraceBytes, pool, input_result,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkResult input_result, VkDevice device,
+    const VkPipelineLayoutCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator,
+    VkPipelineLayout* pPipelineLayout) {
+    mImpl->vkCreatePipelineLayout(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result,
                                   device, pCreateInfo, pAllocator, pPipelineLayout);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkDestroyPipelineLayout(const uint8_t* snapshotTraceBegin,
-                                                size_t snapshotTraceBytes,
-                                                android::base::BumpPool* pool, VkDevice device,
+void VkDecoderSnapshot::vkDestroyPipelineLayout(android::base::BumpPool* pool,
+                                                VkSnapshotApiCallInfo* apiCallInfo,
+                                                const uint8_t* apiCallPacket,
+                                                size_t apiCallPacketSize, VkDevice device,
                                                 VkPipelineLayout pipelineLayout,
                                                 const VkAllocationCallbacks* pAllocator) {
-    mImpl->vkDestroyPipelineLayout(snapshotTraceBegin, snapshotTraceBytes, pool, device,
+    mImpl->vkDestroyPipelineLayout(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, device,
                                    pipelineLayout, pAllocator);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkCreateSampler(const uint8_t* snapshotTraceBegin,
-                                        size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCreateSampler(android::base::BumpPool* pool,
+                                        VkSnapshotApiCallInfo* apiCallInfo,
+                                        const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                         VkResult input_result, VkDevice device,
                                         const VkSamplerCreateInfo* pCreateInfo,
                                         const VkAllocationCallbacks* pAllocator,
                                         VkSampler* pSampler) {
-    mImpl->vkCreateSampler(snapshotTraceBegin, snapshotTraceBytes, pool, input_result, device,
-                           pCreateInfo, pAllocator, pSampler);
+    mImpl->vkCreateSampler(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result,
+                           device, pCreateInfo, pAllocator, pSampler);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkDestroySampler(const uint8_t* snapshotTraceBegin,
-                                         size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkDestroySampler(android::base::BumpPool* pool,
+                                         VkSnapshotApiCallInfo* apiCallInfo,
+                                         const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                          VkDevice device, VkSampler sampler,
                                          const VkAllocationCallbacks* pAllocator) {
-    mImpl->vkDestroySampler(snapshotTraceBegin, snapshotTraceBytes, pool, device, sampler,
+    mImpl->vkDestroySampler(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, device, sampler,
                             pAllocator);
 }
 #endif
 #ifdef VK_VERSION_1_0
 void VkDecoderSnapshot::vkCreateDescriptorSetLayout(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkResult input_result, VkDevice device, const VkDescriptorSetLayoutCreateInfo* pCreateInfo,
-    const VkAllocationCallbacks* pAllocator, VkDescriptorSetLayout* pSetLayout) {
-    mImpl->vkCreateDescriptorSetLayout(snapshotTraceBegin, snapshotTraceBytes, pool, input_result,
-                                       device, pCreateInfo, pAllocator, pSetLayout);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkResult input_result, VkDevice device,
+    const VkDescriptorSetLayoutCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator,
+    VkDescriptorSetLayout* pSetLayout) {
+    mImpl->vkCreateDescriptorSetLayout(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                       input_result, device, pCreateInfo, pAllocator, pSetLayout);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkDestroyDescriptorSetLayout(const uint8_t* snapshotTraceBegin,
-                                                     size_t snapshotTraceBytes,
-                                                     android::base::BumpPool* pool, VkDevice device,
+void VkDecoderSnapshot::vkDestroyDescriptorSetLayout(android::base::BumpPool* pool,
+                                                     VkSnapshotApiCallInfo* apiCallInfo,
+                                                     const uint8_t* apiCallPacket,
+                                                     size_t apiCallPacketSize, VkDevice device,
                                                      VkDescriptorSetLayout descriptorSetLayout,
                                                      const VkAllocationCallbacks* pAllocator) {
-    mImpl->vkDestroyDescriptorSetLayout(snapshotTraceBegin, snapshotTraceBytes, pool, device,
+    mImpl->vkDestroyDescriptorSetLayout(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, device,
                                         descriptorSetLayout, pAllocator);
 }
 #endif
 #ifdef VK_VERSION_1_0
 void VkDecoderSnapshot::vkCreateDescriptorPool(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkResult input_result, VkDevice device, const VkDescriptorPoolCreateInfo* pCreateInfo,
-    const VkAllocationCallbacks* pAllocator, VkDescriptorPool* pDescriptorPool) {
-    mImpl->vkCreateDescriptorPool(snapshotTraceBegin, snapshotTraceBytes, pool, input_result,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkResult input_result, VkDevice device,
+    const VkDescriptorPoolCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator,
+    VkDescriptorPool* pDescriptorPool) {
+    mImpl->vkCreateDescriptorPool(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result,
                                   device, pCreateInfo, pAllocator, pDescriptorPool);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkDestroyDescriptorPool(const uint8_t* snapshotTraceBegin,
-                                                size_t snapshotTraceBytes,
-                                                android::base::BumpPool* pool, VkDevice device,
+void VkDecoderSnapshot::vkDestroyDescriptorPool(android::base::BumpPool* pool,
+                                                VkSnapshotApiCallInfo* apiCallInfo,
+                                                const uint8_t* apiCallPacket,
+                                                size_t apiCallPacketSize, VkDevice device,
                                                 VkDescriptorPool descriptorPool,
                                                 const VkAllocationCallbacks* pAllocator) {
-    mImpl->vkDestroyDescriptorPool(snapshotTraceBegin, snapshotTraceBytes, pool, device,
+    mImpl->vkDestroyDescriptorPool(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, device,
                                    descriptorPool, pAllocator);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkResetDescriptorPool(const uint8_t* snapshotTraceBegin,
-                                              size_t snapshotTraceBytes,
-                                              android::base::BumpPool* pool, VkResult input_result,
+void VkDecoderSnapshot::vkResetDescriptorPool(android::base::BumpPool* pool,
+                                              VkSnapshotApiCallInfo* apiCallInfo,
+                                              const uint8_t* apiCallPacket,
+                                              size_t apiCallPacketSize, VkResult input_result,
                                               VkDevice device, VkDescriptorPool descriptorPool,
                                               VkDescriptorPoolResetFlags flags) {
-    mImpl->vkResetDescriptorPool(snapshotTraceBegin, snapshotTraceBytes, pool, input_result, device,
-                                 descriptorPool, flags);
+    mImpl->vkResetDescriptorPool(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result,
+                                 device, descriptorPool, flags);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkAllocateDescriptorSets(const uint8_t* snapshotTraceBegin,
-                                                 size_t snapshotTraceBytes,
-                                                 android::base::BumpPool* pool,
-                                                 VkResult input_result, VkDevice device,
-                                                 const VkDescriptorSetAllocateInfo* pAllocateInfo,
-                                                 VkDescriptorSet* pDescriptorSets) {
-    mImpl->vkAllocateDescriptorSets(snapshotTraceBegin, snapshotTraceBytes, pool, input_result,
-                                    device, pAllocateInfo, pDescriptorSets);
+void VkDecoderSnapshot::vkAllocateDescriptorSets(
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkResult input_result, VkDevice device,
+    const VkDescriptorSetAllocateInfo* pAllocateInfo, VkDescriptorSet* pDescriptorSets) {
+    mImpl->vkAllocateDescriptorSets(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                    input_result, device, pAllocateInfo, pDescriptorSets);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkFreeDescriptorSets(const uint8_t* snapshotTraceBegin,
-                                             size_t snapshotTraceBytes,
-                                             android::base::BumpPool* pool, VkResult input_result,
-                                             VkDevice device, VkDescriptorPool descriptorPool,
+void VkDecoderSnapshot::vkFreeDescriptorSets(android::base::BumpPool* pool,
+                                             VkSnapshotApiCallInfo* apiCallInfo,
+                                             const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                             VkResult input_result, VkDevice device,
+                                             VkDescriptorPool descriptorPool,
                                              uint32_t descriptorSetCount,
                                              const VkDescriptorSet* pDescriptorSets) {
-    mImpl->vkFreeDescriptorSets(snapshotTraceBegin, snapshotTraceBytes, pool, input_result, device,
-                                descriptorPool, descriptorSetCount, pDescriptorSets);
+    mImpl->vkFreeDescriptorSets(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result,
+                                device, descriptorPool, descriptorSetCount, pDescriptorSets);
 }
 #endif
 #ifdef VK_VERSION_1_0
 void VkDecoderSnapshot::vkUpdateDescriptorSets(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkDevice device, uint32_t descriptorWriteCount, const VkWriteDescriptorSet* pDescriptorWrites,
-    uint32_t descriptorCopyCount, const VkCopyDescriptorSet* pDescriptorCopies) {
-    mImpl->vkUpdateDescriptorSets(snapshotTraceBegin, snapshotTraceBytes, pool, device,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkDevice device, uint32_t descriptorWriteCount,
+    const VkWriteDescriptorSet* pDescriptorWrites, uint32_t descriptorCopyCount,
+    const VkCopyDescriptorSet* pDescriptorCopies) {
+    mImpl->vkUpdateDescriptorSets(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, device,
                                   descriptorWriteCount, pDescriptorWrites, descriptorCopyCount,
                                   pDescriptorCopies);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkCreateFramebuffer(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkResult input_result, VkDevice device, const VkFramebufferCreateInfo* pCreateInfo,
-    const VkAllocationCallbacks* pAllocator, VkFramebuffer* pFramebuffer) {
-    mImpl->vkCreateFramebuffer(snapshotTraceBegin, snapshotTraceBytes, pool, input_result, device,
-                               pCreateInfo, pAllocator, pFramebuffer);
+void VkDecoderSnapshot::vkCreateFramebuffer(android::base::BumpPool* pool,
+                                            VkSnapshotApiCallInfo* apiCallInfo,
+                                            const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                            VkResult input_result, VkDevice device,
+                                            const VkFramebufferCreateInfo* pCreateInfo,
+                                            const VkAllocationCallbacks* pAllocator,
+                                            VkFramebuffer* pFramebuffer) {
+    mImpl->vkCreateFramebuffer(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result,
+                               device, pCreateInfo, pAllocator, pFramebuffer);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkDestroyFramebuffer(const uint8_t* snapshotTraceBegin,
-                                             size_t snapshotTraceBytes,
-                                             android::base::BumpPool* pool, VkDevice device,
-                                             VkFramebuffer framebuffer,
+void VkDecoderSnapshot::vkDestroyFramebuffer(android::base::BumpPool* pool,
+                                             VkSnapshotApiCallInfo* apiCallInfo,
+                                             const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                             VkDevice device, VkFramebuffer framebuffer,
                                              const VkAllocationCallbacks* pAllocator) {
-    mImpl->vkDestroyFramebuffer(snapshotTraceBegin, snapshotTraceBytes, pool, device, framebuffer,
-                                pAllocator);
+    mImpl->vkDestroyFramebuffer(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, device,
+                                framebuffer, pAllocator);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkCreateRenderPass(const uint8_t* snapshotTraceBegin,
-                                           size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCreateRenderPass(android::base::BumpPool* pool,
+                                           VkSnapshotApiCallInfo* apiCallInfo,
+                                           const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                            VkResult input_result, VkDevice device,
                                            const VkRenderPassCreateInfo* pCreateInfo,
                                            const VkAllocationCallbacks* pAllocator,
                                            VkRenderPass* pRenderPass) {
-    mImpl->vkCreateRenderPass(snapshotTraceBegin, snapshotTraceBytes, pool, input_result, device,
-                              pCreateInfo, pAllocator, pRenderPass);
+    mImpl->vkCreateRenderPass(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result,
+                              device, pCreateInfo, pAllocator, pRenderPass);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkDestroyRenderPass(const uint8_t* snapshotTraceBegin,
-                                            size_t snapshotTraceBytes,
-                                            android::base::BumpPool* pool, VkDevice device,
-                                            VkRenderPass renderPass,
+void VkDecoderSnapshot::vkDestroyRenderPass(android::base::BumpPool* pool,
+                                            VkSnapshotApiCallInfo* apiCallInfo,
+                                            const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                            VkDevice device, VkRenderPass renderPass,
                                             const VkAllocationCallbacks* pAllocator) {
-    mImpl->vkDestroyRenderPass(snapshotTraceBegin, snapshotTraceBytes, pool, device, renderPass,
-                               pAllocator);
+    mImpl->vkDestroyRenderPass(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, device,
+                               renderPass, pAllocator);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkGetRenderAreaGranularity(const uint8_t* snapshotTraceBegin,
-                                                   size_t snapshotTraceBytes,
-                                                   android::base::BumpPool* pool, VkDevice device,
-                                                   VkRenderPass renderPass,
-                                                   VkExtent2D* pGranularity) {
-    mImpl->vkGetRenderAreaGranularity(snapshotTraceBegin, snapshotTraceBytes, pool, device,
+void VkDecoderSnapshot::vkGetRenderAreaGranularity(
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkDevice device, VkRenderPass renderPass, VkExtent2D* pGranularity) {
+    mImpl->vkGetRenderAreaGranularity(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, device,
                                       renderPass, pGranularity);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkCreateCommandPool(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkResult input_result, VkDevice device, const VkCommandPoolCreateInfo* pCreateInfo,
-    const VkAllocationCallbacks* pAllocator, VkCommandPool* pCommandPool) {
-    mImpl->vkCreateCommandPool(snapshotTraceBegin, snapshotTraceBytes, pool, input_result, device,
-                               pCreateInfo, pAllocator, pCommandPool);
+void VkDecoderSnapshot::vkCreateCommandPool(android::base::BumpPool* pool,
+                                            VkSnapshotApiCallInfo* apiCallInfo,
+                                            const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                            VkResult input_result, VkDevice device,
+                                            const VkCommandPoolCreateInfo* pCreateInfo,
+                                            const VkAllocationCallbacks* pAllocator,
+                                            VkCommandPool* pCommandPool) {
+    mImpl->vkCreateCommandPool(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result,
+                               device, pCreateInfo, pAllocator, pCommandPool);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkDestroyCommandPool(const uint8_t* snapshotTraceBegin,
-                                             size_t snapshotTraceBytes,
-                                             android::base::BumpPool* pool, VkDevice device,
-                                             VkCommandPool commandPool,
+void VkDecoderSnapshot::vkDestroyCommandPool(android::base::BumpPool* pool,
+                                             VkSnapshotApiCallInfo* apiCallInfo,
+                                             const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                             VkDevice device, VkCommandPool commandPool,
                                              const VkAllocationCallbacks* pAllocator) {
-    mImpl->vkDestroyCommandPool(snapshotTraceBegin, snapshotTraceBytes, pool, device, commandPool,
-                                pAllocator);
+    mImpl->vkDestroyCommandPool(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, device,
+                                commandPool, pAllocator);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkResetCommandPool(const uint8_t* snapshotTraceBegin,
-                                           size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkResetCommandPool(android::base::BumpPool* pool,
+                                           VkSnapshotApiCallInfo* apiCallInfo,
+                                           const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                            VkResult input_result, VkDevice device,
                                            VkCommandPool commandPool,
                                            VkCommandPoolResetFlags flags) {
-    mImpl->vkResetCommandPool(snapshotTraceBegin, snapshotTraceBytes, pool, input_result, device,
-                              commandPool, flags);
+    mImpl->vkResetCommandPool(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result,
+                              device, commandPool, flags);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkAllocateCommandBuffers(const uint8_t* snapshotTraceBegin,
-                                                 size_t snapshotTraceBytes,
-                                                 android::base::BumpPool* pool,
-                                                 VkResult input_result, VkDevice device,
-                                                 const VkCommandBufferAllocateInfo* pAllocateInfo,
-                                                 VkCommandBuffer* pCommandBuffers) {
-    mImpl->vkAllocateCommandBuffers(snapshotTraceBegin, snapshotTraceBytes, pool, input_result,
-                                    device, pAllocateInfo, pCommandBuffers);
+void VkDecoderSnapshot::vkAllocateCommandBuffers(
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkResult input_result, VkDevice device,
+    const VkCommandBufferAllocateInfo* pAllocateInfo, VkCommandBuffer* pCommandBuffers) {
+    mImpl->vkAllocateCommandBuffers(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                    input_result, device, pAllocateInfo, pCommandBuffers);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkFreeCommandBuffers(const uint8_t* snapshotTraceBegin,
-                                             size_t snapshotTraceBytes,
-                                             android::base::BumpPool* pool, VkDevice device,
-                                             VkCommandPool commandPool, uint32_t commandBufferCount,
+void VkDecoderSnapshot::vkFreeCommandBuffers(android::base::BumpPool* pool,
+                                             VkSnapshotApiCallInfo* apiCallInfo,
+                                             const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                             VkDevice device, VkCommandPool commandPool,
+                                             uint32_t commandBufferCount,
                                              const VkCommandBuffer* pCommandBuffers) {
-    mImpl->vkFreeCommandBuffers(snapshotTraceBegin, snapshotTraceBytes, pool, device, commandPool,
-                                commandBufferCount, pCommandBuffers);
+    mImpl->vkFreeCommandBuffers(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, device,
+                                commandPool, commandBufferCount, pCommandBuffers);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkBeginCommandBuffer(const uint8_t* snapshotTraceBegin,
-                                             size_t snapshotTraceBytes,
-                                             android::base::BumpPool* pool, VkResult input_result,
-                                             VkCommandBuffer commandBuffer,
+void VkDecoderSnapshot::vkBeginCommandBuffer(android::base::BumpPool* pool,
+                                             VkSnapshotApiCallInfo* apiCallInfo,
+                                             const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                             VkResult input_result, VkCommandBuffer commandBuffer,
                                              const VkCommandBufferBeginInfo* pBeginInfo) {
-    mImpl->vkBeginCommandBuffer(snapshotTraceBegin, snapshotTraceBytes, pool, input_result,
+    mImpl->vkBeginCommandBuffer(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result,
                                 commandBuffer, pBeginInfo);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkEndCommandBuffer(const uint8_t* snapshotTraceBegin,
-                                           size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkEndCommandBuffer(android::base::BumpPool* pool,
+                                           VkSnapshotApiCallInfo* apiCallInfo,
+                                           const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                            VkResult input_result, VkCommandBuffer commandBuffer) {
-    mImpl->vkEndCommandBuffer(snapshotTraceBegin, snapshotTraceBytes, pool, input_result,
+    mImpl->vkEndCommandBuffer(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result,
                               commandBuffer);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkResetCommandBuffer(const uint8_t* snapshotTraceBegin,
-                                             size_t snapshotTraceBytes,
-                                             android::base::BumpPool* pool, VkResult input_result,
-                                             VkCommandBuffer commandBuffer,
+void VkDecoderSnapshot::vkResetCommandBuffer(android::base::BumpPool* pool,
+                                             VkSnapshotApiCallInfo* apiCallInfo,
+                                             const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                             VkResult input_result, VkCommandBuffer commandBuffer,
                                              VkCommandBufferResetFlags flags) {
-    mImpl->vkResetCommandBuffer(snapshotTraceBegin, snapshotTraceBytes, pool, input_result,
+    mImpl->vkResetCommandBuffer(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result,
                                 commandBuffer, flags);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkCmdBindPipeline(const uint8_t* snapshotTraceBegin,
-                                          size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCmdBindPipeline(android::base::BumpPool* pool,
+                                          VkSnapshotApiCallInfo* apiCallInfo,
+                                          const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                           VkCommandBuffer commandBuffer,
                                           VkPipelineBindPoint pipelineBindPoint,
                                           VkPipeline pipeline) {
-    mImpl->vkCmdBindPipeline(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
+    mImpl->vkCmdBindPipeline(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer,
                              pipelineBindPoint, pipeline);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkCmdSetViewport(const uint8_t* snapshotTraceBegin,
-                                         size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCmdSetViewport(android::base::BumpPool* pool,
+                                         VkSnapshotApiCallInfo* apiCallInfo,
+                                         const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                          VkCommandBuffer commandBuffer, uint32_t firstViewport,
                                          uint32_t viewportCount, const VkViewport* pViewports) {
-    mImpl->vkCmdSetViewport(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
+    mImpl->vkCmdSetViewport(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer,
                             firstViewport, viewportCount, pViewports);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkCmdSetScissor(const uint8_t* snapshotTraceBegin,
-                                        size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCmdSetScissor(android::base::BumpPool* pool,
+                                        VkSnapshotApiCallInfo* apiCallInfo,
+                                        const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                         VkCommandBuffer commandBuffer, uint32_t firstScissor,
                                         uint32_t scissorCount, const VkRect2D* pScissors) {
-    mImpl->vkCmdSetScissor(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
+    mImpl->vkCmdSetScissor(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer,
                            firstScissor, scissorCount, pScissors);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkCmdSetLineWidth(const uint8_t* snapshotTraceBegin,
-                                          size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCmdSetLineWidth(android::base::BumpPool* pool,
+                                          VkSnapshotApiCallInfo* apiCallInfo,
+                                          const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                           VkCommandBuffer commandBuffer, float lineWidth) {
-    mImpl->vkCmdSetLineWidth(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
+    mImpl->vkCmdSetLineWidth(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer,
                              lineWidth);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkCmdSetDepthBias(const uint8_t* snapshotTraceBegin,
-                                          size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCmdSetDepthBias(android::base::BumpPool* pool,
+                                          VkSnapshotApiCallInfo* apiCallInfo,
+                                          const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                           VkCommandBuffer commandBuffer,
                                           float depthBiasConstantFactor, float depthBiasClamp,
                                           float depthBiasSlopeFactor) {
-    mImpl->vkCmdSetDepthBias(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
+    mImpl->vkCmdSetDepthBias(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer,
                              depthBiasConstantFactor, depthBiasClamp, depthBiasSlopeFactor);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkCmdSetBlendConstants(const uint8_t* snapshotTraceBegin,
-                                               size_t snapshotTraceBytes,
-                                               android::base::BumpPool* pool,
-                                               VkCommandBuffer commandBuffer,
-                                               const float blendConstants[4]) {
-    mImpl->vkCmdSetBlendConstants(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
-                                  blendConstants);
+void VkDecoderSnapshot::vkCmdSetBlendConstants(
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer, const float blendConstants[4]) {
+    mImpl->vkCmdSetBlendConstants(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                  commandBuffer, blendConstants);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkCmdSetDepthBounds(const uint8_t* snapshotTraceBegin,
-                                            size_t snapshotTraceBytes,
-                                            android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCmdSetDepthBounds(android::base::BumpPool* pool,
+                                            VkSnapshotApiCallInfo* apiCallInfo,
+                                            const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                             VkCommandBuffer commandBuffer, float minDepthBounds,
                                             float maxDepthBounds) {
-    mImpl->vkCmdSetDepthBounds(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
+    mImpl->vkCmdSetDepthBounds(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer,
                                minDepthBounds, maxDepthBounds);
 }
 #endif
 #ifdef VK_VERSION_1_0
 void VkDecoderSnapshot::vkCmdSetStencilCompareMask(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkCommandBuffer commandBuffer, VkStencilFaceFlags faceMask, uint32_t compareMask) {
-    mImpl->vkCmdSetStencilCompareMask(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
-                                      faceMask, compareMask);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer, VkStencilFaceFlags faceMask,
+    uint32_t compareMask) {
+    mImpl->vkCmdSetStencilCompareMask(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                      commandBuffer, faceMask, compareMask);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkCmdSetStencilWriteMask(const uint8_t* snapshotTraceBegin,
-                                                 size_t snapshotTraceBytes,
-                                                 android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCmdSetStencilWriteMask(android::base::BumpPool* pool,
+                                                 VkSnapshotApiCallInfo* apiCallInfo,
+                                                 const uint8_t* apiCallPacket,
+                                                 size_t apiCallPacketSize,
                                                  VkCommandBuffer commandBuffer,
                                                  VkStencilFaceFlags faceMask, uint32_t writeMask) {
-    mImpl->vkCmdSetStencilWriteMask(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
-                                    faceMask, writeMask);
+    mImpl->vkCmdSetStencilWriteMask(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                    commandBuffer, faceMask, writeMask);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkCmdSetStencilReference(const uint8_t* snapshotTraceBegin,
-                                                 size_t snapshotTraceBytes,
-                                                 android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCmdSetStencilReference(android::base::BumpPool* pool,
+                                                 VkSnapshotApiCallInfo* apiCallInfo,
+                                                 const uint8_t* apiCallPacket,
+                                                 size_t apiCallPacketSize,
                                                  VkCommandBuffer commandBuffer,
                                                  VkStencilFaceFlags faceMask, uint32_t reference) {
-    mImpl->vkCmdSetStencilReference(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
-                                    faceMask, reference);
+    mImpl->vkCmdSetStencilReference(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                    commandBuffer, faceMask, reference);
 }
 #endif
 #ifdef VK_VERSION_1_0
 void VkDecoderSnapshot::vkCmdBindDescriptorSets(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkCommandBuffer commandBuffer, VkPipelineBindPoint pipelineBindPoint, VkPipelineLayout layout,
-    uint32_t firstSet, uint32_t descriptorSetCount, const VkDescriptorSet* pDescriptorSets,
-    uint32_t dynamicOffsetCount, const uint32_t* pDynamicOffsets) {
-    mImpl->vkCmdBindDescriptorSets(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
-                                   pipelineBindPoint, layout, firstSet, descriptorSetCount,
-                                   pDescriptorSets, dynamicOffsetCount, pDynamicOffsets);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer, VkPipelineBindPoint pipelineBindPoint,
+    VkPipelineLayout layout, uint32_t firstSet, uint32_t descriptorSetCount,
+    const VkDescriptorSet* pDescriptorSets, uint32_t dynamicOffsetCount,
+    const uint32_t* pDynamicOffsets) {
+    mImpl->vkCmdBindDescriptorSets(
+        pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer, pipelineBindPoint,
+        layout, firstSet, descriptorSetCount, pDescriptorSets, dynamicOffsetCount, pDynamicOffsets);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkCmdBindIndexBuffer(const uint8_t* snapshotTraceBegin,
-                                             size_t snapshotTraceBytes,
-                                             android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCmdBindIndexBuffer(android::base::BumpPool* pool,
+                                             VkSnapshotApiCallInfo* apiCallInfo,
+                                             const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                              VkCommandBuffer commandBuffer, VkBuffer buffer,
                                              VkDeviceSize offset, VkIndexType indexType) {
-    mImpl->vkCmdBindIndexBuffer(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer, buffer,
-                                offset, indexType);
+    mImpl->vkCmdBindIndexBuffer(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer,
+                                buffer, offset, indexType);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkCmdBindVertexBuffers(const uint8_t* snapshotTraceBegin,
-                                               size_t snapshotTraceBytes,
-                                               android::base::BumpPool* pool,
-                                               VkCommandBuffer commandBuffer, uint32_t firstBinding,
-                                               uint32_t bindingCount, const VkBuffer* pBuffers,
-                                               const VkDeviceSize* pOffsets) {
-    mImpl->vkCmdBindVertexBuffers(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
-                                  firstBinding, bindingCount, pBuffers, pOffsets);
+void VkDecoderSnapshot::vkCmdBindVertexBuffers(
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer, uint32_t firstBinding,
+    uint32_t bindingCount, const VkBuffer* pBuffers, const VkDeviceSize* pOffsets) {
+    mImpl->vkCmdBindVertexBuffers(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                  commandBuffer, firstBinding, bindingCount, pBuffers, pOffsets);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkCmdDraw(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                  android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                                  uint32_t vertexCount, uint32_t instanceCount,
-                                  uint32_t firstVertex, uint32_t firstInstance) {
-    mImpl->vkCmdDraw(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer, vertexCount,
-                     instanceCount, firstVertex, firstInstance);
+void VkDecoderSnapshot::vkCmdDraw(android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo,
+                                  const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                  VkCommandBuffer commandBuffer, uint32_t vertexCount,
+                                  uint32_t instanceCount, uint32_t firstVertex,
+                                  uint32_t firstInstance) {
+    mImpl->vkCmdDraw(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer,
+                     vertexCount, instanceCount, firstVertex, firstInstance);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkCmdDrawIndexed(const uint8_t* snapshotTraceBegin,
-                                         size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCmdDrawIndexed(android::base::BumpPool* pool,
+                                         VkSnapshotApiCallInfo* apiCallInfo,
+                                         const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                          VkCommandBuffer commandBuffer, uint32_t indexCount,
                                          uint32_t instanceCount, uint32_t firstIndex,
                                          int32_t vertexOffset, uint32_t firstInstance) {
-    mImpl->vkCmdDrawIndexed(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer, indexCount,
-                            instanceCount, firstIndex, vertexOffset, firstInstance);
+    mImpl->vkCmdDrawIndexed(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer,
+                            indexCount, instanceCount, firstIndex, vertexOffset, firstInstance);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkCmdDrawIndirect(const uint8_t* snapshotTraceBegin,
-                                          size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCmdDrawIndirect(android::base::BumpPool* pool,
+                                          VkSnapshotApiCallInfo* apiCallInfo,
+                                          const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                           VkCommandBuffer commandBuffer, VkBuffer buffer,
                                           VkDeviceSize offset, uint32_t drawCount,
                                           uint32_t stride) {
-    mImpl->vkCmdDrawIndirect(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer, buffer,
-                             offset, drawCount, stride);
+    mImpl->vkCmdDrawIndirect(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer,
+                             buffer, offset, drawCount, stride);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkCmdDrawIndexedIndirect(const uint8_t* snapshotTraceBegin,
-                                                 size_t snapshotTraceBytes,
-                                                 android::base::BumpPool* pool,
-                                                 VkCommandBuffer commandBuffer, VkBuffer buffer,
-                                                 VkDeviceSize offset, uint32_t drawCount,
-                                                 uint32_t stride) {
-    mImpl->vkCmdDrawIndexedIndirect(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
-                                    buffer, offset, drawCount, stride);
+void VkDecoderSnapshot::vkCmdDrawIndexedIndirect(
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer, VkBuffer buffer, VkDeviceSize offset,
+    uint32_t drawCount, uint32_t stride) {
+    mImpl->vkCmdDrawIndexedIndirect(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                    commandBuffer, buffer, offset, drawCount, stride);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkCmdDispatch(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                      android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                                      uint32_t groupCountX, uint32_t groupCountY,
-                                      uint32_t groupCountZ) {
-    mImpl->vkCmdDispatch(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer, groupCountX,
-                         groupCountY, groupCountZ);
+void VkDecoderSnapshot::vkCmdDispatch(android::base::BumpPool* pool,
+                                      VkSnapshotApiCallInfo* apiCallInfo,
+                                      const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                      VkCommandBuffer commandBuffer, uint32_t groupCountX,
+                                      uint32_t groupCountY, uint32_t groupCountZ) {
+    mImpl->vkCmdDispatch(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer,
+                         groupCountX, groupCountY, groupCountZ);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkCmdDispatchIndirect(const uint8_t* snapshotTraceBegin,
-                                              size_t snapshotTraceBytes,
-                                              android::base::BumpPool* pool,
-                                              VkCommandBuffer commandBuffer, VkBuffer buffer,
-                                              VkDeviceSize offset) {
-    mImpl->vkCmdDispatchIndirect(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
+void VkDecoderSnapshot::vkCmdDispatchIndirect(
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer, VkBuffer buffer, VkDeviceSize offset) {
+    mImpl->vkCmdDispatchIndirect(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer,
                                  buffer, offset);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkCmdCopyBuffer(const uint8_t* snapshotTraceBegin,
-                                        size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCmdCopyBuffer(android::base::BumpPool* pool,
+                                        VkSnapshotApiCallInfo* apiCallInfo,
+                                        const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                         VkCommandBuffer commandBuffer, VkBuffer srcBuffer,
                                         VkBuffer dstBuffer, uint32_t regionCount,
                                         const VkBufferCopy* pRegions) {
-    mImpl->vkCmdCopyBuffer(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer, srcBuffer,
-                           dstBuffer, regionCount, pRegions);
+    mImpl->vkCmdCopyBuffer(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer,
+                           srcBuffer, dstBuffer, regionCount, pRegions);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkCmdCopyImage(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                       android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                                       VkImage srcImage, VkImageLayout srcImageLayout,
-                                       VkImage dstImage, VkImageLayout dstImageLayout,
-                                       uint32_t regionCount, const VkImageCopy* pRegions) {
-    mImpl->vkCmdCopyImage(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer, srcImage,
-                          srcImageLayout, dstImage, dstImageLayout, regionCount, pRegions);
+void VkDecoderSnapshot::vkCmdCopyImage(android::base::BumpPool* pool,
+                                       VkSnapshotApiCallInfo* apiCallInfo,
+                                       const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                       VkCommandBuffer commandBuffer, VkImage srcImage,
+                                       VkImageLayout srcImageLayout, VkImage dstImage,
+                                       VkImageLayout dstImageLayout, uint32_t regionCount,
+                                       const VkImageCopy* pRegions) {
+    mImpl->vkCmdCopyImage(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer,
+                          srcImage, srcImageLayout, dstImage, dstImageLayout, regionCount,
+                          pRegions);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkCmdBlitImage(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                       android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                                       VkImage srcImage, VkImageLayout srcImageLayout,
-                                       VkImage dstImage, VkImageLayout dstImageLayout,
-                                       uint32_t regionCount, const VkImageBlit* pRegions,
-                                       VkFilter filter) {
-    mImpl->vkCmdBlitImage(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer, srcImage,
-                          srcImageLayout, dstImage, dstImageLayout, regionCount, pRegions, filter);
+void VkDecoderSnapshot::vkCmdBlitImage(android::base::BumpPool* pool,
+                                       VkSnapshotApiCallInfo* apiCallInfo,
+                                       const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                       VkCommandBuffer commandBuffer, VkImage srcImage,
+                                       VkImageLayout srcImageLayout, VkImage dstImage,
+                                       VkImageLayout dstImageLayout, uint32_t regionCount,
+                                       const VkImageBlit* pRegions, VkFilter filter) {
+    mImpl->vkCmdBlitImage(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer,
+                          srcImage, srcImageLayout, dstImage, dstImageLayout, regionCount, pRegions,
+                          filter);
 }
 #endif
 #ifdef VK_VERSION_1_0
 void VkDecoderSnapshot::vkCmdCopyBufferToImage(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkCommandBuffer commandBuffer, VkBuffer srcBuffer, VkImage dstImage,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer, VkBuffer srcBuffer, VkImage dstImage,
     VkImageLayout dstImageLayout, uint32_t regionCount, const VkBufferImageCopy* pRegions) {
-    mImpl->vkCmdCopyBufferToImage(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
-                                  srcBuffer, dstImage, dstImageLayout, regionCount, pRegions);
+    mImpl->vkCmdCopyBufferToImage(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                  commandBuffer, srcBuffer, dstImage, dstImageLayout, regionCount,
+                                  pRegions);
 }
 #endif
 #ifdef VK_VERSION_1_0
 void VkDecoderSnapshot::vkCmdCopyImageToBuffer(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkCommandBuffer commandBuffer, VkImage srcImage, VkImageLayout srcImageLayout,
-    VkBuffer dstBuffer, uint32_t regionCount, const VkBufferImageCopy* pRegions) {
-    mImpl->vkCmdCopyImageToBuffer(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
-                                  srcImage, srcImageLayout, dstBuffer, regionCount, pRegions);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer, VkImage srcImage,
+    VkImageLayout srcImageLayout, VkBuffer dstBuffer, uint32_t regionCount,
+    const VkBufferImageCopy* pRegions) {
+    mImpl->vkCmdCopyImageToBuffer(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                  commandBuffer, srcImage, srcImageLayout, dstBuffer, regionCount,
+                                  pRegions);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkCmdUpdateBuffer(const uint8_t* snapshotTraceBegin,
-                                          size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCmdUpdateBuffer(android::base::BumpPool* pool,
+                                          VkSnapshotApiCallInfo* apiCallInfo,
+                                          const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                           VkCommandBuffer commandBuffer, VkBuffer dstBuffer,
                                           VkDeviceSize dstOffset, VkDeviceSize dataSize,
                                           const void* pData) {
-    mImpl->vkCmdUpdateBuffer(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer, dstBuffer,
-                             dstOffset, dataSize, pData);
+    mImpl->vkCmdUpdateBuffer(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer,
+                             dstBuffer, dstOffset, dataSize, pData);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkCmdFillBuffer(const uint8_t* snapshotTraceBegin,
-                                        size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCmdFillBuffer(android::base::BumpPool* pool,
+                                        VkSnapshotApiCallInfo* apiCallInfo,
+                                        const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                         VkCommandBuffer commandBuffer, VkBuffer dstBuffer,
                                         VkDeviceSize dstOffset, VkDeviceSize size, uint32_t data) {
-    mImpl->vkCmdFillBuffer(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer, dstBuffer,
-                           dstOffset, size, data);
+    mImpl->vkCmdFillBuffer(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer,
+                           dstBuffer, dstOffset, size, data);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkCmdClearColorImage(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkCommandBuffer commandBuffer, VkImage image, VkImageLayout imageLayout,
-    const VkClearColorValue* pColor, uint32_t rangeCount, const VkImageSubresourceRange* pRanges) {
-    mImpl->vkCmdClearColorImage(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer, image,
-                                imageLayout, pColor, rangeCount, pRanges);
+void VkDecoderSnapshot::vkCmdClearColorImage(android::base::BumpPool* pool,
+                                             VkSnapshotApiCallInfo* apiCallInfo,
+                                             const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                             VkCommandBuffer commandBuffer, VkImage image,
+                                             VkImageLayout imageLayout,
+                                             const VkClearColorValue* pColor, uint32_t rangeCount,
+                                             const VkImageSubresourceRange* pRanges) {
+    mImpl->vkCmdClearColorImage(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer,
+                                image, imageLayout, pColor, rangeCount, pRanges);
 }
 #endif
 #ifdef VK_VERSION_1_0
 void VkDecoderSnapshot::vkCmdClearDepthStencilImage(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkCommandBuffer commandBuffer, VkImage image, VkImageLayout imageLayout,
-    const VkClearDepthStencilValue* pDepthStencil, uint32_t rangeCount,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer, VkImage image,
+    VkImageLayout imageLayout, const VkClearDepthStencilValue* pDepthStencil, uint32_t rangeCount,
     const VkImageSubresourceRange* pRanges) {
-    mImpl->vkCmdClearDepthStencilImage(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
-                                       image, imageLayout, pDepthStencil, rangeCount, pRanges);
+    mImpl->vkCmdClearDepthStencilImage(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                       commandBuffer, image, imageLayout, pDepthStencil, rangeCount,
+                                       pRanges);
 }
 #endif
 #ifdef VK_VERSION_1_0
 void VkDecoderSnapshot::vkCmdClearAttachments(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkCommandBuffer commandBuffer, uint32_t attachmentCount, const VkClearAttachment* pAttachments,
-    uint32_t rectCount, const VkClearRect* pRects) {
-    mImpl->vkCmdClearAttachments(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer, uint32_t attachmentCount,
+    const VkClearAttachment* pAttachments, uint32_t rectCount, const VkClearRect* pRects) {
+    mImpl->vkCmdClearAttachments(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer,
                                  attachmentCount, pAttachments, rectCount, pRects);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkCmdResolveImage(const uint8_t* snapshotTraceBegin,
-                                          size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCmdResolveImage(android::base::BumpPool* pool,
+                                          VkSnapshotApiCallInfo* apiCallInfo,
+                                          const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                           VkCommandBuffer commandBuffer, VkImage srcImage,
                                           VkImageLayout srcImageLayout, VkImage dstImage,
                                           VkImageLayout dstImageLayout, uint32_t regionCount,
                                           const VkImageResolve* pRegions) {
-    mImpl->vkCmdResolveImage(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer, srcImage,
-                             srcImageLayout, dstImage, dstImageLayout, regionCount, pRegions);
+    mImpl->vkCmdResolveImage(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer,
+                             srcImage, srcImageLayout, dstImage, dstImageLayout, regionCount,
+                             pRegions);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkCmdSetEvent(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                      android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                                      VkEvent event, VkPipelineStageFlags stageMask) {
-    mImpl->vkCmdSetEvent(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer, event,
+void VkDecoderSnapshot::vkCmdSetEvent(android::base::BumpPool* pool,
+                                      VkSnapshotApiCallInfo* apiCallInfo,
+                                      const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                      VkCommandBuffer commandBuffer, VkEvent event,
+                                      VkPipelineStageFlags stageMask) {
+    mImpl->vkCmdSetEvent(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer, event,
                          stageMask);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkCmdResetEvent(const uint8_t* snapshotTraceBegin,
-                                        size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCmdResetEvent(android::base::BumpPool* pool,
+                                        VkSnapshotApiCallInfo* apiCallInfo,
+                                        const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                         VkCommandBuffer commandBuffer, VkEvent event,
                                         VkPipelineStageFlags stageMask) {
-    mImpl->vkCmdResetEvent(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer, event,
-                           stageMask);
+    mImpl->vkCmdResetEvent(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer,
+                           event, stageMask);
 }
 #endif
 #ifdef VK_VERSION_1_0
 void VkDecoderSnapshot::vkCmdWaitEvents(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkCommandBuffer commandBuffer, uint32_t eventCount, const VkEvent* pEvents,
-    VkPipelineStageFlags srcStageMask, VkPipelineStageFlags dstStageMask,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer, uint32_t eventCount,
+    const VkEvent* pEvents, VkPipelineStageFlags srcStageMask, VkPipelineStageFlags dstStageMask,
     uint32_t memoryBarrierCount, const VkMemoryBarrier* pMemoryBarriers,
     uint32_t bufferMemoryBarrierCount, const VkBufferMemoryBarrier* pBufferMemoryBarriers,
     uint32_t imageMemoryBarrierCount, const VkImageMemoryBarrier* pImageMemoryBarriers) {
-    mImpl->vkCmdWaitEvents(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer, eventCount,
-                           pEvents, srcStageMask, dstStageMask, memoryBarrierCount, pMemoryBarriers,
-                           bufferMemoryBarrierCount, pBufferMemoryBarriers, imageMemoryBarrierCount,
-                           pImageMemoryBarriers);
+    mImpl->vkCmdWaitEvents(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer,
+                           eventCount, pEvents, srcStageMask, dstStageMask, memoryBarrierCount,
+                           pMemoryBarriers, bufferMemoryBarrierCount, pBufferMemoryBarriers,
+                           imageMemoryBarrierCount, pImageMemoryBarriers);
 }
 #endif
 #ifdef VK_VERSION_1_0
 void VkDecoderSnapshot::vkCmdPipelineBarrier(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkCommandBuffer commandBuffer, VkPipelineStageFlags srcStageMask,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer, VkPipelineStageFlags srcStageMask,
     VkPipelineStageFlags dstStageMask, VkDependencyFlags dependencyFlags,
     uint32_t memoryBarrierCount, const VkMemoryBarrier* pMemoryBarriers,
     uint32_t bufferMemoryBarrierCount, const VkBufferMemoryBarrier* pBufferMemoryBarriers,
     uint32_t imageMemoryBarrierCount, const VkImageMemoryBarrier* pImageMemoryBarriers) {
-    mImpl->vkCmdPipelineBarrier(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
+    mImpl->vkCmdPipelineBarrier(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer,
                                 srcStageMask, dstStageMask, dependencyFlags, memoryBarrierCount,
                                 pMemoryBarriers, bufferMemoryBarrierCount, pBufferMemoryBarriers,
                                 imageMemoryBarrierCount, pImageMemoryBarriers);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkCmdBeginQuery(const uint8_t* snapshotTraceBegin,
-                                        size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCmdBeginQuery(android::base::BumpPool* pool,
+                                        VkSnapshotApiCallInfo* apiCallInfo,
+                                        const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                         VkCommandBuffer commandBuffer, VkQueryPool queryPool,
                                         uint32_t query, VkQueryControlFlags flags) {
-    mImpl->vkCmdBeginQuery(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer, queryPool,
-                           query, flags);
+    mImpl->vkCmdBeginQuery(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer,
+                           queryPool, query, flags);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkCmdEndQuery(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                      android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                                      VkQueryPool queryPool, uint32_t query) {
-    mImpl->vkCmdEndQuery(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer, queryPool,
-                         query);
+void VkDecoderSnapshot::vkCmdEndQuery(android::base::BumpPool* pool,
+                                      VkSnapshotApiCallInfo* apiCallInfo,
+                                      const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                      VkCommandBuffer commandBuffer, VkQueryPool queryPool,
+                                      uint32_t query) {
+    mImpl->vkCmdEndQuery(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer,
+                         queryPool, query);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkCmdResetQueryPool(const uint8_t* snapshotTraceBegin,
-                                            size_t snapshotTraceBytes,
-                                            android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCmdResetQueryPool(android::base::BumpPool* pool,
+                                            VkSnapshotApiCallInfo* apiCallInfo,
+                                            const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                             VkCommandBuffer commandBuffer, VkQueryPool queryPool,
                                             uint32_t firstQuery, uint32_t queryCount) {
-    mImpl->vkCmdResetQueryPool(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
+    mImpl->vkCmdResetQueryPool(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer,
                                queryPool, firstQuery, queryCount);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkCmdWriteTimestamp(const uint8_t* snapshotTraceBegin,
-                                            size_t snapshotTraceBytes,
-                                            android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCmdWriteTimestamp(android::base::BumpPool* pool,
+                                            VkSnapshotApiCallInfo* apiCallInfo,
+                                            const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                             VkCommandBuffer commandBuffer,
                                             VkPipelineStageFlagBits pipelineStage,
                                             VkQueryPool queryPool, uint32_t query) {
-    mImpl->vkCmdWriteTimestamp(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
+    mImpl->vkCmdWriteTimestamp(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer,
                                pipelineStage, queryPool, query);
 }
 #endif
 #ifdef VK_VERSION_1_0
 void VkDecoderSnapshot::vkCmdCopyQueryPoolResults(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkCommandBuffer commandBuffer, VkQueryPool queryPool, uint32_t firstQuery, uint32_t queryCount,
-    VkBuffer dstBuffer, VkDeviceSize dstOffset, VkDeviceSize stride, VkQueryResultFlags flags) {
-    mImpl->vkCmdCopyQueryPoolResults(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
-                                     queryPool, firstQuery, queryCount, dstBuffer, dstOffset,
-                                     stride, flags);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer, VkQueryPool queryPool,
+    uint32_t firstQuery, uint32_t queryCount, VkBuffer dstBuffer, VkDeviceSize dstOffset,
+    VkDeviceSize stride, VkQueryResultFlags flags) {
+    mImpl->vkCmdCopyQueryPoolResults(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                     commandBuffer, queryPool, firstQuery, queryCount, dstBuffer,
+                                     dstOffset, stride, flags);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkCmdPushConstants(const uint8_t* snapshotTraceBegin,
-                                           size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCmdPushConstants(android::base::BumpPool* pool,
+                                           VkSnapshotApiCallInfo* apiCallInfo,
+                                           const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                            VkCommandBuffer commandBuffer, VkPipelineLayout layout,
                                            VkShaderStageFlags stageFlags, uint32_t offset,
                                            uint32_t size, const void* pValues) {
-    mImpl->vkCmdPushConstants(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer, layout,
-                              stageFlags, offset, size, pValues);
+    mImpl->vkCmdPushConstants(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer,
+                              layout, stageFlags, offset, size, pValues);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkCmdBeginRenderPass(const uint8_t* snapshotTraceBegin,
-                                             size_t snapshotTraceBytes,
-                                             android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCmdBeginRenderPass(android::base::BumpPool* pool,
+                                             VkSnapshotApiCallInfo* apiCallInfo,
+                                             const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                              VkCommandBuffer commandBuffer,
                                              const VkRenderPassBeginInfo* pRenderPassBegin,
                                              VkSubpassContents contents) {
-    mImpl->vkCmdBeginRenderPass(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
+    mImpl->vkCmdBeginRenderPass(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer,
                                 pRenderPassBegin, contents);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkCmdNextSubpass(const uint8_t* snapshotTraceBegin,
-                                         size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCmdNextSubpass(android::base::BumpPool* pool,
+                                         VkSnapshotApiCallInfo* apiCallInfo,
+                                         const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                          VkCommandBuffer commandBuffer,
                                          VkSubpassContents contents) {
-    mImpl->vkCmdNextSubpass(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer, contents);
+    mImpl->vkCmdNextSubpass(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer,
+                            contents);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkCmdEndRenderPass(const uint8_t* snapshotTraceBegin,
-                                           size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCmdEndRenderPass(android::base::BumpPool* pool,
+                                           VkSnapshotApiCallInfo* apiCallInfo,
+                                           const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                            VkCommandBuffer commandBuffer) {
-    mImpl->vkCmdEndRenderPass(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer);
+    mImpl->vkCmdEndRenderPass(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer);
 }
 #endif
 #ifdef VK_VERSION_1_0
-void VkDecoderSnapshot::vkCmdExecuteCommands(const uint8_t* snapshotTraceBegin,
-                                             size_t snapshotTraceBytes,
-                                             android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCmdExecuteCommands(android::base::BumpPool* pool,
+                                             VkSnapshotApiCallInfo* apiCallInfo,
+                                             const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                              VkCommandBuffer commandBuffer,
                                              uint32_t commandBufferCount,
                                              const VkCommandBuffer* pCommandBuffers) {
-    mImpl->vkCmdExecuteCommands(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
+    mImpl->vkCmdExecuteCommands(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer,
                                 commandBufferCount, pCommandBuffers);
 }
 #endif
 #ifdef VK_VERSION_1_1
-void VkDecoderSnapshot::vkEnumerateInstanceVersion(const uint8_t* snapshotTraceBegin,
-                                                   size_t snapshotTraceBytes,
-                                                   android::base::BumpPool* pool,
-                                                   VkResult input_result, uint32_t* pApiVersion) {
-    mImpl->vkEnumerateInstanceVersion(snapshotTraceBegin, snapshotTraceBytes, pool, input_result,
-                                      pApiVersion);
+void VkDecoderSnapshot::vkEnumerateInstanceVersion(android::base::BumpPool* pool,
+                                                   VkSnapshotApiCallInfo* apiCallInfo,
+                                                   const uint8_t* apiCallPacket,
+                                                   size_t apiCallPacketSize, VkResult input_result,
+                                                   uint32_t* pApiVersion) {
+    mImpl->vkEnumerateInstanceVersion(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                      input_result, pApiVersion);
 }
 #endif
 #ifdef VK_VERSION_1_1
-void VkDecoderSnapshot::vkBindBufferMemory2(const uint8_t* snapshotTraceBegin,
-                                            size_t snapshotTraceBytes,
-                                            android::base::BumpPool* pool, VkResult input_result,
-                                            VkDevice device, uint32_t bindInfoCount,
+void VkDecoderSnapshot::vkBindBufferMemory2(android::base::BumpPool* pool,
+                                            VkSnapshotApiCallInfo* apiCallInfo,
+                                            const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                            VkResult input_result, VkDevice device,
+                                            uint32_t bindInfoCount,
                                             const VkBindBufferMemoryInfo* pBindInfos) {
-    mImpl->vkBindBufferMemory2(snapshotTraceBegin, snapshotTraceBytes, pool, input_result, device,
-                               bindInfoCount, pBindInfos);
+    mImpl->vkBindBufferMemory2(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result,
+                               device, bindInfoCount, pBindInfos);
 }
 #endif
 #ifdef VK_VERSION_1_1
-void VkDecoderSnapshot::vkBindImageMemory2(const uint8_t* snapshotTraceBegin,
-                                           size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkBindImageMemory2(android::base::BumpPool* pool,
+                                           VkSnapshotApiCallInfo* apiCallInfo,
+                                           const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                            VkResult input_result, VkDevice device,
                                            uint32_t bindInfoCount,
                                            const VkBindImageMemoryInfo* pBindInfos) {
-    mImpl->vkBindImageMemory2(snapshotTraceBegin, snapshotTraceBytes, pool, input_result, device,
-                              bindInfoCount, pBindInfos);
+    mImpl->vkBindImageMemory2(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result,
+                              device, bindInfoCount, pBindInfos);
 }
 #endif
 #ifdef VK_VERSION_1_1
 void VkDecoderSnapshot::vkGetDeviceGroupPeerMemoryFeatures(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkDevice device, uint32_t heapIndex, uint32_t localDeviceIndex, uint32_t remoteDeviceIndex,
-    VkPeerMemoryFeatureFlags* pPeerMemoryFeatures) {
-    mImpl->vkGetDeviceGroupPeerMemoryFeatures(snapshotTraceBegin, snapshotTraceBytes, pool, device,
-                                              heapIndex, localDeviceIndex, remoteDeviceIndex,
-                                              pPeerMemoryFeatures);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkDevice device, uint32_t heapIndex, uint32_t localDeviceIndex,
+    uint32_t remoteDeviceIndex, VkPeerMemoryFeatureFlags* pPeerMemoryFeatures) {
+    mImpl->vkGetDeviceGroupPeerMemoryFeatures(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                              device, heapIndex, localDeviceIndex,
+                                              remoteDeviceIndex, pPeerMemoryFeatures);
 }
 #endif
 #ifdef VK_VERSION_1_1
-void VkDecoderSnapshot::vkCmdSetDeviceMask(const uint8_t* snapshotTraceBegin,
-                                           size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCmdSetDeviceMask(android::base::BumpPool* pool,
+                                           VkSnapshotApiCallInfo* apiCallInfo,
+                                           const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                            VkCommandBuffer commandBuffer, uint32_t deviceMask) {
-    mImpl->vkCmdSetDeviceMask(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
+    mImpl->vkCmdSetDeviceMask(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer,
                               deviceMask);
 }
 #endif
 #ifdef VK_VERSION_1_1
-void VkDecoderSnapshot::vkCmdDispatchBase(const uint8_t* snapshotTraceBegin,
-                                          size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCmdDispatchBase(android::base::BumpPool* pool,
+                                          VkSnapshotApiCallInfo* apiCallInfo,
+                                          const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                           VkCommandBuffer commandBuffer, uint32_t baseGroupX,
                                           uint32_t baseGroupY, uint32_t baseGroupZ,
                                           uint32_t groupCountX, uint32_t groupCountY,
                                           uint32_t groupCountZ) {
-    mImpl->vkCmdDispatchBase(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
+    mImpl->vkCmdDispatchBase(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer,
                              baseGroupX, baseGroupY, baseGroupZ, groupCountX, groupCountY,
                              groupCountZ);
 }
 #endif
 #ifdef VK_VERSION_1_1
 void VkDecoderSnapshot::vkEnumeratePhysicalDeviceGroups(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkResult input_result, VkInstance instance, uint32_t* pPhysicalDeviceGroupCount,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkResult input_result, VkInstance instance,
+    uint32_t* pPhysicalDeviceGroupCount,
     VkPhysicalDeviceGroupProperties* pPhysicalDeviceGroupProperties) {
-    mImpl->vkEnumeratePhysicalDeviceGroups(snapshotTraceBegin, snapshotTraceBytes, pool,
+    mImpl->vkEnumeratePhysicalDeviceGroups(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
                                            input_result, instance, pPhysicalDeviceGroupCount,
                                            pPhysicalDeviceGroupProperties);
 }
 #endif
 #ifdef VK_VERSION_1_1
-void VkDecoderSnapshot::vkGetImageMemoryRequirements2(const uint8_t* snapshotTraceBegin,
-                                                      size_t snapshotTraceBytes,
-                                                      android::base::BumpPool* pool,
-                                                      VkDevice device,
+void VkDecoderSnapshot::vkGetImageMemoryRequirements2(android::base::BumpPool* pool,
+                                                      VkSnapshotApiCallInfo* apiCallInfo,
+                                                      const uint8_t* apiCallPacket,
+                                                      size_t apiCallPacketSize, VkDevice device,
                                                       const VkImageMemoryRequirementsInfo2* pInfo,
                                                       VkMemoryRequirements2* pMemoryRequirements) {
-    mImpl->vkGetImageMemoryRequirements2(snapshotTraceBegin, snapshotTraceBytes, pool, device,
-                                         pInfo, pMemoryRequirements);
+    mImpl->vkGetImageMemoryRequirements2(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                         device, pInfo, pMemoryRequirements);
 }
 #endif
 #ifdef VK_VERSION_1_1
-void VkDecoderSnapshot::vkGetBufferMemoryRequirements2(const uint8_t* snapshotTraceBegin,
-                                                       size_t snapshotTraceBytes,
-                                                       android::base::BumpPool* pool,
-                                                       VkDevice device,
+void VkDecoderSnapshot::vkGetBufferMemoryRequirements2(android::base::BumpPool* pool,
+                                                       VkSnapshotApiCallInfo* apiCallInfo,
+                                                       const uint8_t* apiCallPacket,
+                                                       size_t apiCallPacketSize, VkDevice device,
                                                        const VkBufferMemoryRequirementsInfo2* pInfo,
                                                        VkMemoryRequirements2* pMemoryRequirements) {
-    mImpl->vkGetBufferMemoryRequirements2(snapshotTraceBegin, snapshotTraceBytes, pool, device,
-                                          pInfo, pMemoryRequirements);
+    mImpl->vkGetBufferMemoryRequirements2(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                          device, pInfo, pMemoryRequirements);
 }
 #endif
 #ifdef VK_VERSION_1_1
 void VkDecoderSnapshot::vkGetImageSparseMemoryRequirements2(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkDevice device, const VkImageSparseMemoryRequirementsInfo2* pInfo,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkDevice device, const VkImageSparseMemoryRequirementsInfo2* pInfo,
     uint32_t* pSparseMemoryRequirementCount,
     VkSparseImageMemoryRequirements2* pSparseMemoryRequirements) {
-    mImpl->vkGetImageSparseMemoryRequirements2(snapshotTraceBegin, snapshotTraceBytes, pool, device,
-                                               pInfo, pSparseMemoryRequirementCount,
+    mImpl->vkGetImageSparseMemoryRequirements2(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                               device, pInfo, pSparseMemoryRequirementCount,
                                                pSparseMemoryRequirements);
 }
 #endif
 #ifdef VK_VERSION_1_1
-void VkDecoderSnapshot::vkGetPhysicalDeviceFeatures2(const uint8_t* snapshotTraceBegin,
-                                                     size_t snapshotTraceBytes,
-                                                     android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkGetPhysicalDeviceFeatures2(android::base::BumpPool* pool,
+                                                     VkSnapshotApiCallInfo* apiCallInfo,
+                                                     const uint8_t* apiCallPacket,
+                                                     size_t apiCallPacketSize,
                                                      VkPhysicalDevice physicalDevice,
                                                      VkPhysicalDeviceFeatures2* pFeatures) {
-    mImpl->vkGetPhysicalDeviceFeatures2(snapshotTraceBegin, snapshotTraceBytes, pool,
+    mImpl->vkGetPhysicalDeviceFeatures2(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
                                         physicalDevice, pFeatures);
 }
 #endif
 #ifdef VK_VERSION_1_1
-void VkDecoderSnapshot::vkGetPhysicalDeviceProperties2(const uint8_t* snapshotTraceBegin,
-                                                       size_t snapshotTraceBytes,
-                                                       android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkGetPhysicalDeviceProperties2(android::base::BumpPool* pool,
+                                                       VkSnapshotApiCallInfo* apiCallInfo,
+                                                       const uint8_t* apiCallPacket,
+                                                       size_t apiCallPacketSize,
                                                        VkPhysicalDevice physicalDevice,
                                                        VkPhysicalDeviceProperties2* pProperties) {
-    mImpl->vkGetPhysicalDeviceProperties2(snapshotTraceBegin, snapshotTraceBytes, pool,
+    mImpl->vkGetPhysicalDeviceProperties2(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
                                           physicalDevice, pProperties);
 }
 #endif
 #ifdef VK_VERSION_1_1
 void VkDecoderSnapshot::vkGetPhysicalDeviceFormatProperties2(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkPhysicalDevice physicalDevice, VkFormat format, VkFormatProperties2* pFormatProperties) {
-    mImpl->vkGetPhysicalDeviceFormatProperties2(snapshotTraceBegin, snapshotTraceBytes, pool,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkPhysicalDevice physicalDevice, VkFormat format,
+    VkFormatProperties2* pFormatProperties) {
+    mImpl->vkGetPhysicalDeviceFormatProperties2(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
                                                 physicalDevice, format, pFormatProperties);
 }
 #endif
 #ifdef VK_VERSION_1_1
 void VkDecoderSnapshot::vkGetPhysicalDeviceImageFormatProperties2(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkResult input_result, VkPhysicalDevice physicalDevice,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkResult input_result, VkPhysicalDevice physicalDevice,
     const VkPhysicalDeviceImageFormatInfo2* pImageFormatInfo,
     VkImageFormatProperties2* pImageFormatProperties) {
-    mImpl->vkGetPhysicalDeviceImageFormatProperties2(snapshotTraceBegin, snapshotTraceBytes, pool,
-                                                     input_result, physicalDevice, pImageFormatInfo,
-                                                     pImageFormatProperties);
+    mImpl->vkGetPhysicalDeviceImageFormatProperties2(
+        pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result, physicalDevice,
+        pImageFormatInfo, pImageFormatProperties);
 }
 #endif
 #ifdef VK_VERSION_1_1
 void VkDecoderSnapshot::vkGetPhysicalDeviceQueueFamilyProperties2(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkPhysicalDevice physicalDevice, uint32_t* pQueueFamilyPropertyCount,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkPhysicalDevice physicalDevice, uint32_t* pQueueFamilyPropertyCount,
     VkQueueFamilyProperties2* pQueueFamilyProperties) {
-    mImpl->vkGetPhysicalDeviceQueueFamilyProperties2(snapshotTraceBegin, snapshotTraceBytes, pool,
-                                                     physicalDevice, pQueueFamilyPropertyCount,
-                                                     pQueueFamilyProperties);
+    mImpl->vkGetPhysicalDeviceQueueFamilyProperties2(
+        pool, apiCallInfo, apiCallPacket, apiCallPacketSize, physicalDevice,
+        pQueueFamilyPropertyCount, pQueueFamilyProperties);
 }
 #endif
 #ifdef VK_VERSION_1_1
 void VkDecoderSnapshot::vkGetPhysicalDeviceMemoryProperties2(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkPhysicalDevice physicalDevice, VkPhysicalDeviceMemoryProperties2* pMemoryProperties) {
-    mImpl->vkGetPhysicalDeviceMemoryProperties2(snapshotTraceBegin, snapshotTraceBytes, pool,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkPhysicalDevice physicalDevice,
+    VkPhysicalDeviceMemoryProperties2* pMemoryProperties) {
+    mImpl->vkGetPhysicalDeviceMemoryProperties2(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
                                                 physicalDevice, pMemoryProperties);
 }
 #endif
 #ifdef VK_VERSION_1_1
 void VkDecoderSnapshot::vkGetPhysicalDeviceSparseImageFormatProperties2(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkPhysicalDevice physicalDevice, const VkPhysicalDeviceSparseImageFormatInfo2* pFormatInfo,
-    uint32_t* pPropertyCount, VkSparseImageFormatProperties2* pProperties) {
-    mImpl->vkGetPhysicalDeviceSparseImageFormatProperties2(snapshotTraceBegin, snapshotTraceBytes,
-                                                           pool, physicalDevice, pFormatInfo,
-                                                           pPropertyCount, pProperties);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkPhysicalDevice physicalDevice,
+    const VkPhysicalDeviceSparseImageFormatInfo2* pFormatInfo, uint32_t* pPropertyCount,
+    VkSparseImageFormatProperties2* pProperties) {
+    mImpl->vkGetPhysicalDeviceSparseImageFormatProperties2(
+        pool, apiCallInfo, apiCallPacket, apiCallPacketSize, physicalDevice, pFormatInfo,
+        pPropertyCount, pProperties);
 }
 #endif
 #ifdef VK_VERSION_1_1
-void VkDecoderSnapshot::vkTrimCommandPool(const uint8_t* snapshotTraceBegin,
-                                          size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkTrimCommandPool(android::base::BumpPool* pool,
+                                          VkSnapshotApiCallInfo* apiCallInfo,
+                                          const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                           VkDevice device, VkCommandPool commandPool,
                                           VkCommandPoolTrimFlags flags) {
-    mImpl->vkTrimCommandPool(snapshotTraceBegin, snapshotTraceBytes, pool, device, commandPool,
-                             flags);
+    mImpl->vkTrimCommandPool(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, device,
+                             commandPool, flags);
 }
 #endif
 #ifdef VK_VERSION_1_1
-void VkDecoderSnapshot::vkGetDeviceQueue2(const uint8_t* snapshotTraceBegin,
-                                          size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkGetDeviceQueue2(android::base::BumpPool* pool,
+                                          VkSnapshotApiCallInfo* apiCallInfo,
+                                          const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                           VkDevice device, const VkDeviceQueueInfo2* pQueueInfo,
                                           VkQueue* pQueue) {
-    mImpl->vkGetDeviceQueue2(snapshotTraceBegin, snapshotTraceBytes, pool, device, pQueueInfo,
-                             pQueue);
+    mImpl->vkGetDeviceQueue2(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, device,
+                             pQueueInfo, pQueue);
 }
 #endif
 #ifdef VK_VERSION_1_1
 void VkDecoderSnapshot::vkCreateSamplerYcbcrConversion(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkResult input_result, VkDevice device, const VkSamplerYcbcrConversionCreateInfo* pCreateInfo,
-    const VkAllocationCallbacks* pAllocator, VkSamplerYcbcrConversion* pYcbcrConversion) {
-    mImpl->vkCreateSamplerYcbcrConversion(snapshotTraceBegin, snapshotTraceBytes, pool,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkResult input_result, VkDevice device,
+    const VkSamplerYcbcrConversionCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator,
+    VkSamplerYcbcrConversion* pYcbcrConversion) {
+    mImpl->vkCreateSamplerYcbcrConversion(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
                                           input_result, device, pCreateInfo, pAllocator,
                                           pYcbcrConversion);
 }
 #endif
 #ifdef VK_VERSION_1_1
-void VkDecoderSnapshot::vkDestroySamplerYcbcrConversion(const uint8_t* snapshotTraceBegin,
-                                                        size_t snapshotTraceBytes,
-                                                        android::base::BumpPool* pool,
-                                                        VkDevice device,
+void VkDecoderSnapshot::vkDestroySamplerYcbcrConversion(android::base::BumpPool* pool,
+                                                        VkSnapshotApiCallInfo* apiCallInfo,
+                                                        const uint8_t* apiCallPacket,
+                                                        size_t apiCallPacketSize, VkDevice device,
                                                         VkSamplerYcbcrConversion ycbcrConversion,
                                                         const VkAllocationCallbacks* pAllocator) {
-    mImpl->vkDestroySamplerYcbcrConversion(snapshotTraceBegin, snapshotTraceBytes, pool, device,
-                                           ycbcrConversion, pAllocator);
+    mImpl->vkDestroySamplerYcbcrConversion(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                           device, ycbcrConversion, pAllocator);
 }
 #endif
 #ifdef VK_VERSION_1_1
 void VkDecoderSnapshot::vkCreateDescriptorUpdateTemplate(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkResult input_result, VkDevice device, const VkDescriptorUpdateTemplateCreateInfo* pCreateInfo,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkResult input_result, VkDevice device,
+    const VkDescriptorUpdateTemplateCreateInfo* pCreateInfo,
     const VkAllocationCallbacks* pAllocator,
     VkDescriptorUpdateTemplate* pDescriptorUpdateTemplate) {
-    mImpl->vkCreateDescriptorUpdateTemplate(snapshotTraceBegin, snapshotTraceBytes, pool,
+    mImpl->vkCreateDescriptorUpdateTemplate(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
                                             input_result, device, pCreateInfo, pAllocator,
                                             pDescriptorUpdateTemplate);
 }
 #endif
 #ifdef VK_VERSION_1_1
 void VkDecoderSnapshot::vkDestroyDescriptorUpdateTemplate(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkDevice device, VkDescriptorUpdateTemplate descriptorUpdateTemplate,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkDevice device, VkDescriptorUpdateTemplate descriptorUpdateTemplate,
     const VkAllocationCallbacks* pAllocator) {
-    mImpl->vkDestroyDescriptorUpdateTemplate(snapshotTraceBegin, snapshotTraceBytes, pool, device,
-                                             descriptorUpdateTemplate, pAllocator);
+    mImpl->vkDestroyDescriptorUpdateTemplate(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                             device, descriptorUpdateTemplate, pAllocator);
 }
 #endif
 #ifdef VK_VERSION_1_1
 void VkDecoderSnapshot::vkUpdateDescriptorSetWithTemplate(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkDevice device, VkDescriptorSet descriptorSet,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkDevice device, VkDescriptorSet descriptorSet,
     VkDescriptorUpdateTemplate descriptorUpdateTemplate, const void* pData) {
-    mImpl->vkUpdateDescriptorSetWithTemplate(snapshotTraceBegin, snapshotTraceBytes, pool, device,
-                                             descriptorSet, descriptorUpdateTemplate, pData);
+    mImpl->vkUpdateDescriptorSetWithTemplate(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                             device, descriptorSet, descriptorUpdateTemplate,
+                                             pData);
 }
 #endif
 #ifdef VK_VERSION_1_1
 void VkDecoderSnapshot::vkGetPhysicalDeviceExternalBufferProperties(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkPhysicalDevice physicalDevice, const VkPhysicalDeviceExternalBufferInfo* pExternalBufferInfo,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkPhysicalDevice physicalDevice,
+    const VkPhysicalDeviceExternalBufferInfo* pExternalBufferInfo,
     VkExternalBufferProperties* pExternalBufferProperties) {
-    mImpl->vkGetPhysicalDeviceExternalBufferProperties(snapshotTraceBegin, snapshotTraceBytes, pool,
-                                                       physicalDevice, pExternalBufferInfo,
-                                                       pExternalBufferProperties);
+    mImpl->vkGetPhysicalDeviceExternalBufferProperties(
+        pool, apiCallInfo, apiCallPacket, apiCallPacketSize, physicalDevice, pExternalBufferInfo,
+        pExternalBufferProperties);
 }
 #endif
 #ifdef VK_VERSION_1_1
 void VkDecoderSnapshot::vkGetPhysicalDeviceExternalFenceProperties(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkPhysicalDevice physicalDevice, const VkPhysicalDeviceExternalFenceInfo* pExternalFenceInfo,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkPhysicalDevice physicalDevice,
+    const VkPhysicalDeviceExternalFenceInfo* pExternalFenceInfo,
     VkExternalFenceProperties* pExternalFenceProperties) {
-    mImpl->vkGetPhysicalDeviceExternalFenceProperties(snapshotTraceBegin, snapshotTraceBytes, pool,
-                                                      physicalDevice, pExternalFenceInfo,
-                                                      pExternalFenceProperties);
+    mImpl->vkGetPhysicalDeviceExternalFenceProperties(pool, apiCallInfo, apiCallPacket,
+                                                      apiCallPacketSize, physicalDevice,
+                                                      pExternalFenceInfo, pExternalFenceProperties);
 }
 #endif
 #ifdef VK_VERSION_1_1
 void VkDecoderSnapshot::vkGetPhysicalDeviceExternalSemaphoreProperties(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkPhysicalDevice physicalDevice,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkPhysicalDevice physicalDevice,
     const VkPhysicalDeviceExternalSemaphoreInfo* pExternalSemaphoreInfo,
     VkExternalSemaphoreProperties* pExternalSemaphoreProperties) {
     mImpl->vkGetPhysicalDeviceExternalSemaphoreProperties(
-        snapshotTraceBegin, snapshotTraceBytes, pool, physicalDevice, pExternalSemaphoreInfo,
+        pool, apiCallInfo, apiCallPacket, apiCallPacketSize, physicalDevice, pExternalSemaphoreInfo,
         pExternalSemaphoreProperties);
 }
 #endif
 #ifdef VK_VERSION_1_1
 void VkDecoderSnapshot::vkGetDescriptorSetLayoutSupport(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkDevice device, const VkDescriptorSetLayoutCreateInfo* pCreateInfo,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkDevice device, const VkDescriptorSetLayoutCreateInfo* pCreateInfo,
     VkDescriptorSetLayoutSupport* pSupport) {
-    mImpl->vkGetDescriptorSetLayoutSupport(snapshotTraceBegin, snapshotTraceBytes, pool, device,
-                                           pCreateInfo, pSupport);
+    mImpl->vkGetDescriptorSetLayoutSupport(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                           device, pCreateInfo, pSupport);
 }
 #endif
 #ifdef VK_VERSION_1_2
 void VkDecoderSnapshot::vkCmdDrawIndirectCount(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkCommandBuffer commandBuffer, VkBuffer buffer, VkDeviceSize offset, VkBuffer countBuffer,
-    VkDeviceSize countBufferOffset, uint32_t maxDrawCount, uint32_t stride) {
-    mImpl->vkCmdDrawIndirectCount(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
-                                  buffer, offset, countBuffer, countBufferOffset, maxDrawCount,
-                                  stride);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer, VkBuffer buffer, VkDeviceSize offset,
+    VkBuffer countBuffer, VkDeviceSize countBufferOffset, uint32_t maxDrawCount, uint32_t stride) {
+    mImpl->vkCmdDrawIndirectCount(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                  commandBuffer, buffer, offset, countBuffer, countBufferOffset,
+                                  maxDrawCount, stride);
 }
 #endif
 #ifdef VK_VERSION_1_2
 void VkDecoderSnapshot::vkCmdDrawIndexedIndirectCount(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkCommandBuffer commandBuffer, VkBuffer buffer, VkDeviceSize offset, VkBuffer countBuffer,
-    VkDeviceSize countBufferOffset, uint32_t maxDrawCount, uint32_t stride) {
-    mImpl->vkCmdDrawIndexedIndirectCount(snapshotTraceBegin, snapshotTraceBytes, pool,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer, VkBuffer buffer, VkDeviceSize offset,
+    VkBuffer countBuffer, VkDeviceSize countBufferOffset, uint32_t maxDrawCount, uint32_t stride) {
+    mImpl->vkCmdDrawIndexedIndirectCount(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
                                          commandBuffer, buffer, offset, countBuffer,
                                          countBufferOffset, maxDrawCount, stride);
 }
 #endif
 #ifdef VK_VERSION_1_2
-void VkDecoderSnapshot::vkCreateRenderPass2(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkResult input_result, VkDevice device, const VkRenderPassCreateInfo2* pCreateInfo,
-    const VkAllocationCallbacks* pAllocator, VkRenderPass* pRenderPass) {
-    mImpl->vkCreateRenderPass2(snapshotTraceBegin, snapshotTraceBytes, pool, input_result, device,
-                               pCreateInfo, pAllocator, pRenderPass);
+void VkDecoderSnapshot::vkCreateRenderPass2(android::base::BumpPool* pool,
+                                            VkSnapshotApiCallInfo* apiCallInfo,
+                                            const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                            VkResult input_result, VkDevice device,
+                                            const VkRenderPassCreateInfo2* pCreateInfo,
+                                            const VkAllocationCallbacks* pAllocator,
+                                            VkRenderPass* pRenderPass) {
+    mImpl->vkCreateRenderPass2(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result,
+                               device, pCreateInfo, pAllocator, pRenderPass);
 }
 #endif
 #ifdef VK_VERSION_1_2
-void VkDecoderSnapshot::vkCmdBeginRenderPass2(const uint8_t* snapshotTraceBegin,
-                                              size_t snapshotTraceBytes,
-                                              android::base::BumpPool* pool,
-                                              VkCommandBuffer commandBuffer,
-                                              const VkRenderPassBeginInfo* pRenderPassBegin,
-                                              const VkSubpassBeginInfo* pSubpassBeginInfo) {
-    mImpl->vkCmdBeginRenderPass2(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
+void VkDecoderSnapshot::vkCmdBeginRenderPass2(
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer,
+    const VkRenderPassBeginInfo* pRenderPassBegin, const VkSubpassBeginInfo* pSubpassBeginInfo) {
+    mImpl->vkCmdBeginRenderPass2(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer,
                                  pRenderPassBegin, pSubpassBeginInfo);
 }
 #endif
 #ifdef VK_VERSION_1_2
-void VkDecoderSnapshot::vkCmdNextSubpass2(const uint8_t* snapshotTraceBegin,
-                                          size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCmdNextSubpass2(android::base::BumpPool* pool,
+                                          VkSnapshotApiCallInfo* apiCallInfo,
+                                          const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                           VkCommandBuffer commandBuffer,
                                           const VkSubpassBeginInfo* pSubpassBeginInfo,
                                           const VkSubpassEndInfo* pSubpassEndInfo) {
-    mImpl->vkCmdNextSubpass2(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
+    mImpl->vkCmdNextSubpass2(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer,
                              pSubpassBeginInfo, pSubpassEndInfo);
 }
 #endif
 #ifdef VK_VERSION_1_2
-void VkDecoderSnapshot::vkCmdEndRenderPass2(const uint8_t* snapshotTraceBegin,
-                                            size_t snapshotTraceBytes,
-                                            android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCmdEndRenderPass2(android::base::BumpPool* pool,
+                                            VkSnapshotApiCallInfo* apiCallInfo,
+                                            const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                             VkCommandBuffer commandBuffer,
                                             const VkSubpassEndInfo* pSubpassEndInfo) {
-    mImpl->vkCmdEndRenderPass2(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
+    mImpl->vkCmdEndRenderPass2(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer,
                                pSubpassEndInfo);
 }
 #endif
 #ifdef VK_VERSION_1_2
-void VkDecoderSnapshot::vkResetQueryPool(const uint8_t* snapshotTraceBegin,
-                                         size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkResetQueryPool(android::base::BumpPool* pool,
+                                         VkSnapshotApiCallInfo* apiCallInfo,
+                                         const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                          VkDevice device, VkQueryPool queryPool,
                                          uint32_t firstQuery, uint32_t queryCount) {
-    mImpl->vkResetQueryPool(snapshotTraceBegin, snapshotTraceBytes, pool, device, queryPool,
+    mImpl->vkResetQueryPool(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, device, queryPool,
                             firstQuery, queryCount);
 }
 #endif
 #ifdef VK_VERSION_1_2
-void VkDecoderSnapshot::vkGetSemaphoreCounterValue(const uint8_t* snapshotTraceBegin,
-                                                   size_t snapshotTraceBytes,
-                                                   android::base::BumpPool* pool,
-                                                   VkResult input_result, VkDevice device,
-                                                   VkSemaphore semaphore, uint64_t* pValue) {
-    mImpl->vkGetSemaphoreCounterValue(snapshotTraceBegin, snapshotTraceBytes, pool, input_result,
-                                      device, semaphore, pValue);
+void VkDecoderSnapshot::vkGetSemaphoreCounterValue(android::base::BumpPool* pool,
+                                                   VkSnapshotApiCallInfo* apiCallInfo,
+                                                   const uint8_t* apiCallPacket,
+                                                   size_t apiCallPacketSize, VkResult input_result,
+                                                   VkDevice device, VkSemaphore semaphore,
+                                                   uint64_t* pValue) {
+    mImpl->vkGetSemaphoreCounterValue(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                      input_result, device, semaphore, pValue);
 }
 #endif
 #ifdef VK_VERSION_1_2
-void VkDecoderSnapshot::vkWaitSemaphores(const uint8_t* snapshotTraceBegin,
-                                         size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkWaitSemaphores(android::base::BumpPool* pool,
+                                         VkSnapshotApiCallInfo* apiCallInfo,
+                                         const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                          VkResult input_result, VkDevice device,
                                          const VkSemaphoreWaitInfo* pWaitInfo, uint64_t timeout) {
-    mImpl->vkWaitSemaphores(snapshotTraceBegin, snapshotTraceBytes, pool, input_result, device,
-                            pWaitInfo, timeout);
+    mImpl->vkWaitSemaphores(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result,
+                            device, pWaitInfo, timeout);
 }
 #endif
 #ifdef VK_VERSION_1_2
-void VkDecoderSnapshot::vkSignalSemaphore(const uint8_t* snapshotTraceBegin,
-                                          size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkSignalSemaphore(android::base::BumpPool* pool,
+                                          VkSnapshotApiCallInfo* apiCallInfo,
+                                          const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                           VkResult input_result, VkDevice device,
                                           const VkSemaphoreSignalInfo* pSignalInfo) {
-    mImpl->vkSignalSemaphore(snapshotTraceBegin, snapshotTraceBytes, pool, input_result, device,
-                             pSignalInfo);
+    mImpl->vkSignalSemaphore(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result,
+                             device, pSignalInfo);
 }
 #endif
 #ifdef VK_VERSION_1_2
-void VkDecoderSnapshot::vkGetBufferDeviceAddress(const uint8_t* snapshotTraceBegin,
-                                                 size_t snapshotTraceBytes,
-                                                 android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkGetBufferDeviceAddress(android::base::BumpPool* pool,
+                                                 VkSnapshotApiCallInfo* apiCallInfo,
+                                                 const uint8_t* apiCallPacket,
+                                                 size_t apiCallPacketSize,
                                                  VkDeviceAddress input_result, VkDevice device,
                                                  const VkBufferDeviceAddressInfo* pInfo) {
-    mImpl->vkGetBufferDeviceAddress(snapshotTraceBegin, snapshotTraceBytes, pool, input_result,
-                                    device, pInfo);
+    mImpl->vkGetBufferDeviceAddress(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                    input_result, device, pInfo);
 }
 #endif
 #ifdef VK_VERSION_1_2
-void VkDecoderSnapshot::vkGetBufferOpaqueCaptureAddress(const uint8_t* snapshotTraceBegin,
-                                                        size_t snapshotTraceBytes,
-                                                        android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkGetBufferOpaqueCaptureAddress(android::base::BumpPool* pool,
+                                                        VkSnapshotApiCallInfo* apiCallInfo,
+                                                        const uint8_t* apiCallPacket,
+                                                        size_t apiCallPacketSize,
                                                         uint64_t input_result, VkDevice device,
                                                         const VkBufferDeviceAddressInfo* pInfo) {
-    mImpl->vkGetBufferOpaqueCaptureAddress(snapshotTraceBegin, snapshotTraceBytes, pool,
+    mImpl->vkGetBufferOpaqueCaptureAddress(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
                                            input_result, device, pInfo);
 }
 #endif
 #ifdef VK_VERSION_1_2
 void VkDecoderSnapshot::vkGetDeviceMemoryOpaqueCaptureAddress(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    uint64_t input_result, VkDevice device, const VkDeviceMemoryOpaqueCaptureAddressInfo* pInfo) {
-    mImpl->vkGetDeviceMemoryOpaqueCaptureAddress(snapshotTraceBegin, snapshotTraceBytes, pool,
-                                                 input_result, device, pInfo);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, uint64_t input_result, VkDevice device,
+    const VkDeviceMemoryOpaqueCaptureAddressInfo* pInfo) {
+    mImpl->vkGetDeviceMemoryOpaqueCaptureAddress(pool, apiCallInfo, apiCallPacket,
+                                                 apiCallPacketSize, input_result, device, pInfo);
 }
 #endif
 #ifdef VK_VERSION_1_3
 void VkDecoderSnapshot::vkGetPhysicalDeviceToolProperties(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkResult input_result, VkPhysicalDevice physicalDevice, uint32_t* pToolCount,
-    VkPhysicalDeviceToolProperties* pToolProperties) {
-    mImpl->vkGetPhysicalDeviceToolProperties(snapshotTraceBegin, snapshotTraceBytes, pool,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkResult input_result, VkPhysicalDevice physicalDevice,
+    uint32_t* pToolCount, VkPhysicalDeviceToolProperties* pToolProperties) {
+    mImpl->vkGetPhysicalDeviceToolProperties(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
                                              input_result, physicalDevice, pToolCount,
                                              pToolProperties);
 }
 #endif
 #ifdef VK_VERSION_1_3
 void VkDecoderSnapshot::vkCreatePrivateDataSlot(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkResult input_result, VkDevice device, const VkPrivateDataSlotCreateInfo* pCreateInfo,
-    const VkAllocationCallbacks* pAllocator, VkPrivateDataSlot* pPrivateDataSlot) {
-    mImpl->vkCreatePrivateDataSlot(snapshotTraceBegin, snapshotTraceBytes, pool, input_result,
-                                   device, pCreateInfo, pAllocator, pPrivateDataSlot);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkResult input_result, VkDevice device,
+    const VkPrivateDataSlotCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator,
+    VkPrivateDataSlot* pPrivateDataSlot) {
+    mImpl->vkCreatePrivateDataSlot(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                   input_result, device, pCreateInfo, pAllocator, pPrivateDataSlot);
 }
 #endif
 #ifdef VK_VERSION_1_3
-void VkDecoderSnapshot::vkDestroyPrivateDataSlot(const uint8_t* snapshotTraceBegin,
-                                                 size_t snapshotTraceBytes,
-                                                 android::base::BumpPool* pool, VkDevice device,
+void VkDecoderSnapshot::vkDestroyPrivateDataSlot(android::base::BumpPool* pool,
+                                                 VkSnapshotApiCallInfo* apiCallInfo,
+                                                 const uint8_t* apiCallPacket,
+                                                 size_t apiCallPacketSize, VkDevice device,
                                                  VkPrivateDataSlot privateDataSlot,
                                                  const VkAllocationCallbacks* pAllocator) {
-    mImpl->vkDestroyPrivateDataSlot(snapshotTraceBegin, snapshotTraceBytes, pool, device,
+    mImpl->vkDestroyPrivateDataSlot(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, device,
                                     privateDataSlot, pAllocator);
 }
 #endif
 #ifdef VK_VERSION_1_3
-void VkDecoderSnapshot::vkSetPrivateData(const uint8_t* snapshotTraceBegin,
-                                         size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkSetPrivateData(android::base::BumpPool* pool,
+                                         VkSnapshotApiCallInfo* apiCallInfo,
+                                         const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                          VkResult input_result, VkDevice device,
                                          VkObjectType objectType, uint64_t objectHandle,
                                          VkPrivateDataSlot privateDataSlot, uint64_t data) {
-    mImpl->vkSetPrivateData(snapshotTraceBegin, snapshotTraceBytes, pool, input_result, device,
-                            objectType, objectHandle, privateDataSlot, data);
+    mImpl->vkSetPrivateData(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result,
+                            device, objectType, objectHandle, privateDataSlot, data);
 }
 #endif
 #ifdef VK_VERSION_1_3
-void VkDecoderSnapshot::vkGetPrivateData(const uint8_t* snapshotTraceBegin,
-                                         size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkGetPrivateData(android::base::BumpPool* pool,
+                                         VkSnapshotApiCallInfo* apiCallInfo,
+                                         const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                          VkDevice device, VkObjectType objectType,
                                          uint64_t objectHandle, VkPrivateDataSlot privateDataSlot,
                                          uint64_t* pData) {
-    mImpl->vkGetPrivateData(snapshotTraceBegin, snapshotTraceBytes, pool, device, objectType,
+    mImpl->vkGetPrivateData(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, device, objectType,
                             objectHandle, privateDataSlot, pData);
 }
 #endif
 #ifdef VK_VERSION_1_3
-void VkDecoderSnapshot::vkCmdSetEvent2(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                       android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-                                       VkEvent event, const VkDependencyInfo* pDependencyInfo) {
-    mImpl->vkCmdSetEvent2(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer, event,
+void VkDecoderSnapshot::vkCmdSetEvent2(android::base::BumpPool* pool,
+                                       VkSnapshotApiCallInfo* apiCallInfo,
+                                       const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                       VkCommandBuffer commandBuffer, VkEvent event,
+                                       const VkDependencyInfo* pDependencyInfo) {
+    mImpl->vkCmdSetEvent2(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer, event,
                           pDependencyInfo);
 }
 #endif
 #ifdef VK_VERSION_1_3
-void VkDecoderSnapshot::vkCmdResetEvent2(const uint8_t* snapshotTraceBegin,
-                                         size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCmdResetEvent2(android::base::BumpPool* pool,
+                                         VkSnapshotApiCallInfo* apiCallInfo,
+                                         const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                          VkCommandBuffer commandBuffer, VkEvent event,
                                          VkPipelineStageFlags2 stageMask) {
-    mImpl->vkCmdResetEvent2(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer, event,
-                            stageMask);
+    mImpl->vkCmdResetEvent2(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer,
+                            event, stageMask);
 }
 #endif
 #ifdef VK_VERSION_1_3
-void VkDecoderSnapshot::vkCmdWaitEvents2(const uint8_t* snapshotTraceBegin,
-                                         size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCmdWaitEvents2(android::base::BumpPool* pool,
+                                         VkSnapshotApiCallInfo* apiCallInfo,
+                                         const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                          VkCommandBuffer commandBuffer, uint32_t eventCount,
                                          const VkEvent* pEvents,
                                          const VkDependencyInfo* pDependencyInfos) {
-    mImpl->vkCmdWaitEvents2(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer, eventCount,
-                            pEvents, pDependencyInfos);
+    mImpl->vkCmdWaitEvents2(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer,
+                            eventCount, pEvents, pDependencyInfos);
 }
 #endif
 #ifdef VK_VERSION_1_3
-void VkDecoderSnapshot::vkCmdPipelineBarrier2(const uint8_t* snapshotTraceBegin,
-                                              size_t snapshotTraceBytes,
-                                              android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCmdPipelineBarrier2(android::base::BumpPool* pool,
+                                              VkSnapshotApiCallInfo* apiCallInfo,
+                                              const uint8_t* apiCallPacket,
+                                              size_t apiCallPacketSize,
                                               VkCommandBuffer commandBuffer,
                                               const VkDependencyInfo* pDependencyInfo) {
-    mImpl->vkCmdPipelineBarrier2(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
+    mImpl->vkCmdPipelineBarrier2(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer,
                                  pDependencyInfo);
 }
 #endif
 #ifdef VK_VERSION_1_3
-void VkDecoderSnapshot::vkCmdWriteTimestamp2(const uint8_t* snapshotTraceBegin,
-                                             size_t snapshotTraceBytes,
-                                             android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCmdWriteTimestamp2(android::base::BumpPool* pool,
+                                             VkSnapshotApiCallInfo* apiCallInfo,
+                                             const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                              VkCommandBuffer commandBuffer,
                                              VkPipelineStageFlags2 stage, VkQueryPool queryPool,
                                              uint32_t query) {
-    mImpl->vkCmdWriteTimestamp2(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer, stage,
-                                queryPool, query);
+    mImpl->vkCmdWriteTimestamp2(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer,
+                                stage, queryPool, query);
 }
 #endif
 #ifdef VK_VERSION_1_3
-void VkDecoderSnapshot::vkQueueSubmit2(const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes,
-                                       android::base::BumpPool* pool, VkResult input_result,
-                                       VkQueue queue, uint32_t submitCount,
+void VkDecoderSnapshot::vkQueueSubmit2(android::base::BumpPool* pool,
+                                       VkSnapshotApiCallInfo* apiCallInfo,
+                                       const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                       VkResult input_result, VkQueue queue, uint32_t submitCount,
                                        const VkSubmitInfo2* pSubmits, VkFence fence) {
-    mImpl->vkQueueSubmit2(snapshotTraceBegin, snapshotTraceBytes, pool, input_result, queue,
+    mImpl->vkQueueSubmit2(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result, queue,
                           submitCount, pSubmits, fence);
 }
 #endif
 #ifdef VK_VERSION_1_3
-void VkDecoderSnapshot::vkCmdCopyBuffer2(const uint8_t* snapshotTraceBegin,
-                                         size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCmdCopyBuffer2(android::base::BumpPool* pool,
+                                         VkSnapshotApiCallInfo* apiCallInfo,
+                                         const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                          VkCommandBuffer commandBuffer,
                                          const VkCopyBufferInfo2* pCopyBufferInfo) {
-    mImpl->vkCmdCopyBuffer2(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
+    mImpl->vkCmdCopyBuffer2(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer,
                             pCopyBufferInfo);
 }
 #endif
 #ifdef VK_VERSION_1_3
-void VkDecoderSnapshot::vkCmdCopyImage2(const uint8_t* snapshotTraceBegin,
-                                        size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCmdCopyImage2(android::base::BumpPool* pool,
+                                        VkSnapshotApiCallInfo* apiCallInfo,
+                                        const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                         VkCommandBuffer commandBuffer,
                                         const VkCopyImageInfo2* pCopyImageInfo) {
-    mImpl->vkCmdCopyImage2(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
+    mImpl->vkCmdCopyImage2(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer,
                            pCopyImageInfo);
 }
 #endif
 #ifdef VK_VERSION_1_3
 void VkDecoderSnapshot::vkCmdCopyBufferToImage2(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkCommandBuffer commandBuffer, const VkCopyBufferToImageInfo2* pCopyBufferToImageInfo) {
-    mImpl->vkCmdCopyBufferToImage2(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
-                                   pCopyBufferToImageInfo);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer,
+    const VkCopyBufferToImageInfo2* pCopyBufferToImageInfo) {
+    mImpl->vkCmdCopyBufferToImage2(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                   commandBuffer, pCopyBufferToImageInfo);
 }
 #endif
 #ifdef VK_VERSION_1_3
 void VkDecoderSnapshot::vkCmdCopyImageToBuffer2(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkCommandBuffer commandBuffer, const VkCopyImageToBufferInfo2* pCopyImageToBufferInfo) {
-    mImpl->vkCmdCopyImageToBuffer2(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
-                                   pCopyImageToBufferInfo);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer,
+    const VkCopyImageToBufferInfo2* pCopyImageToBufferInfo) {
+    mImpl->vkCmdCopyImageToBuffer2(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                   commandBuffer, pCopyImageToBufferInfo);
 }
 #endif
 #ifdef VK_VERSION_1_3
-void VkDecoderSnapshot::vkCmdBlitImage2(const uint8_t* snapshotTraceBegin,
-                                        size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCmdBlitImage2(android::base::BumpPool* pool,
+                                        VkSnapshotApiCallInfo* apiCallInfo,
+                                        const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                         VkCommandBuffer commandBuffer,
                                         const VkBlitImageInfo2* pBlitImageInfo) {
-    mImpl->vkCmdBlitImage2(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
+    mImpl->vkCmdBlitImage2(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer,
                            pBlitImageInfo);
 }
 #endif
 #ifdef VK_VERSION_1_3
-void VkDecoderSnapshot::vkCmdResolveImage2(const uint8_t* snapshotTraceBegin,
-                                           size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCmdResolveImage2(android::base::BumpPool* pool,
+                                           VkSnapshotApiCallInfo* apiCallInfo,
+                                           const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                            VkCommandBuffer commandBuffer,
                                            const VkResolveImageInfo2* pResolveImageInfo) {
-    mImpl->vkCmdResolveImage2(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
+    mImpl->vkCmdResolveImage2(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer,
                               pResolveImageInfo);
 }
 #endif
 #ifdef VK_VERSION_1_3
-void VkDecoderSnapshot::vkCmdBeginRendering(const uint8_t* snapshotTraceBegin,
-                                            size_t snapshotTraceBytes,
-                                            android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCmdBeginRendering(android::base::BumpPool* pool,
+                                            VkSnapshotApiCallInfo* apiCallInfo,
+                                            const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                             VkCommandBuffer commandBuffer,
                                             const VkRenderingInfo* pRenderingInfo) {
-    mImpl->vkCmdBeginRendering(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
+    mImpl->vkCmdBeginRendering(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer,
                                pRenderingInfo);
 }
 #endif
 #ifdef VK_VERSION_1_3
-void VkDecoderSnapshot::vkCmdEndRendering(const uint8_t* snapshotTraceBegin,
-                                          size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCmdEndRendering(android::base::BumpPool* pool,
+                                          VkSnapshotApiCallInfo* apiCallInfo,
+                                          const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                           VkCommandBuffer commandBuffer) {
-    mImpl->vkCmdEndRendering(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer);
+    mImpl->vkCmdEndRendering(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer);
 }
 #endif
 #ifdef VK_VERSION_1_3
-void VkDecoderSnapshot::vkCmdSetCullMode(const uint8_t* snapshotTraceBegin,
-                                         size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCmdSetCullMode(android::base::BumpPool* pool,
+                                         VkSnapshotApiCallInfo* apiCallInfo,
+                                         const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                          VkCommandBuffer commandBuffer, VkCullModeFlags cullMode) {
-    mImpl->vkCmdSetCullMode(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer, cullMode);
+    mImpl->vkCmdSetCullMode(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer,
+                            cullMode);
 }
 #endif
 #ifdef VK_VERSION_1_3
-void VkDecoderSnapshot::vkCmdSetFrontFace(const uint8_t* snapshotTraceBegin,
-                                          size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCmdSetFrontFace(android::base::BumpPool* pool,
+                                          VkSnapshotApiCallInfo* apiCallInfo,
+                                          const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                           VkCommandBuffer commandBuffer, VkFrontFace frontFace) {
-    mImpl->vkCmdSetFrontFace(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
+    mImpl->vkCmdSetFrontFace(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer,
                              frontFace);
 }
 #endif
 #ifdef VK_VERSION_1_3
-void VkDecoderSnapshot::vkCmdSetPrimitiveTopology(const uint8_t* snapshotTraceBegin,
-                                                  size_t snapshotTraceBytes,
-                                                  android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCmdSetPrimitiveTopology(android::base::BumpPool* pool,
+                                                  VkSnapshotApiCallInfo* apiCallInfo,
+                                                  const uint8_t* apiCallPacket,
+                                                  size_t apiCallPacketSize,
                                                   VkCommandBuffer commandBuffer,
                                                   VkPrimitiveTopology primitiveTopology) {
-    mImpl->vkCmdSetPrimitiveTopology(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
-                                     primitiveTopology);
+    mImpl->vkCmdSetPrimitiveTopology(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                     commandBuffer, primitiveTopology);
 }
 #endif
 #ifdef VK_VERSION_1_3
 void VkDecoderSnapshot::vkCmdSetViewportWithCount(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkCommandBuffer commandBuffer, uint32_t viewportCount, const VkViewport* pViewports) {
-    mImpl->vkCmdSetViewportWithCount(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
-                                     viewportCount, pViewports);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer, uint32_t viewportCount,
+    const VkViewport* pViewports) {
+    mImpl->vkCmdSetViewportWithCount(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                     commandBuffer, viewportCount, pViewports);
 }
 #endif
 #ifdef VK_VERSION_1_3
-void VkDecoderSnapshot::vkCmdSetScissorWithCount(const uint8_t* snapshotTraceBegin,
-                                                 size_t snapshotTraceBytes,
-                                                 android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCmdSetScissorWithCount(android::base::BumpPool* pool,
+                                                 VkSnapshotApiCallInfo* apiCallInfo,
+                                                 const uint8_t* apiCallPacket,
+                                                 size_t apiCallPacketSize,
                                                  VkCommandBuffer commandBuffer,
                                                  uint32_t scissorCount, const VkRect2D* pScissors) {
-    mImpl->vkCmdSetScissorWithCount(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
-                                    scissorCount, pScissors);
+    mImpl->vkCmdSetScissorWithCount(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                    commandBuffer, scissorCount, pScissors);
 }
 #endif
 #ifdef VK_VERSION_1_3
 void VkDecoderSnapshot::vkCmdBindVertexBuffers2(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkCommandBuffer commandBuffer, uint32_t firstBinding, uint32_t bindingCount,
-    const VkBuffer* pBuffers, const VkDeviceSize* pOffsets, const VkDeviceSize* pSizes,
-    const VkDeviceSize* pStrides) {
-    mImpl->vkCmdBindVertexBuffers2(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
-                                   firstBinding, bindingCount, pBuffers, pOffsets, pSizes,
-                                   pStrides);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer, uint32_t firstBinding,
+    uint32_t bindingCount, const VkBuffer* pBuffers, const VkDeviceSize* pOffsets,
+    const VkDeviceSize* pSizes, const VkDeviceSize* pStrides) {
+    mImpl->vkCmdBindVertexBuffers2(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                   commandBuffer, firstBinding, bindingCount, pBuffers, pOffsets,
+                                   pSizes, pStrides);
 }
 #endif
 #ifdef VK_VERSION_1_3
-void VkDecoderSnapshot::vkCmdSetDepthTestEnable(const uint8_t* snapshotTraceBegin,
-                                                size_t snapshotTraceBytes,
-                                                android::base::BumpPool* pool,
-                                                VkCommandBuffer commandBuffer,
-                                                VkBool32 depthTestEnable) {
-    mImpl->vkCmdSetDepthTestEnable(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
-                                   depthTestEnable);
+void VkDecoderSnapshot::vkCmdSetDepthTestEnable(
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer, VkBool32 depthTestEnable) {
+    mImpl->vkCmdSetDepthTestEnable(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                   commandBuffer, depthTestEnable);
 }
 #endif
 #ifdef VK_VERSION_1_3
-void VkDecoderSnapshot::vkCmdSetDepthWriteEnable(const uint8_t* snapshotTraceBegin,
-                                                 size_t snapshotTraceBytes,
-                                                 android::base::BumpPool* pool,
-                                                 VkCommandBuffer commandBuffer,
-                                                 VkBool32 depthWriteEnable) {
-    mImpl->vkCmdSetDepthWriteEnable(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
-                                    depthWriteEnable);
+void VkDecoderSnapshot::vkCmdSetDepthWriteEnable(
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer, VkBool32 depthWriteEnable) {
+    mImpl->vkCmdSetDepthWriteEnable(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                    commandBuffer, depthWriteEnable);
 }
 #endif
 #ifdef VK_VERSION_1_3
-void VkDecoderSnapshot::vkCmdSetDepthCompareOp(const uint8_t* snapshotTraceBegin,
-                                               size_t snapshotTraceBytes,
-                                               android::base::BumpPool* pool,
-                                               VkCommandBuffer commandBuffer,
-                                               VkCompareOp depthCompareOp) {
-    mImpl->vkCmdSetDepthCompareOp(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
-                                  depthCompareOp);
+void VkDecoderSnapshot::vkCmdSetDepthCompareOp(
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer, VkCompareOp depthCompareOp) {
+    mImpl->vkCmdSetDepthCompareOp(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                  commandBuffer, depthCompareOp);
 }
 #endif
 #ifdef VK_VERSION_1_3
-void VkDecoderSnapshot::vkCmdSetDepthBoundsTestEnable(const uint8_t* snapshotTraceBegin,
-                                                      size_t snapshotTraceBytes,
-                                                      android::base::BumpPool* pool,
-                                                      VkCommandBuffer commandBuffer,
-                                                      VkBool32 depthBoundsTestEnable) {
-    mImpl->vkCmdSetDepthBoundsTestEnable(snapshotTraceBegin, snapshotTraceBytes, pool,
+void VkDecoderSnapshot::vkCmdSetDepthBoundsTestEnable(
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer, VkBool32 depthBoundsTestEnable) {
+    mImpl->vkCmdSetDepthBoundsTestEnable(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
                                          commandBuffer, depthBoundsTestEnable);
 }
 #endif
 #ifdef VK_VERSION_1_3
-void VkDecoderSnapshot::vkCmdSetStencilTestEnable(const uint8_t* snapshotTraceBegin,
-                                                  size_t snapshotTraceBytes,
-                                                  android::base::BumpPool* pool,
-                                                  VkCommandBuffer commandBuffer,
-                                                  VkBool32 stencilTestEnable) {
-    mImpl->vkCmdSetStencilTestEnable(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
-                                     stencilTestEnable);
+void VkDecoderSnapshot::vkCmdSetStencilTestEnable(
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer, VkBool32 stencilTestEnable) {
+    mImpl->vkCmdSetStencilTestEnable(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                     commandBuffer, stencilTestEnable);
 }
 #endif
 #ifdef VK_VERSION_1_3
-void VkDecoderSnapshot::vkCmdSetStencilOp(const uint8_t* snapshotTraceBegin,
-                                          size_t snapshotTraceBytes, android::base::BumpPool* pool,
-                                          VkCommandBuffer commandBuffer,
-                                          VkStencilFaceFlags faceMask, VkStencilOp failOp,
-                                          VkStencilOp passOp, VkStencilOp depthFailOp,
-                                          VkCompareOp compareOp) {
-    mImpl->vkCmdSetStencilOp(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer, faceMask,
-                             failOp, passOp, depthFailOp, compareOp);
+void VkDecoderSnapshot::vkCmdSetStencilOp(
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer, VkStencilFaceFlags faceMask,
+    VkStencilOp failOp, VkStencilOp passOp, VkStencilOp depthFailOp, VkCompareOp compareOp) {
+    mImpl->vkCmdSetStencilOp(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer,
+                             faceMask, failOp, passOp, depthFailOp, compareOp);
 }
 #endif
 #ifdef VK_VERSION_1_3
-void VkDecoderSnapshot::vkCmdSetRasterizerDiscardEnable(const uint8_t* snapshotTraceBegin,
-                                                        size_t snapshotTraceBytes,
-                                                        android::base::BumpPool* pool,
-                                                        VkCommandBuffer commandBuffer,
-                                                        VkBool32 rasterizerDiscardEnable) {
-    mImpl->vkCmdSetRasterizerDiscardEnable(snapshotTraceBegin, snapshotTraceBytes, pool,
+void VkDecoderSnapshot::vkCmdSetRasterizerDiscardEnable(
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer, VkBool32 rasterizerDiscardEnable) {
+    mImpl->vkCmdSetRasterizerDiscardEnable(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
                                            commandBuffer, rasterizerDiscardEnable);
 }
 #endif
 #ifdef VK_VERSION_1_3
-void VkDecoderSnapshot::vkCmdSetDepthBiasEnable(const uint8_t* snapshotTraceBegin,
-                                                size_t snapshotTraceBytes,
-                                                android::base::BumpPool* pool,
-                                                VkCommandBuffer commandBuffer,
-                                                VkBool32 depthBiasEnable) {
-    mImpl->vkCmdSetDepthBiasEnable(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
-                                   depthBiasEnable);
+void VkDecoderSnapshot::vkCmdSetDepthBiasEnable(
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer, VkBool32 depthBiasEnable) {
+    mImpl->vkCmdSetDepthBiasEnable(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                   commandBuffer, depthBiasEnable);
 }
 #endif
 #ifdef VK_VERSION_1_3
-void VkDecoderSnapshot::vkCmdSetPrimitiveRestartEnable(const uint8_t* snapshotTraceBegin,
-                                                       size_t snapshotTraceBytes,
-                                                       android::base::BumpPool* pool,
-                                                       VkCommandBuffer commandBuffer,
-                                                       VkBool32 primitiveRestartEnable) {
-    mImpl->vkCmdSetPrimitiveRestartEnable(snapshotTraceBegin, snapshotTraceBytes, pool,
+void VkDecoderSnapshot::vkCmdSetPrimitiveRestartEnable(
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer, VkBool32 primitiveRestartEnable) {
+    mImpl->vkCmdSetPrimitiveRestartEnable(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
                                           commandBuffer, primitiveRestartEnable);
 }
 #endif
 #ifdef VK_VERSION_1_3
 void VkDecoderSnapshot::vkGetDeviceBufferMemoryRequirements(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkDevice device, const VkDeviceBufferMemoryRequirements* pInfo,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkDevice device, const VkDeviceBufferMemoryRequirements* pInfo,
     VkMemoryRequirements2* pMemoryRequirements) {
-    mImpl->vkGetDeviceBufferMemoryRequirements(snapshotTraceBegin, snapshotTraceBytes, pool, device,
-                                               pInfo, pMemoryRequirements);
+    mImpl->vkGetDeviceBufferMemoryRequirements(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                               device, pInfo, pMemoryRequirements);
 }
 #endif
 #ifdef VK_VERSION_1_3
 void VkDecoderSnapshot::vkGetDeviceImageMemoryRequirements(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkDevice device, const VkDeviceImageMemoryRequirements* pInfo,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkDevice device, const VkDeviceImageMemoryRequirements* pInfo,
     VkMemoryRequirements2* pMemoryRequirements) {
-    mImpl->vkGetDeviceImageMemoryRequirements(snapshotTraceBegin, snapshotTraceBytes, pool, device,
-                                              pInfo, pMemoryRequirements);
+    mImpl->vkGetDeviceImageMemoryRequirements(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                              device, pInfo, pMemoryRequirements);
 }
 #endif
 #ifdef VK_VERSION_1_3
 void VkDecoderSnapshot::vkGetDeviceImageSparseMemoryRequirements(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkDevice device, const VkDeviceImageMemoryRequirements* pInfo,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkDevice device, const VkDeviceImageMemoryRequirements* pInfo,
     uint32_t* pSparseMemoryRequirementCount,
     VkSparseImageMemoryRequirements2* pSparseMemoryRequirements) {
-    mImpl->vkGetDeviceImageSparseMemoryRequirements(snapshotTraceBegin, snapshotTraceBytes, pool,
-                                                    device, pInfo, pSparseMemoryRequirementCount,
-                                                    pSparseMemoryRequirements);
+    mImpl->vkGetDeviceImageSparseMemoryRequirements(
+        pool, apiCallInfo, apiCallPacket, apiCallPacketSize, device, pInfo,
+        pSparseMemoryRequirementCount, pSparseMemoryRequirements);
 }
 #endif
 #ifdef VK_KHR_swapchain
-void VkDecoderSnapshot::vkCreateSwapchainKHR(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkResult input_result, VkDevice device, const VkSwapchainCreateInfoKHR* pCreateInfo,
-    const VkAllocationCallbacks* pAllocator, VkSwapchainKHR* pSwapchain) {
-    mImpl->vkCreateSwapchainKHR(snapshotTraceBegin, snapshotTraceBytes, pool, input_result, device,
-                                pCreateInfo, pAllocator, pSwapchain);
+void VkDecoderSnapshot::vkCreateSwapchainKHR(android::base::BumpPool* pool,
+                                             VkSnapshotApiCallInfo* apiCallInfo,
+                                             const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                             VkResult input_result, VkDevice device,
+                                             const VkSwapchainCreateInfoKHR* pCreateInfo,
+                                             const VkAllocationCallbacks* pAllocator,
+                                             VkSwapchainKHR* pSwapchain) {
+    mImpl->vkCreateSwapchainKHR(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result,
+                                device, pCreateInfo, pAllocator, pSwapchain);
 }
 #endif
 #ifdef VK_KHR_swapchain
-void VkDecoderSnapshot::vkDestroySwapchainKHR(const uint8_t* snapshotTraceBegin,
-                                              size_t snapshotTraceBytes,
-                                              android::base::BumpPool* pool, VkDevice device,
+void VkDecoderSnapshot::vkDestroySwapchainKHR(android::base::BumpPool* pool,
+                                              VkSnapshotApiCallInfo* apiCallInfo,
+                                              const uint8_t* apiCallPacket,
+                                              size_t apiCallPacketSize, VkDevice device,
                                               VkSwapchainKHR swapchain,
                                               const VkAllocationCallbacks* pAllocator) {
-    mImpl->vkDestroySwapchainKHR(snapshotTraceBegin, snapshotTraceBytes, pool, device, swapchain,
-                                 pAllocator);
+    mImpl->vkDestroySwapchainKHR(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, device,
+                                 swapchain, pAllocator);
 }
 #endif
 #ifdef VK_KHR_swapchain
 void VkDecoderSnapshot::vkGetSwapchainImagesKHR(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkResult input_result, VkDevice device, VkSwapchainKHR swapchain,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkResult input_result, VkDevice device, VkSwapchainKHR swapchain,
     uint32_t* pSwapchainImageCount, VkImage* pSwapchainImages) {
-    mImpl->vkGetSwapchainImagesKHR(snapshotTraceBegin, snapshotTraceBytes, pool, input_result,
-                                   device, swapchain, pSwapchainImageCount, pSwapchainImages);
+    mImpl->vkGetSwapchainImagesKHR(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                   input_result, device, swapchain, pSwapchainImageCount,
+                                   pSwapchainImages);
 }
 #endif
 #ifdef VK_KHR_swapchain
-void VkDecoderSnapshot::vkAcquireNextImageKHR(const uint8_t* snapshotTraceBegin,
-                                              size_t snapshotTraceBytes,
-                                              android::base::BumpPool* pool, VkResult input_result,
-                                              VkDevice device, VkSwapchainKHR swapchain,
-                                              uint64_t timeout, VkSemaphore semaphore,
-                                              VkFence fence, uint32_t* pImageIndex) {
-    mImpl->vkAcquireNextImageKHR(snapshotTraceBegin, snapshotTraceBytes, pool, input_result, device,
-                                 swapchain, timeout, semaphore, fence, pImageIndex);
+void VkDecoderSnapshot::vkAcquireNextImageKHR(
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkResult input_result, VkDevice device, VkSwapchainKHR swapchain,
+    uint64_t timeout, VkSemaphore semaphore, VkFence fence, uint32_t* pImageIndex) {
+    mImpl->vkAcquireNextImageKHR(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result,
+                                 device, swapchain, timeout, semaphore, fence, pImageIndex);
 }
 #endif
 #ifdef VK_KHR_swapchain
-void VkDecoderSnapshot::vkQueuePresentKHR(const uint8_t* snapshotTraceBegin,
-                                          size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkQueuePresentKHR(android::base::BumpPool* pool,
+                                          VkSnapshotApiCallInfo* apiCallInfo,
+                                          const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                           VkResult input_result, VkQueue queue,
                                           const VkPresentInfoKHR* pPresentInfo) {
-    mImpl->vkQueuePresentKHR(snapshotTraceBegin, snapshotTraceBytes, pool, input_result, queue,
-                             pPresentInfo);
+    mImpl->vkQueuePresentKHR(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result,
+                             queue, pPresentInfo);
 }
 #endif
 #ifdef VK_KHR_swapchain
 void VkDecoderSnapshot::vkGetDeviceGroupPresentCapabilitiesKHR(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkResult input_result, VkDevice device,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkResult input_result, VkDevice device,
     VkDeviceGroupPresentCapabilitiesKHR* pDeviceGroupPresentCapabilities) {
-    mImpl->vkGetDeviceGroupPresentCapabilitiesKHR(snapshotTraceBegin, snapshotTraceBytes, pool,
-                                                  input_result, device,
+    mImpl->vkGetDeviceGroupPresentCapabilitiesKHR(pool, apiCallInfo, apiCallPacket,
+                                                  apiCallPacketSize, input_result, device,
                                                   pDeviceGroupPresentCapabilities);
 }
 #endif
 #ifdef VK_KHR_swapchain
 void VkDecoderSnapshot::vkGetDeviceGroupSurfacePresentModesKHR(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkResult input_result, VkDevice device, VkSurfaceKHR surface,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkResult input_result, VkDevice device, VkSurfaceKHR surface,
     VkDeviceGroupPresentModeFlagsKHR* pModes) {
-    mImpl->vkGetDeviceGroupSurfacePresentModesKHR(snapshotTraceBegin, snapshotTraceBytes, pool,
-                                                  input_result, device, surface, pModes);
+    mImpl->vkGetDeviceGroupSurfacePresentModesKHR(
+        pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result, device, surface, pModes);
 }
 #endif
 #ifdef VK_KHR_swapchain
 void VkDecoderSnapshot::vkGetPhysicalDevicePresentRectanglesKHR(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkResult input_result, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface,
-    uint32_t* pRectCount, VkRect2D* pRects) {
-    mImpl->vkGetPhysicalDevicePresentRectanglesKHR(snapshotTraceBegin, snapshotTraceBytes, pool,
-                                                   input_result, physicalDevice, surface,
-                                                   pRectCount, pRects);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkResult input_result, VkPhysicalDevice physicalDevice,
+    VkSurfaceKHR surface, uint32_t* pRectCount, VkRect2D* pRects) {
+    mImpl->vkGetPhysicalDevicePresentRectanglesKHR(pool, apiCallInfo, apiCallPacket,
+                                                   apiCallPacketSize, input_result, physicalDevice,
+                                                   surface, pRectCount, pRects);
 }
 #endif
 #ifdef VK_KHR_swapchain
-void VkDecoderSnapshot::vkAcquireNextImage2KHR(const uint8_t* snapshotTraceBegin,
-                                               size_t snapshotTraceBytes,
-                                               android::base::BumpPool* pool, VkResult input_result,
-                                               VkDevice device,
-                                               const VkAcquireNextImageInfoKHR* pAcquireInfo,
-                                               uint32_t* pImageIndex) {
-    mImpl->vkAcquireNextImage2KHR(snapshotTraceBegin, snapshotTraceBytes, pool, input_result,
+void VkDecoderSnapshot::vkAcquireNextImage2KHR(
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkResult input_result, VkDevice device,
+    const VkAcquireNextImageInfoKHR* pAcquireInfo, uint32_t* pImageIndex) {
+    mImpl->vkAcquireNextImage2KHR(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result,
                                   device, pAcquireInfo, pImageIndex);
 }
 #endif
 #ifdef VK_KHR_dynamic_rendering
-void VkDecoderSnapshot::vkCmdBeginRenderingKHR(const uint8_t* snapshotTraceBegin,
-                                               size_t snapshotTraceBytes,
-                                               android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCmdBeginRenderingKHR(android::base::BumpPool* pool,
+                                               VkSnapshotApiCallInfo* apiCallInfo,
+                                               const uint8_t* apiCallPacket,
+                                               size_t apiCallPacketSize,
                                                VkCommandBuffer commandBuffer,
                                                const VkRenderingInfo* pRenderingInfo) {
-    mImpl->vkCmdBeginRenderingKHR(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
-                                  pRenderingInfo);
+    mImpl->vkCmdBeginRenderingKHR(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                  commandBuffer, pRenderingInfo);
 }
 #endif
 #ifdef VK_KHR_dynamic_rendering
-void VkDecoderSnapshot::vkCmdEndRenderingKHR(const uint8_t* snapshotTraceBegin,
-                                             size_t snapshotTraceBytes,
-                                             android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCmdEndRenderingKHR(android::base::BumpPool* pool,
+                                             VkSnapshotApiCallInfo* apiCallInfo,
+                                             const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                              VkCommandBuffer commandBuffer) {
-    mImpl->vkCmdEndRenderingKHR(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer);
+    mImpl->vkCmdEndRenderingKHR(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer);
 }
 #endif
 #ifdef VK_KHR_get_physical_device_properties2
-void VkDecoderSnapshot::vkGetPhysicalDeviceFeatures2KHR(const uint8_t* snapshotTraceBegin,
-                                                        size_t snapshotTraceBytes,
-                                                        android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkGetPhysicalDeviceFeatures2KHR(android::base::BumpPool* pool,
+                                                        VkSnapshotApiCallInfo* apiCallInfo,
+                                                        const uint8_t* apiCallPacket,
+                                                        size_t apiCallPacketSize,
                                                         VkPhysicalDevice physicalDevice,
                                                         VkPhysicalDeviceFeatures2* pFeatures) {
-    mImpl->vkGetPhysicalDeviceFeatures2KHR(snapshotTraceBegin, snapshotTraceBytes, pool,
+    mImpl->vkGetPhysicalDeviceFeatures2KHR(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
                                            physicalDevice, pFeatures);
 }
 #endif
 #ifdef VK_KHR_get_physical_device_properties2
 void VkDecoderSnapshot::vkGetPhysicalDeviceProperties2KHR(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkPhysicalDevice physicalDevice, VkPhysicalDeviceProperties2* pProperties) {
-    mImpl->vkGetPhysicalDeviceProperties2KHR(snapshotTraceBegin, snapshotTraceBytes, pool,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkPhysicalDevice physicalDevice,
+    VkPhysicalDeviceProperties2* pProperties) {
+    mImpl->vkGetPhysicalDeviceProperties2KHR(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
                                              physicalDevice, pProperties);
 }
 #endif
 #ifdef VK_KHR_get_physical_device_properties2
 void VkDecoderSnapshot::vkGetPhysicalDeviceFormatProperties2KHR(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkPhysicalDevice physicalDevice, VkFormat format, VkFormatProperties2* pFormatProperties) {
-    mImpl->vkGetPhysicalDeviceFormatProperties2KHR(snapshotTraceBegin, snapshotTraceBytes, pool,
-                                                   physicalDevice, format, pFormatProperties);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkPhysicalDevice physicalDevice, VkFormat format,
+    VkFormatProperties2* pFormatProperties) {
+    mImpl->vkGetPhysicalDeviceFormatProperties2KHR(pool, apiCallInfo, apiCallPacket,
+                                                   apiCallPacketSize, physicalDevice, format,
+                                                   pFormatProperties);
 }
 #endif
 #ifdef VK_KHR_get_physical_device_properties2
 void VkDecoderSnapshot::vkGetPhysicalDeviceImageFormatProperties2KHR(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkResult input_result, VkPhysicalDevice physicalDevice,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkResult input_result, VkPhysicalDevice physicalDevice,
     const VkPhysicalDeviceImageFormatInfo2* pImageFormatInfo,
     VkImageFormatProperties2* pImageFormatProperties) {
-    mImpl->vkGetPhysicalDeviceImageFormatProperties2KHR(snapshotTraceBegin, snapshotTraceBytes,
-                                                        pool, input_result, physicalDevice,
-                                                        pImageFormatInfo, pImageFormatProperties);
+    mImpl->vkGetPhysicalDeviceImageFormatProperties2KHR(
+        pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result, physicalDevice,
+        pImageFormatInfo, pImageFormatProperties);
 }
 #endif
 #ifdef VK_KHR_get_physical_device_properties2
 void VkDecoderSnapshot::vkGetPhysicalDeviceQueueFamilyProperties2KHR(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkPhysicalDevice physicalDevice, uint32_t* pQueueFamilyPropertyCount,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkPhysicalDevice physicalDevice, uint32_t* pQueueFamilyPropertyCount,
     VkQueueFamilyProperties2* pQueueFamilyProperties) {
     mImpl->vkGetPhysicalDeviceQueueFamilyProperties2KHR(
-        snapshotTraceBegin, snapshotTraceBytes, pool, physicalDevice, pQueueFamilyPropertyCount,
-        pQueueFamilyProperties);
+        pool, apiCallInfo, apiCallPacket, apiCallPacketSize, physicalDevice,
+        pQueueFamilyPropertyCount, pQueueFamilyProperties);
 }
 #endif
 #ifdef VK_KHR_get_physical_device_properties2
 void VkDecoderSnapshot::vkGetPhysicalDeviceMemoryProperties2KHR(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkPhysicalDevice physicalDevice, VkPhysicalDeviceMemoryProperties2* pMemoryProperties) {
-    mImpl->vkGetPhysicalDeviceMemoryProperties2KHR(snapshotTraceBegin, snapshotTraceBytes, pool,
-                                                   physicalDevice, pMemoryProperties);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkPhysicalDevice physicalDevice,
+    VkPhysicalDeviceMemoryProperties2* pMemoryProperties) {
+    mImpl->vkGetPhysicalDeviceMemoryProperties2KHR(
+        pool, apiCallInfo, apiCallPacket, apiCallPacketSize, physicalDevice, pMemoryProperties);
 }
 #endif
 #ifdef VK_KHR_get_physical_device_properties2
 void VkDecoderSnapshot::vkGetPhysicalDeviceSparseImageFormatProperties2KHR(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkPhysicalDevice physicalDevice, const VkPhysicalDeviceSparseImageFormatInfo2* pFormatInfo,
-    uint32_t* pPropertyCount, VkSparseImageFormatProperties2* pProperties) {
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkPhysicalDevice physicalDevice,
+    const VkPhysicalDeviceSparseImageFormatInfo2* pFormatInfo, uint32_t* pPropertyCount,
+    VkSparseImageFormatProperties2* pProperties) {
     mImpl->vkGetPhysicalDeviceSparseImageFormatProperties2KHR(
-        snapshotTraceBegin, snapshotTraceBytes, pool, physicalDevice, pFormatInfo, pPropertyCount,
-        pProperties);
+        pool, apiCallInfo, apiCallPacket, apiCallPacketSize, physicalDevice, pFormatInfo,
+        pPropertyCount, pProperties);
 }
 #endif
 #ifdef VK_KHR_maintenance1
-void VkDecoderSnapshot::vkTrimCommandPoolKHR(const uint8_t* snapshotTraceBegin,
-                                             size_t snapshotTraceBytes,
-                                             android::base::BumpPool* pool, VkDevice device,
-                                             VkCommandPool commandPool,
+void VkDecoderSnapshot::vkTrimCommandPoolKHR(android::base::BumpPool* pool,
+                                             VkSnapshotApiCallInfo* apiCallInfo,
+                                             const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                             VkDevice device, VkCommandPool commandPool,
                                              VkCommandPoolTrimFlags flags) {
-    mImpl->vkTrimCommandPoolKHR(snapshotTraceBegin, snapshotTraceBytes, pool, device, commandPool,
-                                flags);
+    mImpl->vkTrimCommandPoolKHR(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, device,
+                                commandPool, flags);
 }
 #endif
 #ifdef VK_KHR_external_memory_capabilities
 void VkDecoderSnapshot::vkGetPhysicalDeviceExternalBufferPropertiesKHR(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkPhysicalDevice physicalDevice, const VkPhysicalDeviceExternalBufferInfo* pExternalBufferInfo,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkPhysicalDevice physicalDevice,
+    const VkPhysicalDeviceExternalBufferInfo* pExternalBufferInfo,
     VkExternalBufferProperties* pExternalBufferProperties) {
-    mImpl->vkGetPhysicalDeviceExternalBufferPropertiesKHR(snapshotTraceBegin, snapshotTraceBytes,
-                                                          pool, physicalDevice, pExternalBufferInfo,
-                                                          pExternalBufferProperties);
+    mImpl->vkGetPhysicalDeviceExternalBufferPropertiesKHR(
+        pool, apiCallInfo, apiCallPacket, apiCallPacketSize, physicalDevice, pExternalBufferInfo,
+        pExternalBufferProperties);
 }
 #endif
 #ifdef VK_KHR_external_semaphore_capabilities
 void VkDecoderSnapshot::vkGetPhysicalDeviceExternalSemaphorePropertiesKHR(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkPhysicalDevice physicalDevice,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkPhysicalDevice physicalDevice,
     const VkPhysicalDeviceExternalSemaphoreInfo* pExternalSemaphoreInfo,
     VkExternalSemaphoreProperties* pExternalSemaphoreProperties) {
     mImpl->vkGetPhysicalDeviceExternalSemaphorePropertiesKHR(
-        snapshotTraceBegin, snapshotTraceBytes, pool, physicalDevice, pExternalSemaphoreInfo,
+        pool, apiCallInfo, apiCallPacket, apiCallPacketSize, physicalDevice, pExternalSemaphoreInfo,
         pExternalSemaphoreProperties);
 }
 #endif
 #ifdef VK_KHR_external_semaphore_fd
 void VkDecoderSnapshot::vkImportSemaphoreFdKHR(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkResult input_result, VkDevice device,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkResult input_result, VkDevice device,
     const VkImportSemaphoreFdInfoKHR* pImportSemaphoreFdInfo) {
-    mImpl->vkImportSemaphoreFdKHR(snapshotTraceBegin, snapshotTraceBytes, pool, input_result,
+    mImpl->vkImportSemaphoreFdKHR(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result,
                                   device, pImportSemaphoreFdInfo);
 }
 #endif
 #ifdef VK_KHR_external_semaphore_fd
-void VkDecoderSnapshot::vkGetSemaphoreFdKHR(const uint8_t* snapshotTraceBegin,
-                                            size_t snapshotTraceBytes,
-                                            android::base::BumpPool* pool, VkResult input_result,
-                                            VkDevice device,
+void VkDecoderSnapshot::vkGetSemaphoreFdKHR(android::base::BumpPool* pool,
+                                            VkSnapshotApiCallInfo* apiCallInfo,
+                                            const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                            VkResult input_result, VkDevice device,
                                             const VkSemaphoreGetFdInfoKHR* pGetFdInfo, int* pFd) {
-    mImpl->vkGetSemaphoreFdKHR(snapshotTraceBegin, snapshotTraceBytes, pool, input_result, device,
-                               pGetFdInfo, pFd);
+    mImpl->vkGetSemaphoreFdKHR(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result,
+                               device, pGetFdInfo, pFd);
 }
 #endif
 #ifdef VK_KHR_descriptor_update_template
 void VkDecoderSnapshot::vkCreateDescriptorUpdateTemplateKHR(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkResult input_result, VkDevice device, const VkDescriptorUpdateTemplateCreateInfo* pCreateInfo,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkResult input_result, VkDevice device,
+    const VkDescriptorUpdateTemplateCreateInfo* pCreateInfo,
     const VkAllocationCallbacks* pAllocator,
     VkDescriptorUpdateTemplate* pDescriptorUpdateTemplate) {
-    mImpl->vkCreateDescriptorUpdateTemplateKHR(snapshotTraceBegin, snapshotTraceBytes, pool,
+    mImpl->vkCreateDescriptorUpdateTemplateKHR(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
                                                input_result, device, pCreateInfo, pAllocator,
                                                pDescriptorUpdateTemplate);
 }
 #endif
 #ifdef VK_KHR_descriptor_update_template
 void VkDecoderSnapshot::vkDestroyDescriptorUpdateTemplateKHR(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkDevice device, VkDescriptorUpdateTemplate descriptorUpdateTemplate,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkDevice device, VkDescriptorUpdateTemplate descriptorUpdateTemplate,
     const VkAllocationCallbacks* pAllocator) {
-    mImpl->vkDestroyDescriptorUpdateTemplateKHR(snapshotTraceBegin, snapshotTraceBytes, pool,
+    mImpl->vkDestroyDescriptorUpdateTemplateKHR(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
                                                 device, descriptorUpdateTemplate, pAllocator);
 }
 #endif
 #ifdef VK_KHR_descriptor_update_template
 void VkDecoderSnapshot::vkUpdateDescriptorSetWithTemplateKHR(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkDevice device, VkDescriptorSet descriptorSet,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkDevice device, VkDescriptorSet descriptorSet,
     VkDescriptorUpdateTemplate descriptorUpdateTemplate, const void* pData) {
-    mImpl->vkUpdateDescriptorSetWithTemplateKHR(snapshotTraceBegin, snapshotTraceBytes, pool,
+    mImpl->vkUpdateDescriptorSetWithTemplateKHR(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
                                                 device, descriptorSet, descriptorUpdateTemplate,
                                                 pData);
 }
 #endif
 #ifdef VK_KHR_create_renderpass2
 void VkDecoderSnapshot::vkCreateRenderPass2KHR(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkResult input_result, VkDevice device, const VkRenderPassCreateInfo2* pCreateInfo,
-    const VkAllocationCallbacks* pAllocator, VkRenderPass* pRenderPass) {
-    mImpl->vkCreateRenderPass2KHR(snapshotTraceBegin, snapshotTraceBytes, pool, input_result,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkResult input_result, VkDevice device,
+    const VkRenderPassCreateInfo2* pCreateInfo, const VkAllocationCallbacks* pAllocator,
+    VkRenderPass* pRenderPass) {
+    mImpl->vkCreateRenderPass2KHR(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result,
                                   device, pCreateInfo, pAllocator, pRenderPass);
 }
 #endif
 #ifdef VK_KHR_create_renderpass2
-void VkDecoderSnapshot::vkCmdBeginRenderPass2KHR(const uint8_t* snapshotTraceBegin,
-                                                 size_t snapshotTraceBytes,
-                                                 android::base::BumpPool* pool,
-                                                 VkCommandBuffer commandBuffer,
-                                                 const VkRenderPassBeginInfo* pRenderPassBegin,
-                                                 const VkSubpassBeginInfo* pSubpassBeginInfo) {
-    mImpl->vkCmdBeginRenderPass2KHR(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
-                                    pRenderPassBegin, pSubpassBeginInfo);
+void VkDecoderSnapshot::vkCmdBeginRenderPass2KHR(
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer,
+    const VkRenderPassBeginInfo* pRenderPassBegin, const VkSubpassBeginInfo* pSubpassBeginInfo) {
+    mImpl->vkCmdBeginRenderPass2KHR(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                    commandBuffer, pRenderPassBegin, pSubpassBeginInfo);
 }
 #endif
 #ifdef VK_KHR_create_renderpass2
-void VkDecoderSnapshot::vkCmdNextSubpass2KHR(const uint8_t* snapshotTraceBegin,
-                                             size_t snapshotTraceBytes,
-                                             android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCmdNextSubpass2KHR(android::base::BumpPool* pool,
+                                             VkSnapshotApiCallInfo* apiCallInfo,
+                                             const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                              VkCommandBuffer commandBuffer,
                                              const VkSubpassBeginInfo* pSubpassBeginInfo,
                                              const VkSubpassEndInfo* pSubpassEndInfo) {
-    mImpl->vkCmdNextSubpass2KHR(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
+    mImpl->vkCmdNextSubpass2KHR(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer,
                                 pSubpassBeginInfo, pSubpassEndInfo);
 }
 #endif
 #ifdef VK_KHR_create_renderpass2
-void VkDecoderSnapshot::vkCmdEndRenderPass2KHR(const uint8_t* snapshotTraceBegin,
-                                               size_t snapshotTraceBytes,
-                                               android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCmdEndRenderPass2KHR(android::base::BumpPool* pool,
+                                               VkSnapshotApiCallInfo* apiCallInfo,
+                                               const uint8_t* apiCallPacket,
+                                               size_t apiCallPacketSize,
                                                VkCommandBuffer commandBuffer,
                                                const VkSubpassEndInfo* pSubpassEndInfo) {
-    mImpl->vkCmdEndRenderPass2KHR(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
-                                  pSubpassEndInfo);
+    mImpl->vkCmdEndRenderPass2KHR(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                  commandBuffer, pSubpassEndInfo);
 }
 #endif
 #ifdef VK_KHR_external_fence_capabilities
 void VkDecoderSnapshot::vkGetPhysicalDeviceExternalFencePropertiesKHR(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkPhysicalDevice physicalDevice, const VkPhysicalDeviceExternalFenceInfo* pExternalFenceInfo,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkPhysicalDevice physicalDevice,
+    const VkPhysicalDeviceExternalFenceInfo* pExternalFenceInfo,
     VkExternalFenceProperties* pExternalFenceProperties) {
-    mImpl->vkGetPhysicalDeviceExternalFencePropertiesKHR(snapshotTraceBegin, snapshotTraceBytes,
-                                                         pool, physicalDevice, pExternalFenceInfo,
-                                                         pExternalFenceProperties);
+    mImpl->vkGetPhysicalDeviceExternalFencePropertiesKHR(
+        pool, apiCallInfo, apiCallPacket, apiCallPacketSize, physicalDevice, pExternalFenceInfo,
+        pExternalFenceProperties);
 }
 #endif
 #ifdef VK_KHR_external_fence_fd
-void VkDecoderSnapshot::vkImportFenceFdKHR(const uint8_t* snapshotTraceBegin,
-                                           size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkImportFenceFdKHR(android::base::BumpPool* pool,
+                                           VkSnapshotApiCallInfo* apiCallInfo,
+                                           const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                            VkResult input_result, VkDevice device,
                                            const VkImportFenceFdInfoKHR* pImportFenceFdInfo) {
-    mImpl->vkImportFenceFdKHR(snapshotTraceBegin, snapshotTraceBytes, pool, input_result, device,
-                              pImportFenceFdInfo);
+    mImpl->vkImportFenceFdKHR(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result,
+                              device, pImportFenceFdInfo);
 }
 #endif
 #ifdef VK_KHR_external_fence_fd
-void VkDecoderSnapshot::vkGetFenceFdKHR(const uint8_t* snapshotTraceBegin,
-                                        size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkGetFenceFdKHR(android::base::BumpPool* pool,
+                                        VkSnapshotApiCallInfo* apiCallInfo,
+                                        const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                         VkResult input_result, VkDevice device,
                                         const VkFenceGetFdInfoKHR* pGetFdInfo, int* pFd) {
-    mImpl->vkGetFenceFdKHR(snapshotTraceBegin, snapshotTraceBytes, pool, input_result, device,
-                           pGetFdInfo, pFd);
+    mImpl->vkGetFenceFdKHR(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result,
+                           device, pGetFdInfo, pFd);
 }
 #endif
 #ifdef VK_KHR_get_memory_requirements2
 void VkDecoderSnapshot::vkGetImageMemoryRequirements2KHR(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkDevice device, const VkImageMemoryRequirementsInfo2* pInfo,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkDevice device, const VkImageMemoryRequirementsInfo2* pInfo,
     VkMemoryRequirements2* pMemoryRequirements) {
-    mImpl->vkGetImageMemoryRequirements2KHR(snapshotTraceBegin, snapshotTraceBytes, pool, device,
-                                            pInfo, pMemoryRequirements);
+    mImpl->vkGetImageMemoryRequirements2KHR(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                            device, pInfo, pMemoryRequirements);
 }
 #endif
 #ifdef VK_KHR_get_memory_requirements2
 void VkDecoderSnapshot::vkGetBufferMemoryRequirements2KHR(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkDevice device, const VkBufferMemoryRequirementsInfo2* pInfo,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkDevice device, const VkBufferMemoryRequirementsInfo2* pInfo,
     VkMemoryRequirements2* pMemoryRequirements) {
-    mImpl->vkGetBufferMemoryRequirements2KHR(snapshotTraceBegin, snapshotTraceBytes, pool, device,
-                                             pInfo, pMemoryRequirements);
+    mImpl->vkGetBufferMemoryRequirements2KHR(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                             device, pInfo, pMemoryRequirements);
 }
 #endif
 #ifdef VK_KHR_get_memory_requirements2
 void VkDecoderSnapshot::vkGetImageSparseMemoryRequirements2KHR(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkDevice device, const VkImageSparseMemoryRequirementsInfo2* pInfo,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkDevice device, const VkImageSparseMemoryRequirementsInfo2* pInfo,
     uint32_t* pSparseMemoryRequirementCount,
     VkSparseImageMemoryRequirements2* pSparseMemoryRequirements) {
-    mImpl->vkGetImageSparseMemoryRequirements2KHR(snapshotTraceBegin, snapshotTraceBytes, pool,
-                                                  device, pInfo, pSparseMemoryRequirementCount,
-                                                  pSparseMemoryRequirements);
+    mImpl->vkGetImageSparseMemoryRequirements2KHR(
+        pool, apiCallInfo, apiCallPacket, apiCallPacketSize, device, pInfo,
+        pSparseMemoryRequirementCount, pSparseMemoryRequirements);
 }
 #endif
 #ifdef VK_KHR_sampler_ycbcr_conversion
 void VkDecoderSnapshot::vkCreateSamplerYcbcrConversionKHR(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkResult input_result, VkDevice device, const VkSamplerYcbcrConversionCreateInfo* pCreateInfo,
-    const VkAllocationCallbacks* pAllocator, VkSamplerYcbcrConversion* pYcbcrConversion) {
-    mImpl->vkCreateSamplerYcbcrConversionKHR(snapshotTraceBegin, snapshotTraceBytes, pool,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkResult input_result, VkDevice device,
+    const VkSamplerYcbcrConversionCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator,
+    VkSamplerYcbcrConversion* pYcbcrConversion) {
+    mImpl->vkCreateSamplerYcbcrConversionKHR(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
                                              input_result, device, pCreateInfo, pAllocator,
                                              pYcbcrConversion);
 }
 #endif
 #ifdef VK_KHR_sampler_ycbcr_conversion
 void VkDecoderSnapshot::vkDestroySamplerYcbcrConversionKHR(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkDevice device, VkSamplerYcbcrConversion ycbcrConversion,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkDevice device, VkSamplerYcbcrConversion ycbcrConversion,
     const VkAllocationCallbacks* pAllocator) {
-    mImpl->vkDestroySamplerYcbcrConversionKHR(snapshotTraceBegin, snapshotTraceBytes, pool, device,
-                                              ycbcrConversion, pAllocator);
+    mImpl->vkDestroySamplerYcbcrConversionKHR(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                              device, ycbcrConversion, pAllocator);
 }
 #endif
 #ifdef VK_KHR_bind_memory2
-void VkDecoderSnapshot::vkBindBufferMemory2KHR(const uint8_t* snapshotTraceBegin,
-                                               size_t snapshotTraceBytes,
-                                               android::base::BumpPool* pool, VkResult input_result,
+void VkDecoderSnapshot::vkBindBufferMemory2KHR(android::base::BumpPool* pool,
+                                               VkSnapshotApiCallInfo* apiCallInfo,
+                                               const uint8_t* apiCallPacket,
+                                               size_t apiCallPacketSize, VkResult input_result,
                                                VkDevice device, uint32_t bindInfoCount,
                                                const VkBindBufferMemoryInfo* pBindInfos) {
-    mImpl->vkBindBufferMemory2KHR(snapshotTraceBegin, snapshotTraceBytes, pool, input_result,
+    mImpl->vkBindBufferMemory2KHR(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result,
                                   device, bindInfoCount, pBindInfos);
 }
 #endif
 #ifdef VK_KHR_bind_memory2
-void VkDecoderSnapshot::vkBindImageMemory2KHR(const uint8_t* snapshotTraceBegin,
-                                              size_t snapshotTraceBytes,
-                                              android::base::BumpPool* pool, VkResult input_result,
+void VkDecoderSnapshot::vkBindImageMemory2KHR(android::base::BumpPool* pool,
+                                              VkSnapshotApiCallInfo* apiCallInfo,
+                                              const uint8_t* apiCallPacket,
+                                              size_t apiCallPacketSize, VkResult input_result,
                                               VkDevice device, uint32_t bindInfoCount,
                                               const VkBindImageMemoryInfo* pBindInfos) {
-    mImpl->vkBindImageMemory2KHR(snapshotTraceBegin, snapshotTraceBytes, pool, input_result, device,
-                                 bindInfoCount, pBindInfos);
+    mImpl->vkBindImageMemory2KHR(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result,
+                                 device, bindInfoCount, pBindInfos);
 }
 #endif
 #ifdef VK_KHR_maintenance3
 void VkDecoderSnapshot::vkGetDescriptorSetLayoutSupportKHR(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkDevice device, const VkDescriptorSetLayoutCreateInfo* pCreateInfo,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkDevice device, const VkDescriptorSetLayoutCreateInfo* pCreateInfo,
     VkDescriptorSetLayoutSupport* pSupport) {
-    mImpl->vkGetDescriptorSetLayoutSupportKHR(snapshotTraceBegin, snapshotTraceBytes, pool, device,
-                                              pCreateInfo, pSupport);
+    mImpl->vkGetDescriptorSetLayoutSupportKHR(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                              device, pCreateInfo, pSupport);
 }
 #endif
 #ifdef VK_KHR_buffer_device_address
-void VkDecoderSnapshot::vkGetBufferDeviceAddressKHR(const uint8_t* snapshotTraceBegin,
-                                                    size_t snapshotTraceBytes,
-                                                    android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkGetBufferDeviceAddressKHR(android::base::BumpPool* pool,
+                                                    VkSnapshotApiCallInfo* apiCallInfo,
+                                                    const uint8_t* apiCallPacket,
+                                                    size_t apiCallPacketSize,
                                                     VkDeviceAddress input_result, VkDevice device,
                                                     const VkBufferDeviceAddressInfo* pInfo) {
-    mImpl->vkGetBufferDeviceAddressKHR(snapshotTraceBegin, snapshotTraceBytes, pool, input_result,
-                                       device, pInfo);
+    mImpl->vkGetBufferDeviceAddressKHR(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                       input_result, device, pInfo);
 }
 #endif
 #ifdef VK_KHR_buffer_device_address
-void VkDecoderSnapshot::vkGetBufferOpaqueCaptureAddressKHR(const uint8_t* snapshotTraceBegin,
-                                                           size_t snapshotTraceBytes,
-                                                           android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkGetBufferOpaqueCaptureAddressKHR(android::base::BumpPool* pool,
+                                                           VkSnapshotApiCallInfo* apiCallInfo,
+                                                           const uint8_t* apiCallPacket,
+                                                           size_t apiCallPacketSize,
                                                            uint64_t input_result, VkDevice device,
                                                            const VkBufferDeviceAddressInfo* pInfo) {
-    mImpl->vkGetBufferOpaqueCaptureAddressKHR(snapshotTraceBegin, snapshotTraceBytes, pool,
+    mImpl->vkGetBufferOpaqueCaptureAddressKHR(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
                                               input_result, device, pInfo);
 }
 #endif
 #ifdef VK_KHR_buffer_device_address
 void VkDecoderSnapshot::vkGetDeviceMemoryOpaqueCaptureAddressKHR(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    uint64_t input_result, VkDevice device, const VkDeviceMemoryOpaqueCaptureAddressInfo* pInfo) {
-    mImpl->vkGetDeviceMemoryOpaqueCaptureAddressKHR(snapshotTraceBegin, snapshotTraceBytes, pool,
-                                                    input_result, device, pInfo);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, uint64_t input_result, VkDevice device,
+    const VkDeviceMemoryOpaqueCaptureAddressInfo* pInfo) {
+    mImpl->vkGetDeviceMemoryOpaqueCaptureAddressKHR(pool, apiCallInfo, apiCallPacket,
+                                                    apiCallPacketSize, input_result, device, pInfo);
 }
 #endif
 #ifdef VK_KHR_pipeline_executable_properties
 void VkDecoderSnapshot::vkGetPipelineExecutablePropertiesKHR(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkResult input_result, VkDevice device, const VkPipelineInfoKHR* pPipelineInfo,
-    uint32_t* pExecutableCount, VkPipelineExecutablePropertiesKHR* pProperties) {
-    mImpl->vkGetPipelineExecutablePropertiesKHR(snapshotTraceBegin, snapshotTraceBytes, pool,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkResult input_result, VkDevice device,
+    const VkPipelineInfoKHR* pPipelineInfo, uint32_t* pExecutableCount,
+    VkPipelineExecutablePropertiesKHR* pProperties) {
+    mImpl->vkGetPipelineExecutablePropertiesKHR(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
                                                 input_result, device, pPipelineInfo,
                                                 pExecutableCount, pProperties);
 }
 #endif
 #ifdef VK_KHR_pipeline_executable_properties
 void VkDecoderSnapshot::vkGetPipelineExecutableStatisticsKHR(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkResult input_result, VkDevice device, const VkPipelineExecutableInfoKHR* pExecutableInfo,
-    uint32_t* pStatisticCount, VkPipelineExecutableStatisticKHR* pStatistics) {
-    mImpl->vkGetPipelineExecutableStatisticsKHR(snapshotTraceBegin, snapshotTraceBytes, pool,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkResult input_result, VkDevice device,
+    const VkPipelineExecutableInfoKHR* pExecutableInfo, uint32_t* pStatisticCount,
+    VkPipelineExecutableStatisticKHR* pStatistics) {
+    mImpl->vkGetPipelineExecutableStatisticsKHR(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
                                                 input_result, device, pExecutableInfo,
                                                 pStatisticCount, pStatistics);
 }
 #endif
 #ifdef VK_KHR_pipeline_executable_properties
 void VkDecoderSnapshot::vkGetPipelineExecutableInternalRepresentationsKHR(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkResult input_result, VkDevice device, const VkPipelineExecutableInfoKHR* pExecutableInfo,
-    uint32_t* pInternalRepresentationCount,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkResult input_result, VkDevice device,
+    const VkPipelineExecutableInfoKHR* pExecutableInfo, uint32_t* pInternalRepresentationCount,
     VkPipelineExecutableInternalRepresentationKHR* pInternalRepresentations) {
     mImpl->vkGetPipelineExecutableInternalRepresentationsKHR(
-        snapshotTraceBegin, snapshotTraceBytes, pool, input_result, device, pExecutableInfo,
+        pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result, device, pExecutableInfo,
         pInternalRepresentationCount, pInternalRepresentations);
 }
 #endif
 #ifdef VK_KHR_synchronization2
-void VkDecoderSnapshot::vkCmdSetEvent2KHR(const uint8_t* snapshotTraceBegin,
-                                          size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCmdSetEvent2KHR(android::base::BumpPool* pool,
+                                          VkSnapshotApiCallInfo* apiCallInfo,
+                                          const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                           VkCommandBuffer commandBuffer, VkEvent event,
                                           const VkDependencyInfo* pDependencyInfo) {
-    mImpl->vkCmdSetEvent2KHR(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer, event,
-                             pDependencyInfo);
+    mImpl->vkCmdSetEvent2KHR(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer,
+                             event, pDependencyInfo);
 }
 #endif
 #ifdef VK_KHR_synchronization2
-void VkDecoderSnapshot::vkCmdResetEvent2KHR(const uint8_t* snapshotTraceBegin,
-                                            size_t snapshotTraceBytes,
-                                            android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCmdResetEvent2KHR(android::base::BumpPool* pool,
+                                            VkSnapshotApiCallInfo* apiCallInfo,
+                                            const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                             VkCommandBuffer commandBuffer, VkEvent event,
                                             VkPipelineStageFlags2 stageMask) {
-    mImpl->vkCmdResetEvent2KHR(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer, event,
-                               stageMask);
+    mImpl->vkCmdResetEvent2KHR(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer,
+                               event, stageMask);
 }
 #endif
 #ifdef VK_KHR_synchronization2
-void VkDecoderSnapshot::vkCmdWaitEvents2KHR(const uint8_t* snapshotTraceBegin,
-                                            size_t snapshotTraceBytes,
-                                            android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCmdWaitEvents2KHR(android::base::BumpPool* pool,
+                                            VkSnapshotApiCallInfo* apiCallInfo,
+                                            const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                             VkCommandBuffer commandBuffer, uint32_t eventCount,
                                             const VkEvent* pEvents,
                                             const VkDependencyInfo* pDependencyInfos) {
-    mImpl->vkCmdWaitEvents2KHR(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
+    mImpl->vkCmdWaitEvents2KHR(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer,
                                eventCount, pEvents, pDependencyInfos);
 }
 #endif
 #ifdef VK_KHR_synchronization2
-void VkDecoderSnapshot::vkCmdPipelineBarrier2KHR(const uint8_t* snapshotTraceBegin,
-                                                 size_t snapshotTraceBytes,
-                                                 android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCmdPipelineBarrier2KHR(android::base::BumpPool* pool,
+                                                 VkSnapshotApiCallInfo* apiCallInfo,
+                                                 const uint8_t* apiCallPacket,
+                                                 size_t apiCallPacketSize,
                                                  VkCommandBuffer commandBuffer,
                                                  const VkDependencyInfo* pDependencyInfo) {
-    mImpl->vkCmdPipelineBarrier2KHR(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
-                                    pDependencyInfo);
+    mImpl->vkCmdPipelineBarrier2KHR(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                    commandBuffer, pDependencyInfo);
 }
 #endif
 #ifdef VK_KHR_synchronization2
-void VkDecoderSnapshot::vkCmdWriteTimestamp2KHR(const uint8_t* snapshotTraceBegin,
-                                                size_t snapshotTraceBytes,
-                                                android::base::BumpPool* pool,
-                                                VkCommandBuffer commandBuffer,
-                                                VkPipelineStageFlags2 stage, VkQueryPool queryPool,
-                                                uint32_t query) {
-    mImpl->vkCmdWriteTimestamp2KHR(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
-                                   stage, queryPool, query);
+void VkDecoderSnapshot::vkCmdWriteTimestamp2KHR(
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer, VkPipelineStageFlags2 stage,
+    VkQueryPool queryPool, uint32_t query) {
+    mImpl->vkCmdWriteTimestamp2KHR(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                   commandBuffer, stage, queryPool, query);
 }
 #endif
 #ifdef VK_KHR_synchronization2
-void VkDecoderSnapshot::vkQueueSubmit2KHR(const uint8_t* snapshotTraceBegin,
-                                          size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkQueueSubmit2KHR(android::base::BumpPool* pool,
+                                          VkSnapshotApiCallInfo* apiCallInfo,
+                                          const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                           VkResult input_result, VkQueue queue,
                                           uint32_t submitCount, const VkSubmitInfo2* pSubmits,
                                           VkFence fence) {
-    mImpl->vkQueueSubmit2KHR(snapshotTraceBegin, snapshotTraceBytes, pool, input_result, queue,
-                             submitCount, pSubmits, fence);
+    mImpl->vkQueueSubmit2KHR(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result,
+                             queue, submitCount, pSubmits, fence);
 }
 #endif
 #ifdef VK_KHR_synchronization2
-void VkDecoderSnapshot::vkCmdWriteBufferMarker2AMD(const uint8_t* snapshotTraceBegin,
-                                                   size_t snapshotTraceBytes,
-                                                   android::base::BumpPool* pool,
-                                                   VkCommandBuffer commandBuffer,
-                                                   VkPipelineStageFlags2 stage, VkBuffer dstBuffer,
-                                                   VkDeviceSize dstOffset, uint32_t marker) {
-    mImpl->vkCmdWriteBufferMarker2AMD(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
-                                      stage, dstBuffer, dstOffset, marker);
+void VkDecoderSnapshot::vkCmdWriteBufferMarker2AMD(
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer, VkPipelineStageFlags2 stage,
+    VkBuffer dstBuffer, VkDeviceSize dstOffset, uint32_t marker) {
+    mImpl->vkCmdWriteBufferMarker2AMD(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                      commandBuffer, stage, dstBuffer, dstOffset, marker);
 }
 #endif
 #ifdef VK_KHR_synchronization2
-void VkDecoderSnapshot::vkGetQueueCheckpointData2NV(const uint8_t* snapshotTraceBegin,
-                                                    size_t snapshotTraceBytes,
-                                                    android::base::BumpPool* pool, VkQueue queue,
+void VkDecoderSnapshot::vkGetQueueCheckpointData2NV(android::base::BumpPool* pool,
+                                                    VkSnapshotApiCallInfo* apiCallInfo,
+                                                    const uint8_t* apiCallPacket,
+                                                    size_t apiCallPacketSize, VkQueue queue,
                                                     uint32_t* pCheckpointDataCount,
                                                     VkCheckpointData2NV* pCheckpointData) {
-    mImpl->vkGetQueueCheckpointData2NV(snapshotTraceBegin, snapshotTraceBytes, pool, queue,
+    mImpl->vkGetQueueCheckpointData2NV(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, queue,
                                        pCheckpointDataCount, pCheckpointData);
 }
 #endif
 #ifdef VK_KHR_copy_commands2
-void VkDecoderSnapshot::vkCmdCopyBuffer2KHR(const uint8_t* snapshotTraceBegin,
-                                            size_t snapshotTraceBytes,
-                                            android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCmdCopyBuffer2KHR(android::base::BumpPool* pool,
+                                            VkSnapshotApiCallInfo* apiCallInfo,
+                                            const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                             VkCommandBuffer commandBuffer,
                                             const VkCopyBufferInfo2* pCopyBufferInfo) {
-    mImpl->vkCmdCopyBuffer2KHR(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
+    mImpl->vkCmdCopyBuffer2KHR(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer,
                                pCopyBufferInfo);
 }
 #endif
 #ifdef VK_KHR_copy_commands2
-void VkDecoderSnapshot::vkCmdCopyImage2KHR(const uint8_t* snapshotTraceBegin,
-                                           size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCmdCopyImage2KHR(android::base::BumpPool* pool,
+                                           VkSnapshotApiCallInfo* apiCallInfo,
+                                           const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                            VkCommandBuffer commandBuffer,
                                            const VkCopyImageInfo2* pCopyImageInfo) {
-    mImpl->vkCmdCopyImage2KHR(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
+    mImpl->vkCmdCopyImage2KHR(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer,
                               pCopyImageInfo);
 }
 #endif
 #ifdef VK_KHR_copy_commands2
 void VkDecoderSnapshot::vkCmdCopyBufferToImage2KHR(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkCommandBuffer commandBuffer, const VkCopyBufferToImageInfo2* pCopyBufferToImageInfo) {
-    mImpl->vkCmdCopyBufferToImage2KHR(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
-                                      pCopyBufferToImageInfo);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer,
+    const VkCopyBufferToImageInfo2* pCopyBufferToImageInfo) {
+    mImpl->vkCmdCopyBufferToImage2KHR(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                      commandBuffer, pCopyBufferToImageInfo);
 }
 #endif
 #ifdef VK_KHR_copy_commands2
 void VkDecoderSnapshot::vkCmdCopyImageToBuffer2KHR(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkCommandBuffer commandBuffer, const VkCopyImageToBufferInfo2* pCopyImageToBufferInfo) {
-    mImpl->vkCmdCopyImageToBuffer2KHR(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
-                                      pCopyImageToBufferInfo);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer,
+    const VkCopyImageToBufferInfo2* pCopyImageToBufferInfo) {
+    mImpl->vkCmdCopyImageToBuffer2KHR(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                      commandBuffer, pCopyImageToBufferInfo);
 }
 #endif
 #ifdef VK_KHR_copy_commands2
-void VkDecoderSnapshot::vkCmdBlitImage2KHR(const uint8_t* snapshotTraceBegin,
-                                           size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCmdBlitImage2KHR(android::base::BumpPool* pool,
+                                           VkSnapshotApiCallInfo* apiCallInfo,
+                                           const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                            VkCommandBuffer commandBuffer,
                                            const VkBlitImageInfo2* pBlitImageInfo) {
-    mImpl->vkCmdBlitImage2KHR(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
+    mImpl->vkCmdBlitImage2KHR(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer,
                               pBlitImageInfo);
 }
 #endif
 #ifdef VK_KHR_copy_commands2
-void VkDecoderSnapshot::vkCmdResolveImage2KHR(const uint8_t* snapshotTraceBegin,
-                                              size_t snapshotTraceBytes,
-                                              android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCmdResolveImage2KHR(android::base::BumpPool* pool,
+                                              VkSnapshotApiCallInfo* apiCallInfo,
+                                              const uint8_t* apiCallPacket,
+                                              size_t apiCallPacketSize,
                                               VkCommandBuffer commandBuffer,
                                               const VkResolveImageInfo2* pResolveImageInfo) {
-    mImpl->vkCmdResolveImage2KHR(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
+    mImpl->vkCmdResolveImage2KHR(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer,
                                  pResolveImageInfo);
 }
 #endif
 #ifdef VK_KHR_maintenance4
 void VkDecoderSnapshot::vkGetDeviceBufferMemoryRequirementsKHR(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkDevice device, const VkDeviceBufferMemoryRequirements* pInfo,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkDevice device, const VkDeviceBufferMemoryRequirements* pInfo,
     VkMemoryRequirements2* pMemoryRequirements) {
-    mImpl->vkGetDeviceBufferMemoryRequirementsKHR(snapshotTraceBegin, snapshotTraceBytes, pool,
-                                                  device, pInfo, pMemoryRequirements);
+    mImpl->vkGetDeviceBufferMemoryRequirementsKHR(
+        pool, apiCallInfo, apiCallPacket, apiCallPacketSize, device, pInfo, pMemoryRequirements);
 }
 #endif
 #ifdef VK_KHR_maintenance4
 void VkDecoderSnapshot::vkGetDeviceImageMemoryRequirementsKHR(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkDevice device, const VkDeviceImageMemoryRequirements* pInfo,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkDevice device, const VkDeviceImageMemoryRequirements* pInfo,
     VkMemoryRequirements2* pMemoryRequirements) {
-    mImpl->vkGetDeviceImageMemoryRequirementsKHR(snapshotTraceBegin, snapshotTraceBytes, pool,
-                                                 device, pInfo, pMemoryRequirements);
+    mImpl->vkGetDeviceImageMemoryRequirementsKHR(
+        pool, apiCallInfo, apiCallPacket, apiCallPacketSize, device, pInfo, pMemoryRequirements);
 }
 #endif
 #ifdef VK_KHR_maintenance4
 void VkDecoderSnapshot::vkGetDeviceImageSparseMemoryRequirementsKHR(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkDevice device, const VkDeviceImageMemoryRequirements* pInfo,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkDevice device, const VkDeviceImageMemoryRequirements* pInfo,
     uint32_t* pSparseMemoryRequirementCount,
     VkSparseImageMemoryRequirements2* pSparseMemoryRequirements) {
-    mImpl->vkGetDeviceImageSparseMemoryRequirementsKHR(snapshotTraceBegin, snapshotTraceBytes, pool,
-                                                       device, pInfo, pSparseMemoryRequirementCount,
-                                                       pSparseMemoryRequirements);
+    mImpl->vkGetDeviceImageSparseMemoryRequirementsKHR(
+        pool, apiCallInfo, apiCallPacket, apiCallPacketSize, device, pInfo,
+        pSparseMemoryRequirementCount, pSparseMemoryRequirements);
 }
 #endif
 #ifdef VK_KHR_maintenance5
-void VkDecoderSnapshot::vkCmdBindIndexBuffer2KHR(const uint8_t* snapshotTraceBegin,
-                                                 size_t snapshotTraceBytes,
-                                                 android::base::BumpPool* pool,
-                                                 VkCommandBuffer commandBuffer, VkBuffer buffer,
-                                                 VkDeviceSize offset, VkDeviceSize size,
-                                                 VkIndexType indexType) {
-    mImpl->vkCmdBindIndexBuffer2KHR(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
-                                    buffer, offset, size, indexType);
+void VkDecoderSnapshot::vkCmdBindIndexBuffer2KHR(
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer, VkBuffer buffer, VkDeviceSize offset,
+    VkDeviceSize size, VkIndexType indexType) {
+    mImpl->vkCmdBindIndexBuffer2KHR(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                    commandBuffer, buffer, offset, size, indexType);
 }
 #endif
 #ifdef VK_KHR_maintenance5
 void VkDecoderSnapshot::vkGetRenderingAreaGranularityKHR(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkDevice device, const VkRenderingAreaInfoKHR* pRenderingAreaInfo, VkExtent2D* pGranularity) {
-    mImpl->vkGetRenderingAreaGranularityKHR(snapshotTraceBegin, snapshotTraceBytes, pool, device,
-                                            pRenderingAreaInfo, pGranularity);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkDevice device, const VkRenderingAreaInfoKHR* pRenderingAreaInfo,
+    VkExtent2D* pGranularity) {
+    mImpl->vkGetRenderingAreaGranularityKHR(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                            device, pRenderingAreaInfo, pGranularity);
 }
 #endif
 #ifdef VK_KHR_maintenance5
 void VkDecoderSnapshot::vkGetDeviceImageSubresourceLayoutKHR(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkDevice device, const VkDeviceImageSubresourceInfoKHR* pInfo,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkDevice device, const VkDeviceImageSubresourceInfoKHR* pInfo,
     VkSubresourceLayout2KHR* pLayout) {
-    mImpl->vkGetDeviceImageSubresourceLayoutKHR(snapshotTraceBegin, snapshotTraceBytes, pool,
+    mImpl->vkGetDeviceImageSubresourceLayoutKHR(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
                                                 device, pInfo, pLayout);
 }
 #endif
 #ifdef VK_KHR_maintenance5
-void VkDecoderSnapshot::vkGetImageSubresourceLayout2KHR(const uint8_t* snapshotTraceBegin,
-                                                        size_t snapshotTraceBytes,
-                                                        android::base::BumpPool* pool,
-                                                        VkDevice device, VkImage image,
-                                                        const VkImageSubresource2KHR* pSubresource,
-                                                        VkSubresourceLayout2KHR* pLayout) {
-    mImpl->vkGetImageSubresourceLayout2KHR(snapshotTraceBegin, snapshotTraceBytes, pool, device,
-                                           image, pSubresource, pLayout);
+void VkDecoderSnapshot::vkGetImageSubresourceLayout2KHR(
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkDevice device, VkImage image,
+    const VkImageSubresource2KHR* pSubresource, VkSubresourceLayout2KHR* pLayout) {
+    mImpl->vkGetImageSubresourceLayout2KHR(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                           device, image, pSubresource, pLayout);
 }
 #endif
 #ifdef VK_KHR_line_rasterization
 void VkDecoderSnapshot::vkCmdSetLineStippleKHR(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkCommandBuffer commandBuffer, uint32_t lineStippleFactor, uint16_t lineStipplePattern) {
-    mImpl->vkCmdSetLineStippleKHR(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
-                                  lineStippleFactor, lineStipplePattern);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer, uint32_t lineStippleFactor,
+    uint16_t lineStipplePattern) {
+    mImpl->vkCmdSetLineStippleKHR(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                  commandBuffer, lineStippleFactor, lineStipplePattern);
 }
 #endif
 #ifdef VK_ANDROID_native_buffer
 void VkDecoderSnapshot::vkGetSwapchainGrallocUsageANDROID(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkResult input_result, VkDevice device, VkFormat format, VkImageUsageFlags imageUsage,
-    int* grallocUsage) {
-    mImpl->vkGetSwapchainGrallocUsageANDROID(snapshotTraceBegin, snapshotTraceBytes, pool,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkResult input_result, VkDevice device, VkFormat format,
+    VkImageUsageFlags imageUsage, int* grallocUsage) {
+    mImpl->vkGetSwapchainGrallocUsageANDROID(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
                                              input_result, device, format, imageUsage,
                                              grallocUsage);
 }
 #endif
 #ifdef VK_ANDROID_native_buffer
-void VkDecoderSnapshot::vkAcquireImageANDROID(const uint8_t* snapshotTraceBegin,
-                                              size_t snapshotTraceBytes,
-                                              android::base::BumpPool* pool, VkResult input_result,
+void VkDecoderSnapshot::vkAcquireImageANDROID(android::base::BumpPool* pool,
+                                              VkSnapshotApiCallInfo* apiCallInfo,
+                                              const uint8_t* apiCallPacket,
+                                              size_t apiCallPacketSize, VkResult input_result,
                                               VkDevice device, VkImage image, int nativeFenceFd,
                                               VkSemaphore semaphore, VkFence fence) {
-    mImpl->vkAcquireImageANDROID(snapshotTraceBegin, snapshotTraceBytes, pool, input_result, device,
-                                 image, nativeFenceFd, semaphore, fence);
+    mImpl->vkAcquireImageANDROID(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result,
+                                 device, image, nativeFenceFd, semaphore, fence);
 }
 #endif
 #ifdef VK_ANDROID_native_buffer
 void VkDecoderSnapshot::vkQueueSignalReleaseImageANDROID(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkResult input_result, VkQueue queue, uint32_t waitSemaphoreCount,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkResult input_result, VkQueue queue, uint32_t waitSemaphoreCount,
     const VkSemaphore* pWaitSemaphores, VkImage image, int* pNativeFenceFd) {
-    mImpl->vkQueueSignalReleaseImageANDROID(snapshotTraceBegin, snapshotTraceBytes, pool,
+    mImpl->vkQueueSignalReleaseImageANDROID(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
                                             input_result, queue, waitSemaphoreCount,
                                             pWaitSemaphores, image, pNativeFenceFd);
 }
 #endif
 #ifdef VK_ANDROID_native_buffer
 void VkDecoderSnapshot::vkGetSwapchainGrallocUsage2ANDROID(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkResult input_result, VkDevice device, VkFormat format, VkImageUsageFlags imageUsage,
-    VkSwapchainImageUsageFlagsANDROID swapchainImageUsage, uint64_t* grallocConsumerUsage,
-    uint64_t* grallocProducerUsage) {
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkResult input_result, VkDevice device, VkFormat format,
+    VkImageUsageFlags imageUsage, VkSwapchainImageUsageFlagsANDROID swapchainImageUsage,
+    uint64_t* grallocConsumerUsage, uint64_t* grallocProducerUsage) {
     mImpl->vkGetSwapchainGrallocUsage2ANDROID(
-        snapshotTraceBegin, snapshotTraceBytes, pool, input_result, device, format, imageUsage,
-        swapchainImageUsage, grallocConsumerUsage, grallocProducerUsage);
+        pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result, device, format,
+        imageUsage, swapchainImageUsage, grallocConsumerUsage, grallocProducerUsage);
 }
 #endif
 #ifdef VK_EXT_debug_report
 void VkDecoderSnapshot::vkCreateDebugReportCallbackEXT(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkResult input_result, VkInstance instance,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkResult input_result, VkInstance instance,
     const VkDebugReportCallbackCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator,
     VkDebugReportCallbackEXT* pCallback) {
-    mImpl->vkCreateDebugReportCallbackEXT(snapshotTraceBegin, snapshotTraceBytes, pool,
+    mImpl->vkCreateDebugReportCallbackEXT(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
                                           input_result, instance, pCreateInfo, pAllocator,
                                           pCallback);
 }
 #endif
 #ifdef VK_EXT_debug_report
-void VkDecoderSnapshot::vkDestroyDebugReportCallbackEXT(const uint8_t* snapshotTraceBegin,
-                                                        size_t snapshotTraceBytes,
-                                                        android::base::BumpPool* pool,
-                                                        VkInstance instance,
-                                                        VkDebugReportCallbackEXT callback,
-                                                        const VkAllocationCallbacks* pAllocator) {
-    mImpl->vkDestroyDebugReportCallbackEXT(snapshotTraceBegin, snapshotTraceBytes, pool, instance,
-                                           callback, pAllocator);
+void VkDecoderSnapshot::vkDestroyDebugReportCallbackEXT(
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkInstance instance, VkDebugReportCallbackEXT callback,
+    const VkAllocationCallbacks* pAllocator) {
+    mImpl->vkDestroyDebugReportCallbackEXT(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                           instance, callback, pAllocator);
 }
 #endif
 #ifdef VK_EXT_debug_report
 void VkDecoderSnapshot::vkDebugReportMessageEXT(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkInstance instance, VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objectType,
-    uint64_t object, size_t location, int32_t messageCode, const char* pLayerPrefix,
-    const char* pMessage) {
-    mImpl->vkDebugReportMessageEXT(snapshotTraceBegin, snapshotTraceBytes, pool, instance, flags,
-                                   objectType, object, location, messageCode, pLayerPrefix,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkInstance instance, VkDebugReportFlagsEXT flags,
+    VkDebugReportObjectTypeEXT objectType, uint64_t object, size_t location, int32_t messageCode,
+    const char* pLayerPrefix, const char* pMessage) {
+    mImpl->vkDebugReportMessageEXT(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, instance,
+                                   flags, objectType, object, location, messageCode, pLayerPrefix,
                                    pMessage);
 }
 #endif
 #ifdef VK_EXT_transform_feedback
 void VkDecoderSnapshot::vkCmdBindTransformFeedbackBuffersEXT(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkCommandBuffer commandBuffer, uint32_t firstBinding, uint32_t bindingCount,
-    const VkBuffer* pBuffers, const VkDeviceSize* pOffsets, const VkDeviceSize* pSizes) {
-    mImpl->vkCmdBindTransformFeedbackBuffersEXT(snapshotTraceBegin, snapshotTraceBytes, pool,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer, uint32_t firstBinding,
+    uint32_t bindingCount, const VkBuffer* pBuffers, const VkDeviceSize* pOffsets,
+    const VkDeviceSize* pSizes) {
+    mImpl->vkCmdBindTransformFeedbackBuffersEXT(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
                                                 commandBuffer, firstBinding, bindingCount, pBuffers,
                                                 pOffsets, pSizes);
 }
 #endif
 #ifdef VK_EXT_transform_feedback
 void VkDecoderSnapshot::vkCmdBeginTransformFeedbackEXT(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkCommandBuffer commandBuffer, uint32_t firstCounterBuffer, uint32_t counterBufferCount,
-    const VkBuffer* pCounterBuffers, const VkDeviceSize* pCounterBufferOffsets) {
-    mImpl->vkCmdBeginTransformFeedbackEXT(snapshotTraceBegin, snapshotTraceBytes, pool,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer, uint32_t firstCounterBuffer,
+    uint32_t counterBufferCount, const VkBuffer* pCounterBuffers,
+    const VkDeviceSize* pCounterBufferOffsets) {
+    mImpl->vkCmdBeginTransformFeedbackEXT(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
                                           commandBuffer, firstCounterBuffer, counterBufferCount,
                                           pCounterBuffers, pCounterBufferOffsets);
 }
 #endif
 #ifdef VK_EXT_transform_feedback
 void VkDecoderSnapshot::vkCmdEndTransformFeedbackEXT(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkCommandBuffer commandBuffer, uint32_t firstCounterBuffer, uint32_t counterBufferCount,
-    const VkBuffer* pCounterBuffers, const VkDeviceSize* pCounterBufferOffsets) {
-    mImpl->vkCmdEndTransformFeedbackEXT(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
-                                        firstCounterBuffer, counterBufferCount, pCounterBuffers,
-                                        pCounterBufferOffsets);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer, uint32_t firstCounterBuffer,
+    uint32_t counterBufferCount, const VkBuffer* pCounterBuffers,
+    const VkDeviceSize* pCounterBufferOffsets) {
+    mImpl->vkCmdEndTransformFeedbackEXT(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                        commandBuffer, firstCounterBuffer, counterBufferCount,
+                                        pCounterBuffers, pCounterBufferOffsets);
 }
 #endif
 #ifdef VK_EXT_transform_feedback
-void VkDecoderSnapshot::vkCmdBeginQueryIndexedEXT(const uint8_t* snapshotTraceBegin,
-                                                  size_t snapshotTraceBytes,
-                                                  android::base::BumpPool* pool,
-                                                  VkCommandBuffer commandBuffer,
-                                                  VkQueryPool queryPool, uint32_t query,
-                                                  VkQueryControlFlags flags, uint32_t index) {
-    mImpl->vkCmdBeginQueryIndexedEXT(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
-                                     queryPool, query, flags, index);
+void VkDecoderSnapshot::vkCmdBeginQueryIndexedEXT(
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer, VkQueryPool queryPool, uint32_t query,
+    VkQueryControlFlags flags, uint32_t index) {
+    mImpl->vkCmdBeginQueryIndexedEXT(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                     commandBuffer, queryPool, query, flags, index);
 }
 #endif
 #ifdef VK_EXT_transform_feedback
 void VkDecoderSnapshot::vkCmdEndQueryIndexedEXT(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkCommandBuffer commandBuffer, VkQueryPool queryPool, uint32_t query, uint32_t index) {
-    mImpl->vkCmdEndQueryIndexedEXT(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
-                                   queryPool, query, index);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer, VkQueryPool queryPool, uint32_t query,
+    uint32_t index) {
+    mImpl->vkCmdEndQueryIndexedEXT(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                   commandBuffer, queryPool, query, index);
 }
 #endif
 #ifdef VK_EXT_transform_feedback
 void VkDecoderSnapshot::vkCmdDrawIndirectByteCountEXT(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkCommandBuffer commandBuffer, uint32_t instanceCount, uint32_t firstInstance,
-    VkBuffer counterBuffer, VkDeviceSize counterBufferOffset, uint32_t counterOffset,
-    uint32_t vertexStride) {
-    mImpl->vkCmdDrawIndirectByteCountEXT(snapshotTraceBegin, snapshotTraceBytes, pool,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer, uint32_t instanceCount,
+    uint32_t firstInstance, VkBuffer counterBuffer, VkDeviceSize counterBufferOffset,
+    uint32_t counterOffset, uint32_t vertexStride) {
+    mImpl->vkCmdDrawIndirectByteCountEXT(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
                                          commandBuffer, instanceCount, firstInstance, counterBuffer,
                                          counterBufferOffset, counterOffset, vertexStride);
 }
 #endif
 #ifdef VK_EXT_debug_utils
 void VkDecoderSnapshot::vkSetDebugUtilsObjectNameEXT(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkResult input_result, VkDevice device, const VkDebugUtilsObjectNameInfoEXT* pNameInfo) {
-    mImpl->vkSetDebugUtilsObjectNameEXT(snapshotTraceBegin, snapshotTraceBytes, pool, input_result,
-                                        device, pNameInfo);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkResult input_result, VkDevice device,
+    const VkDebugUtilsObjectNameInfoEXT* pNameInfo) {
+    mImpl->vkSetDebugUtilsObjectNameEXT(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                        input_result, device, pNameInfo);
 }
 #endif
 #ifdef VK_EXT_debug_utils
-void VkDecoderSnapshot::vkSetDebugUtilsObjectTagEXT(const uint8_t* snapshotTraceBegin,
-                                                    size_t snapshotTraceBytes,
-                                                    android::base::BumpPool* pool,
-                                                    VkResult input_result, VkDevice device,
+void VkDecoderSnapshot::vkSetDebugUtilsObjectTagEXT(android::base::BumpPool* pool,
+                                                    VkSnapshotApiCallInfo* apiCallInfo,
+                                                    const uint8_t* apiCallPacket,
+                                                    size_t apiCallPacketSize, VkResult input_result,
+                                                    VkDevice device,
                                                     const VkDebugUtilsObjectTagInfoEXT* pTagInfo) {
-    mImpl->vkSetDebugUtilsObjectTagEXT(snapshotTraceBegin, snapshotTraceBytes, pool, input_result,
-                                       device, pTagInfo);
+    mImpl->vkSetDebugUtilsObjectTagEXT(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                       input_result, device, pTagInfo);
 }
 #endif
 #ifdef VK_EXT_debug_utils
-void VkDecoderSnapshot::vkQueueBeginDebugUtilsLabelEXT(const uint8_t* snapshotTraceBegin,
-                                                       size_t snapshotTraceBytes,
-                                                       android::base::BumpPool* pool, VkQueue queue,
+void VkDecoderSnapshot::vkQueueBeginDebugUtilsLabelEXT(android::base::BumpPool* pool,
+                                                       VkSnapshotApiCallInfo* apiCallInfo,
+                                                       const uint8_t* apiCallPacket,
+                                                       size_t apiCallPacketSize, VkQueue queue,
                                                        const VkDebugUtilsLabelEXT* pLabelInfo) {
-    mImpl->vkQueueBeginDebugUtilsLabelEXT(snapshotTraceBegin, snapshotTraceBytes, pool, queue,
-                                          pLabelInfo);
+    mImpl->vkQueueBeginDebugUtilsLabelEXT(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                          queue, pLabelInfo);
 }
 #endif
 #ifdef VK_EXT_debug_utils
-void VkDecoderSnapshot::vkQueueEndDebugUtilsLabelEXT(const uint8_t* snapshotTraceBegin,
-                                                     size_t snapshotTraceBytes,
-                                                     android::base::BumpPool* pool, VkQueue queue) {
-    mImpl->vkQueueEndDebugUtilsLabelEXT(snapshotTraceBegin, snapshotTraceBytes, pool, queue);
+void VkDecoderSnapshot::vkQueueEndDebugUtilsLabelEXT(android::base::BumpPool* pool,
+                                                     VkSnapshotApiCallInfo* apiCallInfo,
+                                                     const uint8_t* apiCallPacket,
+                                                     size_t apiCallPacketSize, VkQueue queue) {
+    mImpl->vkQueueEndDebugUtilsLabelEXT(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, queue);
 }
 #endif
 #ifdef VK_EXT_debug_utils
-void VkDecoderSnapshot::vkQueueInsertDebugUtilsLabelEXT(const uint8_t* snapshotTraceBegin,
-                                                        size_t snapshotTraceBytes,
-                                                        android::base::BumpPool* pool,
-                                                        VkQueue queue,
+void VkDecoderSnapshot::vkQueueInsertDebugUtilsLabelEXT(android::base::BumpPool* pool,
+                                                        VkSnapshotApiCallInfo* apiCallInfo,
+                                                        const uint8_t* apiCallPacket,
+                                                        size_t apiCallPacketSize, VkQueue queue,
                                                         const VkDebugUtilsLabelEXT* pLabelInfo) {
-    mImpl->vkQueueInsertDebugUtilsLabelEXT(snapshotTraceBegin, snapshotTraceBytes, pool, queue,
-                                           pLabelInfo);
+    mImpl->vkQueueInsertDebugUtilsLabelEXT(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                           queue, pLabelInfo);
 }
 #endif
 #ifdef VK_EXT_debug_utils
-void VkDecoderSnapshot::vkCmdBeginDebugUtilsLabelEXT(const uint8_t* snapshotTraceBegin,
-                                                     size_t snapshotTraceBytes,
-                                                     android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCmdBeginDebugUtilsLabelEXT(android::base::BumpPool* pool,
+                                                     VkSnapshotApiCallInfo* apiCallInfo,
+                                                     const uint8_t* apiCallPacket,
+                                                     size_t apiCallPacketSize,
                                                      VkCommandBuffer commandBuffer,
                                                      const VkDebugUtilsLabelEXT* pLabelInfo) {
-    mImpl->vkCmdBeginDebugUtilsLabelEXT(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
-                                        pLabelInfo);
+    mImpl->vkCmdBeginDebugUtilsLabelEXT(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                        commandBuffer, pLabelInfo);
 }
 #endif
 #ifdef VK_EXT_debug_utils
-void VkDecoderSnapshot::vkCmdEndDebugUtilsLabelEXT(const uint8_t* snapshotTraceBegin,
-                                                   size_t snapshotTraceBytes,
-                                                   android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCmdEndDebugUtilsLabelEXT(android::base::BumpPool* pool,
+                                                   VkSnapshotApiCallInfo* apiCallInfo,
+                                                   const uint8_t* apiCallPacket,
+                                                   size_t apiCallPacketSize,
                                                    VkCommandBuffer commandBuffer) {
-    mImpl->vkCmdEndDebugUtilsLabelEXT(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer);
+    mImpl->vkCmdEndDebugUtilsLabelEXT(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                      commandBuffer);
 }
 #endif
 #ifdef VK_EXT_debug_utils
-void VkDecoderSnapshot::vkCmdInsertDebugUtilsLabelEXT(const uint8_t* snapshotTraceBegin,
-                                                      size_t snapshotTraceBytes,
-                                                      android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCmdInsertDebugUtilsLabelEXT(android::base::BumpPool* pool,
+                                                      VkSnapshotApiCallInfo* apiCallInfo,
+                                                      const uint8_t* apiCallPacket,
+                                                      size_t apiCallPacketSize,
                                                       VkCommandBuffer commandBuffer,
                                                       const VkDebugUtilsLabelEXT* pLabelInfo) {
-    mImpl->vkCmdInsertDebugUtilsLabelEXT(snapshotTraceBegin, snapshotTraceBytes, pool,
+    mImpl->vkCmdInsertDebugUtilsLabelEXT(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
                                          commandBuffer, pLabelInfo);
 }
 #endif
 #ifdef VK_EXT_debug_utils
 void VkDecoderSnapshot::vkCreateDebugUtilsMessengerEXT(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkResult input_result, VkInstance instance,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkResult input_result, VkInstance instance,
     const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator,
     VkDebugUtilsMessengerEXT* pMessenger) {
-    mImpl->vkCreateDebugUtilsMessengerEXT(snapshotTraceBegin, snapshotTraceBytes, pool,
+    mImpl->vkCreateDebugUtilsMessengerEXT(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
                                           input_result, instance, pCreateInfo, pAllocator,
                                           pMessenger);
 }
 #endif
 #ifdef VK_EXT_debug_utils
-void VkDecoderSnapshot::vkDestroyDebugUtilsMessengerEXT(const uint8_t* snapshotTraceBegin,
-                                                        size_t snapshotTraceBytes,
-                                                        android::base::BumpPool* pool,
-                                                        VkInstance instance,
-                                                        VkDebugUtilsMessengerEXT messenger,
-                                                        const VkAllocationCallbacks* pAllocator) {
-    mImpl->vkDestroyDebugUtilsMessengerEXT(snapshotTraceBegin, snapshotTraceBytes, pool, instance,
-                                           messenger, pAllocator);
+void VkDecoderSnapshot::vkDestroyDebugUtilsMessengerEXT(
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkInstance instance, VkDebugUtilsMessengerEXT messenger,
+    const VkAllocationCallbacks* pAllocator) {
+    mImpl->vkDestroyDebugUtilsMessengerEXT(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                           instance, messenger, pAllocator);
 }
 #endif
 #ifdef VK_EXT_debug_utils
 void VkDecoderSnapshot::vkSubmitDebugUtilsMessageEXT(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkInstance instance, VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkInstance instance,
+    VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
     VkDebugUtilsMessageTypeFlagsEXT messageTypes,
     const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData) {
-    mImpl->vkSubmitDebugUtilsMessageEXT(snapshotTraceBegin, snapshotTraceBytes, pool, instance,
-                                        messageSeverity, messageTypes, pCallbackData);
+    mImpl->vkSubmitDebugUtilsMessageEXT(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                        instance, messageSeverity, messageTypes, pCallbackData);
 }
 #endif
 #ifdef VK_EXT_image_drm_format_modifier
 void VkDecoderSnapshot::vkGetImageDrmFormatModifierPropertiesEXT(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkResult input_result, VkDevice device, VkImage image,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkResult input_result, VkDevice device, VkImage image,
     VkImageDrmFormatModifierPropertiesEXT* pProperties) {
-    mImpl->vkGetImageDrmFormatModifierPropertiesEXT(snapshotTraceBegin, snapshotTraceBytes, pool,
-                                                    input_result, device, image, pProperties);
+    mImpl->vkGetImageDrmFormatModifierPropertiesEXT(pool, apiCallInfo, apiCallPacket,
+                                                    apiCallPacketSize, input_result, device, image,
+                                                    pProperties);
 }
 #endif
 #ifdef VK_EXT_external_memory_host
 void VkDecoderSnapshot::vkGetMemoryHostPointerPropertiesEXT(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkResult input_result, VkDevice device, VkExternalMemoryHandleTypeFlagBits handleType,
-    const void* pHostPointer, VkMemoryHostPointerPropertiesEXT* pMemoryHostPointerProperties) {
-    mImpl->vkGetMemoryHostPointerPropertiesEXT(snapshotTraceBegin, snapshotTraceBytes, pool,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkResult input_result, VkDevice device,
+    VkExternalMemoryHandleTypeFlagBits handleType, const void* pHostPointer,
+    VkMemoryHostPointerPropertiesEXT* pMemoryHostPointerProperties) {
+    mImpl->vkGetMemoryHostPointerPropertiesEXT(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
                                                input_result, device, handleType, pHostPointer,
                                                pMemoryHostPointerProperties);
 }
 #endif
 #ifdef VK_EXT_tooling_info
 void VkDecoderSnapshot::vkGetPhysicalDeviceToolPropertiesEXT(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkResult input_result, VkPhysicalDevice physicalDevice, uint32_t* pToolCount,
-    VkPhysicalDeviceToolProperties* pToolProperties) {
-    mImpl->vkGetPhysicalDeviceToolPropertiesEXT(snapshotTraceBegin, snapshotTraceBytes, pool,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkResult input_result, VkPhysicalDevice physicalDevice,
+    uint32_t* pToolCount, VkPhysicalDeviceToolProperties* pToolProperties) {
+    mImpl->vkGetPhysicalDeviceToolPropertiesEXT(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
                                                 input_result, physicalDevice, pToolCount,
                                                 pToolProperties);
 }
 #endif
 #ifdef VK_EXT_line_rasterization
 void VkDecoderSnapshot::vkCmdSetLineStippleEXT(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkCommandBuffer commandBuffer, uint32_t lineStippleFactor, uint16_t lineStipplePattern) {
-    mImpl->vkCmdSetLineStippleEXT(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
-                                  lineStippleFactor, lineStipplePattern);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer, uint32_t lineStippleFactor,
+    uint16_t lineStipplePattern) {
+    mImpl->vkCmdSetLineStippleEXT(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                  commandBuffer, lineStippleFactor, lineStipplePattern);
 }
 #endif
 #ifdef VK_EXT_extended_dynamic_state
-void VkDecoderSnapshot::vkCmdSetCullModeEXT(const uint8_t* snapshotTraceBegin,
-                                            size_t snapshotTraceBytes,
-                                            android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCmdSetCullModeEXT(android::base::BumpPool* pool,
+                                            VkSnapshotApiCallInfo* apiCallInfo,
+                                            const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                             VkCommandBuffer commandBuffer,
                                             VkCullModeFlags cullMode) {
-    mImpl->vkCmdSetCullModeEXT(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
+    mImpl->vkCmdSetCullModeEXT(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer,
                                cullMode);
 }
 #endif
 #ifdef VK_EXT_extended_dynamic_state
-void VkDecoderSnapshot::vkCmdSetFrontFaceEXT(const uint8_t* snapshotTraceBegin,
-                                             size_t snapshotTraceBytes,
-                                             android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCmdSetFrontFaceEXT(android::base::BumpPool* pool,
+                                             VkSnapshotApiCallInfo* apiCallInfo,
+                                             const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                              VkCommandBuffer commandBuffer, VkFrontFace frontFace) {
-    mImpl->vkCmdSetFrontFaceEXT(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
+    mImpl->vkCmdSetFrontFaceEXT(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer,
                                 frontFace);
 }
 #endif
 #ifdef VK_EXT_extended_dynamic_state
-void VkDecoderSnapshot::vkCmdSetPrimitiveTopologyEXT(const uint8_t* snapshotTraceBegin,
-                                                     size_t snapshotTraceBytes,
-                                                     android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCmdSetPrimitiveTopologyEXT(android::base::BumpPool* pool,
+                                                     VkSnapshotApiCallInfo* apiCallInfo,
+                                                     const uint8_t* apiCallPacket,
+                                                     size_t apiCallPacketSize,
                                                      VkCommandBuffer commandBuffer,
                                                      VkPrimitiveTopology primitiveTopology) {
-    mImpl->vkCmdSetPrimitiveTopologyEXT(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
-                                        primitiveTopology);
+    mImpl->vkCmdSetPrimitiveTopologyEXT(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                        commandBuffer, primitiveTopology);
 }
 #endif
 #ifdef VK_EXT_extended_dynamic_state
 void VkDecoderSnapshot::vkCmdSetViewportWithCountEXT(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkCommandBuffer commandBuffer, uint32_t viewportCount, const VkViewport* pViewports) {
-    mImpl->vkCmdSetViewportWithCountEXT(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
-                                        viewportCount, pViewports);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer, uint32_t viewportCount,
+    const VkViewport* pViewports) {
+    mImpl->vkCmdSetViewportWithCountEXT(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                        commandBuffer, viewportCount, pViewports);
 }
 #endif
 #ifdef VK_EXT_extended_dynamic_state
 void VkDecoderSnapshot::vkCmdSetScissorWithCountEXT(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkCommandBuffer commandBuffer, uint32_t scissorCount, const VkRect2D* pScissors) {
-    mImpl->vkCmdSetScissorWithCountEXT(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
-                                       scissorCount, pScissors);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer, uint32_t scissorCount,
+    const VkRect2D* pScissors) {
+    mImpl->vkCmdSetScissorWithCountEXT(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                       commandBuffer, scissorCount, pScissors);
 }
 #endif
 #ifdef VK_EXT_extended_dynamic_state
 void VkDecoderSnapshot::vkCmdBindVertexBuffers2EXT(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkCommandBuffer commandBuffer, uint32_t firstBinding, uint32_t bindingCount,
-    const VkBuffer* pBuffers, const VkDeviceSize* pOffsets, const VkDeviceSize* pSizes,
-    const VkDeviceSize* pStrides) {
-    mImpl->vkCmdBindVertexBuffers2EXT(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
-                                      firstBinding, bindingCount, pBuffers, pOffsets, pSizes,
-                                      pStrides);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer, uint32_t firstBinding,
+    uint32_t bindingCount, const VkBuffer* pBuffers, const VkDeviceSize* pOffsets,
+    const VkDeviceSize* pSizes, const VkDeviceSize* pStrides) {
+    mImpl->vkCmdBindVertexBuffers2EXT(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                      commandBuffer, firstBinding, bindingCount, pBuffers, pOffsets,
+                                      pSizes, pStrides);
 }
 #endif
 #ifdef VK_EXT_extended_dynamic_state
-void VkDecoderSnapshot::vkCmdSetDepthTestEnableEXT(const uint8_t* snapshotTraceBegin,
-                                                   size_t snapshotTraceBytes,
-                                                   android::base::BumpPool* pool,
-                                                   VkCommandBuffer commandBuffer,
-                                                   VkBool32 depthTestEnable) {
-    mImpl->vkCmdSetDepthTestEnableEXT(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
-                                      depthTestEnable);
+void VkDecoderSnapshot::vkCmdSetDepthTestEnableEXT(
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer, VkBool32 depthTestEnable) {
+    mImpl->vkCmdSetDepthTestEnableEXT(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                      commandBuffer, depthTestEnable);
 }
 #endif
 #ifdef VK_EXT_extended_dynamic_state
-void VkDecoderSnapshot::vkCmdSetDepthWriteEnableEXT(const uint8_t* snapshotTraceBegin,
-                                                    size_t snapshotTraceBytes,
-                                                    android::base::BumpPool* pool,
-                                                    VkCommandBuffer commandBuffer,
-                                                    VkBool32 depthWriteEnable) {
-    mImpl->vkCmdSetDepthWriteEnableEXT(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
-                                       depthWriteEnable);
+void VkDecoderSnapshot::vkCmdSetDepthWriteEnableEXT(
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer, VkBool32 depthWriteEnable) {
+    mImpl->vkCmdSetDepthWriteEnableEXT(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                       commandBuffer, depthWriteEnable);
 }
 #endif
 #ifdef VK_EXT_extended_dynamic_state
-void VkDecoderSnapshot::vkCmdSetDepthCompareOpEXT(const uint8_t* snapshotTraceBegin,
-                                                  size_t snapshotTraceBytes,
-                                                  android::base::BumpPool* pool,
-                                                  VkCommandBuffer commandBuffer,
-                                                  VkCompareOp depthCompareOp) {
-    mImpl->vkCmdSetDepthCompareOpEXT(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
-                                     depthCompareOp);
+void VkDecoderSnapshot::vkCmdSetDepthCompareOpEXT(
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer, VkCompareOp depthCompareOp) {
+    mImpl->vkCmdSetDepthCompareOpEXT(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                     commandBuffer, depthCompareOp);
 }
 #endif
 #ifdef VK_EXT_extended_dynamic_state
-void VkDecoderSnapshot::vkCmdSetDepthBoundsTestEnableEXT(const uint8_t* snapshotTraceBegin,
-                                                         size_t snapshotTraceBytes,
-                                                         android::base::BumpPool* pool,
-                                                         VkCommandBuffer commandBuffer,
-                                                         VkBool32 depthBoundsTestEnable) {
-    mImpl->vkCmdSetDepthBoundsTestEnableEXT(snapshotTraceBegin, snapshotTraceBytes, pool,
+void VkDecoderSnapshot::vkCmdSetDepthBoundsTestEnableEXT(
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer, VkBool32 depthBoundsTestEnable) {
+    mImpl->vkCmdSetDepthBoundsTestEnableEXT(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
                                             commandBuffer, depthBoundsTestEnable);
 }
 #endif
 #ifdef VK_EXT_extended_dynamic_state
-void VkDecoderSnapshot::vkCmdSetStencilTestEnableEXT(const uint8_t* snapshotTraceBegin,
-                                                     size_t snapshotTraceBytes,
-                                                     android::base::BumpPool* pool,
-                                                     VkCommandBuffer commandBuffer,
-                                                     VkBool32 stencilTestEnable) {
-    mImpl->vkCmdSetStencilTestEnableEXT(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
-                                        stencilTestEnable);
+void VkDecoderSnapshot::vkCmdSetStencilTestEnableEXT(
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer, VkBool32 stencilTestEnable) {
+    mImpl->vkCmdSetStencilTestEnableEXT(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                        commandBuffer, stencilTestEnable);
 }
 #endif
 #ifdef VK_EXT_extended_dynamic_state
 void VkDecoderSnapshot::vkCmdSetStencilOpEXT(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkCommandBuffer commandBuffer, VkStencilFaceFlags faceMask, VkStencilOp failOp,
-    VkStencilOp passOp, VkStencilOp depthFailOp, VkCompareOp compareOp) {
-    mImpl->vkCmdSetStencilOpEXT(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer, VkStencilFaceFlags faceMask,
+    VkStencilOp failOp, VkStencilOp passOp, VkStencilOp depthFailOp, VkCompareOp compareOp) {
+    mImpl->vkCmdSetStencilOpEXT(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer,
                                 faceMask, failOp, passOp, depthFailOp, compareOp);
 }
 #endif
 #ifdef VK_EXT_host_image_copy
 void VkDecoderSnapshot::vkCopyMemoryToImageEXT(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkResult input_result, VkDevice device,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkResult input_result, VkDevice device,
     const VkCopyMemoryToImageInfoEXT* pCopyMemoryToImageInfo) {
-    mImpl->vkCopyMemoryToImageEXT(snapshotTraceBegin, snapshotTraceBytes, pool, input_result,
+    mImpl->vkCopyMemoryToImageEXT(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result,
                                   device, pCopyMemoryToImageInfo);
 }
 #endif
 #ifdef VK_EXT_host_image_copy
 void VkDecoderSnapshot::vkCopyImageToMemoryEXT(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkResult input_result, VkDevice device,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkResult input_result, VkDevice device,
     const VkCopyImageToMemoryInfoEXT* pCopyImageToMemoryInfo) {
-    mImpl->vkCopyImageToMemoryEXT(snapshotTraceBegin, snapshotTraceBytes, pool, input_result,
+    mImpl->vkCopyImageToMemoryEXT(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result,
                                   device, pCopyImageToMemoryInfo);
 }
 #endif
 #ifdef VK_EXT_host_image_copy
 void VkDecoderSnapshot::vkCopyImageToImageEXT(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkResult input_result, VkDevice device,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkResult input_result, VkDevice device,
     const VkCopyImageToImageInfoEXT* pCopyImageToImageInfo) {
-    mImpl->vkCopyImageToImageEXT(snapshotTraceBegin, snapshotTraceBytes, pool, input_result, device,
-                                 pCopyImageToImageInfo);
+    mImpl->vkCopyImageToImageEXT(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result,
+                                 device, pCopyImageToImageInfo);
 }
 #endif
 #ifdef VK_EXT_host_image_copy
 void VkDecoderSnapshot::vkTransitionImageLayoutEXT(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkResult input_result, VkDevice device, uint32_t transitionCount,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkResult input_result, VkDevice device, uint32_t transitionCount,
     const VkHostImageLayoutTransitionInfoEXT* pTransitions) {
-    mImpl->vkTransitionImageLayoutEXT(snapshotTraceBegin, snapshotTraceBytes, pool, input_result,
-                                      device, transitionCount, pTransitions);
+    mImpl->vkTransitionImageLayoutEXT(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                      input_result, device, transitionCount, pTransitions);
 }
 #endif
 #ifdef VK_EXT_host_image_copy
-void VkDecoderSnapshot::vkGetImageSubresourceLayout2EXT(const uint8_t* snapshotTraceBegin,
-                                                        size_t snapshotTraceBytes,
-                                                        android::base::BumpPool* pool,
-                                                        VkDevice device, VkImage image,
-                                                        const VkImageSubresource2KHR* pSubresource,
-                                                        VkSubresourceLayout2KHR* pLayout) {
-    mImpl->vkGetImageSubresourceLayout2EXT(snapshotTraceBegin, snapshotTraceBytes, pool, device,
-                                           image, pSubresource, pLayout);
+void VkDecoderSnapshot::vkGetImageSubresourceLayout2EXT(
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkDevice device, VkImage image,
+    const VkImageSubresource2KHR* pSubresource, VkSubresourceLayout2KHR* pLayout) {
+    mImpl->vkGetImageSubresourceLayout2EXT(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                           device, image, pSubresource, pLayout);
 }
 #endif
 #ifdef VK_EXT_swapchain_maintenance1
 void VkDecoderSnapshot::vkReleaseSwapchainImagesEXT(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkResult input_result, VkDevice device, const VkReleaseSwapchainImagesInfoEXT* pReleaseInfo) {
-    mImpl->vkReleaseSwapchainImagesEXT(snapshotTraceBegin, snapshotTraceBytes, pool, input_result,
-                                       device, pReleaseInfo);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkResult input_result, VkDevice device,
+    const VkReleaseSwapchainImagesInfoEXT* pReleaseInfo) {
+    mImpl->vkReleaseSwapchainImagesEXT(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                       input_result, device, pReleaseInfo);
 }
 #endif
 #ifdef VK_EXT_private_data
 void VkDecoderSnapshot::vkCreatePrivateDataSlotEXT(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkResult input_result, VkDevice device, const VkPrivateDataSlotCreateInfo* pCreateInfo,
-    const VkAllocationCallbacks* pAllocator, VkPrivateDataSlot* pPrivateDataSlot) {
-    mImpl->vkCreatePrivateDataSlotEXT(snapshotTraceBegin, snapshotTraceBytes, pool, input_result,
-                                      device, pCreateInfo, pAllocator, pPrivateDataSlot);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkResult input_result, VkDevice device,
+    const VkPrivateDataSlotCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator,
+    VkPrivateDataSlot* pPrivateDataSlot) {
+    mImpl->vkCreatePrivateDataSlotEXT(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                      input_result, device, pCreateInfo, pAllocator,
+                                      pPrivateDataSlot);
 }
 #endif
 #ifdef VK_EXT_private_data
-void VkDecoderSnapshot::vkDestroyPrivateDataSlotEXT(const uint8_t* snapshotTraceBegin,
-                                                    size_t snapshotTraceBytes,
-                                                    android::base::BumpPool* pool, VkDevice device,
+void VkDecoderSnapshot::vkDestroyPrivateDataSlotEXT(android::base::BumpPool* pool,
+                                                    VkSnapshotApiCallInfo* apiCallInfo,
+                                                    const uint8_t* apiCallPacket,
+                                                    size_t apiCallPacketSize, VkDevice device,
                                                     VkPrivateDataSlot privateDataSlot,
                                                     const VkAllocationCallbacks* pAllocator) {
-    mImpl->vkDestroyPrivateDataSlotEXT(snapshotTraceBegin, snapshotTraceBytes, pool, device,
+    mImpl->vkDestroyPrivateDataSlotEXT(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, device,
                                        privateDataSlot, pAllocator);
 }
 #endif
 #ifdef VK_EXT_private_data
-void VkDecoderSnapshot::vkSetPrivateDataEXT(const uint8_t* snapshotTraceBegin,
-                                            size_t snapshotTraceBytes,
-                                            android::base::BumpPool* pool, VkResult input_result,
-                                            VkDevice device, VkObjectType objectType,
-                                            uint64_t objectHandle,
+void VkDecoderSnapshot::vkSetPrivateDataEXT(android::base::BumpPool* pool,
+                                            VkSnapshotApiCallInfo* apiCallInfo,
+                                            const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                            VkResult input_result, VkDevice device,
+                                            VkObjectType objectType, uint64_t objectHandle,
                                             VkPrivateDataSlot privateDataSlot, uint64_t data) {
-    mImpl->vkSetPrivateDataEXT(snapshotTraceBegin, snapshotTraceBytes, pool, input_result, device,
-                               objectType, objectHandle, privateDataSlot, data);
+    mImpl->vkSetPrivateDataEXT(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result,
+                               device, objectType, objectHandle, privateDataSlot, data);
 }
 #endif
 #ifdef VK_EXT_private_data
-void VkDecoderSnapshot::vkGetPrivateDataEXT(const uint8_t* snapshotTraceBegin,
-                                            size_t snapshotTraceBytes,
-                                            android::base::BumpPool* pool, VkDevice device,
-                                            VkObjectType objectType, uint64_t objectHandle,
+void VkDecoderSnapshot::vkGetPrivateDataEXT(android::base::BumpPool* pool,
+                                            VkSnapshotApiCallInfo* apiCallInfo,
+                                            const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                            VkDevice device, VkObjectType objectType,
+                                            uint64_t objectHandle,
                                             VkPrivateDataSlot privateDataSlot, uint64_t* pData) {
-    mImpl->vkGetPrivateDataEXT(snapshotTraceBegin, snapshotTraceBytes, pool, device, objectType,
-                               objectHandle, privateDataSlot, pData);
+    mImpl->vkGetPrivateDataEXT(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, device,
+                               objectType, objectHandle, privateDataSlot, pData);
 }
 #endif
 #ifdef VK_EXT_extended_dynamic_state2
-void VkDecoderSnapshot::vkCmdSetPatchControlPointsEXT(const uint8_t* snapshotTraceBegin,
-                                                      size_t snapshotTraceBytes,
-                                                      android::base::BumpPool* pool,
-                                                      VkCommandBuffer commandBuffer,
-                                                      uint32_t patchControlPoints) {
-    mImpl->vkCmdSetPatchControlPointsEXT(snapshotTraceBegin, snapshotTraceBytes, pool,
+void VkDecoderSnapshot::vkCmdSetPatchControlPointsEXT(
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer, uint32_t patchControlPoints) {
+    mImpl->vkCmdSetPatchControlPointsEXT(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
                                          commandBuffer, patchControlPoints);
 }
 #endif
 #ifdef VK_EXT_extended_dynamic_state2
-void VkDecoderSnapshot::vkCmdSetRasterizerDiscardEnableEXT(const uint8_t* snapshotTraceBegin,
-                                                           size_t snapshotTraceBytes,
-                                                           android::base::BumpPool* pool,
-                                                           VkCommandBuffer commandBuffer,
-                                                           VkBool32 rasterizerDiscardEnable) {
-    mImpl->vkCmdSetRasterizerDiscardEnableEXT(snapshotTraceBegin, snapshotTraceBytes, pool,
+void VkDecoderSnapshot::vkCmdSetRasterizerDiscardEnableEXT(
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer, VkBool32 rasterizerDiscardEnable) {
+    mImpl->vkCmdSetRasterizerDiscardEnableEXT(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
                                               commandBuffer, rasterizerDiscardEnable);
 }
 #endif
 #ifdef VK_EXT_extended_dynamic_state2
-void VkDecoderSnapshot::vkCmdSetDepthBiasEnableEXT(const uint8_t* snapshotTraceBegin,
-                                                   size_t snapshotTraceBytes,
-                                                   android::base::BumpPool* pool,
-                                                   VkCommandBuffer commandBuffer,
-                                                   VkBool32 depthBiasEnable) {
-    mImpl->vkCmdSetDepthBiasEnableEXT(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
-                                      depthBiasEnable);
+void VkDecoderSnapshot::vkCmdSetDepthBiasEnableEXT(
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer, VkBool32 depthBiasEnable) {
+    mImpl->vkCmdSetDepthBiasEnableEXT(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                      commandBuffer, depthBiasEnable);
 }
 #endif
 #ifdef VK_EXT_extended_dynamic_state2
-void VkDecoderSnapshot::vkCmdSetLogicOpEXT(const uint8_t* snapshotTraceBegin,
-                                           size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkCmdSetLogicOpEXT(android::base::BumpPool* pool,
+                                           VkSnapshotApiCallInfo* apiCallInfo,
+                                           const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                            VkCommandBuffer commandBuffer, VkLogicOp logicOp) {
-    mImpl->vkCmdSetLogicOpEXT(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer, logicOp);
+    mImpl->vkCmdSetLogicOpEXT(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer,
+                              logicOp);
 }
 #endif
 #ifdef VK_EXT_extended_dynamic_state2
-void VkDecoderSnapshot::vkCmdSetPrimitiveRestartEnableEXT(const uint8_t* snapshotTraceBegin,
-                                                          size_t snapshotTraceBytes,
-                                                          android::base::BumpPool* pool,
-                                                          VkCommandBuffer commandBuffer,
-                                                          VkBool32 primitiveRestartEnable) {
-    mImpl->vkCmdSetPrimitiveRestartEnableEXT(snapshotTraceBegin, snapshotTraceBytes, pool,
+void VkDecoderSnapshot::vkCmdSetPrimitiveRestartEnableEXT(
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer, VkBool32 primitiveRestartEnable) {
+    mImpl->vkCmdSetPrimitiveRestartEnableEXT(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
                                              commandBuffer, primitiveRestartEnable);
 }
 #endif
 #ifdef VK_EXT_color_write_enable
 void VkDecoderSnapshot::vkCmdSetColorWriteEnableEXT(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkCommandBuffer commandBuffer, uint32_t attachmentCount, const VkBool32* pColorWriteEnables) {
-    mImpl->vkCmdSetColorWriteEnableEXT(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
-                                       attachmentCount, pColorWriteEnables);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer, uint32_t attachmentCount,
+    const VkBool32* pColorWriteEnables) {
+    mImpl->vkCmdSetColorWriteEnableEXT(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                       commandBuffer, attachmentCount, pColorWriteEnables);
 }
 #endif
 #ifdef VK_GOOGLE_gfxstream
 void VkDecoderSnapshot::vkMapMemoryIntoAddressSpaceGOOGLE(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkResult input_result, VkDevice device, VkDeviceMemory memory, uint64_t* pAddress) {
-    mImpl->vkMapMemoryIntoAddressSpaceGOOGLE(snapshotTraceBegin, snapshotTraceBytes, pool,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkResult input_result, VkDevice device, VkDeviceMemory memory,
+    uint64_t* pAddress) {
+    mImpl->vkMapMemoryIntoAddressSpaceGOOGLE(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
                                              input_result, device, memory, pAddress);
 }
 #endif
 #ifdef VK_GOOGLE_gfxstream
 void VkDecoderSnapshot::vkUpdateDescriptorSetWithTemplateSizedGOOGLE(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkDevice device, VkDescriptorSet descriptorSet,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkDevice device, VkDescriptorSet descriptorSet,
     VkDescriptorUpdateTemplate descriptorUpdateTemplate, uint32_t imageInfoCount,
     uint32_t bufferInfoCount, uint32_t bufferViewCount, const uint32_t* pImageInfoEntryIndices,
     const uint32_t* pBufferInfoEntryIndices, const uint32_t* pBufferViewEntryIndices,
     const VkDescriptorImageInfo* pImageInfos, const VkDescriptorBufferInfo* pBufferInfos,
     const VkBufferView* pBufferViews) {
     mImpl->vkUpdateDescriptorSetWithTemplateSizedGOOGLE(
-        snapshotTraceBegin, snapshotTraceBytes, pool, device, descriptorSet,
+        pool, apiCallInfo, apiCallPacket, apiCallPacketSize, device, descriptorSet,
         descriptorUpdateTemplate, imageInfoCount, bufferInfoCount, bufferViewCount,
         pImageInfoEntryIndices, pBufferInfoEntryIndices, pBufferViewEntryIndices, pImageInfos,
         pBufferInfos, pBufferViews);
@@ -7216,202 +7488,211 @@ void VkDecoderSnapshot::vkUpdateDescriptorSetWithTemplateSizedGOOGLE(
 #endif
 #ifdef VK_GOOGLE_gfxstream
 void VkDecoderSnapshot::vkBeginCommandBufferAsyncGOOGLE(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkCommandBuffer commandBuffer, const VkCommandBufferBeginInfo* pBeginInfo) {
-    mImpl->vkBeginCommandBufferAsyncGOOGLE(snapshotTraceBegin, snapshotTraceBytes, pool,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer,
+    const VkCommandBufferBeginInfo* pBeginInfo) {
+    mImpl->vkBeginCommandBufferAsyncGOOGLE(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
                                            commandBuffer, pBeginInfo);
 }
 #endif
 #ifdef VK_GOOGLE_gfxstream
-void VkDecoderSnapshot::vkEndCommandBufferAsyncGOOGLE(const uint8_t* snapshotTraceBegin,
-                                                      size_t snapshotTraceBytes,
-                                                      android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkEndCommandBufferAsyncGOOGLE(android::base::BumpPool* pool,
+                                                      VkSnapshotApiCallInfo* apiCallInfo,
+                                                      const uint8_t* apiCallPacket,
+                                                      size_t apiCallPacketSize,
                                                       VkCommandBuffer commandBuffer) {
-    mImpl->vkEndCommandBufferAsyncGOOGLE(snapshotTraceBegin, snapshotTraceBytes, pool,
+    mImpl->vkEndCommandBufferAsyncGOOGLE(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
                                          commandBuffer);
 }
 #endif
 #ifdef VK_GOOGLE_gfxstream
-void VkDecoderSnapshot::vkResetCommandBufferAsyncGOOGLE(const uint8_t* snapshotTraceBegin,
-                                                        size_t snapshotTraceBytes,
-                                                        android::base::BumpPool* pool,
-                                                        VkCommandBuffer commandBuffer,
-                                                        VkCommandBufferResetFlags flags) {
-    mImpl->vkResetCommandBufferAsyncGOOGLE(snapshotTraceBegin, snapshotTraceBytes, pool,
+void VkDecoderSnapshot::vkResetCommandBufferAsyncGOOGLE(
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer, VkCommandBufferResetFlags flags) {
+    mImpl->vkResetCommandBufferAsyncGOOGLE(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
                                            commandBuffer, flags);
 }
 #endif
 #ifdef VK_GOOGLE_gfxstream
 void VkDecoderSnapshot::vkCommandBufferHostSyncGOOGLE(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkCommandBuffer commandBuffer, uint32_t needHostSync, uint32_t sequenceNumber) {
-    mImpl->vkCommandBufferHostSyncGOOGLE(snapshotTraceBegin, snapshotTraceBytes, pool,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer, uint32_t needHostSync,
+    uint32_t sequenceNumber) {
+    mImpl->vkCommandBufferHostSyncGOOGLE(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
                                          commandBuffer, needHostSync, sequenceNumber);
 }
 #endif
 #ifdef VK_GOOGLE_gfxstream
 void VkDecoderSnapshot::vkCreateImageWithRequirementsGOOGLE(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkResult input_result, VkDevice device, const VkImageCreateInfo* pCreateInfo,
-    const VkAllocationCallbacks* pAllocator, VkImage* pImage,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkResult input_result, VkDevice device,
+    const VkImageCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkImage* pImage,
     VkMemoryRequirements* pMemoryRequirements) {
-    mImpl->vkCreateImageWithRequirementsGOOGLE(snapshotTraceBegin, snapshotTraceBytes, pool,
+    mImpl->vkCreateImageWithRequirementsGOOGLE(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
                                                input_result, device, pCreateInfo, pAllocator,
                                                pImage, pMemoryRequirements);
 }
 #endif
 #ifdef VK_GOOGLE_gfxstream
 void VkDecoderSnapshot::vkCreateBufferWithRequirementsGOOGLE(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkResult input_result, VkDevice device, const VkBufferCreateInfo* pCreateInfo,
-    const VkAllocationCallbacks* pAllocator, VkBuffer* pBuffer,
-    VkMemoryRequirements* pMemoryRequirements) {
-    mImpl->vkCreateBufferWithRequirementsGOOGLE(snapshotTraceBegin, snapshotTraceBytes, pool,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkResult input_result, VkDevice device,
+    const VkBufferCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator,
+    VkBuffer* pBuffer, VkMemoryRequirements* pMemoryRequirements) {
+    mImpl->vkCreateBufferWithRequirementsGOOGLE(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
                                                 input_result, device, pCreateInfo, pAllocator,
                                                 pBuffer, pMemoryRequirements);
 }
 #endif
 #ifdef VK_GOOGLE_gfxstream
-void VkDecoderSnapshot::vkGetMemoryHostAddressInfoGOOGLE(const uint8_t* snapshotTraceBegin,
-                                                         size_t snapshotTraceBytes,
-                                                         android::base::BumpPool* pool,
-                                                         VkResult input_result, VkDevice device,
-                                                         VkDeviceMemory memory, uint64_t* pAddress,
-                                                         uint64_t* pSize, uint64_t* pHostmemId) {
-    mImpl->vkGetMemoryHostAddressInfoGOOGLE(snapshotTraceBegin, snapshotTraceBytes, pool,
+void VkDecoderSnapshot::vkGetMemoryHostAddressInfoGOOGLE(
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkResult input_result, VkDevice device, VkDeviceMemory memory,
+    uint64_t* pAddress, uint64_t* pSize, uint64_t* pHostmemId) {
+    mImpl->vkGetMemoryHostAddressInfoGOOGLE(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
                                             input_result, device, memory, pAddress, pSize,
                                             pHostmemId);
 }
 #endif
 #ifdef VK_GOOGLE_gfxstream
-void VkDecoderSnapshot::vkFreeMemorySyncGOOGLE(const uint8_t* snapshotTraceBegin,
-                                               size_t snapshotTraceBytes,
-                                               android::base::BumpPool* pool, VkResult input_result,
+void VkDecoderSnapshot::vkFreeMemorySyncGOOGLE(android::base::BumpPool* pool,
+                                               VkSnapshotApiCallInfo* apiCallInfo,
+                                               const uint8_t* apiCallPacket,
+                                               size_t apiCallPacketSize, VkResult input_result,
                                                VkDevice device, VkDeviceMemory memory,
                                                const VkAllocationCallbacks* pAllocator) {
-    mImpl->vkFreeMemorySyncGOOGLE(snapshotTraceBegin, snapshotTraceBytes, pool, input_result,
+    mImpl->vkFreeMemorySyncGOOGLE(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result,
                                   device, memory, pAllocator);
 }
 #endif
 #ifdef VK_GOOGLE_gfxstream
-void VkDecoderSnapshot::vkQueueHostSyncGOOGLE(const uint8_t* snapshotTraceBegin,
-                                              size_t snapshotTraceBytes,
-                                              android::base::BumpPool* pool, VkQueue queue,
+void VkDecoderSnapshot::vkQueueHostSyncGOOGLE(android::base::BumpPool* pool,
+                                              VkSnapshotApiCallInfo* apiCallInfo,
+                                              const uint8_t* apiCallPacket,
+                                              size_t apiCallPacketSize, VkQueue queue,
                                               uint32_t needHostSync, uint32_t sequenceNumber) {
-    mImpl->vkQueueHostSyncGOOGLE(snapshotTraceBegin, snapshotTraceBytes, pool, queue, needHostSync,
-                                 sequenceNumber);
+    mImpl->vkQueueHostSyncGOOGLE(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, queue,
+                                 needHostSync, sequenceNumber);
 }
 #endif
 #ifdef VK_GOOGLE_gfxstream
-void VkDecoderSnapshot::vkQueueSubmitAsyncGOOGLE(const uint8_t* snapshotTraceBegin,
-                                                 size_t snapshotTraceBytes,
-                                                 android::base::BumpPool* pool, VkQueue queue,
+void VkDecoderSnapshot::vkQueueSubmitAsyncGOOGLE(android::base::BumpPool* pool,
+                                                 VkSnapshotApiCallInfo* apiCallInfo,
+                                                 const uint8_t* apiCallPacket,
+                                                 size_t apiCallPacketSize, VkQueue queue,
                                                  uint32_t submitCount, const VkSubmitInfo* pSubmits,
                                                  VkFence fence) {
-    mImpl->vkQueueSubmitAsyncGOOGLE(snapshotTraceBegin, snapshotTraceBytes, pool, queue,
+    mImpl->vkQueueSubmitAsyncGOOGLE(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, queue,
                                     submitCount, pSubmits, fence);
 }
 #endif
 #ifdef VK_GOOGLE_gfxstream
-void VkDecoderSnapshot::vkQueueWaitIdleAsyncGOOGLE(const uint8_t* snapshotTraceBegin,
-                                                   size_t snapshotTraceBytes,
-                                                   android::base::BumpPool* pool, VkQueue queue) {
-    mImpl->vkQueueWaitIdleAsyncGOOGLE(snapshotTraceBegin, snapshotTraceBytes, pool, queue);
+void VkDecoderSnapshot::vkQueueWaitIdleAsyncGOOGLE(android::base::BumpPool* pool,
+                                                   VkSnapshotApiCallInfo* apiCallInfo,
+                                                   const uint8_t* apiCallPacket,
+                                                   size_t apiCallPacketSize, VkQueue queue) {
+    mImpl->vkQueueWaitIdleAsyncGOOGLE(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, queue);
 }
 #endif
 #ifdef VK_GOOGLE_gfxstream
 void VkDecoderSnapshot::vkQueueBindSparseAsyncGOOGLE(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkQueue queue, uint32_t bindInfoCount, const VkBindSparseInfo* pBindInfo, VkFence fence) {
-    mImpl->vkQueueBindSparseAsyncGOOGLE(snapshotTraceBegin, snapshotTraceBytes, pool, queue,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkQueue queue, uint32_t bindInfoCount,
+    const VkBindSparseInfo* pBindInfo, VkFence fence) {
+    mImpl->vkQueueBindSparseAsyncGOOGLE(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, queue,
                                         bindInfoCount, pBindInfo, fence);
 }
 #endif
 #ifdef VK_GOOGLE_gfxstream
-void VkDecoderSnapshot::vkGetLinearImageLayoutGOOGLE(const uint8_t* snapshotTraceBegin,
-                                                     size_t snapshotTraceBytes,
-                                                     android::base::BumpPool* pool, VkDevice device,
+void VkDecoderSnapshot::vkGetLinearImageLayoutGOOGLE(android::base::BumpPool* pool,
+                                                     VkSnapshotApiCallInfo* apiCallInfo,
+                                                     const uint8_t* apiCallPacket,
+                                                     size_t apiCallPacketSize, VkDevice device,
                                                      VkFormat format, VkDeviceSize* pOffset,
                                                      VkDeviceSize* pRowPitchAlignment) {
-    mImpl->vkGetLinearImageLayoutGOOGLE(snapshotTraceBegin, snapshotTraceBytes, pool, device,
+    mImpl->vkGetLinearImageLayoutGOOGLE(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, device,
                                         format, pOffset, pRowPitchAlignment);
 }
 #endif
 #ifdef VK_GOOGLE_gfxstream
 void VkDecoderSnapshot::vkGetLinearImageLayout2GOOGLE(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkDevice device, const VkImageCreateInfo* pCreateInfo, VkDeviceSize* pOffset,
-    VkDeviceSize* pRowPitchAlignment) {
-    mImpl->vkGetLinearImageLayout2GOOGLE(snapshotTraceBegin, snapshotTraceBytes, pool, device,
-                                         pCreateInfo, pOffset, pRowPitchAlignment);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkDevice device, const VkImageCreateInfo* pCreateInfo,
+    VkDeviceSize* pOffset, VkDeviceSize* pRowPitchAlignment) {
+    mImpl->vkGetLinearImageLayout2GOOGLE(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                         device, pCreateInfo, pOffset, pRowPitchAlignment);
 }
 #endif
 #ifdef VK_GOOGLE_gfxstream
-void VkDecoderSnapshot::vkQueueFlushCommandsGOOGLE(const uint8_t* snapshotTraceBegin,
-                                                   size_t snapshotTraceBytes,
-                                                   android::base::BumpPool* pool, VkQueue queue,
+void VkDecoderSnapshot::vkQueueFlushCommandsGOOGLE(android::base::BumpPool* pool,
+                                                   VkSnapshotApiCallInfo* apiCallInfo,
+                                                   const uint8_t* apiCallPacket,
+                                                   size_t apiCallPacketSize, VkQueue queue,
                                                    VkCommandBuffer commandBuffer,
                                                    VkDeviceSize dataSize, const void* pData) {
-    mImpl->vkQueueFlushCommandsGOOGLE(snapshotTraceBegin, snapshotTraceBytes, pool, queue,
+    mImpl->vkQueueFlushCommandsGOOGLE(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, queue,
                                       commandBuffer, dataSize, pData);
 }
 #endif
 #ifdef VK_GOOGLE_gfxstream
 void VkDecoderSnapshot::vkQueueCommitDescriptorSetUpdatesGOOGLE(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkQueue queue, uint32_t descriptorPoolCount, const VkDescriptorPool* pDescriptorPools,
-    uint32_t descriptorSetCount, const VkDescriptorSetLayout* pSetLayouts,
-    const uint64_t* pDescriptorSetPoolIds, const uint32_t* pDescriptorSetWhichPool,
-    const uint32_t* pDescriptorSetPendingAllocation,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkQueue queue, uint32_t descriptorPoolCount,
+    const VkDescriptorPool* pDescriptorPools, uint32_t descriptorSetCount,
+    const VkDescriptorSetLayout* pSetLayouts, const uint64_t* pDescriptorSetPoolIds,
+    const uint32_t* pDescriptorSetWhichPool, const uint32_t* pDescriptorSetPendingAllocation,
     const uint32_t* pDescriptorWriteStartingIndices, uint32_t pendingDescriptorWriteCount,
     const VkWriteDescriptorSet* pPendingDescriptorWrites) {
     mImpl->vkQueueCommitDescriptorSetUpdatesGOOGLE(
-        snapshotTraceBegin, snapshotTraceBytes, pool, queue, descriptorPoolCount, pDescriptorPools,
-        descriptorSetCount, pSetLayouts, pDescriptorSetPoolIds, pDescriptorSetWhichPool,
-        pDescriptorSetPendingAllocation, pDescriptorWriteStartingIndices,
+        pool, apiCallInfo, apiCallPacket, apiCallPacketSize, queue, descriptorPoolCount,
+        pDescriptorPools, descriptorSetCount, pSetLayouts, pDescriptorSetPoolIds,
+        pDescriptorSetWhichPool, pDescriptorSetPendingAllocation, pDescriptorWriteStartingIndices,
         pendingDescriptorWriteCount, pPendingDescriptorWrites);
 }
 #endif
 #ifdef VK_GOOGLE_gfxstream
 void VkDecoderSnapshot::vkCollectDescriptorPoolIdsGOOGLE(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkDevice device, VkDescriptorPool descriptorPool, uint32_t* pPoolIdCount, uint64_t* pPoolIds) {
-    mImpl->vkCollectDescriptorPoolIdsGOOGLE(snapshotTraceBegin, snapshotTraceBytes, pool, device,
-                                            descriptorPool, pPoolIdCount, pPoolIds);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkDevice device, VkDescriptorPool descriptorPool,
+    uint32_t* pPoolIdCount, uint64_t* pPoolIds) {
+    mImpl->vkCollectDescriptorPoolIdsGOOGLE(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                            device, descriptorPool, pPoolIdCount, pPoolIds);
 }
 #endif
 #ifdef VK_GOOGLE_gfxstream
 void VkDecoderSnapshot::vkQueueSignalReleaseImageANDROIDAsyncGOOGLE(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkQueue queue, uint32_t waitSemaphoreCount, const VkSemaphore* pWaitSemaphores, VkImage image) {
-    mImpl->vkQueueSignalReleaseImageANDROIDAsyncGOOGLE(snapshotTraceBegin, snapshotTraceBytes, pool,
-                                                       queue, waitSemaphoreCount, pWaitSemaphores,
-                                                       image);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkQueue queue, uint32_t waitSemaphoreCount,
+    const VkSemaphore* pWaitSemaphores, VkImage image) {
+    mImpl->vkQueueSignalReleaseImageANDROIDAsyncGOOGLE(pool, apiCallInfo, apiCallPacket,
+                                                       apiCallPacketSize, queue, waitSemaphoreCount,
+                                                       pWaitSemaphores, image);
 }
 #endif
 #ifdef VK_GOOGLE_gfxstream
 void VkDecoderSnapshot::vkQueueFlushCommandsFromAuxMemoryGOOGLE(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkQueue queue, VkCommandBuffer commandBuffer, VkDeviceMemory deviceMemory,
-    VkDeviceSize dataOffset, VkDeviceSize dataSize) {
-    mImpl->vkQueueFlushCommandsFromAuxMemoryGOOGLE(snapshotTraceBegin, snapshotTraceBytes, pool,
-                                                   queue, commandBuffer, deviceMemory, dataOffset,
-                                                   dataSize);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkQueue queue, VkCommandBuffer commandBuffer,
+    VkDeviceMemory deviceMemory, VkDeviceSize dataOffset, VkDeviceSize dataSize) {
+    mImpl->vkQueueFlushCommandsFromAuxMemoryGOOGLE(pool, apiCallInfo, apiCallPacket,
+                                                   apiCallPacketSize, queue, commandBuffer,
+                                                   deviceMemory, dataOffset, dataSize);
 }
 #endif
 #ifdef VK_GOOGLE_gfxstream
-void VkDecoderSnapshot::vkGetBlobGOOGLE(const uint8_t* snapshotTraceBegin,
-                                        size_t snapshotTraceBytes, android::base::BumpPool* pool,
+void VkDecoderSnapshot::vkGetBlobGOOGLE(android::base::BumpPool* pool,
+                                        VkSnapshotApiCallInfo* apiCallInfo,
+                                        const uint8_t* apiCallPacket, size_t apiCallPacketSize,
                                         VkResult input_result, VkDevice device,
                                         VkDeviceMemory memory) {
-    mImpl->vkGetBlobGOOGLE(snapshotTraceBegin, snapshotTraceBytes, pool, input_result, device,
-                           memory);
+    mImpl->vkGetBlobGOOGLE(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result,
+                           device, memory);
 }
 #endif
 #ifdef VK_GOOGLE_gfxstream
 void VkDecoderSnapshot::vkUpdateDescriptorSetWithTemplateSized2GOOGLE(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkDevice device, VkDescriptorSet descriptorSet,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkDevice device, VkDescriptorSet descriptorSet,
     VkDescriptorUpdateTemplate descriptorUpdateTemplate, uint32_t imageInfoCount,
     uint32_t bufferInfoCount, uint32_t bufferViewCount, uint32_t inlineUniformBlockCount,
     const uint32_t* pImageInfoEntryIndices, const uint32_t* pBufferInfoEntryIndices,
@@ -7419,41 +7700,43 @@ void VkDecoderSnapshot::vkUpdateDescriptorSetWithTemplateSized2GOOGLE(
     const VkDescriptorBufferInfo* pBufferInfos, const VkBufferView* pBufferViews,
     const uint8_t* pInlineUniformBlockData) {
     mImpl->vkUpdateDescriptorSetWithTemplateSized2GOOGLE(
-        snapshotTraceBegin, snapshotTraceBytes, pool, device, descriptorSet,
+        pool, apiCallInfo, apiCallPacket, apiCallPacketSize, device, descriptorSet,
         descriptorUpdateTemplate, imageInfoCount, bufferInfoCount, bufferViewCount,
         inlineUniformBlockCount, pImageInfoEntryIndices, pBufferInfoEntryIndices,
         pBufferViewEntryIndices, pImageInfos, pBufferInfos, pBufferViews, pInlineUniformBlockData);
 }
 #endif
 #ifdef VK_GOOGLE_gfxstream
-void VkDecoderSnapshot::vkQueueSubmitAsync2GOOGLE(const uint8_t* snapshotTraceBegin,
-                                                  size_t snapshotTraceBytes,
-                                                  android::base::BumpPool* pool, VkQueue queue,
+void VkDecoderSnapshot::vkQueueSubmitAsync2GOOGLE(android::base::BumpPool* pool,
+                                                  VkSnapshotApiCallInfo* apiCallInfo,
+                                                  const uint8_t* apiCallPacket,
+                                                  size_t apiCallPacketSize, VkQueue queue,
                                                   uint32_t submitCount,
                                                   const VkSubmitInfo2* pSubmits, VkFence fence) {
-    mImpl->vkQueueSubmitAsync2GOOGLE(snapshotTraceBegin, snapshotTraceBytes, pool, queue,
+    mImpl->vkQueueSubmitAsync2GOOGLE(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, queue,
                                      submitCount, pSubmits, fence);
 }
 #endif
 #ifdef VK_GOOGLE_gfxstream
-void VkDecoderSnapshot::vkGetSemaphoreGOOGLE(const uint8_t* snapshotTraceBegin,
-                                             size_t snapshotTraceBytes,
-                                             android::base::BumpPool* pool, VkResult input_result,
-                                             VkDevice device, VkSemaphore semaphore,
-                                             uint64_t syncId) {
-    mImpl->vkGetSemaphoreGOOGLE(snapshotTraceBegin, snapshotTraceBytes, pool, input_result, device,
-                                semaphore, syncId);
+void VkDecoderSnapshot::vkGetSemaphoreGOOGLE(android::base::BumpPool* pool,
+                                             VkSnapshotApiCallInfo* apiCallInfo,
+                                             const uint8_t* apiCallPacket, size_t apiCallPacketSize,
+                                             VkResult input_result, VkDevice device,
+                                             VkSemaphore semaphore, uint64_t syncId) {
+    mImpl->vkGetSemaphoreGOOGLE(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result,
+                                device, semaphore, syncId);
 }
 #endif
 #ifdef VK_KHR_ray_tracing_pipeline
 void VkDecoderSnapshot::vkCmdTraceRaysKHR(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkCommandBuffer commandBuffer, const VkStridedDeviceAddressRegionKHR* pRaygenShaderBindingTable,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer,
+    const VkStridedDeviceAddressRegionKHR* pRaygenShaderBindingTable,
     const VkStridedDeviceAddressRegionKHR* pMissShaderBindingTable,
     const VkStridedDeviceAddressRegionKHR* pHitShaderBindingTable,
     const VkStridedDeviceAddressRegionKHR* pCallableShaderBindingTable, uint32_t width,
     uint32_t height, uint32_t depth) {
-    mImpl->vkCmdTraceRaysKHR(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
+    mImpl->vkCmdTraceRaysKHR(pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer,
                              pRaygenShaderBindingTable, pMissShaderBindingTable,
                              pHitShaderBindingTable, pCallableShaderBindingTable, width, height,
                              depth);
@@ -7461,57 +7744,59 @@ void VkDecoderSnapshot::vkCmdTraceRaysKHR(
 #endif
 #ifdef VK_KHR_ray_tracing_pipeline
 void VkDecoderSnapshot::vkCreateRayTracingPipelinesKHR(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkResult input_result, VkDevice device, VkDeferredOperationKHR deferredOperation,
-    VkPipelineCache pipelineCache, uint32_t createInfoCount,
-    const VkRayTracingPipelineCreateInfoKHR* pCreateInfos, const VkAllocationCallbacks* pAllocator,
-    VkPipeline* pPipelines) {
-    mImpl->vkCreateRayTracingPipelinesKHR(snapshotTraceBegin, snapshotTraceBytes, pool,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkResult input_result, VkDevice device,
+    VkDeferredOperationKHR deferredOperation, VkPipelineCache pipelineCache,
+    uint32_t createInfoCount, const VkRayTracingPipelineCreateInfoKHR* pCreateInfos,
+    const VkAllocationCallbacks* pAllocator, VkPipeline* pPipelines) {
+    mImpl->vkCreateRayTracingPipelinesKHR(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
                                           input_result, device, deferredOperation, pipelineCache,
                                           createInfoCount, pCreateInfos, pAllocator, pPipelines);
 }
 #endif
 #ifdef VK_KHR_ray_tracing_pipeline
 void VkDecoderSnapshot::vkGetRayTracingCaptureReplayShaderGroupHandlesKHR(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkResult input_result, VkDevice device, VkPipeline pipeline, uint32_t firstGroup,
-    uint32_t groupCount, size_t dataSize, void* pData) {
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkResult input_result, VkDevice device, VkPipeline pipeline,
+    uint32_t firstGroup, uint32_t groupCount, size_t dataSize, void* pData) {
     mImpl->vkGetRayTracingCaptureReplayShaderGroupHandlesKHR(
-        snapshotTraceBegin, snapshotTraceBytes, pool, input_result, device, pipeline, firstGroup,
-        groupCount, dataSize, pData);
+        pool, apiCallInfo, apiCallPacket, apiCallPacketSize, input_result, device, pipeline,
+        firstGroup, groupCount, dataSize, pData);
 }
 #endif
 #ifdef VK_KHR_ray_tracing_pipeline
 void VkDecoderSnapshot::vkCmdTraceRaysIndirectKHR(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkCommandBuffer commandBuffer, const VkStridedDeviceAddressRegionKHR* pRaygenShaderBindingTable,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer,
+    const VkStridedDeviceAddressRegionKHR* pRaygenShaderBindingTable,
     const VkStridedDeviceAddressRegionKHR* pMissShaderBindingTable,
     const VkStridedDeviceAddressRegionKHR* pHitShaderBindingTable,
     const VkStridedDeviceAddressRegionKHR* pCallableShaderBindingTable,
     VkDeviceAddress indirectDeviceAddress) {
-    mImpl->vkCmdTraceRaysIndirectKHR(snapshotTraceBegin, snapshotTraceBytes, pool, commandBuffer,
-                                     pRaygenShaderBindingTable, pMissShaderBindingTable,
-                                     pHitShaderBindingTable, pCallableShaderBindingTable,
-                                     indirectDeviceAddress);
+    mImpl->vkCmdTraceRaysIndirectKHR(pool, apiCallInfo, apiCallPacket, apiCallPacketSize,
+                                     commandBuffer, pRaygenShaderBindingTable,
+                                     pMissShaderBindingTable, pHitShaderBindingTable,
+                                     pCallableShaderBindingTable, indirectDeviceAddress);
 }
 #endif
 #ifdef VK_KHR_ray_tracing_pipeline
 void VkDecoderSnapshot::vkGetRayTracingShaderGroupStackSizeKHR(
-    const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkDeviceSize input_result, VkDevice device, VkPipeline pipeline, uint32_t group,
-    VkShaderGroupShaderKHR groupShader) {
-    mImpl->vkGetRayTracingShaderGroupStackSizeKHR(snapshotTraceBegin, snapshotTraceBytes, pool,
-                                                  input_result, device, pipeline, group,
-                                                  groupShader);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkDeviceSize input_result, VkDevice device, VkPipeline pipeline,
+    uint32_t group, VkShaderGroupShaderKHR groupShader) {
+    mImpl->vkGetRayTracingShaderGroupStackSizeKHR(pool, apiCallInfo, apiCallPacket,
+                                                  apiCallPacketSize, input_result, device, pipeline,
+                                                  group, groupShader);
 }
 #endif
 #ifdef VK_KHR_ray_tracing_pipeline
-void VkDecoderSnapshot::vkCmdSetRayTracingPipelineStackSizeKHR(const uint8_t* snapshotTraceBegin,
-                                                               size_t snapshotTraceBytes,
-                                                               android::base::BumpPool* pool,
-                                                               VkCommandBuffer commandBuffer,
-                                                               uint32_t pipelineStackSize) {
-    mImpl->vkCmdSetRayTracingPipelineStackSizeKHR(snapshotTraceBegin, snapshotTraceBytes, pool,
-                                                  commandBuffer, pipelineStackSize);
+void VkDecoderSnapshot::vkCmdSetRayTracingPipelineStackSizeKHR(
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* apiCallInfo, const uint8_t* apiCallPacket,
+    size_t apiCallPacketSize, VkCommandBuffer commandBuffer, uint32_t pipelineStackSize) {
+    mImpl->vkCmdSetRayTracingPipelineStackSizeKHR(
+        pool, apiCallInfo, apiCallPacket, apiCallPacketSize, commandBuffer, pipelineStackSize);
 }
 #endif
+
+}  // namespace vk
+}  // namespace gfxstream

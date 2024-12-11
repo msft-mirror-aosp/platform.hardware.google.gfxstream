@@ -21,15 +21,36 @@
 namespace gfxstream {
 namespace vk {
 
+using VkSnapshotApiCallHandle = uint64_t;
+
 struct VkSnapshotApiCallInfo {
+    VkSnapshotApiCallHandle handle = -1;
+
     // Raw packet from VkDecoder.
     std::vector<uint8_t> packet;
+
     // Book-keeping for which handles were created by this API
     std::vector<uint64_t> createdHandles;
+
+    // Extra boxed handles created for this API call that are not identifiable
+    // solely from the API parameters itself. For example, the extra boxed `VkQueue`s
+    // that are created during `vkCreateDevice()` can not be identified from the
+    // parameters to `vkCreateDevice()`.
+    //
+    // TODO: remove this and require that all of the `new_boxed_*()` take a
+    // `VkSnapshotApiCallInfo` as an argument so the creation order of the boxed
+    // handles in `createdHandles` is guaranteed to match the replay order. For now,
+    // this relies on careful manual ordering.
+    std::vector<uint64_t> extraCreatedHandles;
+
+    void addOrderedBoxedHandlesCreatedByCall(const uint64_t* boxedHandles,
+                                             uint32_t boxedHandlesCount) {
+        extraCreatedHandles.insert(extraCreatedHandles.end(), boxedHandles,
+                                   boxedHandles + boxedHandlesCount);
+    }
 };
 
 using VkSnapshotApiCallManager = android::base::EntityManager<32, 16, 16, VkSnapshotApiCallInfo>;
-using VkSnapshotApiCallHandle = VkSnapshotApiCallManager::EntityHandle;
 
 }  // namespace vk
 }  // namespace gfxstream

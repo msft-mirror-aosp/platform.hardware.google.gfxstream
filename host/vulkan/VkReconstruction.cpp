@@ -267,9 +267,12 @@ void VkReconstruction::load(android::base::Stream* stream, emugl::GfxApiLogger& 
     DEBUG_RECON("finished decoding trace");
 }
 
-VkSnapshotApiCallHandle VkReconstruction::createApiInfo() {
-    auto handle = mApiCallManager.add(VkSnapshotApiCallInfo(), 1);
-    return handle;
+VkSnapshotApiCallInfo* VkReconstruction::createApiCallInfo() {
+    VkSnapshotApiCallHandle handle = mApiCallManager.add(VkSnapshotApiCallInfo(), 1);
+
+    auto* info = mApiCallManager.get(handle);
+    info->handle = handle;
+    return info;
 }
 
 void VkReconstruction::removeHandleFromApiInfo(VkSnapshotApiCallHandle h, uint64_t toRemove) {
@@ -288,7 +291,7 @@ void VkReconstruction::removeHandleFromApiInfo(VkSnapshotApiCallHandle h, uint64
                 (unsigned long long)toRemove, (unsigned long long)h, (int)handles.size());
 }
 
-void VkReconstruction::destroyApiInfo(VkSnapshotApiCallHandle h) {
+void VkReconstruction::destroyApiCallInfo(VkSnapshotApiCallHandle h) {
     auto item = mApiCallManager.get(h);
 
     if (!item) return;
@@ -298,6 +301,21 @@ void VkReconstruction::destroyApiInfo(VkSnapshotApiCallHandle h) {
     item->createdHandles.clear();
 
     mApiCallManager.remove(h);
+}
+
+void VkReconstruction::destroyApiCallInfoIfUnused(VkSnapshotApiCallInfo* info) {
+    if (!info) return;
+
+    if (info->packet.empty()) {
+        mApiCallManager.remove(info->handle);
+        return;
+    }
+
+    if (!info->extraCreatedHandles.empty()) {
+        info->createdHandles.insert(info->createdHandles.end(), info->extraCreatedHandles.begin(),
+                                    info->extraCreatedHandles.end());
+        info->extraCreatedHandles.clear();
+    }
 }
 
 VkSnapshotApiCallInfo* VkReconstruction::getApiInfo(VkSnapshotApiCallHandle h) {
@@ -449,7 +467,7 @@ void VkReconstruction::forEachHandleDeleteApi(const uint64_t* toProcess, uint32_
         for (auto& state : item->states) {
             for (auto handle : state.apiRefs) {
                 removeHandleFromApiInfo(handle, toProcess[i]);
-                destroyApiInfo(handle);
+                destroyApiCallInfo(handle);
             }
             state.apiRefs.clear();
         }
@@ -499,13 +517,6 @@ void VkReconstruction::setCreatedHandlesForApi(uint64_t apiHandle, const uint64_
     if (!item) return;
 
     item->createdHandles.insert(item->createdHandles.end(), created, created + count);
-    item->createdHandles.insert(item->createdHandles.end(), mExtraHandlesForNextApi.begin(),
-                                mExtraHandlesForNextApi.end());
-    mExtraHandlesForNextApi.clear();
-}
-
-void VkReconstruction::createExtraHandlesForNextApi(const uint64_t* created, uint32_t count) {
-    mExtraHandlesForNextApi.assign(created, created + count);
 }
 
 void VkReconstruction::forEachHandleAddModifyApi(const uint64_t* toProcess, uint32_t count,

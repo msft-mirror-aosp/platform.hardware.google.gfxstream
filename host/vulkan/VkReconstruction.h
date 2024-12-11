@@ -68,8 +68,9 @@ class VkReconstruction {
     using HandleModifications =
         android::base::UnpackedComponentManager<32, 16, 16, HandleModification>;
 
-    VkSnapshotApiCallHandle createApiInfo();
-    void destroyApiInfo(VkSnapshotApiCallHandle h);
+    VkSnapshotApiCallInfo* createApiCallInfo();
+    void destroyApiCallInfo(VkSnapshotApiCallHandle handle);
+    void destroyApiCallInfoIfUnused(VkSnapshotApiCallInfo* info);
 
     void removeHandleFromApiInfo(VkSnapshotApiCallHandle h, uint64_t toRemove);
 
@@ -127,8 +128,6 @@ class VkReconstruction {
 
     HandleWithStateReconstructions mHandleReconstructions;
     HandleModifications mHandleModifications;
-
-    std::vector<uint64_t> mExtraHandlesForNextApi;
 
     std::vector<uint8_t> mLoadedTrace;
 };
