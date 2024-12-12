@@ -46,8 +46,6 @@ namespace vk {
 #define VK_ANB_DEBUG_OBJ(obj, fmt, ...)
 #endif
 
-using android::base::AutoLock;
-using android::base::Lock;
 using emugl::ABORT_REASON_OTHER;
 using emugl::FatalError;
 
@@ -56,7 +54,7 @@ AndroidNativeBufferInfo::QsriWaitFencePool::QsriWaitFencePool(VulkanDispatch* vk
 
 VkFence AndroidNativeBufferInfo::QsriWaitFencePool::getFenceFromPool() {
     VK_ANB_DEBUG("enter");
-    AutoLock lock(mLock);
+    std::lock_guard<std::mutex> lock(mMutex);
     VkFence fence = VK_NULL_HANDLE;
     if (mAvailableFences.empty()) {
         VkFenceCreateInfo fenceCreateInfo = {
@@ -96,7 +94,7 @@ AndroidNativeBufferInfo::QsriWaitFencePool::~QsriWaitFencePool() {
 }
 
 void AndroidNativeBufferInfo::QsriWaitFencePool::returnFence(VkFence fence) {
-    AutoLock lock(mLock);
+    std::lock_guard<std::mutex> lock(mMutex);
     if (!mUsedFences.erase(fence)) {
         GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
             << "Return an unmanaged Qsri VkFence back to the pool.";
@@ -465,10 +463,10 @@ void getGralloc1Usage(VkFormat format, VkImageUsageFlags imageUsage,
 
 void AndroidNativeBufferInfo::QueueState::setup(VulkanDispatch* vk, VkDevice device,
                                                 VkQueue queueIn, uint32_t queueFamilyIndexIn,
-                                                android::base::Lock* queueLockIn) {
+                                                std::mutex* queueMutexIn) {
     queue = queueIn;
     queueFamilyIndex = queueFamilyIndexIn;
-    lock = queueLockIn;
+    queueMutex = queueMutexIn;
 
     VkCommandPoolCreateInfo poolCreateInfo = {
         VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
@@ -502,14 +500,14 @@ void AndroidNativeBufferInfo::QueueState::teardown(VulkanDispatch* vk, VkDevice 
     }
 
     if (queue) {
-        AutoLock qlock(*lock);
+        std::lock_guard<std::mutex> lock(*queueMutex);
         vk->vkQueueWaitIdle(queue);
     }
     if (cb) vk->vkFreeCommandBuffers(device, pool, 1, &cb);
     if (pool) vk->vkDestroyCommandPool(device, pool, nullptr);
     if (fence) vk->vkDestroyFence(device, fence, nullptr);
 
-    lock = nullptr;
+    queueMutex = nullptr;
     queue = VK_NULL_HANDLE;
     pool = VK_NULL_HANDLE;
     cb = VK_NULL_HANDLE;
@@ -520,7 +518,7 @@ void AndroidNativeBufferInfo::QueueState::teardown(VulkanDispatch* vk, VkDevice 
 VkResult setAndroidNativeImageSemaphoreSignaled(VulkanDispatch* vk, VkDevice device,
                                                 VkQueue defaultQueue,
                                                 uint32_t defaultQueueFamilyIndex,
-                                                Lock* defaultQueueLock, VkSemaphore semaphore,
+                                                std::mutex* defaultQueueMutex, VkSemaphore semaphore,
                                                 VkFence fence, AndroidNativeBufferInfo* anbInfo) {
     auto emu = getGlobalVkEmulation();
 
@@ -540,7 +538,7 @@ VkResult setAndroidNativeImageSemaphoreSignaled(VulkanDispatch* vk, VkDevice dev
             (uint32_t)(semaphore == VK_NULL_HANDLE ? 0 : 1),
             semaphore == VK_NULL_HANDLE ? nullptr : &semaphore,
         };
-        AutoLock qlock(*defaultQueueLock);
+        std::lock_guard<std::mutex> qlock(*defaultQueueMutex);
         VK_CHECK(vk->vkQueueSubmit(defaultQueue, 1, &submitInfo, fence));
     } else {
         // Setup queue state for this queue family index.
@@ -551,7 +549,7 @@ VkResult setAndroidNativeImageSemaphoreSignaled(VulkanDispatch* vk, VkDevice dev
         AndroidNativeBufferInfo::QueueState& queueState =
             anbInfo->queueStates[queueFamilyIndex];
         if (!queueState.queue) {
-            queueState.setup(vk, anbInfo->device, defaultQueue, queueFamilyIndex, defaultQueueLock);
+            queueState.setup(vk, anbInfo->device, defaultQueue, queueFamilyIndex, defaultQueueMutex);
         }
 
         // If we used the Vulkan image without copying it back
@@ -608,7 +606,7 @@ VkResult setAndroidNativeImageSemaphoreSignaled(VulkanDispatch* vk, VkDevice dev
                 semaphore == VK_NULL_HANDLE ? nullptr : &semaphore,
             };
 
-            AutoLock qlock(*queueState.lock);
+            std::lock_guard<std::mutex> queueLock(*queueState.queueMutex);
             // TODO(kaiyili): initiate ownership transfer from DisplayVk here
             VK_CHECK(vk->vkQueueSubmit(queueState.queue, 1, &submitInfo, fence));
         } else {
@@ -625,7 +623,7 @@ VkResult setAndroidNativeImageSemaphoreSignaled(VulkanDispatch* vk, VkDevice dev
                 (uint32_t)(semaphore == VK_NULL_HANDLE ? 0 : 1),
                 semaphore == VK_NULL_HANDLE ? nullptr : &semaphore,
             };
-            AutoLock qlock(*queueState.lock);
+            std::lock_guard<std::mutex> queueLock(*queueState.queueMutex);
             VK_CHECK(vk->vkQueueSubmit(queueState.queue, 1, &submitInfo, fence));
         }
     }
@@ -636,7 +634,7 @@ VkResult setAndroidNativeImageSemaphoreSignaled(VulkanDispatch* vk, VkDevice dev
 static constexpr uint64_t kTimeoutNs = 3ULL * 1000000000ULL;
 
 VkResult syncImageToColorBuffer(gfxstream::host::BackendCallbacks& callbacks, VulkanDispatch* vk,
-                                uint32_t queueFamilyIndex, VkQueue queue, Lock* queueLock,
+                                uint32_t queueFamilyIndex, VkQueue queue, std::mutex* queueMutex,
                                 uint32_t waitSemaphoreCount, const VkSemaphore* pWaitSemaphores,
                                 int* pNativeFenceFd, AndroidNativeBufferInfo* anbInfo) {
     const uint64_t traceId = gfxstream::host::GetUniqueTracingId();
@@ -660,7 +658,7 @@ VkResult syncImageToColorBuffer(gfxstream::host::BackendCallbacks& callbacks, Vu
     auto& queueState = anbInfo->queueStates[queueFamilyIndex];
 
     if (!queueState.queue) {
-        queueState.setup(vk, anbInfo->device, queue, queueFamilyIndex, queueLock);
+        queueState.setup(vk, anbInfo->device, queue, queueFamilyIndex, queueMutex);
     }
 
     auto emu = getGlobalVkEmulation();
@@ -799,7 +797,7 @@ VkResult syncImageToColorBuffer(gfxstream::host::BackendCallbacks& callbacks, Vu
 
     // TODO(kaiyili): initiate ownership transfer to DisplayVk here.
     VkFence qsriFence = anbInfo->qsriWaitFencePool->getFenceFromPool();
-    AutoLock qLock(*queueLock);
+    std::lock_guard<std::mutex> qLock(*queueMutex);
     VK_CHECK(vk->vkQueueSubmit(queueState.queue, 1, &submitInfo, qsriFence));
     auto waitForQsriFenceTask = [anbInfo, vk, device = anbInfo->device, qsriFence, traceId] {
         GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DEFAULT_CATEGORY, "Wait for QSRI fence",
