@@ -2706,6 +2706,10 @@ void FrameBuffer::registerProcessCleanupCallback(void* key, std::function<void()
     if (!tInfo) return;
 
     auto& callbackMap = m_procOwnedCleanupCallbacks[tInfo->m_puid];
+    if (callbackMap.find(key) != callbackMap.end()) {
+        ERR("%s: tried to override existing key %p ",
+            __func__, key);
+    }
     callbackMap[key] = cb;
 }
 
@@ -2716,9 +2720,9 @@ void FrameBuffer::unregisterProcessCleanupCallback(void* key) {
 
     auto& callbackMap = m_procOwnedCleanupCallbacks[tInfo->m_puid];
     if (callbackMap.find(key) == callbackMap.end()) {
-        ERR("warning: tried to erase nonexistent key %p "
+        ERR("%s: tried to erase nonexistent key %p "
             "associated with process %llu",
-            key, (unsigned long long)(tInfo->m_puid));
+            __func__, key, (unsigned long long)(tInfo->m_puid));
     }
     callbackMap.erase(key);
 }
