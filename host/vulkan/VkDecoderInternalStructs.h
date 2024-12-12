@@ -20,10 +20,10 @@
 #include <malloc.h>
 #endif
 
-#include <stdlib.h>
-
+#include <mutex>
 #include <optional>
 #include <set>
+#include <stdlib.h>
 #include <string>
 #include <unordered_map>
 
@@ -233,7 +233,7 @@ struct DeviceInfo {
 };
 
 struct QueueInfo {
-    std::shared_ptr<android::base::Lock> physicalQueueLock;
+    std::shared_ptr<std::mutex> queueMutex;
     VkDevice device;
     uint32_t queueFamilyIndex;
     VkQueue boxed = nullptr;
