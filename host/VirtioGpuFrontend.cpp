@@ -28,7 +28,6 @@
 #include "FrameBuffer.h"
 #include "FrameworkFormats.h"
 #include "VkCommonOperations.h"
-#include "aemu/base/ManagedDescriptor.hpp"
 #include "aemu/base/files/StdioStream.h"
 #include "aemu/base/memory/SharedMemory.h"
 #include "aemu/base/threads/WorkerThread.h"
@@ -126,8 +125,21 @@ int VirtioGpuFrontend::init(void* cookie, gfxstream::host::FeatureSet features,
         stream_renderer_error("Could not get address space device control ops!");
         return -EINVAL;
     }
-    mVirtioGpuTimelines = VirtioGpuTimelines::create(true);
-    mVirtioGpuTimelines = VirtioGpuTimelines::create(true);
+
+    // Forwards fence completions from VirtioGpuTimelines to the client (VMM).
+    auto fenceCompletionCallback = [this](const VirtioGpuTimelines::Ring& ring,
+                                          VirtioGpuTimelines::FenceId fenceId) {
+        struct stream_renderer_fence fence = {0};
+        fence.fence_id = fenceId;
+        fence.flags = STREAM_RENDERER_FLAG_FENCE;
+        if (const auto* contextSpecificRing = std::get_if<VirtioGpuRingContextSpecific>(&ring)) {
+            fence.flags |= STREAM_RENDERER_FLAG_FENCE_RING_IDX;
+            fence.ctx_id = contextSpecificRing->mCtxId;
+            fence.ring_idx = contextSpecificRing->mRingIdx;
+        }
+        mFenceCallback(mCookie, &fence);
+    };
+    mVirtioGpuTimelines = VirtioGpuTimelines::create(std::move(fenceCompletionCallback));
 
 #if !defined(_WIN32)
     mPageSize = getpagesize();
@@ -411,37 +423,7 @@ int VirtioGpuFrontend::createFence(uint64_t fence_id, const VirtioGpuRing& ring)
     stream_renderer_debug("fenceid: %llu ring: %s", (unsigned long long)fence_id,
                           to_string(ring).c_str());
 
-    struct {
-        FenceCompletionCallback operator()(const VirtioGpuRingGlobal&) {
-            return [frontend = mFrontend, fenceId = mFenceId] {
-                struct stream_renderer_fence fence = {0};
-                fence.fence_id = fenceId;
-                fence.flags = STREAM_RENDERER_FLAG_FENCE;
-                frontend->mFenceCallback(frontend->mCookie, &fence);
-            };
-        }
-        FenceCompletionCallback operator()(const VirtioGpuRingContextSpecific& ring) {
-            return [frontend = mFrontend, fenceId = mFenceId, ring] {
-                struct stream_renderer_fence fence = {0};
-                fence.fence_id = fenceId;
-                fence.flags = STREAM_RENDERER_FLAG_FENCE | STREAM_RENDERER_FLAG_FENCE_RING_IDX;
-                fence.ctx_id = ring.mCtxId;
-                fence.ring_idx = ring.mRingIdx;
-                frontend->mFenceCallback(frontend->mCookie, &fence);
-            };
-        }
-
-        VirtioGpuFrontend* mFrontend;
-        VirtioGpuTimelines::FenceId mFenceId;
-    } visitor{
-        .mFrontend = this,
-        .mFenceId = fence_id,
-    };
-    FenceCompletionCallback callback = std::visit(visitor, ring);
-    if (!callback) {
-        return -EINVAL;
-    }
-    mVirtioGpuTimelines->enqueueFence(ring, fence_id, std::move(callback));
+    mVirtioGpuTimelines->enqueueFence(ring, fence_id);
 
     return 0;
 }
@@ -916,7 +898,7 @@ int VirtioGpuFrontend::exportFence(uint64_t fenceId, struct stream_renderer_hand
     else
         return -EINVAL;
 
-    handle->handle_type = entry->handleType;
+    handle->handle_type = entry->streamHandleType;
 
 #ifdef _WIN32
     handle->os_handle = static_cast<int64_t>(reinterpret_cast<intptr_t>(rawDescriptor));
