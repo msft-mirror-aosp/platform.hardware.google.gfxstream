@@ -1184,10 +1184,11 @@ class VkDecoderGlobalState::Impl {
         if (instance == VK_NULL_HANDLE) {
             return;
         }
+        // The instance should not be used after vkDestroyInstanceImpl is called,
+        // remove it from the cleanup callback mapping.
+        m_emu->callbacks.unregisterProcessCleanupCallback(instance);
 
         vkDestroyInstanceImpl(instance, pAllocator);
-
-        m_emu->callbacks.unregisterProcessCleanupCallback(instance);
     }
 
     VkResult GetPhysicalDevices(VkInstance instance, VulkanDispatch* vk,
