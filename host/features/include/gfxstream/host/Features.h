@@ -315,6 +315,12 @@ struct FeatureSet {
         "buffers on device lost. (TODO: VK_AMD_buffer_marker)",
         &map,
     };
+    FeatureInfo VulkanVirtualQueue = {
+        "VulkanVirtualQueue",
+        "(Experimental) If enabled, a virtual graphics queue will be added into physical Vulkan "
+        "device properties for the guest queries.",
+        &map,
+    };
 };
 struct FeatureDependencyHandler {
     FeatureDependencyHandler(const FeatureSet& set) : featureSetView(set){}
