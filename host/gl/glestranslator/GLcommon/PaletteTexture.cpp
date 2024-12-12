@@ -46,7 +46,7 @@ void getPaletteInfo(GLenum internalFormat,unsigned int& indexSizeBits,unsigned i
     case GL_PALETTE4_RGBA4_OES:
     case GL_PALETTE4_RGB5_A1_OES:
         colorFrmt = GL_RGBA;
-        /* fall-through */
+        [[fallthrough]];
     case GL_PALETTE4_R5_G6_B5_OES:
         indexSizeBits = 4;
         colorSizeBytes = 2;
@@ -66,7 +66,7 @@ void getPaletteInfo(GLenum internalFormat,unsigned int& indexSizeBits,unsigned i
     case GL_PALETTE8_RGBA4_OES:
     case GL_PALETTE8_RGB5_A1_OES:
         colorFrmt = GL_RGBA;
-        /* fall-through */
+        [[fallthrough]];
     case GL_PALETTE8_R5_G6_B5_OES:
         indexSizeBits = 8;
         colorSizeBytes = 2;

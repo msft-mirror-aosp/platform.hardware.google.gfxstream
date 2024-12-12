@@ -1341,8 +1341,10 @@ GL_API void GL_APIENTRY  glGetLightxv( GLenum light, GLenum pname, GLfixed *para
         case GL_SPECULAR:
         case GL_POSITION:
             params[3] = F2X(tmpParams[3]);
+            [[fallthrough]];
         case GL_SPOT_DIRECTION:
             params[2] = F2X(tmpParams[2]);
+            [[fallthrough]];
         case GL_SPOT_EXPONENT:
         case GL_SPOT_CUTOFF:
         case GL_CONSTANT_ATTENUATION:
@@ -1379,6 +1381,7 @@ GL_API void GL_APIENTRY  glGetMaterialxv( GLenum face, GLenum pname, GLfixed *pa
         params[3] = tmpParams[3];
         params[2] = tmpParams[2];
         params[1] = tmpParams[1];
+        [[fallthrough]];
     case GL_SHININESS:
         params[0] = tmpParams[0];
         break;
@@ -1556,9 +1559,11 @@ GL_API void GL_APIENTRY  glLightxv( GLenum light, GLenum pname, const GLfixed *p
         case GL_EMISSION:
         case GL_POSITION:
             tmpParams[3] = X2F(params[3]);
+            [[fallthrough]];
         case GL_SPOT_DIRECTION:
             tmpParams[2] = X2F(params[2]);
             tmpParams[1] = X2F(params[1]);
+            [[fallthrough]];
         case GL_SPOT_EXPONENT:
         case GL_SPOT_CUTOFF:
         case GL_CONSTANT_ATTENUATION:
