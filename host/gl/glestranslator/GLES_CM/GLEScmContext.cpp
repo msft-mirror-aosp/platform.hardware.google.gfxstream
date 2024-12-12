@@ -588,11 +588,13 @@ void GLEScmContext::getColor(uint32_t count, std::vector<float>& out) const {
                     mColor.val.ubyteVal[1] / 255.0f,
                     mColor.val.ubyteVal[2] / 255.0f,
                     mColor.val.ubyteVal[3] / 255.0f, };
+            break;
         default:
             vec = { mColor.val.floatVal[0],
                     mColor.val.floatVal[1],
                     mColor.val.floatVal[2],
                     mColor.val.floatVal[3], };
+            break;
     }
 
     appendRepeatedVector(count, vec, out);

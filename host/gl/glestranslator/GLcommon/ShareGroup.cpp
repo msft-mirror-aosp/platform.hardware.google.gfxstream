@@ -55,6 +55,7 @@ ShareGroup::ShareGroup(GlobalNameSpace *globalNameSpace,
     if (stream) {
         m_needLoadRestore = true;
         int i = 0;
+        (void)i;
         for (auto ns : m_nameSpace) {
             GL_LOG("ShareGroup::%s: %p: start restore namespace for type %d\n", __func__, this, i);
             ns->postLoad(
@@ -82,6 +83,7 @@ void ShareGroup::onSave(android::base::Stream* stream) {
     assert(m_saveStage == PreSaved);
     m_saveStage = Saved;
     int i = 0;
+    (void)i;
     for (auto ns : m_nameSpace) {
         GL_LOG("ShareGroup::%s: %p: start saving type %d\n", __func__, this, i);
         ns->onSave(stream);
@@ -108,6 +110,7 @@ void ShareGroup::postLoadRestore() {
     android::base::AutoLock lock(m_restoreLock);
     if (m_needLoadRestore) {
         int i = 0;
+        (void)i;
         for (auto ns : m_nameSpace) {
             GL_LOG("ShareGroup::%s: %p: start post load restore namespace for type %d\n", __func__, this, i);
             ns->postLoadRestore([this](NamedObjectType p_type,
