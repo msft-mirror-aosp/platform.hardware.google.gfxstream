@@ -915,7 +915,7 @@ int VirtioGpuFrontend::exportFence(uint64_t fenceId, struct stream_renderer_hand
     else
         return -EINVAL;
 
-    handle->handle_type = entry->streamHandleType;
+    handle->handle_type = entry->handleType;
 
 #ifdef _WIN32
     handle->os_handle = static_cast<int64_t>(reinterpret_cast<intptr_t>(rawDescriptor));

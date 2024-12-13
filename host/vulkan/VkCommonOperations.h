@@ -55,12 +55,20 @@ typedef int VK_EXT_SYNC_HANDLE;
 #endif
 
 #if defined(_WIN32)
-#define VK_EXT_MEMORY_HANDLE_INVALID (ExternalHandleType)(-1)
+// External memory objects are HANDLE on Windows
+typedef HANDLE VK_EXT_MEMORY_HANDLE;
+// corresponds to INVALID_HANDLE_VALUE
+#define VK_EXT_MEMORY_HANDLE_INVALID (VK_EXT_MEMORY_HANDLE)(uintptr_t)(-1)
 #define VK_EXT_MEMORY_HANDLE_TYPE_BIT VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT
 #elif defined(__QNX__)
-#define VK_EXT_MEMORY_HANDLE_INVALID (ExternalHandleType) nullptr
+#include <screen/screen.h>
+// External memory objects are screen_buffer_t handles on QNX
+typedef screen_buffer_t VK_EXT_MEMORY_HANDLE;
+#define VK_EXT_MEMORY_HANDLE_INVALID (VK_EXT_MEMORY_HANDLE) nullptr
 #define VK_EXT_MEMORY_HANDLE_TYPE_BIT VK_EXTERNAL_MEMORY_HANDLE_TYPE_SCREEN_BUFFER_BIT_QNX
 #else
+// External memory objects are fd's on other POSIX systems
+typedef int VK_EXT_MEMORY_HANDLE;
 #define VK_EXT_MEMORY_HANDLE_INVALID (-1)
 #define VK_EXT_MEMORY_HANDLE_TYPE_BIT VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT
 #endif
@@ -77,6 +85,8 @@ struct VulkanDispatch;
 bool getStagingMemoryTypeIndex(VulkanDispatch* vk, VkDevice device,
                                const VkPhysicalDeviceMemoryProperties* memProps,
                                uint32_t* typeIndex);
+
+VK_EXT_MEMORY_HANDLE dupExternalMemory(VK_EXT_MEMORY_HANDLE);
 
 enum class AstcEmulationMode {
     Disabled,  // No ASTC emulation (ie: ASTC not supported unless the GPU supports it natively)
@@ -254,14 +264,12 @@ struct VkEmulation {
         // guest physical address.
         uintptr_t gpa = 0u;
 
-        ExternalHandleInfo handleInfo = {
-            .handle = VK_EXT_MEMORY_HANDLE_INVALID,
-            .streamHandleType = 0,
-        };
+        VK_EXT_MEMORY_HANDLE externalHandle = VK_EXT_MEMORY_HANDLE_INVALID;
 #ifdef __APPLE__
         // This is used as an external handle when MoltenVK is enabled
         MTLResource_id externalMetalHandle = nullptr;
 #endif
+        uint32_t streamHandleType;
 
         bool dedicatedAllocation = false;
     };
@@ -471,8 +479,10 @@ bool allocExternalMemory(
 void freeExternalMemoryLocked(VulkanDispatch* vk, VkEmulation::ExternalMemoryInfo* info);
 
 bool importExternalMemory(VulkanDispatch* vk, VkDevice targetDevice,
-                          const VkEmulation::ExternalMemoryInfo* info,
-                          VkMemoryDedicatedAllocateInfo* dedicatedAllocInfo, VkDeviceMemory* out);
+                          const VkEmulation::ExternalMemoryInfo* info, VkDeviceMemory* out);
+bool importExternalMemoryDedicatedImage(VulkanDispatch* vk, VkDevice targetDevice,
+                                        const VkEmulation::ExternalMemoryInfo* info, VkImage image,
+                                        VkDeviceMemory* out);
 
 // ColorBuffer operations
 
@@ -496,18 +506,18 @@ bool createVkColorBuffer(uint32_t width, uint32_t height, GLenum format,
 
 bool teardownVkColorBuffer(uint32_t colorBufferHandle);
 
-bool importExtMemoryHandleToVkColorBuffer(uint32_t colorBufferHandle, uint32_t streamHandleType,
-                                          ExternalHandleType extMemHandle);
+bool importExtMemoryHandleToVkColorBuffer(uint32_t colorBufferHandle, uint32_t type,
+                                          VK_EXT_MEMORY_HANDLE extMemHandle);
 
 VkEmulation::ColorBufferInfo getColorBufferInfo(uint32_t colorBufferHandle);
-std::optional<ExternalHandleInfo> dupColorBufferExtMemoryHandle(uint32_t colorBufferHandle);
+VK_EXT_MEMORY_HANDLE getColorBufferExtMemoryHandle(uint32_t colorBufferHandle);
 #ifdef __APPLE__
 MTLResource_id getColorBufferMetalMemoryHandle(uint32_t colorBufferHandle);
 VkImage getColorBufferVkImage(uint32_t colorBufferHandle);
 #endif
 
 struct VkColorBufferMemoryExport {
-    ExternalHandleInfo handleInfo;
+    GenericDescriptorInfo descriptorInfo;
     uint64_t size = 0;
     bool linearTiling = false;
     bool dedicatedAllocation = false;
@@ -537,7 +547,7 @@ bool setupVkBuffer(uint64_t size, uint32_t bufferHandle, bool vulkanOnly = false
                    uint32_t memoryProperty = 0);
 bool teardownVkBuffer(uint32_t bufferHandle);
 
-std::optional<ExternalHandleInfo> dupBufferExtMemoryHandle(uint32_t bufferHandle);
+VK_EXT_MEMORY_HANDLE getBufferExtMemoryHandle(uint32_t bufferHandle, uint32_t* outStreamHandleType);
 #ifdef __APPLE__
 MTLResource_id getBufferMetalMemoryHandle(uint32_t bufferHandle);
 #endif

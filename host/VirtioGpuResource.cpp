@@ -811,7 +811,7 @@ int VirtioGpuResource::ExportBlob(struct stream_renderer_handle* outHandle) {
 #else
         outHandle->os_handle = static_cast<int64_t>(rawDescriptor);
 #endif
-        outHandle->handle_type = memory->descriptorInfo.streamHandleType;
+        outHandle->handle_type = memory->descriptorInfo.handleType;
         return 0;
     }
 
