@@ -42,6 +42,7 @@
 #include "aemu/base/EventNotificationSupport.h"
 #include "aemu/base/HealthMonitor.h"
 #include "aemu/base/Metrics.h"
+#include "aemu/base/ThreadAnnotations.h"
 #include "aemu/base/files/Stream.h"
 #include "aemu/base/synchronization/Lock.h"
 #include "aemu/base/synchronization/MessageChannel.h"
@@ -407,8 +408,8 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
                 const android::snapshot::ITextureLoaderPtr& textureLoader);
 
     // lock and unlock handles (EmulatedEglContext, ColorBuffer, EmulatedEglWindowSurface)
-    void lock();
-    void unlock();
+    void lock() ACQUIRE(m_lock);
+    void unlock() RELEASE(m_lock);
 
     float getDpr() const { return m_dpr; }
     int windowWidth() const { return m_windowWidth; }
