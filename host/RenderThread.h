@@ -79,13 +79,14 @@ private:
         Ring,
     };
 
-    template <class OpImpl>
-    void snapshotOperation(android::base::AutoLock* lock, OpImpl&& impl);
-
     struct SnapshotObjects;
 
-    bool doSnapshotOperation(const SnapshotObjects& objects,
-                             SnapshotState operation);
+    bool doSnapshotOp(const SnapshotObjects& objects, SnapshotState expectedState,
+                      std::function<void()> op);
+
+    bool loadSnapshot(const SnapshotObjects& objects);
+    bool saveSnapshot(const SnapshotObjects& objects);
+
     void waitForSnapshotCompletion(android::base::AutoLock* lock);
     void loadImpl(android::base::AutoLock* lock, const SnapshotObjects& objects);
     void saveImpl(android::base::AutoLock* lock, const SnapshotObjects& objects);

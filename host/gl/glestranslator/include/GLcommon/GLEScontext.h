@@ -17,6 +17,7 @@
 #ifndef GLES_CONTEXT_H
 #define GLES_CONTEXT_H
 
+#include "aemu/base/ThreadAnnotations.h"
 #include "aemu/base/containers/Lookup.h"
 #include "aemu/base/files/Stream.h"
 #include "aemu/base/synchronization/Lock.h"
@@ -307,8 +308,8 @@ public:
     const char * getVendorString(bool isGles1) const;
     const char * getRendererString(bool isGles1) const;
     const char * getVersionString(bool isGles1) const;
-    void getGlobalLock();
-    void releaseGlobalLock();
+    void getGlobalLock() ACQUIRE(s_lock);
+    void releaseGlobalLock() RELEASE(s_lock);
     virtual const GLSupport*  getCaps() const = 0;
     static GLSupport* getCapsGlobal(){return &s_glSupport;};
     static bool vulkanInteropSupported() {
