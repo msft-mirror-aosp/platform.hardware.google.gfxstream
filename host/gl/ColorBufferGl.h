@@ -227,14 +227,6 @@ class ColorBufferGl {
 private:
  ColorBufferGl(EGLDisplay display, HandleType hndl, GLuint width, GLuint height,
                ContextHelper* helper, TextureDraw* textureDraw);
- // Helper function to get contents.
- std::vector<uint8_t> getContents();
- // Helper function to clear current EGL image.
- void clearStorage();
- // Helper function to bind EGL image as texture. Assumes storage cleared.
- void restoreEglImage(EGLImageKHR image);
- // Helper function that does the above two operations in one go.
- void rebindEglImage(EGLImageKHR image, bool preserveContent);
 
 private:
     GLuint m_tex = 0;

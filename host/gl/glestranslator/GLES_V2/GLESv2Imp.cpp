@@ -2503,6 +2503,7 @@ GL_APICALL void  GL_APIENTRY glGetIntegerv(GLenum pname, GLint* params){
     case GL_COLOR_CLEAR_VALUE:
     case GL_DEPTH_CLEAR_VALUE:
         ctx->dispatcher().glGetFloatv(pname, floatVals);
+        break;
     default:
         break;
     }
