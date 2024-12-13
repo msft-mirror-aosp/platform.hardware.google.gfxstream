@@ -57,10 +57,10 @@ hwc_transform_t getTransformFromRotation(int rotation) {
 
 PostWorker::PostWorker(bool mainThreadPostingOnly, FrameBuffer* fb, Compositor* compositor)
     : mFb(fb),
+      m_compositor(compositor),
       m_mainThreadPostingOnly(mainThreadPostingOnly),
       m_runOnUiThread(m_mainThreadPostingOnly ? emugl::get_emugl_window_operations().runOnUiThread
-                                              : sDefaultRunOnUiThread),
-      m_compositor(compositor) {}
+                                              : sDefaultRunOnUiThread) {}
 
 std::shared_future<void> PostWorker::composeImpl(const FlatComposeRequest& composeRequest) {
     std::shared_future<void> completedFuture =

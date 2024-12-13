@@ -74,7 +74,7 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 }
                 VkResult vkBeginCommandBuffer_VkResult_return = (VkResult)0;
                 vkBeginCommandBuffer_VkResult_return = this->on_vkBeginCommandBuffer(
-                    pool, (VkCommandBuffer)(boxed_dispatchHandle), pBeginInfo, context);
+                    pool, nullptr, (VkCommandBuffer)(boxed_dispatchHandle), pBeginInfo, context);
                 if ((vkBeginCommandBuffer_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     this->on_DeviceLost();
                 this->on_CheckOutOfMemory(vkBeginCommandBuffer_VkResult_return, opcode, context);
@@ -85,7 +85,7 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                                       "VkSubDecoder vkEndCommandBuffer");
                 VkResult vkEndCommandBuffer_VkResult_return = (VkResult)0;
                 vkEndCommandBuffer_VkResult_return = this->on_vkEndCommandBuffer(
-                    pool, (VkCommandBuffer)(boxed_dispatchHandle), context);
+                    pool, nullptr, (VkCommandBuffer)(boxed_dispatchHandle), context);
                 if ((vkEndCommandBuffer_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     this->on_DeviceLost();
                 this->on_CheckOutOfMemory(vkEndCommandBuffer_VkResult_return, opcode, context);
@@ -100,7 +100,7 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 *readStreamPtrPtr += sizeof(VkCommandBufferResetFlags);
                 VkResult vkResetCommandBuffer_VkResult_return = (VkResult)0;
                 vkResetCommandBuffer_VkResult_return = this->on_vkResetCommandBuffer(
-                    pool, (VkCommandBuffer)(boxed_dispatchHandle), flags);
+                    pool, nullptr, (VkCommandBuffer)(boxed_dispatchHandle), flags);
                 if ((vkResetCommandBuffer_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     this->on_DeviceLost();
                 this->on_CheckOutOfMemory(vkResetCommandBuffer_VkResult_return, opcode, context);
@@ -118,7 +118,7 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
                 *(VkPipeline*)&pipeline = (VkPipeline)unbox_VkPipeline((VkPipeline)(*&cgen_var_0));
-                this->on_vkCmdBindPipeline(pool, (VkCommandBuffer)(boxed_dispatchHandle),
+                this->on_vkCmdBindPipeline(pool, nullptr, (VkCommandBuffer)(boxed_dispatchHandle),
                                            pipelineBindPoint, pipeline);
                 break;
             }
@@ -321,10 +321,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 memcpy((uint32_t*)pDynamicOffsets, *readStreamPtrPtr,
                        ((dynamicOffsetCount)) * sizeof(const uint32_t));
                 *readStreamPtrPtr += ((dynamicOffsetCount)) * sizeof(const uint32_t);
-                this->on_vkCmdBindDescriptorSets(pool, (VkCommandBuffer)(boxed_dispatchHandle),
-                                                 pipelineBindPoint, layout, firstSet,
-                                                 descriptorSetCount, pDescriptorSets,
-                                                 dynamicOffsetCount, pDynamicOffsets);
+                this->on_vkCmdBindDescriptorSets(
+                    pool, nullptr, (VkCommandBuffer)(boxed_dispatchHandle), pipelineBindPoint,
+                    layout, firstSet, descriptorSetCount, pDescriptorSets, dynamicOffsetCount,
+                    pDynamicOffsets);
                 break;
             }
             case OP_vkCmdBindIndexBuffer: {
@@ -574,9 +574,9 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                         transform_tohost_VkImageCopy(globalstate, (VkImageCopy*)(pRegions + i));
                     }
                 }
-                this->on_vkCmdCopyImage(pool, (VkCommandBuffer)(boxed_dispatchHandle), srcImage,
-                                        srcImageLayout, dstImage, dstImageLayout, regionCount,
-                                        pRegions);
+                this->on_vkCmdCopyImage(pool, nullptr, (VkCommandBuffer)(boxed_dispatchHandle),
+                                        srcImage, srcImageLayout, dstImage, dstImageLayout,
+                                        regionCount, pRegions);
                 break;
             }
             case OP_vkCmdBlitImage: {
@@ -663,9 +663,9 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                                                            (VkBufferImageCopy*)(pRegions + i));
                     }
                 }
-                this->on_vkCmdCopyBufferToImage(pool, (VkCommandBuffer)(boxed_dispatchHandle),
-                                                srcBuffer, dstImage, dstImageLayout, regionCount,
-                                                pRegions, context);
+                this->on_vkCmdCopyBufferToImage(
+                    pool, nullptr, (VkCommandBuffer)(boxed_dispatchHandle), srcBuffer, dstImage,
+                    dstImageLayout, regionCount, pRegions, context);
                 break;
             }
             case OP_vkCmdCopyImageToBuffer: {
@@ -706,9 +706,9 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                                                            (VkBufferImageCopy*)(pRegions + i));
                     }
                 }
-                this->on_vkCmdCopyImageToBuffer(pool, (VkCommandBuffer)(boxed_dispatchHandle),
-                                                srcImage, srcImageLayout, dstBuffer, regionCount,
-                                                pRegions);
+                this->on_vkCmdCopyImageToBuffer(pool, nullptr,
+                                                (VkCommandBuffer)(boxed_dispatchHandle), srcImage,
+                                                srcImageLayout, dstBuffer, regionCount, pRegions);
                 break;
             }
             case OP_vkCmdUpdateBuffer: {
@@ -1163,9 +1163,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     }
                 }
                 this->on_vkCmdPipelineBarrier(
-                    pool, (VkCommandBuffer)(boxed_dispatchHandle), srcStageMask, dstStageMask,
-                    dependencyFlags, memoryBarrierCount, pMemoryBarriers, bufferMemoryBarrierCount,
-                    pBufferMemoryBarriers, imageMemoryBarrierCount, pImageMemoryBarriers);
+                    pool, nullptr, (VkCommandBuffer)(boxed_dispatchHandle), srcStageMask,
+                    dstStageMask, dependencyFlags, memoryBarrierCount, pMemoryBarriers,
+                    bufferMemoryBarrierCount, pBufferMemoryBarriers, imageMemoryBarrierCount,
+                    pImageMemoryBarriers);
                 break;
             }
             case OP_vkCmdBeginQuery: {
@@ -1270,9 +1271,9 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 *readStreamPtrPtr += sizeof(VkDeviceSize);
                 memcpy((VkQueryResultFlags*)&flags, *readStreamPtrPtr, sizeof(VkQueryResultFlags));
                 *readStreamPtrPtr += sizeof(VkQueryResultFlags);
-                this->on_vkCmdCopyQueryPoolResults(pool, (VkCommandBuffer)(boxed_dispatchHandle),
-                                                   queryPool, firstQuery, queryCount, dstBuffer,
-                                                   dstOffset, stride, flags);
+                this->on_vkCmdCopyQueryPoolResults(
+                    pool, nullptr, (VkCommandBuffer)(boxed_dispatchHandle), queryPool, firstQuery,
+                    queryCount, dstBuffer, dstOffset, stride, flags);
                 break;
             }
             case OP_vkCmdPushConstants: {
@@ -1323,7 +1324,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     transform_tohost_VkRenderPassBeginInfo(
                         globalstate, (VkRenderPassBeginInfo*)(pRenderPassBegin));
                 }
-                this->on_vkCmdBeginRenderPass(pool, (VkCommandBuffer)(boxed_dispatchHandle),
+                this->on_vkCmdBeginRenderPass(pool, nullptr,
+                                              (VkCommandBuffer)(boxed_dispatchHandle),
                                               pRenderPassBegin, contents);
                 break;
             }
@@ -1367,7 +1369,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                                    : VK_NULL_HANDLE;
                     }
                 }
-                this->on_vkCmdExecuteCommands(pool, (VkCommandBuffer)(boxed_dispatchHandle),
+                this->on_vkCmdExecuteCommands(pool, nullptr,
+                                              (VkCommandBuffer)(boxed_dispatchHandle),
                                               commandBufferCount, pCommandBuffers);
                 break;
             }
@@ -1491,7 +1494,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     transform_tohost_VkSubpassBeginInfo(globalstate,
                                                         (VkSubpassBeginInfo*)(pSubpassBeginInfo));
                 }
-                this->on_vkCmdBeginRenderPass2(pool, (VkCommandBuffer)(boxed_dispatchHandle),
+                this->on_vkCmdBeginRenderPass2(pool, nullptr,
+                                               (VkCommandBuffer)(boxed_dispatchHandle),
                                                pRenderPassBegin, pSubpassBeginInfo);
                 break;
             }
@@ -1635,8 +1639,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     transform_tohost_VkDependencyInfo(globalstate,
                                                       (VkDependencyInfo*)(pDependencyInfo));
                 }
-                this->on_vkCmdPipelineBarrier2(pool, (VkCommandBuffer)(boxed_dispatchHandle),
-                                               pDependencyInfo);
+                this->on_vkCmdPipelineBarrier2(
+                    pool, nullptr, (VkCommandBuffer)(boxed_dispatchHandle), pDependencyInfo);
                 break;
             }
             case OP_vkCmdWriteTimestamp2: {
@@ -1687,7 +1691,7 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     transform_tohost_VkCopyImageInfo2(globalstate,
                                                       (VkCopyImageInfo2*)(pCopyImageInfo));
                 }
-                this->on_vkCmdCopyImage2(pool, (VkCommandBuffer)(boxed_dispatchHandle),
+                this->on_vkCmdCopyImage2(pool, nullptr, (VkCommandBuffer)(boxed_dispatchHandle),
                                          pCopyImageInfo);
                 break;
             }
@@ -1704,7 +1708,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     transform_tohost_VkCopyBufferToImageInfo2(
                         globalstate, (VkCopyBufferToImageInfo2*)(pCopyBufferToImageInfo));
                 }
-                this->on_vkCmdCopyBufferToImage2(pool, (VkCommandBuffer)(boxed_dispatchHandle),
+                this->on_vkCmdCopyBufferToImage2(pool, nullptr,
+                                                 (VkCommandBuffer)(boxed_dispatchHandle),
                                                  pCopyBufferToImageInfo, context);
                 break;
             }
@@ -1721,8 +1726,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     transform_tohost_VkCopyImageToBufferInfo2(
                         globalstate, (VkCopyImageToBufferInfo2*)(pCopyImageToBufferInfo));
                 }
-                this->on_vkCmdCopyImageToBuffer2(pool, (VkCommandBuffer)(boxed_dispatchHandle),
-                                                 pCopyImageToBufferInfo);
+                this->on_vkCmdCopyImageToBuffer2(
+                    pool, nullptr, (VkCommandBuffer)(boxed_dispatchHandle), pCopyImageToBufferInfo);
                 break;
             }
             case OP_vkCmdBlitImage2: {
@@ -2091,7 +2096,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     transform_tohost_VkSubpassBeginInfo(globalstate,
                                                         (VkSubpassBeginInfo*)(pSubpassBeginInfo));
                 }
-                this->on_vkCmdBeginRenderPass2KHR(pool, (VkCommandBuffer)(boxed_dispatchHandle),
+                this->on_vkCmdBeginRenderPass2KHR(pool, nullptr,
+                                                  (VkCommandBuffer)(boxed_dispatchHandle),
                                                   pRenderPassBegin, pSubpassBeginInfo);
                 break;
             }
@@ -2311,7 +2317,7 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     transform_tohost_VkCopyImageInfo2(globalstate,
                                                       (VkCopyImageInfo2*)(pCopyImageInfo));
                 }
-                this->on_vkCmdCopyImage2KHR(pool, (VkCommandBuffer)(boxed_dispatchHandle),
+                this->on_vkCmdCopyImage2KHR(pool, nullptr, (VkCommandBuffer)(boxed_dispatchHandle),
                                             pCopyImageInfo);
                 break;
             }
@@ -2328,7 +2334,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     transform_tohost_VkCopyBufferToImageInfo2(
                         globalstate, (VkCopyBufferToImageInfo2*)(pCopyBufferToImageInfo));
                 }
-                this->on_vkCmdCopyBufferToImage2KHR(pool, (VkCommandBuffer)(boxed_dispatchHandle),
+                this->on_vkCmdCopyBufferToImage2KHR(pool, nullptr,
+                                                    (VkCommandBuffer)(boxed_dispatchHandle),
                                                     pCopyBufferToImageInfo, context);
                 break;
             }
@@ -2345,8 +2352,8 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     transform_tohost_VkCopyImageToBufferInfo2(
                         globalstate, (VkCopyImageToBufferInfo2*)(pCopyImageToBufferInfo));
                 }
-                this->on_vkCmdCopyImageToBuffer2KHR(pool, (VkCommandBuffer)(boxed_dispatchHandle),
-                                                    pCopyImageToBufferInfo);
+                this->on_vkCmdCopyImageToBuffer2KHR(
+                    pool, nullptr, (VkCommandBuffer)(boxed_dispatchHandle), pCopyImageToBufferInfo);
                 break;
             }
             case OP_vkCmdBlitImage2KHR: {
@@ -3045,14 +3052,14 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                         globalstate, (VkCommandBufferBeginInfo*)(pBeginInfo));
                 }
                 this->on_vkBeginCommandBufferAsyncGOOGLE(
-                    pool, (VkCommandBuffer)(boxed_dispatchHandle), pBeginInfo, context);
+                    pool, nullptr, (VkCommandBuffer)(boxed_dispatchHandle), pBeginInfo, context);
                 break;
             }
             case OP_vkEndCommandBufferAsyncGOOGLE: {
                 GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
                                       "VkSubDecoder vkEndCommandBufferAsyncGOOGLE");
                 this->on_vkEndCommandBufferAsyncGOOGLE(
-                    pool, (VkCommandBuffer)(boxed_dispatchHandle), context);
+                    pool, nullptr, (VkCommandBuffer)(boxed_dispatchHandle), context);
                 break;
             }
             case OP_vkResetCommandBufferAsyncGOOGLE: {
@@ -3063,7 +3070,7 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                        sizeof(VkCommandBufferResetFlags));
                 *readStreamPtrPtr += sizeof(VkCommandBufferResetFlags);
                 this->on_vkResetCommandBufferAsyncGOOGLE(
-                    pool, (VkCommandBuffer)(boxed_dispatchHandle), flags);
+                    pool, nullptr, (VkCommandBuffer)(boxed_dispatchHandle), flags);
                 break;
             }
             case OP_vkCommandBufferHostSyncGOOGLE: {
@@ -3075,8 +3082,9 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 *readStreamPtrPtr += sizeof(uint32_t);
                 memcpy((uint32_t*)&sequenceNumber, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                this->on_vkCommandBufferHostSyncGOOGLE(
-                    pool, (VkCommandBuffer)(boxed_dispatchHandle), needHostSync, sequenceNumber);
+                this->on_vkCommandBufferHostSyncGOOGLE(pool, nullptr,
+                                                       (VkCommandBuffer)(boxed_dispatchHandle),
+                                                       needHostSync, sequenceNumber);
                 break;
             }
 #endif

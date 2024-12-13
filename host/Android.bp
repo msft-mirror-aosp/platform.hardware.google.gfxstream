@@ -86,7 +86,6 @@ cc_defaults {
         "-Wno-unused-parameter",
         "-Wno-unused-variable",
         "-Wno-unused-function",
-        "-Wno-unreachable-code-loop-increment",
     ],
     header_libs: [
         "gfxstream_opengl_headers",

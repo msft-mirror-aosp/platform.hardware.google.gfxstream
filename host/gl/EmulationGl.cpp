@@ -504,16 +504,15 @@ std::unique_ptr<EmulationGl> EmulationGl::create(uint32_t width, uint32_t height
 
 EmulationGl::~EmulationGl() {
     if (mPbufferSurface) {
-        // TODO(b/267349580): remove after Mac issue fixed.
-        mTextureDraw.release();
-        // const auto* displaySurfaceGl =
-        //    reinterpret_cast<const DisplaySurfaceGl*>(mPbufferSurface->getImpl());
-        // RecursiveScopedContextBind contextBind(displaySurfaceGl->getContextHelper());
-        // if (contextBind.isOk()) {
-        //     mTextureDraw.reset();
-        // } else {
-        //     ERR("Failed to bind context for destroying TextureDraw.");
-        // }
+        const auto* displaySurfaceGl =
+            reinterpret_cast<const DisplaySurfaceGl*>(mPbufferSurface->getImpl());
+
+        RecursiveScopedContextBind contextBind(displaySurfaceGl->getContextHelper());
+        if (contextBind.isOk()) {
+            mTextureDraw.reset();
+        } else {
+            ERR("Failed to bind context for destroying TextureDraw.");
+        }
     }
 
     if (mEglDisplay != EGL_NO_DISPLAY) {

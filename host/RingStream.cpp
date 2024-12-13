@@ -248,6 +248,10 @@ void RingStream::type1Read(
     ring_buffer_copy_contents(
         mContext.to_host, 0, xferTotal * sizeof(struct asg_type1_xfer), (uint8_t*)xfersPtr);
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunreachable-code-loop-increment"
+#endif // __clang__
     for (uint32_t i = 0; i < xferTotal; ++i) {
         if (*current + xfersPtr[i].size > ptrEnd) {
             // Save in a temp buffer or we'll get stuck
@@ -271,9 +275,12 @@ void RingStream::type1Read(
         *count += xfersPtr[i].size;
 
         // TODO: Figure out why running multiple xfers here can result in data
-        // corruption.
+        // corruption and remove clang diagnostic block.
         return;
     }
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif // __clang__
 }
 
 void RingStream::type2Read(
