@@ -39,8 +39,11 @@
 #include "utils/GfxApiLogger.h"
 #include "utils/RenderDoc.h"
 
-#if defined(_WIN32)
+#ifdef _WIN32
 typedef void* HANDLE;
+#endif
+
+#if defined(_WIN32)
 // External sync objects are HANDLE on Windows
 typedef HANDLE VK_EXT_SYNC_HANDLE;
 // corresponds to INVALID_HANDLE_VALUE
@@ -49,6 +52,14 @@ typedef HANDLE VK_EXT_SYNC_HANDLE;
 // External sync objects are fd's on other POSIX systems
 typedef int VK_EXT_SYNC_HANDLE;
 #define VK_EXT_SYNC_HANDLE_INVALID (-1)
+#endif
+
+#if defined(_WIN32)
+#define VK_EXT_MEMORY_HANDLE_TYPE_BIT VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT
+#elif defined(__QNX__)
+#define VK_EXT_MEMORY_HANDLE_TYPE_BIT VK_EXTERNAL_MEMORY_HANDLE_TYPE_SCREEN_BUFFER_BIT_QNX
+#else
+#define VK_EXT_MEMORY_HANDLE_TYPE_BIT VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT
 #endif
 
 namespace gfxstream {
@@ -556,8 +567,6 @@ void releaseColorBufferForGuestUse(uint32_t colorBufferHandle);
 std::unique_ptr<BorrowedImageInfoVk> borrowColorBufferForComposition(uint32_t colorBufferHandle,
                                                                      bool colorBufferIsTarget);
 std::unique_ptr<BorrowedImageInfoVk> borrowColorBufferForDisplay(uint32_t colorBufferHandle);
-
-VkExternalMemoryHandleTypeFlagBits getDefaultExternalMemoryHandleType();
 
 }  // namespace vk
 }  // namespace gfxstream

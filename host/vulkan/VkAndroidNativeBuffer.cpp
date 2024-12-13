@@ -181,7 +181,7 @@ VkResult prepareAndroidNativeBufferImage(VulkanDispatch* vk, VkDevice device,
         VkExternalMemoryImageCreateInfo extImageCi = {
             VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_IMAGE_CREATE_INFO,
             0,
-            getDefaultExternalMemoryHandleType(),
+            VK_EXT_MEMORY_HANDLE_TYPE_BIT,
         };
 
 #if defined(__APPLE__)
