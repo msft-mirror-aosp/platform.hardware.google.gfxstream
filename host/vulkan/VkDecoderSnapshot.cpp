@@ -51,13 +51,11 @@ class VkDecoderSnapshot::Impl {
     Impl() {}
 
     void save(android::base::Stream* stream) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
         mReconstruction.save(stream);
     }
 
     void load(android::base::Stream* stream, GfxApiLogger& gfx_logger,
               HealthMonitor<>* healthMonitor) {
-        std::lock_guard<std::mutex> lock(mReconstructionMutex);
         mReconstruction.load(stream, gfx_logger, healthMonitor);
     }
 
