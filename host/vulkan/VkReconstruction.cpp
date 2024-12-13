@@ -24,6 +24,15 @@
 
 namespace gfxstream {
 namespace vk {
+namespace {
+
+uint32_t GetOpcode(const VkSnapshotApiCallInfo& info) {
+    if (info.packet.size() <= 4) return -1;
+
+    return *(reinterpret_cast<const uint32_t*>(info.packet.data()));
+}
+
+}  // namespace
 
 #define DEBUG_RECONSTRUCTION 0
 
@@ -106,7 +115,7 @@ void VkReconstruction::save(android::base::Stream* stream) {
         for (const auto& handle : handles) {
             auto item = mHandleReconstructions.get(handle.first)->states[handle.second];
             for (uint64_t apiRef : item.apiRefs) {
-                auto apiItem = mApiTrace.get(apiRef);
+                auto apiItem = mApiCallManager.get(apiRef);
                 if (!apiItem) continue;
                 if (savedApis.find(apiRef) != savedApis.end()) continue;
                 savedApis.insert(apiRef);
@@ -126,10 +135,8 @@ void VkReconstruction::save(android::base::Stream* stream) {
 
     for (size_t i = 0; i < uniqApiRefsByTopoOrder.size(); ++i) {
         for (auto apiHandle : uniqApiRefsByTopoOrder[i]) {
-            auto item = mApiTrace.get(apiHandle);
-            totalApiTraceSize += 4;                 // opcode
-            totalApiTraceSize += 4;                 // buffer size of trace
-            totalApiTraceSize += item->traceBytes;  // the actual trace
+            const VkSnapshotApiCallInfo* info = mApiCallManager.get(apiHandle);
+            totalApiTraceSize += info->packet.size();
         }
     }
 
@@ -139,7 +146,7 @@ void VkReconstruction::save(android::base::Stream* stream) {
 
     for (size_t i = 0; i < uniqApiRefsByTopoOrder.size(); ++i) {
         for (auto apiHandle : uniqApiRefsByTopoOrder[i]) {
-            auto item = mApiTrace.get(apiHandle);
+            auto item = mApiCallManager.get(apiHandle);
             for (auto createdHandle : item->createdHandles) {
                 DEBUG_RECON("save handle: 0x%lx", createdHandle);
                 createdHandleBuffer.push_back(createdHandle);
@@ -154,18 +161,11 @@ void VkReconstruction::save(android::base::Stream* stream) {
 
     for (size_t i = 0; i < uniqApiRefsByTopoOrder.size(); ++i) {
         for (auto apiHandle : uniqApiRefsByTopoOrder[i]) {
-            auto item = mApiTrace.get(apiHandle);
+            auto item = mApiCallManager.get(apiHandle);
             // 4 bytes for opcode, and 4 bytes for saveBufferRaw's size field
-            DEBUG_RECON("saving api handle 0x%lx op code %d", apiHandle, item->opCode);
-            memcpy(apiTracePtr, &item->opCode, sizeof(uint32_t));
-            apiTracePtr += 4;
-            uint32_t traceBytesForSnapshot = item->traceBytes + 8;
-            memcpy(apiTracePtr, &traceBytesForSnapshot,
-                   sizeof(uint32_t));  // and 8 bytes for 'self' struct of { opcode, packetlen } as
-                                       // that is what decoder expects
-            apiTracePtr += 4;
-            memcpy(apiTracePtr, item->trace.data(), item->traceBytes);
-            apiTracePtr += item->traceBytes;
+            DEBUG_RECON("saving api handle 0x%lx op code %d", apiHandle, GetOpcode(item));
+            memcpy(apiTracePtr, item->packet.data(), item->packet.size());
+            apiTracePtr += item->packet.size();
         }
     }
 
@@ -223,7 +223,7 @@ class TrivialStream : public IOStream {
 void VkReconstruction::load(android::base::Stream* stream, emugl::GfxApiLogger& gfxLogger,
                             emugl::HealthMonitor<>* healthMonitor) {
     DEBUG_RECON("start. assuming VkDecoderGlobalState has been cleared for loading already");
-    mApiTrace.clear();
+    mApiCallManager.clear();
     mHandleReconstructions.clear();
 
     std::vector<uint8_t> createdHandleBuffer;
@@ -267,15 +267,18 @@ void VkReconstruction::load(android::base::Stream* stream, emugl::GfxApiLogger& 
     DEBUG_RECON("finished decoding trace");
 }
 
-VkReconstruction::ApiHandle VkReconstruction::createApiInfo() {
-    auto handle = mApiTrace.add(ApiInfo(), 1);
-    return handle;
+VkSnapshotApiCallInfo* VkReconstruction::createApiCallInfo() {
+    VkSnapshotApiCallHandle handle = mApiCallManager.add(VkSnapshotApiCallInfo(), 1);
+
+    auto* info = mApiCallManager.get(handle);
+    info->handle = handle;
+    return info;
 }
 
-void VkReconstruction::removeHandleFromApiInfo(VkReconstruction::ApiHandle h, uint64_t toRemove) {
+void VkReconstruction::removeHandleFromApiInfo(VkSnapshotApiCallHandle h, uint64_t toRemove) {
     auto vk_item = mHandleReconstructions.get(toRemove);
     if (!vk_item) return;
-    auto apiInfo = mApiTrace.get(h);
+    auto apiInfo = mApiCallManager.get(h);
     if (!apiInfo) return;
 
     auto& handles = apiInfo->createdHandles;
@@ -288,29 +291,40 @@ void VkReconstruction::removeHandleFromApiInfo(VkReconstruction::ApiHandle h, ui
                 (unsigned long long)toRemove, (unsigned long long)h, (int)handles.size());
 }
 
-void VkReconstruction::destroyApiInfo(VkReconstruction::ApiHandle h) {
-    auto item = mApiTrace.get(h);
+void VkReconstruction::destroyApiCallInfo(VkSnapshotApiCallHandle h) {
+    auto item = mApiCallManager.get(h);
 
     if (!item) return;
 
     if (!item->createdHandles.empty()) return;
 
-    item->traceBytes = 0;
     item->createdHandles.clear();
 
-    mApiTrace.remove(h);
+    mApiCallManager.remove(h);
 }
 
-VkReconstruction::ApiInfo* VkReconstruction::getApiInfo(VkReconstruction::ApiHandle h) {
-    return mApiTrace.get(h);
+void VkReconstruction::destroyApiCallInfoIfUnused(VkSnapshotApiCallInfo* info) {
+    if (!info) return;
+
+    if (info->packet.empty()) {
+        mApiCallManager.remove(info->handle);
+        return;
+    }
+
+    if (!info->extraCreatedHandles.empty()) {
+        info->createdHandles.insert(info->createdHandles.end(), info->extraCreatedHandles.begin(),
+                                    info->extraCreatedHandles.end());
+        info->extraCreatedHandles.clear();
+    }
 }
 
-void VkReconstruction::setApiTrace(VkReconstruction::ApiInfo* apiInfo, uint32_t opCode,
-                                   const uint8_t* traceBegin, size_t traceBytes) {
-    if (apiInfo->trace.size() < traceBytes) apiInfo->trace.resize(traceBytes);
-    apiInfo->opCode = opCode;
-    memcpy(apiInfo->trace.data(), traceBegin, traceBytes);
-    apiInfo->traceBytes = traceBytes;
+VkSnapshotApiCallInfo* VkReconstruction::getApiInfo(VkSnapshotApiCallHandle h) {
+    return mApiCallManager.get(h);
+}
+
+void VkReconstruction::setApiTrace(VkSnapshotApiCallInfo* apiInfo, const uint8_t* packet,
+                                   size_t packetLenBytes) {
+    apiInfo->packet.assign(packet, packet + packetLenBytes);
 }
 
 void VkReconstruction::dump() {
@@ -318,11 +332,12 @@ void VkReconstruction::dump() {
 
     size_t traceBytesTotal = 0;
 
-    mApiTrace.forEachLiveEntry_const(
-        [&traceBytesTotal](bool live, uint64_t handle, const ApiInfo& info) {
+    mApiCallManager.forEachLiveEntry_const(
+        [&traceBytesTotal](bool live, uint64_t handle, const VkSnapshotApiCallInfo& info) {
+            const uint32_t opcode = GetOpcode(info);
             INFO("VkReconstruction::%s: api handle 0x%llx: %s", __func__,
-                    (unsigned long long)handle, api_opcode_to_string(info.opCode));
-            traceBytesTotal += info.traceBytes;
+                 (unsigned long long)handle, api_opcode_to_string(opcode));
+            traceBytesTotal += info.packet.size();
         });
 
     mHandleReconstructions.forEachLiveComponent_const(
@@ -332,9 +347,9 @@ void VkReconstruction::dump() {
                     (unsigned long long)entityHandle);
             for (const auto& state : reconstruction.states) {
                 for (auto apiHandle : state.apiRefs) {
-                    auto apiInfo = mApiTrace.get(apiHandle);
+                    auto apiInfo = mApiCallManager.get(apiHandle);
                     const char* apiName =
-                        apiInfo ? api_opcode_to_string(apiInfo->opCode) : "unalloced";
+                        apiInfo ? api_opcode_to_string(GetOpcode(*apiInfo)) : "unalloced";
                     INFO("VkReconstruction::%s:     0x%llx: %s", __func__,
                             (unsigned long long)apiHandle, apiName);
                     for (auto createdHandle : apiInfo->createdHandles) {
@@ -351,8 +366,8 @@ void VkReconstruction::dump() {
         INFO("VkReconstruction::%s: mod: %p handle 0x%llx api refs:", __func__, this,
                 (unsigned long long)entityHandle);
         for (auto apiHandle : modification.apiRefs) {
-            auto apiInfo = mApiTrace.get(apiHandle);
-            const char* apiName = apiInfo ? api_opcode_to_string(apiInfo->opCode) : "unalloced";
+            auto apiInfo = mApiCallManager.get(apiHandle);
+            const char* apiName = apiInfo ? api_opcode_to_string(GetOpcode(*apiInfo)) : "unalloced";
             INFO("VkReconstruction::%s: mod:     0x%llx: %s", __func__,
                     (unsigned long long)apiHandle, apiName);
         }
@@ -452,7 +467,7 @@ void VkReconstruction::forEachHandleDeleteApi(const uint64_t* toProcess, uint32_
         for (auto& state : item->states) {
             for (auto handle : state.apiRefs) {
                 removeHandleFromApiInfo(handle, toProcess[i]);
-                destroyApiInfo(handle);
+                destroyApiCallInfo(handle);
             }
             state.apiRefs.clear();
         }
@@ -497,18 +512,11 @@ void VkReconstruction::setCreatedHandlesForApi(uint64_t apiHandle, const uint64_
                                                uint32_t count) {
     if (!created) return;
 
-    auto item = mApiTrace.get(apiHandle);
+    auto item = mApiCallManager.get(apiHandle);
 
     if (!item) return;
 
     item->createdHandles.insert(item->createdHandles.end(), created, created + count);
-    item->createdHandles.insert(item->createdHandles.end(), mExtraHandlesForNextApi.begin(),
-                                mExtraHandlesForNextApi.end());
-    mExtraHandlesForNextApi.clear();
-}
-
-void VkReconstruction::createExtraHandlesForNextApi(const uint64_t* created, uint32_t count) {
-    mExtraHandlesForNextApi.assign(created, created + count);
 }
 
 void VkReconstruction::forEachHandleAddModifyApi(const uint64_t* toProcess, uint32_t count,
