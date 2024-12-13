@@ -69,6 +69,7 @@
 namespace gfxstream {
 
 using android::base::AutoLock;
+using android::base::ManagedDescriptor;
 using android::base::MetricEventVulkanOutOfMemory;
 using android::base::Stream;
 using android::base::WorkerProcessingResult;

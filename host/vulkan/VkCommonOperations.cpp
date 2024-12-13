@@ -59,6 +59,7 @@ namespace {
 
 using android::base::AutoLock;
 using android::base::kNullopt;
+using android::base::ManagedDescriptor;
 using android::base::Optional;
 using android::base::StaticLock;
 using android::base::StaticMap;
@@ -2746,12 +2747,9 @@ std::optional<VkColorBufferMemoryExport> exportColorBufferMemory(uint32_t colorB
     info->glExported = true;
 
     return VkColorBufferMemoryExport{
-        .descriptorInfo =
-            {
-                .descriptor = std::move(descriptor),
-                .handleType = info->memory.streamHandleType,
-            },
+        .descriptor = std::move(descriptor),
         .size = info->memory.size,
+        .streamHandleType = info->memory.streamHandleType,
         .linearTiling = info->imageCreateInfoShallow.tiling == VK_IMAGE_TILING_LINEAR,
         .dedicatedAllocation = info->memory.dedicatedAllocation,
     };

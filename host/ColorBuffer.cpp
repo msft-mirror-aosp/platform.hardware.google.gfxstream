@@ -24,6 +24,7 @@
 #include "vulkan/VkCommonOperations.h"
 #include "FrameBuffer.h"
 
+using android::base::ManagedDescriptor;
 using emugl::ABORT_REASON_OTHER;
 using emugl::FatalError;
 
@@ -109,7 +110,7 @@ std::shared_ptr<ColorBuffer> ColorBuffer::create(gl::EmulationGl* emulationGl,
         auto memoryExport = vk::exportColorBufferMemory(handle);
         if (memoryExport) {
             if (colorBuffer->mColorBufferGl->importMemory(
-                    std::move(memoryExport->descriptorInfo.descriptor), memoryExport->size,
+                    std::move(memoryExport->descriptor), memoryExport->size,
                     memoryExport->dedicatedAllocation, memoryExport->linearTiling)) {
                 colorBuffer->mGlAndVkAreSharingExternalMemory = true;
             } else {

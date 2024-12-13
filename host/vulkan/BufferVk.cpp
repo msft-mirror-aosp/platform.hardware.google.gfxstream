@@ -51,11 +51,8 @@ std::optional<BlobDescriptorInfo> BufferVk::exportBlob() {
     if (vkHandle != VK_EXT_MEMORY_HANDLE_INVALID) {
         ManagedDescriptor descriptor(dupExternalMemory(vkHandle));
         return BlobDescriptorInfo{
-            .descriptorInfo =
-                {
-                    .descriptor = std::move(descriptor),
-                    .handleType = streamHandleType,
-                },
+            .descriptor = std::move(descriptor),
+            .handleType = streamHandleType,
             .caching = 0,
             .vulkanInfoOpt = std::nullopt,
         };

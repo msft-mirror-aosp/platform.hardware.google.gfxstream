@@ -62,11 +62,6 @@ struct HostMemInfo {
     uint32_t caching;
 };
 
-struct GenericDescriptorInfo {
-    ManagedDescriptor descriptor;
-    uint32_t handleType;
-};
-
 struct VulkanInfo {
     uint32_t memoryIndex;
     uint8_t deviceUUID[16];
@@ -74,12 +69,16 @@ struct VulkanInfo {
 };
 
 struct BlobDescriptorInfo {
-    GenericDescriptorInfo descriptorInfo;
+    ManagedDescriptor descriptor;
+    uint32_t handleType;
     uint32_t caching;
     std::optional<VulkanInfo> vulkanInfoOpt;
 };
 
-using SyncDescriptorInfo = GenericDescriptorInfo;
+struct SyncDescriptorInfo {
+    ManagedDescriptor descriptor;
+    uint32_t handleType;
+};
 
 class ExternalObjectManager {
    public:

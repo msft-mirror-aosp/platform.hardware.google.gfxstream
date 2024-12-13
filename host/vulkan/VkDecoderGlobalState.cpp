@@ -32,6 +32,7 @@
 #include "VkEmulatedPhysicalDeviceMemory.h"
 #include "VulkanDispatch.h"
 #include "VulkanStream.h"
+#include "aemu/base/ManagedDescriptor.hpp"
 #include "aemu/base/Optional.h"
 #include "aemu/base/containers/EntityManager.h"
 #include "aemu/base/containers/HybridEntityManager.h"
@@ -85,6 +86,7 @@ using android::base::AutoLock;
 using android::base::ConditionVariable;
 using android::base::DescriptorType;
 using android::base::Lock;
+using android::base::ManagedDescriptor;
 using android::base::MetricEventBadPacketLength;
 using android::base::MetricEventDuplicateSequenceNum;
 using android::base::MetricEventVulkanOutOfMemory;
@@ -5244,7 +5246,7 @@ class VkDecoderGlobalState::Impl {
             auto descriptorInfoOpt = ExternalObjectManager::get()->removeBlobDescriptorInfo(
                 virtioGpuContextId, createBlobInfoPtr->blobId);
             if (descriptorInfoOpt) {
-                auto rawDescriptorOpt = (*descriptorInfoOpt).descriptorInfo.descriptor.release();
+                auto rawDescriptorOpt = (*descriptorInfoOpt).descriptor.release();
                 if (rawDescriptorOpt) {
                     rawDescriptor = *rawDescriptorOpt;
                 } else {
