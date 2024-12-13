@@ -1171,45 +1171,28 @@ bool ColorBufferGl::importEglNativePixmap(void* pixmap, bool preserveContent) {
         return false;
     }
 
-    rebindEglImage(image, preserveContent);
-    return true;
-}
-
-std::vector<uint8_t> ColorBufferGl::getContents() {
-    // Assume there is a current context.
-    size_t bytes;
-    readContents(&bytes, nullptr);
-    std::vector<uint8_t> contents(bytes);
-    readContents(&bytes, contents.data());
-    return contents;
-}
-
-void ColorBufferGl::clearStorage() {
-    s_gles2.glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, (GLeglImageOES)NULL);
-    s_egl.eglDestroyImageKHR(m_display, m_eglImage);
-    m_eglImage = (EGLImageKHR)0;
-}
-
-void ColorBufferGl::restoreEglImage(EGLImageKHR image) {
-    s_gles2.glBindTexture(GL_TEXTURE_2D, m_tex);
-
-    m_eglImage = image;
-    s_gles2.glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, (GLeglImageOES)m_eglImage);
-}
-
-void ColorBufferGl::rebindEglImage(EGLImageKHR image, bool preserveContent) {
     RecursiveScopedContextBind context(m_helper);
 
     std::vector<uint8_t> contents;
     if (preserveContent) {
-        contents = getContents();
+        size_t bytes;
+        readContents(&bytes, nullptr);
+        std::vector<uint8_t> contents(bytes);
+        readContents(&bytes, contents.data());
     }
-    clearStorage();
-    restoreEglImage(image);
+
+    s_gles2.glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, (GLeglImageOES)NULL);
+    s_egl.eglDestroyImageKHR(m_display, m_eglImage);
+
+    m_eglImage = image;
+    s_gles2.glBindTexture(GL_TEXTURE_2D, m_tex);
+    s_gles2.glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, (GLeglImageOES)m_eglImage);
 
     if (preserveContent) {
         replaceContents(contents.data(), m_numBytes);
     }
+
+    return true;
 }
 
 std::unique_ptr<BorrowedImageInfo> ColorBufferGl::getBorrowedImageInfo() {

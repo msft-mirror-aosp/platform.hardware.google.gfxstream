@@ -24,4 +24,7 @@ cc_library {
     export_include_dirs: [
         "include",
     ],
+    cflags: [
+        "-Wno-implicit-fallthrough",
+    ],
 }
