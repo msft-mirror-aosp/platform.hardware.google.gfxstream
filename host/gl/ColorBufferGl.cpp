@@ -1175,24 +1175,6 @@ bool ColorBufferGl::importEglNativePixmap(void* pixmap, bool preserveContent) {
     return true;
 }
 
-bool ColorBufferGl::importEglImage(void* nativeEglImage, bool preserveContent) {
-    EGLImageKHR image = s_egl.eglImportImageANDROID(m_display, (EGLImage)nativeEglImage);
-
-    if (image == EGL_NO_IMAGE_KHR) return false;
-
-    // Assume nativeEglImage is compatible with ColorBufferGl's current dimensions and internal
-    // format.
-    EGLBoolean setInfoRes = s_egl.eglSetImageInfoANDROID(m_display, image, m_width, m_height, m_internalFormat);
-
-    if (EGL_TRUE != setInfoRes) {
-        s_egl.eglDestroyImageKHR(m_display, image);
-        return false;
-    }
-
-    rebindEglImage(image, preserveContent);
-    return true;
-}
-
 std::vector<uint8_t> ColorBufferGl::getContents() {
     // Assume there is a current context.
     size_t bytes;
