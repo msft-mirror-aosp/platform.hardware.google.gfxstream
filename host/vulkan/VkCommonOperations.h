@@ -55,10 +55,13 @@ typedef int VK_EXT_SYNC_HANDLE;
 #endif
 
 #if defined(_WIN32)
+#define VK_EXT_MEMORY_HANDLE_INVALID (ExternalHandleType)(-1)
 #define VK_EXT_MEMORY_HANDLE_TYPE_BIT VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT
 #elif defined(__QNX__)
+#define VK_EXT_MEMORY_HANDLE_INVALID (ExternalHandleType) nullptr
 #define VK_EXT_MEMORY_HANDLE_TYPE_BIT VK_EXTERNAL_MEMORY_HANDLE_TYPE_SCREEN_BUFFER_BIT_QNX
 #else
+#define VK_EXT_MEMORY_HANDLE_INVALID (-1)
 #define VK_EXT_MEMORY_HANDLE_TYPE_BIT VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT
 #endif
 
@@ -251,7 +254,10 @@ struct VkEmulation {
         // guest physical address.
         uintptr_t gpa = 0u;
 
-        std::optional<ExternalHandleInfo> handleInfo = std::nullopt;
+        ExternalHandleInfo handleInfo = {
+            .handle = VK_EXT_MEMORY_HANDLE_INVALID,
+            .streamHandleType = 0,
+        };
 #ifdef __APPLE__
         // This is used as an external handle when MoltenVK is enabled
         MTLResource_id externalMetalHandle = nullptr;
@@ -490,8 +496,8 @@ bool createVkColorBuffer(uint32_t width, uint32_t height, GLenum format,
 
 bool teardownVkColorBuffer(uint32_t colorBufferHandle);
 
-bool importExtMemoryHandleToVkColorBuffer(uint32_t colorBufferHandle,
-                                          ExternalHandleInfo extMemHandleInfo);
+bool importExtMemoryHandleToVkColorBuffer(uint32_t colorBufferHandle, uint32_t streamHandleType,
+                                          ExternalHandleType extMemHandle);
 
 VkEmulation::ColorBufferInfo getColorBufferInfo(uint32_t colorBufferHandle);
 std::optional<ExternalHandleInfo> dupColorBufferExtMemoryHandle(uint32_t colorBufferHandle);

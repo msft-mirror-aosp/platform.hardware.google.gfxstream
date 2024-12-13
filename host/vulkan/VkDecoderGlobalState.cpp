@@ -5010,7 +5010,7 @@ class VkDecoderGlobalState::Impl {
             VK_STRUCTURE_TYPE_IMPORT_MEMORY_WIN32_HANDLE_INFO_KHR,
             0,
             VK_EXT_MEMORY_HANDLE_TYPE_BIT,
-            static_cast<HANDLE>(NULL),
+            VK_EXT_MEMORY_HANDLE_INVALID,
             L"",
         };
 #else
@@ -5019,7 +5019,7 @@ class VkDecoderGlobalState::Impl {
         VkImportScreenBufferInfoQNX importScreenBufferInfo{
             VK_STRUCTURE_TYPE_IMPORT_SCREEN_BUFFER_INFO_QNX,
             0,
-            static_cast<screen_buffer_t>(NULL),
+            VK_EXT_MEMORY_HANDLE_INVALID,
         };
 #elif defined(__APPLE__)
         VkImportMemoryMetalHandleInfoEXT importInfoMetalHandle = {
@@ -5034,7 +5034,7 @@ class VkDecoderGlobalState::Impl {
             VK_STRUCTURE_TYPE_IMPORT_MEMORY_FD_INFO_KHR,
             0,
             VK_EXT_MEMORY_HANDLE_TYPE_BIT,
-            -1,
+            VK_EXT_MEMORY_HANDLE_INVALID,
         };
 #endif
 

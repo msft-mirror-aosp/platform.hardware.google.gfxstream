@@ -71,11 +71,8 @@ bool ColorBufferVk::updateFromBytes(uint32_t x, uint32_t y, uint32_t w, uint32_t
 }
 
 bool ColorBufferVk::importExtMemoryHandle(void* extMemHandle, uint32_t extMemStreamHandleType) {
-    ExternalHandleInfo handleInfo = {
-        .handle = (ExternalHandleType)extMemHandle,
-        .streamHandleType = extMemStreamHandleType,
-    };
-    return importExtMemoryHandleToVkColorBuffer(mHandle, handleInfo);
+    return importExtMemoryHandleToVkColorBuffer(mHandle, extMemStreamHandleType,
+                                                (ExternalHandleType)extMemHandle);
 }
 
 int ColorBufferVk::waitSync() { return waitSyncVkColorBuffer(mHandle); }
