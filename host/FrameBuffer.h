@@ -41,6 +41,7 @@
 #include "aemu/base/AsyncResult.h"
 #include "aemu/base/EventNotificationSupport.h"
 #include "aemu/base/HealthMonitor.h"
+#include "aemu/base/ManagedDescriptor.hpp"
 #include "aemu/base/Metrics.h"
 #include "aemu/base/ThreadAnnotations.h"
 #include "aemu/base/files/Stream.h"
