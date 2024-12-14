@@ -86,7 +86,6 @@ struct stream_renderer_fence {
 #define STREAM_FENCE_HANDLE_TYPE_SYNC_FD 0x7
 #define STREAM_FENCE_HANDLE_TYPE_OPAQUE_WIN32 0x8
 #define STREAM_FENCE_HANDLE_TYPE_ZIRCON 0x9
-#define STREAM_MEM_HANDLE_TYPE_SCREEN_BUFFER_QNX 0xa
 struct stream_renderer_handle {
     int64_t os_handle;
     uint32_t handle_type;

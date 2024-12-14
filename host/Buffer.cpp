@@ -23,6 +23,7 @@
 
 namespace gfxstream {
 
+using android::base::ManagedDescriptor;
 using emugl::ABORT_REASON_OTHER;
 using emugl::FatalError;
 
