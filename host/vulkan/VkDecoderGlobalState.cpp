@@ -2167,7 +2167,7 @@ class VkDecoderGlobalState::Impl {
                 physicalQueueInfo.device = *pDevice;
                 physicalQueueInfo.queueFamilyIndex = index;
                 physicalQueueInfo.boxed = boxedQueue;
-                physicalQueueInfo.physicalQueueLock = std::make_shared<android::base::Lock>();
+                physicalQueueInfo.queueMutex = std::make_shared<std::mutex>();
                 queues.push_back(physicalQueue);
 
                 if (addVirtualQueue) {
@@ -2196,8 +2196,7 @@ class VkDecoderGlobalState::Impl {
                         virtualQueueInfo.device = physicalQueueInfo.device;
                         virtualQueueInfo.queueFamilyIndex = physicalQueueInfo.queueFamilyIndex;
                         virtualQueueInfo.boxed = boxedVirtualQueue;
-                        virtualQueueInfo.physicalQueueLock =
-                            physicalQueueInfo.physicalQueueLock;  // Shares the same lock!
+                        virtualQueueInfo.queueMutex = physicalQueueInfo.queueMutex;  // Shares the same lock!
                         queues.push_back(virtualQueue);
                     }
                     i++;
@@ -2273,7 +2272,7 @@ class VkDecoderGlobalState::Impl {
         auto eraseIt = queueInfos.begin();
         for (; eraseIt != queueInfos.end();) {
             if (eraseIt->second.device == device) {
-                eraseIt->second.physicalQueueLock.reset();
+                eraseIt->second.queueMutex.reset();
                 delete_VkQueue(eraseIt->second.boxed);
                 eraseIt = queueInfos.erase(eraseIt);
             } else {
@@ -2314,9 +2313,11 @@ class VkDecoderGlobalState::Impl {
     void destroyDeviceLocked(VkDevice device, const VkAllocationCallbacks* pAllocator) {
         auto deviceInfoIt = mDeviceInfo.find(device);
         if (deviceInfoIt == mDeviceInfo.end()) return;
-        auto& deviceInfo = deviceInfoIt->second;
 
-        destroyDeviceWithExclusiveInfo(device, deviceInfo, mFenceInfo, mQueueInfo, pAllocator);
+        InstanceObjects::DeviceObjects deviceObjects;
+        deviceObjects.device = mDeviceInfo.extract(deviceInfoIt);
+        extractDeviceAndDependenciesLocked(device, deviceObjects);
+        destroyDeviceObjects(deviceObjects);
 
         mDeviceInfo.erase(device);
         mDeviceToPhysicalDevice.erase(device);
@@ -5751,9 +5752,9 @@ class VkDecoderGlobalState::Impl {
 
         VkQueue defaultQueue;
         uint32_t defaultQueueFamilyIndex;
-        Lock* defaultQueueLock;
+        std::mutex* defaultQueueMutex;
         if (!getDefaultQueueForDeviceLocked(device, &defaultQueue, &defaultQueueFamilyIndex,
-                                            &defaultQueueLock)) {
+                                            &defaultQueueMutex)) {
             INFO("%s: can't get the default q", __func__);
             return VK_ERROR_INITIALIZATION_FAILED;
         }
@@ -5768,7 +5769,7 @@ class VkDecoderGlobalState::Impl {
         AndroidNativeBufferInfo* anbInfo = imageInfo->anbInfo.get();
 
         VkResult result = setAndroidNativeImageSemaphoreSignaled(
-            vk, device, defaultQueue, defaultQueueFamilyIndex, defaultQueueLock, semaphore,
+            vk, device, defaultQueue, defaultQueueFamilyIndex, defaultQueueMutex, semaphore,
             usedFence, anbInfo);
         if (result != VK_SUCCESS) {
             return result;
@@ -5829,7 +5830,7 @@ class VkDecoderGlobalState::Impl {
         }
 
         return syncImageToColorBuffer(m_emu->callbacks, vk, queueInfo->queueFamilyIndex, queue,
-                                      queueInfo->physicalQueueLock.get(), waitSemaphoreCount, pWaitSemaphores,
+                                      queueInfo->queueMutex.get(), waitSemaphoreCount, pWaitSemaphores,
                                       pNativeFenceFd, anbInfo);
     }
 
@@ -6255,7 +6256,7 @@ class VkDecoderGlobalState::Impl {
         }
 
         VkDevice device = VK_NULL_HANDLE;
-        Lock* ql;
+        std::mutex* queueMutex = nullptr;
         {
             std::lock_guard<std::recursive_mutex> lock(mLock);
             auto* queueInfo = android::base::find(mQueueInfo, queue);
@@ -6264,7 +6265,7 @@ class VkDecoderGlobalState::Impl {
                 return VK_ERROR_INITIALIZATION_FAILED;
             }
             device = queueInfo->device;
-            ql = queueInfo->physicalQueueLock.get();
+            queueMutex = queueInfo->queueMutex.get();
 
             // Unsafe to release when snapshot enabled.
             // Snapshot load might fail to find the shader modules if we release them here.
@@ -6316,7 +6317,7 @@ class VkDecoderGlobalState::Impl {
             }
         }
 
-        AutoLock qlock(*ql);
+        std::lock_guard<std::mutex> queueLock(*queueMutex);
         auto result = dispatchVkQueueSubmit(vk, queue, submitCount, pSubmits, usedFence);
 
         if (result != VK_SUCCESS) {
@@ -6399,12 +6400,12 @@ class VkDecoderGlobalState::Impl {
 
         if (!queue) return VK_SUCCESS;
 
-        Lock* ql;
+        std::mutex* queueMutex;
         {
             std::lock_guard<std::recursive_mutex> lock(mLock);
             auto* queueInfo = android::base::find(mQueueInfo, queue);
             if (!queueInfo) return VK_SUCCESS;
-            ql = queueInfo->physicalQueueLock.get();
+            queueMutex = queueInfo->queueMutex.get();
         }
 
         if (mEnableVirtualVkQueue) {
@@ -6413,7 +6414,7 @@ class VkDecoderGlobalState::Impl {
             // allow submissions and other operations on the virtualized queue
         }
 
-        AutoLock qlock(*ql);
+        std::lock_guard<std::mutex> queueLock(*queueMutex);
         return vk->vkQueueWaitIdle(queue);
     }
 
@@ -8297,7 +8298,7 @@ class VkDecoderGlobalState::Impl {
     }
 
     bool getDefaultQueueForDeviceLocked(VkDevice device, VkQueue* queue, uint32_t* queueFamilyIndex,
-                                        Lock** queueLock) {
+                                        std::mutex** queueMutex) {
         auto* deviceInfo = android::base::find(mDeviceInfo, device);
         if (!deviceInfo) return false;
 
@@ -8310,7 +8311,7 @@ class VkDecoderGlobalState::Impl {
                 for (auto& deviceQueue : it.second) {
                     *queue = deviceQueue;
                     *queueFamilyIndex = index;
-                    *queueLock = mQueueInfo.at(deviceQueue).physicalQueueLock.get();
+                    *queueMutex = mQueueInfo.at(deviceQueue).queueMutex.get();
                     return true;
                 }
             }
@@ -8320,7 +8321,7 @@ class VkDecoderGlobalState::Impl {
             // Use queue family index 0.
             *queue = zeroIt->second[0];
             *queueFamilyIndex = 0;
-            *queueLock = mQueueInfo.at(zeroIt->second[0]).physicalQueueLock.get();
+            *queueMutex = mQueueInfo.at(zeroIt->second[0]).queueMutex.get();
             return true;
         }
 
@@ -8596,6 +8597,25 @@ class VkDecoderGlobalState::Impl {
         }
     }
 
+    void extractDeviceAndDependenciesLocked(VkDevice device, InstanceObjects::DeviceObjects& deviceObjects) {
+        extractInfosWithDeviceInto(device, mBufferInfo, deviceObjects.buffers);
+        extractInfosWithDeviceInto(device, mCommandBufferInfo, deviceObjects.commandBuffers);
+        extractInfosWithDeviceInto(device, mCommandPoolInfo, deviceObjects.commandPools);
+        extractInfosWithDeviceInto(device, mDescriptorPoolInfo, deviceObjects.descriptorPools);
+        extractInfosWithDeviceInto(device, mDescriptorSetLayoutInfo, deviceObjects.descriptorSetLayouts);
+        extractInfosWithDeviceInto(device, mFenceInfo, deviceObjects.fences);
+        extractInfosWithDeviceInto(device, mFramebufferInfo, deviceObjects.framebuffers);
+        extractInfosWithDeviceInto(device, mImageInfo, deviceObjects.images);
+        extractInfosWithDeviceInto(device, mImageViewInfo, deviceObjects.imageViews);
+        extractInfosWithDeviceInto(device, mMemoryInfo, deviceObjects.memories);
+        extractInfosWithDeviceInto(device, mPipelineCacheInfo, deviceObjects.pipelineCaches);
+        extractInfosWithDeviceInto(device, mQueueInfo, deviceObjects.queues);
+        extractInfosWithDeviceInto(device, mPipelineInfo, deviceObjects.pipelines);
+        extractInfosWithDeviceInto(device, mRenderPassInfo, deviceObjects.renderPasses);
+        extractInfosWithDeviceInto(device, mSemaphoreInfo, deviceObjects.semaphores);
+        extractInfosWithDeviceInto(device, mShaderModuleInfo, deviceObjects.shaderModules);
+    }
+
     void extractInstanceAndDependenciesLocked(VkInstance instance, InstanceObjects& objects) {
         auto instanceInfoIt = mInstanceInfo.find(instance);
         if (instanceInfoIt == mInstanceInfo.end()) return;
@@ -8618,24 +8638,7 @@ class VkDecoderGlobalState::Impl {
 
             InstanceObjects::DeviceObjects& deviceObjects = objects.devices.emplace_back();
             deviceObjects.device = mDeviceInfo.extract(deviceInfoIt);
-
-            extractInfosWithDeviceInto(device, mBufferInfo, deviceObjects.buffers);
-            extractInfosWithDeviceInto(device, mCommandBufferInfo, deviceObjects.commandBuffers);
-            extractInfosWithDeviceInto(device, mCommandPoolInfo, deviceObjects.commandPools);
-            extractInfosWithDeviceInto(device, mDescriptorPoolInfo, deviceObjects.descriptorPools);
-            extractInfosWithDeviceInto(device, mDescriptorSetLayoutInfo,
-                                       deviceObjects.descriptorSetLayouts);
-            extractInfosWithDeviceInto(device, mFenceInfo, deviceObjects.fences);
-            extractInfosWithDeviceInto(device, mFramebufferInfo, deviceObjects.framebuffers);
-            extractInfosWithDeviceInto(device, mImageInfo, deviceObjects.images);
-            extractInfosWithDeviceInto(device, mImageViewInfo, deviceObjects.imageViews);
-            extractInfosWithDeviceInto(device, mMemoryInfo, deviceObjects.memories);
-            extractInfosWithDeviceInto(device, mPipelineCacheInfo, deviceObjects.pipelineCaches);
-            extractInfosWithDeviceInto(device, mQueueInfo, deviceObjects.queues);
-            extractInfosWithDeviceInto(device, mPipelineInfo, deviceObjects.pipelines);
-            extractInfosWithDeviceInto(device, mRenderPassInfo, deviceObjects.renderPasses);
-            extractInfosWithDeviceInto(device, mSemaphoreInfo, deviceObjects.semaphores);
-            extractInfosWithDeviceInto(device, mShaderModuleInfo, deviceObjects.shaderModules);
+            extractDeviceAndDependenciesLocked(device, deviceObjects);
         }
 
         for (InstanceObjects::DeviceObjects& deviceObjects : objects.devices) {
@@ -8652,15 +8655,7 @@ class VkDecoderGlobalState::Impl {
         }
     }
 
-    void destroyInstanceObjects(InstanceObjects& objects) {
-        VkInstance instance = objects.instance.key();
-        InstanceInfo& instanceInfo = objects.instance.mapped();
-        LOG_CALLS_VERBOSE(
-            "destroyInstanceObjects called for instance (app:%s, engine:%s) with %d devices.",
-            instanceInfo.applicationName.c_str(), instanceInfo.engineName.c_str(),
-            objects.devices.size());
-
-        for (InstanceObjects::DeviceObjects& deviceObjects : objects.devices) {
+    void destroyDeviceObjects(InstanceObjects::DeviceObjects& deviceObjects) {
             VkDevice device = deviceObjects.device.key();
             DeviceInfo& deviceInfo = deviceObjects.device.mapped();
             VulkanDispatch* deviceDispatch = dispatch_VkDevice(deviceInfo.boxed);
@@ -8673,95 +8668,95 @@ class VkDecoderGlobalState::Impl {
                 // to avoid further issues.
                 ERR("Cannot destroy Vulkan device and objects. "
                     "vkDeviceWaitIdle failed with %s [%d].", string_VkResult(res), res);
-                continue;
+                return;
             }
 
-            LOG_CALLS_VERBOSE("destroyInstanceObjects: %zu semaphores.", deviceObjects.semaphores.size());
+            LOG_CALLS_VERBOSE("destroyDeviceObjects: %zu semaphores.", deviceObjects.semaphores.size());
             for (auto& [semaphore, semaphoreInfo] : deviceObjects.semaphores) {
                 destroySemaphoreWithExclusiveInfo(device, deviceDispatch, semaphore, semaphoreInfo,
                                                   nullptr);
             }
 
-            LOG_CALLS_VERBOSE("destroyInstanceObjects: %zu samplers.", deviceObjects.samplers.size());
+            LOG_CALLS_VERBOSE("destroyDeviceObjects: %zu samplers.", deviceObjects.samplers.size());
             for (auto& [sampler, samplerInfo] : deviceObjects.samplers) {
                 destroySamplerWithExclusiveInfo(device, deviceDispatch, sampler, samplerInfo,
                                                 nullptr);
             }
 
-            LOG_CALLS_VERBOSE("destroyInstanceObjects: %zu buffers.", deviceObjects.buffers.size());
+            LOG_CALLS_VERBOSE("destroyDeviceObjects: %zu buffers.", deviceObjects.buffers.size());
             for (auto& [buffer, bufferInfo] : deviceObjects.buffers) {
                 destroyBufferWithExclusiveInfo(device, deviceDispatch, buffer, bufferInfo, nullptr);
             }
 
-            LOG_CALLS_VERBOSE("destroyInstanceObjects: %zu imageViews.", deviceObjects.imageViews.size());
+            LOG_CALLS_VERBOSE("destroyDeviceObjects: %zu imageViews.", deviceObjects.imageViews.size());
             for (auto& [imageView, imageViewInfo] : deviceObjects.imageViews) {
                 destroyImageViewWithExclusiveInfo(device, deviceDispatch, imageView, imageViewInfo,
                                                   nullptr);
             }
 
-            LOG_CALLS_VERBOSE("destroyInstanceObjects: %zu images.", deviceObjects.images.size());
+            LOG_CALLS_VERBOSE("destroyDeviceObjects: %zu images.", deviceObjects.images.size());
             for (auto& [image, imageInfo] : deviceObjects.images) {
                 destroyImageWithExclusiveInfo(device, deviceDispatch, image, imageInfo, nullptr);
             }
 
-            LOG_CALLS_VERBOSE("destroyInstanceObjects: %zu memories.", deviceObjects.memories.size());
+            LOG_CALLS_VERBOSE("destroyDeviceObjects: %zu memories.", deviceObjects.memories.size());
             for (auto& [memory, memoryInfo] : deviceObjects.memories) {
                 destroyMemoryWithExclusiveInfo(device, deviceDispatch, memory, memoryInfo, nullptr);
             }
 
-            LOG_CALLS_VERBOSE("destroyInstanceObjects: %zu commandBuffers.", deviceObjects.commandBuffers.size());
+            LOG_CALLS_VERBOSE("destroyDeviceObjects: %zu commandBuffers.", deviceObjects.commandBuffers.size());
             for (auto& [commandBuffer, commandBufferInfo] : deviceObjects.commandBuffers) {
                 freeCommandBufferWithExclusiveInfos(device, deviceDispatch, commandBuffer,
                                                        commandBufferInfo,
                                                        deviceObjects.commandPools);
             }
 
-            LOG_CALLS_VERBOSE("destroyInstanceObjects: %zu commandPools.", deviceObjects.commandPools.size());
+            LOG_CALLS_VERBOSE("destroyDeviceObjects: %zu commandPools.", deviceObjects.commandPools.size());
             for (auto& [commandPool, commandPoolInfo] : deviceObjects.commandPools) {
                 destroyCommandPoolWithExclusiveInfo(device, deviceDispatch, commandPool,
                                                     commandPoolInfo, deviceObjects.commandBuffers,
                                                     nullptr);
             }
 
-            LOG_CALLS_VERBOSE("destroyInstanceObjects: %zu descriptorPools.", deviceObjects.descriptorPools.size());
+            LOG_CALLS_VERBOSE("destroyDeviceObjects: %zu descriptorPools.", deviceObjects.descriptorPools.size());
             for (auto& [descriptorPool, descriptorPoolInfo] : deviceObjects.descriptorPools) {
                 destroyDescriptorPoolWithExclusiveInfo(device, deviceDispatch, descriptorPool,
                                                        descriptorPoolInfo,
                                                        deviceObjects.descriptorSets, nullptr);
             }
 
-            LOG_CALLS_VERBOSE("destroyInstanceObjects: %zu descriptorSetLayouts.", deviceObjects.descriptorSetLayouts.size());
+            LOG_CALLS_VERBOSE("destroyDeviceObjects: %zu descriptorSetLayouts.", deviceObjects.descriptorSetLayouts.size());
             for (auto& [descriptorSetLayout, descriptorSetLayoutInfo] :
                  deviceObjects.descriptorSetLayouts) {
                 destroyDescriptorSetLayoutWithExclusiveInfo(
                     device, deviceDispatch, descriptorSetLayout, descriptorSetLayoutInfo, nullptr);
             }
 
-            LOG_CALLS_VERBOSE("destroyInstanceObjects: %zu shaderModules.", deviceObjects.shaderModules.size());
+            LOG_CALLS_VERBOSE("destroyDeviceObjects: %zu shaderModules.", deviceObjects.shaderModules.size());
             for (auto& [shaderModule, shaderModuleInfo] : deviceObjects.shaderModules) {
                 destroyShaderModuleWithExclusiveInfo(device, deviceDispatch, shaderModule,
                                                      shaderModuleInfo, nullptr);
             }
 
-            LOG_CALLS_VERBOSE("destroyInstanceObjects: %zu pipelines.", deviceObjects.pipelines.size());
+            LOG_CALLS_VERBOSE("destroyDeviceObjects: %zu pipelines.", deviceObjects.pipelines.size());
             for (auto& [pipeline, pipelineInfo] : deviceObjects.pipelines) {
                 destroyPipelineWithExclusiveInfo(device, deviceDispatch, pipeline, pipelineInfo,
                                                  nullptr);
             }
 
-            LOG_CALLS_VERBOSE("destroyInstanceObjects: %zu pipelineCaches.", deviceObjects.pipelineCaches.size());
+            LOG_CALLS_VERBOSE("destroyDeviceObjects: %zu pipelineCaches.", deviceObjects.pipelineCaches.size());
             for (auto& [pipelineCache, pipelineCacheInfo] : deviceObjects.pipelineCaches) {
                 destroyPipelineCacheWithExclusiveInfo(device, deviceDispatch, pipelineCache,
                                                       pipelineCacheInfo, nullptr);
             }
 
-            LOG_CALLS_VERBOSE("destroyInstanceObjects: %zu framebuffers.", deviceObjects.framebuffers.size());
+            LOG_CALLS_VERBOSE("destroyDeviceObjects: %zu framebuffers.", deviceObjects.framebuffers.size());
             for (auto& [framebuffer, framebufferInfo] : deviceObjects.framebuffers) {
                 destroyFramebufferWithExclusiveInfo(device, deviceDispatch, framebuffer,
                                                     framebufferInfo, nullptr);
             }
 
-            LOG_CALLS_VERBOSE("destroyInstanceObjects: %zu renderPasses.", deviceObjects.renderPasses.size());
+            LOG_CALLS_VERBOSE("destroyDeviceObjects: %zu renderPasses.", deviceObjects.renderPasses.size());
             for (auto& [renderPass, renderPassInfo] : deviceObjects.renderPasses) {
                 destroyRenderPassWithExclusiveInfo(device, deviceDispatch, renderPass,
                                                    renderPassInfo, nullptr);
@@ -8769,6 +8764,18 @@ class VkDecoderGlobalState::Impl {
 
             destroyDeviceWithExclusiveInfo(device, deviceObjects.device.mapped(),
                                            deviceObjects.fences, deviceObjects.queues, nullptr);
+    }
+
+    void destroyInstanceObjects(InstanceObjects& objects) {
+        VkInstance instance = objects.instance.key();
+        InstanceInfo& instanceInfo = objects.instance.mapped();
+        LOG_CALLS_VERBOSE(
+            "destroyInstanceObjects called for instance (app:%s, engine:%s) with %d devices.",
+            instanceInfo.applicationName.c_str(), instanceInfo.engineName.c_str(),
+            objects.devices.size());
+
+        for (InstanceObjects::DeviceObjects& deviceObjects : objects.devices) {
+            destroyDeviceObjects(deviceObjects);
         }
 
         m_vk->vkDestroyInstance(instance, nullptr);
