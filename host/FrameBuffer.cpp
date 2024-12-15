@@ -69,7 +69,6 @@
 namespace gfxstream {
 
 using android::base::AutoLock;
-using android::base::ManagedDescriptor;
 using android::base::MetricEventVulkanOutOfMemory;
 using android::base::Stream;
 using android::base::WorkerProcessingResult;
@@ -388,9 +387,7 @@ bool FrameBuffer::initialize(int width, int height, gfxstream::host::FeatureSet 
     std::unique_ptr<VkEmulationFeatures> vkEmulationFeatures =
         std::make_unique<VkEmulationFeatures>(VkEmulationFeatures{
             .glInteropSupported = false,  // Set later.
-            .deferredCommands =
-                android::base::getEnvironmentVariable("ANDROID_EMU_VK_DISABLE_DEFERRED_COMMANDS")
-                    .empty(),
+            .deferredCommands = fb->m_features.VulkanQueueSubmitWithCommands.enabled,
             .createResourceWithRequirements =
                 android::base::getEnvironmentVariable(
                     "ANDROID_EMU_VK_DISABLE_USE_CREATE_RESOURCES_WITH_REQUIREMENTS")
@@ -2830,13 +2827,13 @@ bool FrameBuffer::platformImportResource(uint32_t handle, uint32_t info, void* r
 #if GFXSTREAM_ENABLE_HOST_GLES
         case RESOURCE_TYPE_EGL_NATIVE_PIXMAP:
             return colorBuffer->glOpImportEglNativePixmap(resource, preserveContent);
-        case RESOURCE_TYPE_EGL_IMAGE:
-            return colorBuffer->glOpImportEglImage(resource, preserveContent);
 #endif
         // Note: Additional non-EGL resource-types can be added here, and will
         // be propagated through color-buffer import functionality
         case RESOURCE_TYPE_VK_EXT_MEMORY_HANDLE:
-            return colorBuffer->importNativeResource(resource, type, preserveContent);
+            // No support for preserveContent for Vulkan external memory handles
+            assert(!preserveContent);
+            return colorBuffer->importNativeResource(resource, type);
         default:
             ERR("Error: unsupported resource type: %u", type);
             return false;
@@ -2942,12 +2939,12 @@ void FrameBuffer::setDisplayActiveConfig(int configId) {
     INFO("setDisplayActiveConfig %d", configId);
 }
 
-const int FrameBuffer::getDisplayConfigsCount() {
+int FrameBuffer::getDisplayConfigsCount() {
     AutoLock mutex(m_lock);
     return mDisplayConfigs.size();
 }
 
-const int FrameBuffer::getDisplayConfigsParam(int configId, EGLint param) {
+int FrameBuffer::getDisplayConfigsParam(int configId, EGLint param) {
     AutoLock mutex(m_lock);
     if (mDisplayConfigs.find(configId) == mDisplayConfigs.end()) {
         return -1;
@@ -2972,7 +2969,7 @@ const int FrameBuffer::getDisplayConfigsParam(int configId, EGLint param) {
     }
 }
 
-const int FrameBuffer::getDisplayActiveConfig() {
+int FrameBuffer::getDisplayActiveConfig() {
     AutoLock mutex(m_lock);
     return mDisplayActiveConfigId >= 0 ? mDisplayActiveConfigId : -1;
 }

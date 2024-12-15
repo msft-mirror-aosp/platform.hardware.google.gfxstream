@@ -214,9 +214,6 @@ class ColorBufferGl {
                       bool dedicated, bool linearTiling);
     // Change to EGL native pixmap
     bool importEglNativePixmap(void* pixmap, bool preserveContent);
-    // Change to some other native EGL image.  nativeEglImage must not have
-    // been created from our s_egl.eglCreateImage.
-    bool importEglImage(void* nativeEglImage, bool preserveContent);
 
     void setSync(bool debug = false);
     void waitSync(bool debug = false);
