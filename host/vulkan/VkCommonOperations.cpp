@@ -2790,18 +2790,6 @@ bool teardownVkColorBuffer(uint32_t colorBufferHandle) {
     return teardownVkColorBufferLocked(colorBufferHandle);
 }
 
-bool importExtMemoryHandleToVkColorBuffer(uint32_t colorBufferHandle,
-                                          ExternalHandleInfo extMemHandleInfo) {
-    if (!sVkEmulation || !sVkEmulation->live) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "VkEmulation not available.";
-    }
-
-    AutoLock lock(sVkEmulationLock);
-    // Initialize the colorBuffer with the external memory handle
-    // Note that this will fail if the colorBuffer memory was previously initialized.
-    return initializeVkColorBufferLocked(colorBufferHandle, extMemHandleInfo);
-}
-
 VkEmulation::ColorBufferInfo getColorBufferInfo(uint32_t colorBufferHandle) {
     VkEmulation::ColorBufferInfo res;
 
