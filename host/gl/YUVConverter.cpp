@@ -432,9 +432,11 @@ static void getYUVOffsets(int width,
         }
         case FRAMEWORK_FORMAT_GL_COMPATIBLE: {
             FATAL("Input not a YUV format! (FRAMEWORK_FORMAT_GL_COMPATIBLE)");
+            break;
         }
         default: {
             FATAL("Unknown format: 0x%x", format);
+            break;
         }
     }
 }

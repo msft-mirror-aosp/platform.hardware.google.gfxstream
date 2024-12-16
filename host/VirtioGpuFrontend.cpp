@@ -126,8 +126,7 @@ int VirtioGpuFrontend::init(void* cookie, gfxstream::host::FeatureSet features,
         stream_renderer_error("Could not get address space device control ops!");
         return -EINVAL;
     }
-    mVirtioGpuTimelines = VirtioGpuTimelines::create(true);
-    mVirtioGpuTimelines = VirtioGpuTimelines::create(true);
+    mVirtioGpuTimelines = VirtioGpuTimelines::create(getFenceCompletionCallback());
 
 #if !defined(_WIN32)
     mPageSize = getpagesize();
@@ -183,6 +182,21 @@ int VirtioGpuFrontend::createContext(VirtioGpuCtxId contextId, uint32_t nlen, co
     }
     mContexts[contextId] = std::move(*contextOpt);
     return 0;
+}
+
+VirtioGpuTimelines::FenceCompletionCallback VirtioGpuFrontend::getFenceCompletionCallback() {
+    // Forwards fence completions from VirtioGpuTimelines to the client (VMM).
+    return [this](const VirtioGpuTimelines::Ring& ring, VirtioGpuTimelines::FenceId fenceId) {
+        struct stream_renderer_fence fence = {0};
+        fence.fence_id = fenceId;
+        fence.flags = STREAM_RENDERER_FLAG_FENCE;
+        if (const auto* contextSpecificRing = std::get_if<VirtioGpuRingContextSpecific>(&ring)) {
+            fence.flags |= STREAM_RENDERER_FLAG_FENCE_RING_IDX;
+            fence.ctx_id = contextSpecificRing->mCtxId;
+            fence.ring_idx = contextSpecificRing->mRingIdx;
+        }
+        mFenceCallback(mCookie, &fence);
+    };
 }
 
 int VirtioGpuFrontend::destroyContext(VirtioGpuCtxId contextId) {
@@ -411,37 +425,7 @@ int VirtioGpuFrontend::createFence(uint64_t fence_id, const VirtioGpuRing& ring)
     stream_renderer_debug("fenceid: %llu ring: %s", (unsigned long long)fence_id,
                           to_string(ring).c_str());
 
-    struct {
-        FenceCompletionCallback operator()(const VirtioGpuRingGlobal&) {
-            return [frontend = mFrontend, fenceId = mFenceId] {
-                struct stream_renderer_fence fence = {0};
-                fence.fence_id = fenceId;
-                fence.flags = STREAM_RENDERER_FLAG_FENCE;
-                frontend->mFenceCallback(frontend->mCookie, &fence);
-            };
-        }
-        FenceCompletionCallback operator()(const VirtioGpuRingContextSpecific& ring) {
-            return [frontend = mFrontend, fenceId = mFenceId, ring] {
-                struct stream_renderer_fence fence = {0};
-                fence.fence_id = fenceId;
-                fence.flags = STREAM_RENDERER_FLAG_FENCE | STREAM_RENDERER_FLAG_FENCE_RING_IDX;
-                fence.ctx_id = ring.mCtxId;
-                fence.ring_idx = ring.mRingIdx;
-                frontend->mFenceCallback(frontend->mCookie, &fence);
-            };
-        }
-
-        VirtioGpuFrontend* mFrontend;
-        VirtioGpuTimelines::FenceId mFenceId;
-    } visitor{
-        .mFrontend = this,
-        .mFenceId = fence_id,
-    };
-    FenceCompletionCallback callback = std::visit(visitor, ring);
-    if (!callback) {
-        return -EINVAL;
-    }
-    mVirtioGpuTimelines->enqueueFence(ring, fence_id, std::move(callback));
+    mVirtioGpuTimelines->enqueueFence(ring, fence_id);
 
     return 0;
 }
@@ -985,9 +969,6 @@ inline const GoldfishPipeServiceOps* VirtioGpuFrontend::ensureAndGetServiceOps()
 
 #ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
 
-// Work in progress. Disabled for now but code is present to get build CI.
-static constexpr const bool kEnableFrontendAndAsgSnapshots = false;
-
 static constexpr const char kSnapshotBasenameAsg[] = "gfxstream_asg.bin";
 static constexpr const char kSnapshotBasenameFrontend[] = "gfxstream_frontend.txtproto";
 static constexpr const char kSnapshotBasenameRenderer[] = "gfxstream_renderer.bin";
@@ -1024,6 +1005,15 @@ int VirtioGpuFrontend::snapshotFrontend(const char* directory) {
             return -1;
         }
         (*snapshot.mutable_resources())[resourceId] = std::move(*resourceSnapshotOpt);
+    }
+
+    if (mVirtioGpuTimelines) {
+        auto timelinesSnapshotOpt = mVirtioGpuTimelines->Snapshot();
+        if (!timelinesSnapshotOpt) {
+            stream_renderer_error("Failed to snapshot timelines.");
+            return -1;
+        }
+        snapshot.mutable_timelines()->Swap(&*timelinesSnapshotOpt);
     }
 
     const std::filesystem::path snapshotDirectory = std::string(directory);
@@ -1072,18 +1062,16 @@ int VirtioGpuFrontend::snapshot(const char* directory) {
         return ret;
     }
 
-    if (kEnableFrontendAndAsgSnapshots) {
-        ret = snapshotFrontend(directory);
-        if (ret) {
-            stream_renderer_error("Failed to save snapshot: failed to snapshot frontend.");
-            return ret;
-        }
+    ret = snapshotFrontend(directory);
+    if (ret) {
+        stream_renderer_error("Failed to save snapshot: failed to snapshot frontend.");
+        return ret;
+    }
 
-        ret = snapshotAsg(directory);
-        if (ret) {
-            stream_renderer_error("Failed to save snapshot: failed to snapshot ASG device.");
-            return ret;
-        }
+    ret = snapshotAsg(directory);
+    if (ret) {
+        stream_renderer_error("Failed to save snapshot: failed to snapshot ASG device.");
+        return ret;
     }
 
     stream_renderer_debug("directory:%s - done!", directory);
@@ -1143,6 +1131,14 @@ int VirtioGpuFrontend::restoreFrontend(const char* directory) {
         }
         mResources.emplace(resourceId, std::move(*resourceOpt));
     }
+
+    mVirtioGpuTimelines =
+        VirtioGpuTimelines::Restore(getFenceCompletionCallback(), snapshot.timelines());
+    if (!mVirtioGpuTimelines) {
+        stream_renderer_error("Failed to restore timelines.");
+        return -1;
+    }
+
     return 0;
 }
 
@@ -1156,9 +1152,45 @@ int VirtioGpuFrontend::restoreAsg(const char* directory) {
         .stream = &stream,
     };
 
-    int ret = android::emulation::goldfish_address_space_memory_state_load(loadStream.stream);
+    // Gather external memory info that the ASG device needs to reload.
+    android::emulation::AddressSpaceDeviceLoadResources asgLoadResources;
+    for (const auto& [contextId, context] : mContexts) {
+        for (const auto [resourceId, asgId] : context.AsgInstances()) {
+            auto resourceIt = mResources.find(resourceId);
+            if (resourceIt == mResources.end()) {
+                stream_renderer_error("Failed to restore ASG device: context %" PRIu32
+                                      " claims resource %" PRIu32 " is used for ASG %" PRIu32
+                                      " but resource not found.",
+                                      contextId, resourceId, asgId);
+                return -1;
+            }
+            auto& resource = resourceIt->second;
+
+            void* mappedAddr = nullptr;
+            uint64_t mappedSize = 0;
+
+            int ret = resource.Map(&mappedAddr, &mappedSize);
+            if (ret) {
+                stream_renderer_error("Failed to restore ASG device: failed to map resource %" PRIu32, resourceId);
+                return -1;
+            }
+
+            asgLoadResources.contextExternalMemoryMap[asgId] = {
+                .externalAddress = mappedAddr,
+                .externalAddressSize = mappedSize,
+            };
+        }
+    }
+
+    int ret = android::emulation::goldfish_address_space_memory_state_set_load_resources(asgLoadResources);
     if (ret) {
-        stream_renderer_error("Failed to restore snapshot: failed to restore ASG state.");
+        stream_renderer_error("Failed to restore ASG device: failed to set ASG load resources.");
+        return ret;
+    }
+
+    ret = android::emulation::goldfish_address_space_memory_state_load(loadStream.stream);
+    if (ret) {
+        stream_renderer_error("Failed to restore ASG device: failed to restore ASG state.");
         return ret;
     }
     return 0;
@@ -1175,18 +1207,16 @@ int VirtioGpuFrontend::restore(const char* directory) {
         return ret;
     }
 
-    if (kEnableFrontendAndAsgSnapshots) {
-        ret = restoreFrontend(directory);
-        if (ret) {
-            stream_renderer_error("Failed to load snapshot: failed to load frontend.");
-            return ret;
-        }
+    ret = restoreFrontend(directory);
+    if (ret) {
+        stream_renderer_error("Failed to load snapshot: failed to load frontend.");
+        return ret;
+    }
 
-        ret = restoreAsg(directory);
-        if (ret) {
-            stream_renderer_error("Failed to load snapshot: failed to load ASG device.");
-            return ret;
-        }
+    ret = restoreAsg(directory);
+    if (ret) {
+        stream_renderer_error("Failed to load snapshot: failed to load ASG device.");
+        return ret;
     }
 
     // In end2end tests, we don't really do snapshot save for render threads.

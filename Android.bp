@@ -149,8 +149,8 @@ cc_defaults {
             cflags: [
                 "-DGFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT=1",
             ],
-        }
-    }
+        },
+    },
 }
 
 cc_defaults {
@@ -163,17 +163,11 @@ cc_defaults {
         "-D_FILE_OFFSET_BITS=64",
         "-DVK_GFXSTREAM_STRUCTURE_TYPE_EXT",
         "-DGFXSTREAM_ENABLE_HOST_GLES=1",
-        "-Wno-unreachable-code-loop-increment",
-        "-Wno-unused-parameter",
+        "-Wall",
         "-Wno-unused-function",
-        "-Wno-unused-variable",
-        "-Wno-ignored-qualifiers",
-        "-Wno-reorder-ctor",
-        "-Wno-mismatched-tags",
-        "-Wno-missing-field-initializers",
-        "-Wno-implicit-fallthrough",
+        "-Wno-unused-parameter",
         "-Wno-unused-private-field",
-        "-Wno-macro-redefined",
+        "-Wno-unused-variable",
     ],
     header_libs: [
         "gfxstream_headers",
