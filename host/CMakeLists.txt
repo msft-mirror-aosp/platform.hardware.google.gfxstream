@@ -168,7 +168,7 @@ endif()
 
 
 if(CONFIG_AEMU)
-    android_install_shared(gfxstream_backend)
+    android_install_shared_library(TARGET gfxstream_backend)
 else()
     install(
       TARGETS gfxstream_backend RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX} LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX})
