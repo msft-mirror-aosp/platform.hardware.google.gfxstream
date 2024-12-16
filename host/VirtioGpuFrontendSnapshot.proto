@@ -16,6 +16,7 @@ syntax = "proto3";
 
 import "VirtioGpuContextSnapshot.proto";
 import "VirtioGpuResourceSnapshot.proto";
+import "VirtioGpuTimelinesSnapshot.proto";
 
 package gfxstream.host.snapshot;
 
@@ -26,5 +27,6 @@ package gfxstream.host.snapshot;
 message VirtioGpuFrontendSnapshot {
     map<uint32, VirtioGpuContextSnapshot> contexts = 1;
     map<uint32, VirtioGpuResourceSnapshot> resources = 2;
+    optional VirtioGpuTimelinesSnapshot timelines = 3;
 }
 // LINT.ThenChange(VirtioGpuFrontend.h:virtio_gpu_frontend)

@@ -314,7 +314,7 @@ endfunction()
         tests/CompositorVk_unittest.cpp
         tests/SwapChainStateVk_unittest.cpp
         tests/DisplayVk_unittest.cpp
-        tests/VirtioGpuTimelines_unittest.cpp
+        VirtioGpuTimelinesTests.cpp
         vulkan/vk_util_unittest.cpp
         vulkan/VkFormatUtils_unittest.cpp
         vulkan/VkQsriTimeline_unittest.cpp
