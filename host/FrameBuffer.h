@@ -216,9 +216,9 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
     // Variant of createColorBuffer except with a particular
     // handle already assigned. This is for use with
     // virtio-gpu's RESOURCE_CREATE ioctl.
-    void createColorBufferWithHandle(int p_width, int p_height, GLenum p_internalFormat,
-                                     FrameworkFormat p_frameworkFormat, HandleType handle,
-                                     bool linear = false);
+    void createColorBufferWithResourceHandle(int p_width, int p_height, GLenum p_internalFormat,
+                                             FrameworkFormat p_frameworkFormat, HandleType handle,
+                                             bool linear = false);
 
     // Create a new data Buffer instance from this display instance.
     // The buffer will be backed by a VkBuffer and VkDeviceMemory (if Vulkan
@@ -231,7 +231,7 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
     // Variant of createBuffer except with a particular handle already
     // assigned and using device local memory. This is for use with
     // virtio-gpu's RESOURCE_CREATE ioctl for BLOB resources.
-    void createBufferWithHandle(uint64_t size, HandleType handle);
+    void createBufferWithResourceHandle(uint64_t size, HandleType handle);
 
     // Increment the reference count associated with a given ColorBuffer
     // instance. |p_colorbuffer| is its handle value as returned by
@@ -725,10 +725,12 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
         m_guestPostedAFrame = true;
         fireEvent({FrameBufferChange::FrameReady, mFrameNumber++});
     }
-    HandleType createColorBufferWithHandleLocked(int p_width, int p_height, GLenum p_internalFormat,
-                                                 FrameworkFormat p_frameworkFormat,
-                                                 HandleType handle, bool linear = false);
-    HandleType createBufferWithHandleLocked(int p_size, HandleType handle, uint32_t memoryProperty);
+    HandleType createColorBufferWithResourceHandleLocked(int p_width, int p_height,
+                                                         GLenum p_internalFormat,
+                                                         FrameworkFormat p_frameworkFormat,
+                                                         HandleType handle, bool linear = false);
+    HandleType createBufferWithResourceHandleLocked(int p_size, HandleType handle,
+                                                    uint32_t memoryProperty);
 
     void recomputeLayout();
     void setDisplayPoseInSkinUI(int totalHeight);
