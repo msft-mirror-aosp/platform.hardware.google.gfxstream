@@ -1988,12 +1988,12 @@ bool importExternalMemory(VulkanDispatch* vk, VkDevice targetDevice,
                           VkDeviceMemory* out) {
     const void* importInfoPtr = nullptr;
     auto handleInfo = info->handleInfo;
+#ifdef _WIN32
     if (!handleInfo) {
-        ERR("importExternalMemory: External handle info is not available to be imported for the "
-            "memory allocation");
+        ERR("importExternalMemory: external handle info is not available, cannot retrieve win32 "
+            "handle.");
         return false;
     }
-#ifdef _WIN32
     VkImportMemoryWin32HandleInfoKHR importInfo = {
         VK_STRUCTURE_TYPE_IMPORT_MEMORY_WIN32_HANDLE_INFO_KHR,
         dedicatedAllocInfoPtr,
@@ -2003,6 +2003,11 @@ bool importExternalMemory(VulkanDispatch* vk, VkDevice targetDevice,
     };
     importInfoPtr = &importInfo;
 #elif defined(__QNX__)
+    if (!handleInfo) {
+        ERR("importExternalMemory: external handle info is not available, cannot retrieve "
+            "screen_buffer_t handle.");
+        return false;
+    }
     VkImportScreenBufferInfoQNX importInfo = {
         VK_STRUCTURE_TYPE_IMPORT_SCREEN_BUFFER_INFO_QNX,
         dedicatedAllocInfoPtr,
