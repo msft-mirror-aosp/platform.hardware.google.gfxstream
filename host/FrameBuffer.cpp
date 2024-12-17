@@ -2832,7 +2832,9 @@ bool FrameBuffer::platformImportResource(uint32_t handle, uint32_t info, void* r
         // Note: Additional non-EGL resource-types can be added here, and will
         // be propagated through color-buffer import functionality
         case RESOURCE_TYPE_VK_EXT_MEMORY_HANDLE:
-            return colorBuffer->importNativeResource(resource, type, preserveContent);
+            // No support for preserveContent for Vulkan external memory handles
+            assert(!preserveContent);
+            return colorBuffer->importNativeResource(resource, type);
         default:
             ERR("Error: unsupported resource type: %u", type);
             return false;

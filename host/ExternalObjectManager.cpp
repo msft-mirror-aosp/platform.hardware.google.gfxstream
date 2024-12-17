@@ -51,14 +51,14 @@ std::optional<HostMemInfo> ExternalObjectManager::removeMapping(uint32_t ctxId, 
 }
 
 void ExternalObjectManager::addBlobDescriptorInfo(uint32_t ctxId, uint64_t blobId,
-                                                  ManagedDescriptor descriptor, uint32_t handleType,
-                                                  uint32_t caching,
+                                                  ManagedDescriptor descriptor,
+                                                  uint32_t streamHandleType, uint32_t caching,
                                                   std::optional<VulkanInfo> vulkanInfoOpt) {
     struct BlobDescriptorInfo info = {
         .descriptorInfo =
             {
                 .descriptor = std::move(descriptor),
-                .handleType = handleType,
+                .streamHandleType = streamHandleType,
             },
         .caching = caching,
         .vulkanInfoOpt = vulkanInfoOpt,
@@ -85,10 +85,10 @@ std::optional<BlobDescriptorInfo> ExternalObjectManager::removeBlobDescriptorInf
 
 void ExternalObjectManager::addSyncDescriptorInfo(uint32_t ctxId, uint64_t syncId,
                                                   ManagedDescriptor descriptor,
-                                                  uint32_t handleType) {
+                                                  uint32_t streamHandleType) {
     SyncDescriptorInfo info = {
         .descriptor = std::move(descriptor),
-        .handleType = handleType,
+        .streamHandleType = streamHandleType,
     };
 
     auto key = std::make_pair(ctxId, syncId);
