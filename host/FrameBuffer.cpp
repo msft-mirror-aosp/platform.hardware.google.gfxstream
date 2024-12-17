@@ -388,7 +388,9 @@ bool FrameBuffer::initialize(int width, int height, gfxstream::host::FeatureSet 
     std::unique_ptr<VkEmulationFeatures> vkEmulationFeatures =
         std::make_unique<VkEmulationFeatures>(VkEmulationFeatures{
             .glInteropSupported = false,  // Set later.
-            .deferredCommands = fb->m_features.VulkanQueueSubmitWithCommands.enabled,
+            .deferredCommands =
+                android::base::getEnvironmentVariable("ANDROID_EMU_VK_DISABLE_DEFERRED_COMMANDS")
+                    .empty(),
             .createResourceWithRequirements =
                 android::base::getEnvironmentVariable(
                     "ANDROID_EMU_VK_DISABLE_USE_CREATE_RESOURCES_WITH_REQUIREMENTS")
