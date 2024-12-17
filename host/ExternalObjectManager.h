@@ -54,6 +54,7 @@ namespace gfxstream {
 #define STREAM_FENCE_HANDLE_TYPE_SYNC_FD 0x7
 #define STREAM_FENCE_HANDLE_TYPE_OPAQUE_WIN32 0x8
 #define STREAM_FENCE_HANDLE_TYPE_ZIRCON 0x9
+#define STREAM_MEM_HANDLE_TYPE_SCREEN_BUFFER_QNX 0xa
 
 // A struct describing the information about host memory associated
 // with a host memory id. Used with virtio-gpu-next.
