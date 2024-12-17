@@ -232,6 +232,26 @@ bool getStagingMemoryTypeIndex(VulkanDispatch* vk, VkDevice device,
 
 static VkEmulation* sVkEmulation = nullptr;
 
+VkExternalMemoryHandleTypeFlagBits getDefaultExternalMemoryHandleType() {
+#if defined(_WIN32)
+    return VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT;
+#else
+
+#if defined(__APPLE__)
+    if (sVkEmulation && sVkEmulation->instanceSupportsMoltenVK) {
+        return VK_EXTERNAL_MEMORY_HANDLE_TYPE_MTLHEAP_BIT_EXT;
+    }
+#endif
+
+#if defined(__QNX__)
+    // TODO(aruby@blackberry.com): Use (DMABUF|OPAQUE_FD) on QNX, when screen_buffer not supported?
+    return VK_EXTERNAL_MEMORY_HANDLE_TYPE_SCREEN_BUFFER_BIT_QNX;
+#endif
+
+    return VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT;
+#endif
+}
+
 static bool extensionsSupported(const std::vector<VkExtensionProperties>& currentProps,
                                 const std::vector<const char*>& wantedExtNames) {
     std::vector<bool> foundExts(wantedExtNames.size(), false);
@@ -361,14 +381,8 @@ static bool getImageFormatExternalMemorySupportInfo(VulkanDispatch* vk, VkPhysic
     VkPhysicalDeviceExternalImageFormatInfo extInfo = {
         VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_IMAGE_FORMAT_INFO,
         0,
-        VK_EXT_MEMORY_HANDLE_TYPE_BIT,
+        getDefaultExternalMemoryHandleType(),
     };
-#if defined(__APPLE__)
-    if (sVkEmulation->instanceSupportsMoltenVK) {
-        // Using a different handle type when in MoltenVK mode
-        extInfo.handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_MTLHEAP_BIT_EXT;
-    }
-#endif
 
     VkPhysicalDeviceImageFormatInfo2 formatInfo2 = {
         VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_FORMAT_INFO_2,
@@ -434,13 +448,7 @@ static bool getImageFormatExternalMemorySupportInfo(VulkanDispatch* vk, VkPhysic
     VkExternalMemoryHandleTypeFlags compatibleHandleTypes =
         outExternalProps.externalMemoryProperties.compatibleHandleTypes;
 
-    VkExternalMemoryHandleTypeFlags handleTypeNeeded = VK_EXT_MEMORY_HANDLE_TYPE_BIT;
-#if defined(__APPLE__)
-    if (sVkEmulation->instanceSupportsMoltenVK) {
-        // Using a different handle type when in MoltenVK mode
-        handleTypeNeeded = VK_EXTERNAL_MEMORY_HANDLE_TYPE_MTLHEAP_BIT_EXT;
-    }
-#endif
+    VkExternalMemoryHandleTypeFlags handleTypeNeeded = getDefaultExternalMemoryHandleType();
 
     info->supportsExternalMemory = (handleTypeNeeded & compatibleHandleTypes) &&
                                    (VK_EXTERNAL_MEMORY_FEATURE_EXPORTABLE_BIT & featureFlags) &&
@@ -1743,7 +1751,7 @@ bool allocExternalMemory(VulkanDispatch* vk, VkEmulation::ExternalMemoryInfo* in
     VkExportMemoryAllocateInfo exportAi = {
         .sType = VK_STRUCTURE_TYPE_EXPORT_MEMORY_ALLOCATE_INFO,
         .pNext = nullptr,
-        .handleTypes = VK_EXT_MEMORY_HANDLE_TYPE_BIT,
+        .handleTypes = getDefaultExternalMemoryHandleType(),
     };
 
     VkMemoryDedicatedAllocateInfo dedicatedAllocInfo = {
@@ -1857,7 +1865,6 @@ bool allocExternalMemory(VulkanDispatch* vk, VkEmulation::ExternalMemoryInfo* in
         return true;
     }
 
-    VkExternalMemoryHandleTypeFlagBits vkHandleType = VK_EXT_MEMORY_HANDLE_TYPE_BIT;
     uint32_t streamHandleType = 0;
     VkResult exportRes = VK_SUCCESS;
     bool validHandle = false;
@@ -1866,7 +1873,7 @@ bool allocExternalMemory(VulkanDispatch* vk, VkEmulation::ExternalMemoryInfo* in
         VK_STRUCTURE_TYPE_MEMORY_GET_WIN32_HANDLE_INFO_KHR,
         0,
         info->memory,
-        vkHandleType,
+        VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT,
     };
 
     HANDLE exportHandle = NULL;
@@ -1896,6 +1903,8 @@ bool allocExternalMemory(VulkanDispatch* vk, VkEmulation::ExternalMemoryInfo* in
 
     if (opaqueFd) {
         uint32_t streamHandleType = STREAM_MEM_HANDLE_TYPE_OPAQUE_FD;
+        VkExternalMemoryHandleTypeFlagBits vkHandleType =
+            VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT;
         if (sVkEmulation->deviceInfo.supportsDmaBuf) {
             vkHandleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT;
             streamHandleType = STREAM_MEM_HANDLE_TYPE_DMABUF;
@@ -2414,7 +2423,7 @@ bool initializeVkColorBufferLocked(
     VkExternalMemoryImageCreateInfo extImageCi = {
         VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_IMAGE_CREATE_INFO,
         0,
-        VK_EXT_MEMORY_HANDLE_TYPE_BIT,
+        getDefaultExternalMemoryHandleType(),
     };
 #if defined(__APPLE__)
     if (sVkEmulation->instanceSupportsMoltenVK) {
@@ -3473,14 +3482,9 @@ bool setupVkBuffer(uint64_t size, uint32_t bufferHandle, bool vulkanOnly, uint32
     VkExternalMemoryBufferCreateInfo extBufferCi = {
         VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_BUFFER_CREATE_INFO,
         0,
-        VK_EXT_MEMORY_HANDLE_TYPE_BIT,
+        getDefaultExternalMemoryHandleType(),
     };
-#if defined(__APPLE__)
-    if (sVkEmulation->instanceSupportsMoltenVK) {
-        // Using a different handle type when in MoltenVK mode
-        extBufferCi.handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_MTLBUFFER_BIT_EXT;
-    }
-#endif
+
     void* extBufferCiPtr = nullptr;
     if (sVkEmulation->deviceInfo.supportsExternalMemoryImport ||
         sVkEmulation->deviceInfo.supportsExternalMemoryExport) {
@@ -3839,26 +3843,20 @@ VkExternalMemoryHandleTypeFlags transformExternalMemoryHandleTypeFlags_tohost(
     if (bits & VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID) {
         res &= ~VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID;
 
-        VkExternalMemoryHandleTypeFlagBits handleTypeNeeded = VK_EXT_MEMORY_HANDLE_TYPE_BIT;
-#if defined(__APPLE__)
-        if (sVkEmulation->instanceSupportsMoltenVK) {
-            // Using a different handle type when in MoltenVK mode
-            handleTypeNeeded = VK_EXTERNAL_MEMORY_HANDLE_TYPE_MTLHEAP_BIT_EXT;
-        }
-#endif
+        VkExternalMemoryHandleTypeFlagBits handleTypeNeeded = getDefaultExternalMemoryHandleType();
         res |= handleTypeNeeded;
     }
 
     if (bits & VK_EXTERNAL_MEMORY_HANDLE_TYPE_ZIRCON_VMO_BIT_FUCHSIA) {
         res &= ~VK_EXTERNAL_MEMORY_HANDLE_TYPE_ZIRCON_VMO_BIT_FUCHSIA;
-        res |= VK_EXT_MEMORY_HANDLE_TYPE_BIT;
+        res |= getDefaultExternalMemoryHandleType();
     }
 
 #if defined(__QNX__)
     // QNX only: Replace DMA_BUF_BIT_EXT with SCREEN_BUFFER_BIT_QNX for host calls
     if (bits & VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT) {
         res &= ~VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT;
-        res |= VK_EXT_MEMORY_HANDLE_TYPE_BIT;
+        res |= getDefaultExternalMemoryHandleType();
     }
 #endif
 
@@ -3870,7 +3868,7 @@ VkExternalMemoryHandleTypeFlags transformExternalMemoryHandleTypeFlags_fromhost(
     VkExternalMemoryHandleTypeFlags wantedGuestHandleType) {
     VkExternalMemoryHandleTypeFlags res = hostBits;
 
-    VkExternalMemoryHandleTypeFlagBits handleTypeUsed = VK_EXT_MEMORY_HANDLE_TYPE_BIT;
+    VkExternalMemoryHandleTypeFlagBits handleTypeUsed = getDefaultExternalMemoryHandleType();
 #if defined(__APPLE__)
     if (sVkEmulation->instanceSupportsMoltenVK) {
         // Using a different handle type when in MoltenVK mode
