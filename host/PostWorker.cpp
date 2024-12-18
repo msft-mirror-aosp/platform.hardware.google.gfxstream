@@ -28,21 +28,6 @@
 #include "host-common/misc.h"
 #include "vulkan/VkCommonOperations.h"
 
-#define POST_DEBUG 0
-#if POST_DEBUG >= 1
-#define DD(fmt, ...) \
-    fprintf(stderr, "%s:%d| " fmt, __func__, __LINE__, ##__VA_ARGS__)
-#else
-#define DD(fmt, ...) (void)0
-#endif
-
-#define POST_ERROR(fmt, ...)                                                  \
-    do {                                                                      \
-        fprintf(stderr, "%s(%s:%d): " fmt "\n", __func__, __FILE__, __LINE__, \
-                ##__VA_ARGS__);                                               \
-        fflush(stderr);                                                       \
-    } while (0)
-
 static void sDefaultRunOnUiThread(UiUpdateFunc f, void* data, bool wait) {
     (void)f;
     (void)data;
@@ -72,10 +57,10 @@ hwc_transform_t getTransformFromRotation(int rotation) {
 
 PostWorker::PostWorker(bool mainThreadPostingOnly, FrameBuffer* fb, Compositor* compositor)
     : mFb(fb),
+      m_compositor(compositor),
       m_mainThreadPostingOnly(mainThreadPostingOnly),
       m_runOnUiThread(m_mainThreadPostingOnly ? emugl::get_emugl_window_operations().runOnUiThread
-                                              : sDefaultRunOnUiThread),
-      m_compositor(compositor) {}
+                                              : sDefaultRunOnUiThread) {}
 
 std::shared_future<void> PostWorker::composeImpl(const FlatComposeRequest& composeRequest) {
     std::shared_future<void> completedFuture =

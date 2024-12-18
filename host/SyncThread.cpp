@@ -23,6 +23,7 @@
 #include "aemu/base/Metrics.h"
 #include "aemu/base/system/System.h"
 #include "aemu/base/threads/Thread.h"
+#include "gfxstream/host/Tracing.h"
 #include "host-common/GfxstreamFatalError.h"
 #include "host-common/crash_reporter.h"
 #include "host-common/logging.h"
@@ -155,7 +156,11 @@ void SyncThread::triggerWaitWithCompletionCallback(EmulatedEglFenceSync* fenceSy
 }
 
 void SyncThread::initSyncEGLContext() {
-    mWorkerThreadPool.broadcast([this] {
+    // b/383543476: force sequential init to work around a deadlock that is
+    // believed to be a driver issue.
+    std::mutex initMutex;
+    mWorkerThreadPool.broadcast([&, this] {
+        std::lock_guard<std::mutex> initLock(initMutex);
         return Command{
             .mTask = std::packaged_task<int(WorkerId)>([this](WorkerId workerId) {
                 DPRINT("for worker id: %d", workerId);
@@ -376,6 +381,7 @@ intptr_t SyncThread::main() {
     DPRINT("in sync thread");
     mLock.lock();
     mCv.wait(&mLock, [this] { return mExiting; });
+    mLock.unlock();
 
     mWorkerThreadPool.done();
     mWorkerThreadPool.join();
@@ -412,6 +418,11 @@ void SyncThread::sendAsync(std::function<void(WorkerId)> job, std::string descri
 }
 
 void SyncThread::doSyncThreadCmd(Command&& command, WorkerId workerId) {
+    static thread_local std::once_flag sOnceFlag;
+    std::call_once(sOnceFlag, [&] {
+        GFXSTREAM_TRACE_NAME_TRACK(GFXSTREAM_TRACE_TRACK_FOR_CURRENT_THREAD(), "SyncThread");
+    });
+
     std::unique_ptr<std::unordered_map<std::string, std::string>> syncThreadData =
         std::make_unique<std::unordered_map<std::string, std::string>>();
     syncThreadData->insert({{"syncthread_cmd_desc", command.mDescription}});

@@ -3,4 +3,7 @@ cc_library(
     srcs = glob(["include/**/*.h"]),
     includes = ["include"],
     visibility = ["//visibility:public"],
+    deps = [
+        "//hardware/google/gfxstream/common/utils:gfxstream_common_utils",
+    ],
 )

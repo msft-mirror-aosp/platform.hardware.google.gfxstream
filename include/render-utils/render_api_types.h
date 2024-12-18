@@ -18,14 +18,18 @@
 #include "host-common/GoldfishDma.h"
 #include "host-common/goldfish_sync.h"
 #include "host-common/FeatureControl.h"
+#include "host-common/logging.h"
 
 // Feature control
 typedef bool (*emugl_feature_is_enabled_t)(android::featurecontrol::Feature feature);
 
-// OpenGL timestamped logger
-typedef void (*emugl_logger_t)(const char* fmt, ...);
-typedef struct {
-    emugl_logger_t coarse;
-    emugl_logger_t fine;
-} emugl_logger_struct;
+typedef void (*gfxstream_logger_internal_t)(char severity, const char* file, unsigned int line,
+              int64_t timestamp_us, const char* message);
 
+#ifdef CONFIG_AEMU
+using emugl_logger_t = gfxstream_logger_t;
+using emugl_logger_struct = gfxstream_logger_t;
+#else
+using emugl_logger_t = gfxstream_logger_internal_t;
+using emugl_logger_struct = gfxstream_logger_internal_t;
+#endif

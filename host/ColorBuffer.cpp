@@ -22,6 +22,7 @@
 #include "host-common/logging.h"
 #include "vulkan/ColorBufferVk.h"
 #include "vulkan/VkCommonOperations.h"
+#include "FrameBuffer.h"
 
 using android::base::ManagedDescriptor;
 using emugl::ABORT_REASON_OTHER;
@@ -164,7 +165,7 @@ void ColorBuffer::restore() {
 }
 
 void ColorBuffer::readToBytes(int x, int y, int width, int height, GLenum pixelsFormat,
-                              GLenum pixelsType, void* outPixels) {
+                              GLenum pixelsType, void* outPixels, uint64_t outPixelsSize) {
     touch();
 
 #if GFXSTREAM_ENABLE_HOST_GLES
@@ -175,7 +176,7 @@ void ColorBuffer::readToBytes(int x, int y, int width, int height, GLenum pixels
 #endif
 
     if (mColorBufferVk) {
-        mColorBufferVk->readToBytes(x, y, width, height, outPixels);
+        mColorBufferVk->readToBytes(x, y, width, height, outPixels, outPixelsSize);
         return;
     }
 
@@ -199,18 +200,18 @@ void ColorBuffer::readToBytesScaled(int pixelsWidth, int pixelsHeight, GLenum pi
 }
 
 void ColorBuffer::readYuvToBytes(int x, int y, int width, int height, void* outPixels,
-                                 uint32_t pixelsSize) {
+                                 uint32_t outPixelsSize) {
     touch();
 
 #if GFXSTREAM_ENABLE_HOST_GLES
     if (mColorBufferGl) {
-        mColorBufferGl->readPixelsYUVCached(x, y, width, height, outPixels, pixelsSize);
+        mColorBufferGl->readPixelsYUVCached(x, y, width, height, outPixels, outPixelsSize);
         return;
     }
 #endif
 
     if (mColorBufferVk) {
-        mColorBufferVk->readToBytes(x, y, width, height, outPixels);
+        mColorBufferVk->readToBytes(x, y, width, height, outPixels, outPixelsSize);
         return;
     }
 
@@ -543,14 +544,6 @@ void ColorBuffer::glOpReadbackAsync(GLuint buffer, bool readbackBgra) {
     touch();
 
     mColorBufferGl->readbackAsync(buffer, readbackBgra);
-}
-
-bool ColorBuffer::glOpImportEglImage(void* image, bool preserveContent) {
-    if (!mColorBufferGl) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "ColorBufferGl not available.";
-    }
-
-    return mColorBufferGl->importEglImage(image, preserveContent);
 }
 
 bool ColorBuffer::glOpImportEglNativePixmap(void* pixmap, bool preserveContent) {

@@ -6,4 +6,9 @@ if (NOT TARGET gfxstream-gl-host-common)
         gfxstream_backend_common
         INTERFACE
         include)
+    target_link_libraries(
+        gfxstream_backend_common
+        INTERFACE
+        gfxstream_common_utils)
+
 endif()

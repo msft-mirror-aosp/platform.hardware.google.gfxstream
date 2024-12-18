@@ -1,5 +1,6 @@
 add_subdirectory(backend)
 add_subdirectory(features)
+add_subdirectory(tracing)
 
 # Codec common sources
 add_subdirectory(apigen-codec-common)
@@ -18,7 +19,7 @@ add_subdirectory(renderControl_dec)
 add_subdirectory(magma)
 
 if(CONFIG_AEMU)
-    add_compile_definitions(GFXSTREAM_ENABLE_HOST_VK_SNAPSHOT)
+    add_compile_definitions(GFXSTREAM_BUILD_WITH_SNAPSHOT_SUPPORT)
     add_compile_definitions(CONFIG_AEMU)
 endif()
 
@@ -28,6 +29,10 @@ set(stream-server-core-sources
     ExternalObjectManager.cpp
     ColorBuffer.cpp
     GfxStreamAgents.cpp
+    VirtioGpuContext.cpp
+    VirtioGpuFrontend.cpp
+    VirtioGpuResource.cpp
+    VirtioGpuRingBlob.cpp
     VirtioGpuTimelines.cpp
     VsyncThread.cpp
     ChannelStream.cpp
@@ -82,6 +87,7 @@ target_link_libraries(
         renderControl_dec
         gfxstream_backend_common
         gfxstream_features
+        gfxstream_host_tracing
         gfxstream-gl-server
         gfxstream-magma-server
         gfxstream-vulkan-server
@@ -138,6 +144,7 @@ target_link_libraries(
     gfxstream_common_utils
     gfxstream_backend_common
     gfxstream_features
+    gfxstream_host_tracing
     gfxstream_backend_static
     PRIVATE
     )
@@ -154,8 +161,14 @@ if (APPLE)
         LINK_FLAGS  "-undefined dynamic_lookup -flat_namespace")
 endif()
 
+if (LINUX)
+    # Make sure we embed an build-id that can be used by crashpad.
+    target_link_options(gfxstream_backend PRIVATE "LINKER:--build-id=sha1")
+endif()
+
+
 if(CONFIG_AEMU)
-    android_install_shared(gfxstream_backend)
+    android_install_shared_library(TARGET gfxstream_backend)
 else()
     install(
       TARGETS gfxstream_backend RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX} LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX})
@@ -301,7 +314,7 @@ endfunction()
         tests/CompositorVk_unittest.cpp
         tests/SwapChainStateVk_unittest.cpp
         tests/DisplayVk_unittest.cpp
-        tests/VirtioGpuTimelines_unittest.cpp
+        VirtioGpuTimelinesTests.cpp
         vulkan/vk_util_unittest.cpp
         vulkan/VkFormatUtils_unittest.cpp
         vulkan/VkQsriTimeline_unittest.cpp

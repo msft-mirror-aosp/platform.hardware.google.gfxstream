@@ -21,7 +21,12 @@
 #include <stdint.h>
 
 #if defined(_WIN32)
-struct iovec;
+#if !defined(GFXSTREAM_NO_IOVEC)
+struct iovec {
+    void* iov_base; /* Starting address */
+    size_t iov_len; /* Length in bytes */
+};
+#endif
 #else
 #include <sys/uio.h>
 #endif
@@ -103,6 +108,49 @@ struct stream_renderer_debug {
 #define STREAM_RENDERER_LOG_LEVEL STREAM_RENDERER_DEBUG_INFO
 #endif
 
+void stream_renderer_log(uint32_t type, const char* file, int line, const char* pretty_function,
+                         const char* format, ...);
+
+#if STREAM_RENDERER_LOG_LEVEL >= STREAM_RENDERER_DEBUG_ERROR
+#define stream_renderer_error(format, ...)                                                        \
+    do {                                                                                          \
+        stream_renderer_log(STREAM_RENDERER_DEBUG_ERROR, __FILE__, __LINE__, __PRETTY_FUNCTION__, \
+                            format, ##__VA_ARGS__);                                               \
+    } while (0)
+#else
+#define stream_renderer_error(format, ...)
+#endif
+
+#if STREAM_RENDERER_LOG_LEVEL >= STREAM_RENDERER_DEBUG_WARN
+#define stream_renderer_warn(format, ...)                                                        \
+    do {                                                                                         \
+        stream_renderer_log(STREAM_RENDERER_DEBUG_WARN, __FILE__, __LINE__, __PRETTY_FUNCTION__, \
+                            format, ##__VA_ARGS__);                                              \
+    } while (0)
+#else
+#define stream_renderer_warn(format, ...)
+#endif
+
+#if STREAM_RENDERER_LOG_LEVEL >= STREAM_RENDERER_DEBUG_INFO
+#define stream_renderer_info(format, ...)                                                         \
+    do {                                                                                          \
+        stream_renderer_log(STREAM_RENDERER_DEBUG_INFO, __FILE__, __LINE__, __FUNCTION__, format, \
+                            ##__VA_ARGS__);                                                       \
+    } while (0)
+#else
+#define stream_renderer_info(format, ...)
+#endif
+
+#if STREAM_RENDERER_LOG_LEVEL >= STREAM_RENDERER_DEBUG_DEBUG
+#define stream_renderer_debug(format, ...)                                                        \
+    do {                                                                                          \
+        stream_renderer_log(STREAM_RENDERER_DEBUG_DEBUG, __FILE__, __LINE__, __PRETTY_FUNCTION__, \
+                            format, ##__VA_ARGS__);                                               \
+    } while (0)
+#else
+#define stream_renderer_debug(format, ...)
+#endif
+
 // Callback for writing a fence.
 typedef void (*stream_renderer_fence_callback)(void* user_data,
                                                struct stream_renderer_fence* fence_data);
@@ -153,6 +201,7 @@ VG_EXPORT void stream_renderer_teardown(void);
 
 VG_EXPORT int stream_renderer_resource_create(struct stream_renderer_resource_create_args* args,
                                               struct iovec* iov, uint32_t num_iovs);
+
 VG_EXPORT void stream_renderer_resource_unref(uint32_t res_handle);
 VG_EXPORT void stream_renderer_context_destroy(uint32_t handle);
 
@@ -237,8 +286,6 @@ struct stream_renderer_vulkan_info {
 
 VG_EXPORT int stream_renderer_vulkan_info(uint32_t res_handle,
                                           struct stream_renderer_vulkan_info* vulkan_info);
-
-VG_EXPORT int stream_renderer_wait_sync_resource(uint32_t res_handle);
 
 #ifdef __cplusplus
 }  // extern "C"

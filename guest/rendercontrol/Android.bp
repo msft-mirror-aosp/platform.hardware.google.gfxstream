@@ -23,7 +23,7 @@ cc_library_shared {
     name: "libgfxstream_guest_rendercontrol",
     defaults: [
         "libgfxstream_guest_cc_defaults",
-        "libplatform_virtgpu_defaults",
+        "mesa_platform_virtgpu_defaults",
     ],
     header_libs: [
         "libgfxstream_guest_rendercontrol_headers",

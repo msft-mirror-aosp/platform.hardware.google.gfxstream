@@ -24,6 +24,7 @@
 #include "cereal/common/goldfish_vk_deepcopy.h"
 #include "cereal/common/goldfish_vk_extension_structs.h"
 #include "gfxstream/host/BackendCallbacks.h"
+#include "gfxstream/host/Tracing.h"
 #include "goldfish_vk_private_defs.h"
 #include "host-common/GfxstreamFatalError.h"
 #include "vulkan/vk_enum_string_helper.h"
@@ -31,22 +32,20 @@
 namespace gfxstream {
 namespace vk {
 
-#define VK_ANB_ERR(fmt, ...) fprintf(stderr, "%s:%d " fmt "\n", __func__, __LINE__, ##__VA_ARGS__);
+#define VK_ANB_ERR(fmt, ...) INFO(fmt, ##__VA_ARGS__);
 
 #define ENABLE_VK_ANB_DEBUG 0
 
 #if ENABLE_VK_ANB_DEBUG
 #define VK_ANB_DEBUG(fmt, ...) \
-    fprintf(stderr, "vk-anb-debug: %s:%d " fmt "\n", __func__, __LINE__, ##__VA_ARGS__);
+    INFO("vk-anb-debug: " fmt, ##__VA_ARGS__);
 #define VK_ANB_DEBUG_OBJ(obj, fmt, ...) \
-    fprintf(stderr, "vk-anb-debug: %s:%d:%p " fmt "\n", __func__, __LINE__, obj, ##__VA_ARGS__);
+    INFO("vk-anb-debug: %p " fmt, obj, ##__VA_ARGS__);
 #else
 #define VK_ANB_DEBUG(fmt, ...)
 #define VK_ANB_DEBUG_OBJ(obj, fmt, ...)
 #endif
 
-using android::base::AutoLock;
-using android::base::Lock;
 using emugl::ABORT_REASON_OTHER;
 using emugl::FatalError;
 
@@ -55,7 +54,7 @@ AndroidNativeBufferInfo::QsriWaitFencePool::QsriWaitFencePool(VulkanDispatch* vk
 
 VkFence AndroidNativeBufferInfo::QsriWaitFencePool::getFenceFromPool() {
     VK_ANB_DEBUG("enter");
-    AutoLock lock(mLock);
+    std::lock_guard<std::mutex> lock(mMutex);
     VkFence fence = VK_NULL_HANDLE;
     if (mAvailableFences.empty()) {
         VkFenceCreateInfo fenceCreateInfo = {
@@ -95,7 +94,7 @@ AndroidNativeBufferInfo::QsriWaitFencePool::~QsriWaitFencePool() {
 }
 
 void AndroidNativeBufferInfo::QsriWaitFencePool::returnFence(VkFence fence) {
-    AutoLock lock(mLock);
+    std::lock_guard<std::mutex> lock(mMutex);
     if (!mUsedFences.erase(fence)) {
         GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
             << "Return an unmanaged Qsri VkFence back to the pool.";
@@ -184,22 +183,9 @@ VkResult prepareAndroidNativeBufferImage(VulkanDispatch* vk, VkDevice device,
         };
 
 #if defined(__APPLE__)
-        VkImportMetalTextureInfoEXT metalImageImport = {
-            VK_STRUCTURE_TYPE_IMPORT_METAL_TEXTURE_INFO_EXT};
-
         if (emu->instanceSupportsMoltenVK) {
-            // Change handle type requested to mtltexture
-            extImageCi.handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_MTLTEXTURE_BIT_KHR;
-
-            if (out->colorBufferHandle) {
-                // TODO(b/333460957): External memory is not properly supported on MoltenVK
-                // and although this works fine, it's not valid and causing validation layer issues
-                metalImageImport.plane = VK_IMAGE_ASPECT_PLANE_0_BIT;
-                metalImageImport.mtlTexture = getColorBufferMTLTexture(out->colorBufferHandle);
-
-                // Insert metalImageImport to the chain
-                vk_insert_struct(createImageCi, metalImageImport);
-            }
+            // Change handle type requested to metal handle
+            extImageCi.handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_MTLHEAP_BIT_EXT;
         }
 #endif
 
@@ -395,12 +381,6 @@ void teardownAndroidNativeBufferImage(VulkanDispatch* vk, AndroidNativeBufferInf
     auto mappedPtr = anbInfo->mappedStagingPtr;
     auto stagingMemory = anbInfo->stagingMemory;
 
-    if (image) vk->vkDestroyImage(device, image, nullptr);
-    if (imageMemory) vk->vkFreeMemory(device, imageMemory, nullptr);
-    if (stagingBuffer) vk->vkDestroyBuffer(device, stagingBuffer, nullptr);
-    if (mappedPtr) vk->vkUnmapMemory(device, stagingMemory);
-    if (stagingMemory) vk->vkFreeMemory(device, stagingMemory, nullptr);
-
     for (auto queueState : anbInfo->queueStates) {
         queueState.teardown(vk, device);
     }
@@ -408,6 +388,12 @@ void teardownAndroidNativeBufferImage(VulkanDispatch* vk, AndroidNativeBufferInf
     anbInfo->queueStates.clear();
 
     anbInfo->acquireQueueState.teardown(vk, device);
+
+    if (image) vk->vkDestroyImage(device, image, nullptr);
+    if (imageMemory) vk->vkFreeMemory(device, imageMemory, nullptr);
+    if (stagingBuffer) vk->vkDestroyBuffer(device, stagingBuffer, nullptr);
+    if (mappedPtr) vk->vkUnmapMemory(device, stagingMemory);
+    if (stagingMemory) vk->vkFreeMemory(device, stagingMemory, nullptr);
 
     anbInfo->vk = nullptr;
     anbInfo->device = VK_NULL_HANDLE;
@@ -473,10 +459,10 @@ void getGralloc1Usage(VkFormat format, VkImageUsageFlags imageUsage,
 
 void AndroidNativeBufferInfo::QueueState::setup(VulkanDispatch* vk, VkDevice device,
                                                 VkQueue queueIn, uint32_t queueFamilyIndexIn,
-                                                android::base::Lock* queueLockIn) {
+                                                std::mutex* queueMutexIn) {
     queue = queueIn;
     queueFamilyIndex = queueFamilyIndexIn;
-    lock = queueLockIn;
+    queueMutex = queueMutexIn;
 
     VkCommandPoolCreateInfo poolCreateInfo = {
         VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
@@ -505,15 +491,19 @@ void AndroidNativeBufferInfo::QueueState::setup(VulkanDispatch* vk, VkDevice dev
 }
 
 void AndroidNativeBufferInfo::QueueState::teardown(VulkanDispatch* vk, VkDevice device) {
+    if (latestUse) {
+        latestUse->wait();
+    }
+
     if (queue) {
-        AutoLock qlock(*lock);
+        std::lock_guard<std::mutex> lock(*queueMutex);
         vk->vkQueueWaitIdle(queue);
     }
     if (cb) vk->vkFreeCommandBuffers(device, pool, 1, &cb);
     if (pool) vk->vkDestroyCommandPool(device, pool, nullptr);
     if (fence) vk->vkDestroyFence(device, fence, nullptr);
 
-    lock = nullptr;
+    queueMutex = nullptr;
     queue = VK_NULL_HANDLE;
     pool = VK_NULL_HANDLE;
     cb = VK_NULL_HANDLE;
@@ -524,7 +514,7 @@ void AndroidNativeBufferInfo::QueueState::teardown(VulkanDispatch* vk, VkDevice 
 VkResult setAndroidNativeImageSemaphoreSignaled(VulkanDispatch* vk, VkDevice device,
                                                 VkQueue defaultQueue,
                                                 uint32_t defaultQueueFamilyIndex,
-                                                Lock* defaultQueueLock, VkSemaphore semaphore,
+                                                std::mutex* defaultQueueMutex, VkSemaphore semaphore,
                                                 VkFence fence, AndroidNativeBufferInfo* anbInfo) {
     auto emu = getGlobalVkEmulation();
 
@@ -544,7 +534,7 @@ VkResult setAndroidNativeImageSemaphoreSignaled(VulkanDispatch* vk, VkDevice dev
             (uint32_t)(semaphore == VK_NULL_HANDLE ? 0 : 1),
             semaphore == VK_NULL_HANDLE ? nullptr : &semaphore,
         };
-        AutoLock qlock(*defaultQueueLock);
+        std::lock_guard<std::mutex> qlock(*defaultQueueMutex);
         VK_CHECK(vk->vkQueueSubmit(defaultQueue, 1, &submitInfo, fence));
     } else {
         // Setup queue state for this queue family index.
@@ -555,7 +545,7 @@ VkResult setAndroidNativeImageSemaphoreSignaled(VulkanDispatch* vk, VkDevice dev
         AndroidNativeBufferInfo::QueueState& queueState =
             anbInfo->queueStates[queueFamilyIndex];
         if (!queueState.queue) {
-            queueState.setup(vk, anbInfo->device, defaultQueue, queueFamilyIndex, defaultQueueLock);
+            queueState.setup(vk, anbInfo->device, defaultQueue, queueFamilyIndex, defaultQueueMutex);
         }
 
         // If we used the Vulkan image without copying it back
@@ -612,7 +602,7 @@ VkResult setAndroidNativeImageSemaphoreSignaled(VulkanDispatch* vk, VkDevice dev
                 semaphore == VK_NULL_HANDLE ? nullptr : &semaphore,
             };
 
-            AutoLock qlock(*queueState.lock);
+            std::lock_guard<std::mutex> queueLock(*queueState.queueMutex);
             // TODO(kaiyili): initiate ownership transfer from DisplayVk here
             VK_CHECK(vk->vkQueueSubmit(queueState.queue, 1, &submitInfo, fence));
         } else {
@@ -629,7 +619,7 @@ VkResult setAndroidNativeImageSemaphoreSignaled(VulkanDispatch* vk, VkDevice dev
                 (uint32_t)(semaphore == VK_NULL_HANDLE ? 0 : 1),
                 semaphore == VK_NULL_HANDLE ? nullptr : &semaphore,
             };
-            AutoLock qlock(*queueState.lock);
+            std::lock_guard<std::mutex> queueLock(*queueState.queueMutex);
             VK_CHECK(vk->vkQueueSubmit(queueState.queue, 1, &submitInfo, fence));
         }
     }
@@ -640,11 +630,13 @@ VkResult setAndroidNativeImageSemaphoreSignaled(VulkanDispatch* vk, VkDevice dev
 static constexpr uint64_t kTimeoutNs = 3ULL * 1000000000ULL;
 
 VkResult syncImageToColorBuffer(gfxstream::host::BackendCallbacks& callbacks, VulkanDispatch* vk,
-                                uint32_t queueFamilyIndex, VkQueue queue, Lock* queueLock,
+                                uint32_t queueFamilyIndex, VkQueue queue, std::mutex* queueMutex,
                                 uint32_t waitSemaphoreCount, const VkSemaphore* pWaitSemaphores,
-                                int* pNativeFenceFd,
-                                std::shared_ptr<AndroidNativeBufferInfo> anbInfo) {
-    auto anbInfoPtr = anbInfo.get();
+                                int* pNativeFenceFd, AndroidNativeBufferInfo* anbInfo) {
+    const uint64_t traceId = gfxstream::host::GetUniqueTracingId();
+    GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DEFAULT_CATEGORY, "vkQSRI syncImageToColorBuffer()",
+                          GFXSTREAM_TRACE_FLOW(traceId));
+
     auto fb = FrameBuffer::getFB();
     fb->lock();
 
@@ -662,7 +654,7 @@ VkResult syncImageToColorBuffer(gfxstream::host::BackendCallbacks& callbacks, Vu
     auto& queueState = anbInfo->queueStates[queueFamilyIndex];
 
     if (!queueState.queue) {
-        queueState.setup(vk, anbInfo->device, queue, queueFamilyIndex, queueLock);
+        queueState.setup(vk, anbInfo->device, queue, queueFamilyIndex, queueMutex);
     }
 
     auto emu = getGlobalVkEmulation();
@@ -801,12 +793,14 @@ VkResult syncImageToColorBuffer(gfxstream::host::BackendCallbacks& callbacks, Vu
 
     // TODO(kaiyili): initiate ownership transfer to DisplayVk here.
     VkFence qsriFence = anbInfo->qsriWaitFencePool->getFenceFromPool();
-    AutoLock qLock(*queueLock);
+    std::lock_guard<std::mutex> qLock(*queueMutex);
     VK_CHECK(vk->vkQueueSubmit(queueState.queue, 1, &submitInfo, qsriFence));
-    auto waitForQsriFenceTask = [anbInfoPtr, anbInfo, vk, device = anbInfo->device, qsriFence] {
-        (void)anbInfoPtr;
-        VK_ANB_DEBUG_OBJ(anbInfoPtr, "wait callback: enter");
-        VK_ANB_DEBUG_OBJ(anbInfoPtr, "wait callback: wait for fence %p...", qsriFence);
+    auto waitForQsriFenceTask = [anbInfo, vk, device = anbInfo->device, qsriFence, traceId] {
+        GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DEFAULT_CATEGORY, "Wait for QSRI fence",
+                              GFXSTREAM_TRACE_FLOW(traceId));
+
+        VK_ANB_DEBUG_OBJ(anbInfo, "wait callback: enter");
+        VK_ANB_DEBUG_OBJ(anbInfo, "wait callback: wait for fence %p...", qsriFence);
         VkResult res = vk->vkWaitForFences(device, 1, &qsriFence, VK_FALSE, kTimeoutNs);
         switch (res) {
             case VK_SUCCESS:
@@ -818,23 +812,25 @@ VkResult syncImageToColorBuffer(gfxstream::host::BackendCallbacks& callbacks, Vu
                 ERR("Failed to wait for QSRI fence: %s\n", string_VkResult(res));
                 VK_CHECK(res);
         }
-        VK_ANB_DEBUG_OBJ(anbInfoPtr, "wait callback: wait for fence %p...(done)", qsriFence);
+        VK_ANB_DEBUG_OBJ(anbInfo, "wait callback: wait for fence %p...(done)", qsriFence);
         anbInfo->qsriWaitFencePool->returnFence(qsriFence);
     };
     fb->unlock();
 
     if (anbInfo->useVulkanNativeImage) {
-        VK_ANB_DEBUG_OBJ(anbInfoPtr, "using native image, so use sync thread to wait");
+        VK_ANB_DEBUG_OBJ(anbInfo, "using native image, so use sync thread to wait");
         // Queue wait to sync thread with completion callback
         // Pass anbInfo by value to get a ref
-        SyncThread::get()->triggerGeneral(
+        auto waitable = callbacks.scheduleAsyncWork(
             [waitForQsriFenceTask = std::move(waitForQsriFenceTask), anbInfo]() mutable {
                 waitForQsriFenceTask();
                 anbInfo->qsriTimeline->signalNextPresentAndPoll();
             },
             "wait for the guest Qsri VkFence signaled");
+
+        queueState.latestUse = std::move(waitable);
     } else {
-        VK_ANB_DEBUG_OBJ(anbInfoPtr, "not using native image, so wait right away");
+        VK_ANB_DEBUG_OBJ(anbInfo, "not using native image, so wait right away");
         waitForQsriFenceTask();
 
         VkMappedMemoryRange toInvalidate = {
