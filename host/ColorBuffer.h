@@ -92,7 +92,7 @@ class ColorBuffer : public android::snapshot::LazySnapshotObj<ColorBuffer> {
     bool flushFromVkBytes(const void* bytes, size_t bytesSize);
     bool invalidateForGl();
     bool invalidateForVk();
-    bool importNativeResource(void* nativeResource, uint32_t type, bool preserveContent);
+    bool importNativeResource(void* nativeResource, uint32_t type);
 
     int waitSync();
     std::optional<BlobDescriptorInfo> exportBlob();
