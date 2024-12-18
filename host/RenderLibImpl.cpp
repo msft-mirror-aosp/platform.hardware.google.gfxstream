@@ -46,8 +46,7 @@ void RenderLibImpl::getGlesVersion(int* maj, int* min) {
 
 void RenderLibImpl::setLogger(emugl_logger_struct logger) {
 #ifdef CONFIG_AEMU
-    set_gfxstream_logger(logger.coarse);
-    set_gfxstream_fine_logger(logger.fine);
+    set_gfxstream_logger(logger);
 #endif
 }
 

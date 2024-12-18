@@ -9,7 +9,10 @@ package {
 
 cc_library_static {
     name: "libgfxstream_host_vulkan_cereal",
-    defaults: ["gfxstream_defaults"],
+    defaults: [
+        "gfxstream_defaults",
+        "gfxstream_host_cc_defaults",
+    ],
     static_libs: [
         "gfxstream_base",
         "libgfxstream_host_features",

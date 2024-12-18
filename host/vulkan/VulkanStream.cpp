@@ -25,8 +25,6 @@
 namespace gfxstream {
 namespace vk {
 
-#define E(fmt, ...) fprintf(stderr, fmt "\n", ##__VA_ARGS__)
-
 using emugl::ABORT_REASON_OTHER;
 using emugl::FatalError;
 
@@ -189,7 +187,6 @@ VulkanMemReadingStream::~VulkanMemReadingStream() {}
 void VulkanMemReadingStream::setBuf(uint8_t* buf) {
     mStart = buf;
     mReadPos = 0;
-    resetTrace();
 }
 
 uint8_t* VulkanMemReadingStream::getBuf() { return mStart; }
@@ -206,19 +203,6 @@ ssize_t VulkanMemReadingStream::write(const void* buffer, size_t size) {
     GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
         << "VulkanMemReadingStream does not support writing";
 }
-
-uint8_t* VulkanMemReadingStream::beginTrace() {
-    resetTrace();
-    return mTraceStart;
-}
-
-size_t VulkanMemReadingStream::endTrace() {
-    uintptr_t current = (uintptr_t)(mStart + mReadPos);
-    size_t res = (size_t)(current - (uintptr_t)mTraceStart);
-    return res;
-}
-
-void VulkanMemReadingStream::resetTrace() { mTraceStart = mStart + mReadPos; }
 
 }  // namespace vk
 }  // namespace gfxstream

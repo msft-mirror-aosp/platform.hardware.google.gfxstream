@@ -29,20 +29,18 @@
 #include "DeviceLostHelper.h"
 #include "DeviceOpTracker.h"
 #include "DisplayVk.h"
+#include "ExternalObjectManager.h"
 #include "FrameworkFormats.h"
-#include "aemu/base/ManagedDescriptor.hpp"
 #include "aemu/base/Optional.h"
 #include "aemu/base/synchronization/Lock.h"
+#include "gfxstream/host/BackendCallbacks.h"
 #include "gfxstream/host/Features.h"
 #include "goldfish_vk_private_defs.h"
 #include "utils/GfxApiLogger.h"
 #include "utils/RenderDoc.h"
 
-#ifdef _WIN32
-typedef void* HANDLE;
-#endif
-
 #if defined(_WIN32)
+typedef void* HANDLE;
 // External sync objects are HANDLE on Windows
 typedef HANDLE VK_EXT_SYNC_HANDLE;
 // corresponds to INVALID_HANDLE_VALUE
@@ -51,25 +49,6 @@ typedef HANDLE VK_EXT_SYNC_HANDLE;
 // External sync objects are fd's on other POSIX systems
 typedef int VK_EXT_SYNC_HANDLE;
 #define VK_EXT_SYNC_HANDLE_INVALID (-1)
-#endif
-
-#if defined(_WIN32)
-// External memory objects are HANDLE on Windows
-typedef HANDLE VK_EXT_MEMORY_HANDLE;
-// corresponds to INVALID_HANDLE_VALUE
-#define VK_EXT_MEMORY_HANDLE_INVALID (VK_EXT_MEMORY_HANDLE)(uintptr_t)(-1)
-#define VK_EXT_MEMORY_HANDLE_TYPE_BIT VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT
-#elif defined(__QNX__)
-#include <screen/screen.h>
-// External memory objects are screen_buffer_t handles on QNX
-typedef screen_buffer_t VK_EXT_MEMORY_HANDLE;
-#define VK_EXT_MEMORY_HANDLE_INVALID (VK_EXT_MEMORY_HANDLE) nullptr
-#define VK_EXT_MEMORY_HANDLE_TYPE_BIT VK_EXTERNAL_MEMORY_HANDLE_TYPE_SCREEN_BUFFER_BIT_QNX
-#else
-// External memory objects are fd's on other POSIX systems
-typedef int VK_EXT_MEMORY_HANDLE;
-#define VK_EXT_MEMORY_HANDLE_INVALID (-1)
-#define VK_EXT_MEMORY_HANDLE_TYPE_BIT VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT
 #endif
 
 namespace gfxstream {
@@ -84,8 +63,6 @@ struct VulkanDispatch;
 bool getStagingMemoryTypeIndex(VulkanDispatch* vk, VkDevice device,
                                const VkPhysicalDeviceMemoryProperties* memProps,
                                uint32_t* typeIndex);
-
-VK_EXT_MEMORY_HANDLE dupExternalMemory(VK_EXT_MEMORY_HANDLE);
 
 enum class AstcEmulationMode {
     Disabled,  // No ASTC emulation (ie: ASTC not supported unless the GPU supports it natively)
@@ -102,6 +79,8 @@ enum class AstcEmulationMode {
 struct VkEmulation {
     // Whether initialization succeeded.
     bool live = false;
+
+    gfxstream::host::BackendCallbacks callbacks;
 
     gfxstream::host::FeatureSet features;
 
@@ -213,6 +192,7 @@ struct VkEmulation {
         bool glInteropSupported = false;
         bool hasNvidiaDeviceDiagnosticCheckpointsExtension = false;
         bool supportsNvidiaDeviceDiagnosticCheckpoints = false;
+        bool supportsPrivateData = false;
 
         std::vector<VkExtensionProperties> extensions;
 
@@ -260,12 +240,11 @@ struct VkEmulation {
         // guest physical address.
         uintptr_t gpa = 0u;
 
-        VK_EXT_MEMORY_HANDLE externalHandle = VK_EXT_MEMORY_HANDLE_INVALID;
+        std::optional<ExternalHandleInfo> handleInfo = std::nullopt;
 #ifdef __APPLE__
         // This is used as an external handle when MoltenVK is enabled
-        MTLBufferRef externalMetalHandle = nullptr;
+        MTLResource_id externalMetalHandle = nullptr;
 #endif
-        uint32_t streamHandleType;
 
         bool dedicatedAllocation = false;
     };
@@ -336,6 +315,7 @@ struct VkEmulation {
 
         VkImage image = VK_NULL_HANDLE;
         VkImageView imageView = VK_NULL_HANDLE;
+        VkSamplerYcbcrConversion ycbcrConversion = VK_NULL_HANDLE;
         VkImageCreateInfo imageCreateInfoShallow = {};
         VkMemoryRequirements memReqs;
 
@@ -346,10 +326,6 @@ struct VkEmulation {
         bool externalMemoryCompatible = false;
 
         VulkanMode vulkanMode = VulkanMode::Default;
-
-#if defined(__APPLE__)
-        MTLTextureRef mtlTexture = nullptr;
-#endif
 
         std::optional<DeviceOpWaitable> latestUse;
         DeviceOpTrackerPtr latestUseTracker = nullptr;
@@ -443,7 +419,9 @@ struct VkEmulation {
     std::optional<RepresentativeColorBufferMemoryTypeInfo> representativeColorBufferMemoryTypeInfo;
 };
 
-VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk, gfxstream::host::FeatureSet features);
+VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk,
+                                     gfxstream::host::BackendCallbacks callbacks,
+                                     gfxstream::host::FeatureSet features);
 
 struct VkEmulationFeatures {
     bool glInteropSupported = false;
@@ -476,10 +454,8 @@ bool allocExternalMemory(
 void freeExternalMemoryLocked(VulkanDispatch* vk, VkEmulation::ExternalMemoryInfo* info);
 
 bool importExternalMemory(VulkanDispatch* vk, VkDevice targetDevice,
-                          const VkEmulation::ExternalMemoryInfo* info, VkDeviceMemory* out);
-bool importExternalMemoryDedicatedImage(VulkanDispatch* vk, VkDevice targetDevice,
-                                        const VkEmulation::ExternalMemoryInfo* info, VkImage image,
-                                        VkDeviceMemory* out);
+                          const VkEmulation::ExternalMemoryInfo* info,
+                          VkMemoryDedicatedAllocateInfo* dedicatedAllocInfo, VkDeviceMemory* out);
 
 // ColorBuffer operations
 
@@ -503,21 +479,19 @@ bool createVkColorBuffer(uint32_t width, uint32_t height, GLenum format,
 
 bool teardownVkColorBuffer(uint32_t colorBufferHandle);
 
-bool importExtMemoryHandleToVkColorBuffer(uint32_t colorBufferHandle, uint32_t type,
-                                          VK_EXT_MEMORY_HANDLE extMemHandle);
+bool importExtMemoryHandleToVkColorBuffer(uint32_t colorBufferHandle,
+                                          ExternalHandleInfo extMemHandleInfo);
 
 VkEmulation::ColorBufferInfo getColorBufferInfo(uint32_t colorBufferHandle);
-VK_EXT_MEMORY_HANDLE getColorBufferExtMemoryHandle(uint32_t colorBufferHandle);
+std::optional<ExternalHandleInfo> dupColorBufferExtMemoryHandle(uint32_t colorBufferHandle);
 #ifdef __APPLE__
-MTLBufferRef getColorBufferMetalMemoryHandle(uint32_t colorBufferHandle);
-MTLTextureRef getColorBufferMTLTexture(uint32_t colorBufferHandle);
+MTLResource_id getColorBufferMetalMemoryHandle(uint32_t colorBufferHandle);
 VkImage getColorBufferVkImage(uint32_t colorBufferHandle);
 #endif
 
 struct VkColorBufferMemoryExport {
-    android::base::ManagedDescriptor descriptor;
+    ExternalHandleInfo handleInfo;
     uint64_t size = 0;
-    uint32_t streamHandleType = 0;
     bool linearTiling = false;
     bool dedicatedAllocation = false;
 };
@@ -530,9 +504,9 @@ bool colorBufferNeedsUpdateBetweenGlAndVk(uint32_t colorBufferHandle);
 
 bool readColorBufferToBytes(uint32_t colorBufferHandle, std::vector<uint8_t>* bytes);
 bool readColorBufferToBytes(uint32_t colorBufferHandle, uint32_t x, uint32_t y, uint32_t w,
-                            uint32_t h, void* outPixels);
+                            uint32_t h, void* outPixels, uint64_t outPixelsSize);
 bool readColorBufferToBytesLocked(uint32_t colorBufferHandle, uint32_t x, uint32_t y, uint32_t w,
-                                  uint32_t h, void* outPixels);
+                                  uint32_t h, void* outPixels, uint64_t outPixelsSize);
 
 bool updateColorBufferFromBytes(uint32_t colorBufferHandle, const std::vector<uint8_t>& bytes);
 bool updateColorBufferFromBytes(uint32_t colorBufferHandle, uint32_t x, uint32_t y, uint32_t w,
@@ -546,9 +520,9 @@ bool setupVkBuffer(uint64_t size, uint32_t bufferHandle, bool vulkanOnly = false
                    uint32_t memoryProperty = 0);
 bool teardownVkBuffer(uint32_t bufferHandle);
 
-VK_EXT_MEMORY_HANDLE getBufferExtMemoryHandle(uint32_t bufferHandle, uint32_t* outStreamHandleType);
+std::optional<ExternalHandleInfo> dupBufferExtMemoryHandle(uint32_t bufferHandle);
 #ifdef __APPLE__
-MTLBufferRef getBufferMetalMemoryHandle(uint32_t bufferHandle);
+MTLResource_id getBufferMetalMemoryHandle(uint32_t bufferHandle);
 #endif
 
 bool readBufferToBytes(uint32_t bufferHandle, uint64_t offset, uint64_t size, void* outBytes);
@@ -582,6 +556,8 @@ void releaseColorBufferForGuestUse(uint32_t colorBufferHandle);
 std::unique_ptr<BorrowedImageInfoVk> borrowColorBufferForComposition(uint32_t colorBufferHandle,
                                                                      bool colorBufferIsTarget);
 std::unique_ptr<BorrowedImageInfoVk> borrowColorBufferForDisplay(uint32_t colorBufferHandle);
+
+VkExternalMemoryHandleTypeFlagBits getDefaultExternalMemoryHandleType();
 
 }  // namespace vk
 }  // namespace gfxstream

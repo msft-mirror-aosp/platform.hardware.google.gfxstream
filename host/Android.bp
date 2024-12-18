@@ -17,16 +17,39 @@ package {
     default_applicable_licenses: ["hardware_google_gfxstream_license"],
 }
 
+cc_library_host_static {
+    name: "libgfxstream_backend_proto",
+    defaults: [
+        "gfxstream_defaults",
+        "gfxstream_host_cc_defaults",
+    ],
+    proto: {
+        canonical_path_from_root: false,
+        export_proto_headers: true,
+        type: "full",
+        static: true,
+    },
+    srcs: [
+        "VirtioGpuContextSnapshot.proto",
+        "VirtioGpuFrontendSnapshot.proto",
+        "VirtioGpuRingBlobSnapshot.proto",
+        "VirtioGpuResourceSnapshot.proto",
+        "VirtioGpuTimelinesSnapshot.proto",
+    ],
+}
+
 gfxstream_backend_static_deps = [
     "gfxstream_base",
     "gfxstream_host_common",
     "libgfxstream_common_utils",
     "libgfxstream_host_features",
+    "libgfxstream_host_tracing",
     "libgfxstream_etc",
     "libgfxstream_glestranslator_egl",
     "libgfxstream_glestranslator_glescm",
     "libgfxstream_glestranslator_glesv2",
     "libgfxstream_host_apigen_codec_common",
+    "libgfxstream_host_backend",
     "libgfxstream_host_compressedtextures",
     "libgfxstream_host_dispatch",
     "libgfxstream_host_gl_host_common",
@@ -40,6 +63,12 @@ gfxstream_backend_static_deps = [
     "libgfxstream_host_vulkan_emulatedtextures",
     "libgfxstream_host_vulkan_server",
     "libgfxstream_thirdparty_glm",
+]
+
+gfxstream_backend_snapshot_static_deps = [
+    "libgfxstream_backend_proto",
+    "libprotobuf-cpp-full",
+    "libz",
 ]
 
 gfxstream_backend_magma_static_deps = [
@@ -58,7 +87,6 @@ cc_defaults {
         "-Wno-unused-parameter",
         "-Wno-unused-variable",
         "-Wno-unused-function",
-        "-Wno-unreachable-code-loop-increment",
     ],
     header_libs: [
         "gfxstream_opengl_headers",
@@ -76,6 +104,7 @@ cc_defaults {
     export_static_lib_headers: [
         "gfxstream_base",
         "libgfxstream_host_features",
+        "libgfxstream_host_tracing",
         "libgfxstream_host_gl_host_common",
         "libgfxstream_host_gles2_dec",
         "libgfxstream_host_glsnapshot",
@@ -113,6 +142,10 @@ cc_defaults {
         "GfxStreamAgents.cpp",
         "virtio-gpu-gfxstream-renderer.cpp",
         "virtio-gpu-gfxstream-renderer-goldfish.cpp",
+        "VirtioGpuContext.cpp",
+        "VirtioGpuFrontend.cpp",
+        "VirtioGpuResource.cpp",
+        "VirtioGpuRingBlob.cpp",
         "VirtioGpuTimelines.cpp",
         "VsyncThread.cpp",
     ],
@@ -122,6 +155,8 @@ cc_defaults {
     target: {
         host: {
             srcs: ["NativeSubWindow_x11.cpp"],
+            static_libs: gfxstream_backend_snapshot_static_deps,
+            whole_static_libs: gfxstream_backend_snapshot_static_deps,
         },
         android: {
             srcs: ["NativeSubWindow_android.cpp"],
@@ -285,6 +320,28 @@ cc_test_host {
         "libbase",
         "libgfxstream_backend_magma",
     ],
+    test_suites: [
+        "general-tests",
+    ],
+}
+
+// Run with `atest GfxstreamVirtioGpuTimelineTests`
+cc_test_host {
+    name: "GfxstreamVirtioGpuTimelineTests",
+    defaults: ["gfxstream_defaults"],
+    srcs: [
+        "VirtioGpuTimelinesTests.cpp",
+    ],
+    shared_libs: [
+        "libbase",
+        "libgfxstream_backend",
+    ],
+    static_libs: [
+        "libgmock",
+    ],
+    test_options: {
+        unit_test: true,
+    },
     test_suites: [
         "general-tests",
     ],

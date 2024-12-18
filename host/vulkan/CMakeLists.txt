@@ -2,7 +2,7 @@ add_subdirectory(cereal)
 add_subdirectory(emulated_textures)
 
 if(CONFIG_AEMU)
-    add_compile_definitions(GFXSTREAM_ENABLE_HOST_VK_SNAPSHOT)
+    add_compile_definitions(GFXSTREAM_BUILD_WITH_SNAPSHOT_SUPPORT)
     add_compile_definitions(CONFIG_AEMU)
 endif()
 
@@ -40,7 +40,9 @@ target_link_libraries(gfxstream-vulkan-server PUBLIC
         emulated_textures
         apigen-codec-common
         aemu-base.headers
+        gfxstream_backend_common
         gfxstream_features
+        gfxstream_host_tracing
         gfxstream-snapshot.headers
         gfxstream_utils
         gfxstream_vulkan_headers

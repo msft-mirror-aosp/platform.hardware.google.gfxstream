@@ -9,7 +9,10 @@ package {
 
 cc_library_static {
     name: "libgfxstream_host_vulkan_emulatedtextures",
-    defaults: ["gfxstream_defaults"],
+    defaults: [
+        "gfxstream_defaults",
+        "gfxstream_host_cc_defaults",
+    ],
     header_libs: [
         "libgfxstream_host_vulkan_cereal_common",
     ],
