@@ -29,8 +29,8 @@
 #include "DeviceLostHelper.h"
 #include "DeviceOpTracker.h"
 #include "DisplayVk.h"
+#include "ExternalObjectManager.h"
 #include "FrameworkFormats.h"
-#include "aemu/base/ManagedDescriptor.hpp"
 #include "aemu/base/Optional.h"
 #include "aemu/base/synchronization/Lock.h"
 #include "gfxstream/host/BackendCallbacks.h"
@@ -517,9 +517,8 @@ VkImage getColorBufferVkImage(uint32_t colorBufferHandle);
 #endif
 
 struct VkColorBufferMemoryExport {
-    android::base::ManagedDescriptor descriptor;
+    GenericDescriptorInfo descriptorInfo;
     uint64_t size = 0;
-    uint32_t streamHandleType = 0;
     bool linearTiling = false;
     bool dedicatedAllocation = false;
 };
