@@ -15,8 +15,6 @@
 
 #include <utility>
 
-using android::base::ManagedDescriptor;
-
 namespace gfxstream {
 
 static ExternalObjectManager* sMapping() {
@@ -57,8 +55,11 @@ void ExternalObjectManager::addBlobDescriptorInfo(uint32_t ctxId, uint64_t blobI
                                                   uint32_t caching,
                                                   std::optional<VulkanInfo> vulkanInfoOpt) {
     struct BlobDescriptorInfo info = {
-        .descriptor = std::move(descriptor),
-        .handleType = handleType,
+        .descriptorInfo =
+            {
+                .descriptor = std::move(descriptor),
+                .handleType = handleType,
+            },
         .caching = caching,
         .vulkanInfoOpt = vulkanInfoOpt,
     };
@@ -85,7 +86,7 @@ std::optional<BlobDescriptorInfo> ExternalObjectManager::removeBlobDescriptorInf
 void ExternalObjectManager::addSyncDescriptorInfo(uint32_t ctxId, uint64_t syncId,
                                                   ManagedDescriptor descriptor,
                                                   uint32_t handleType) {
-    struct SyncDescriptorInfo info = {
+    SyncDescriptorInfo info = {
         .descriptor = std::move(descriptor),
         .handleType = handleType,
     };
