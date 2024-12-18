@@ -100,32 +100,39 @@ static bool updateColorBufferFromBytesLocked(uint32_t colorBufferHandle, uint32_
                                              uint32_t w, uint32_t h, const void* pixels,
                                              size_t inputPixelsSize);
 
-static std::optional<ExternalHandleInfo> dupExternalMemory(const ExternalHandleInfo& handleInfo) {
+static std::optional<ExternalHandleInfo> dupExternalMemory(std::optional<ExternalHandleInfo> handleInfo) {
+    if (!handleInfo) {
+        ERR("dupExternalMemory: No external memory handle info provided to duplicate the external memory");
+        return std::nullopt;
+    }
 #if defined(_WIN32)
     auto myProcessHandle = GetCurrentProcess();
     HANDLE res;
     DuplicateHandle(myProcessHandle,
                     static_cast<HANDLE>(
-                        reinterpret_cast<void*>(handleInfo.handle)),  // source process and handle
+                        reinterpret_cast<void*>(handleInfo->handle)),  // source process and handle
                     myProcessHandle, &res,  // target process and pointer to handle
                     0 /* desired access (ignored) */, true /* inherit */,
                     DUPLICATE_SAME_ACCESS /* same access option */);
     return ExternalHandleInfo{
         .handle = reinterpret_cast<ExternalHandleType>(res),
-        .streamHandleType = handleInfo.streamHandleType,
+        .streamHandleType = handleInfo->streamHandleType,
     };
 #elif defined(__QNX__)
-    if (STREAM_MEM_HANDLE_TYPE_SCREEN_BUFFER_QNX == handleInfo.streamHandleType) {
+    if (STREAM_MEM_HANDLE_TYPE_SCREEN_BUFFER_QNX == handleInfo->streamHandleType) {
         // No dup required for the screen_buffer handle
-        return handleInfo;
+        return ExternalHandleInfo{
+            .handle = handleInfo->handle,
+            .streamHandleType = handleInfo->streamHandleType,
+        };
     }
     // TODO(aruby@blackberry.com): Support dup-ing for OPAQUE_FD or DMABUF types on QNX
     return std::nullopt;
 #else
     // TODO(aruby@blackberry.com): Check handleType?
     return ExternalHandleInfo{
-        .handle = static_cast<ExternalHandleType>(dup(handleInfo.handle)),
-        .streamHandleType = handleInfo.streamHandleType,
+        .handle = static_cast<ExternalHandleType>(dup(handleInfo->handle)),
+        .streamHandleType = handleInfo->streamHandleType,
     };
 #endif
 }
@@ -2031,7 +2038,12 @@ bool importExternalMemory(VulkanDispatch* vk, VkDevice targetDevice,
         -1,
     };
     if (!importInfoPtr) {
-        auto dupHandle = dupExternalMemory(*handleInfo);
+        if (!handleInfo) {
+            ERR("importExternalMemory: external handle info is not available, cannot retrieve "
+                "information required to duplicate the external handle.");
+            return false;
+        }
+        auto dupHandle = dupExternalMemory(handleInfo);
         if (!dupHandle) {
             ERR("importExternalMemory: Failed to duplicate handleInfo.handle: 0x%x, "
                 "streamHandleType: %d",
@@ -2728,7 +2740,7 @@ std::optional<VkColorBufferMemoryExport> exportColorBufferMemory(uint32_t colorB
         return std::nullopt;
     }
 
-    auto dupHandle = dupExternalMemory(*handleInfo);
+    auto dupHandle = dupExternalMemory(handleInfo);
     if (!dupHandle) {
         ERR("Could not dup external memory handle: 0x%x, with handleType: %d", handleInfo->handle,
             handleInfo->streamHandleType);
@@ -3320,7 +3332,7 @@ std::optional<ExternalHandleInfo> dupColorBufferExtMemoryHandle(uint32_t colorBu
         return std::nullopt;
     }
 
-    return dupExternalMemory(*handleInfo);
+    return dupExternalMemory(handleInfo);
 }
 
 #ifdef __APPLE__
@@ -3630,7 +3642,7 @@ std::optional<ExternalHandleInfo> dupBufferExtMemoryHandle(uint32_t bufferHandle
         return std::nullopt;
     }
 
-    return dupExternalMemory(*handleInfo);
+    return dupExternalMemory(handleInfo);
 }
 
 #ifdef __APPLE__
