@@ -2383,8 +2383,9 @@ static bool createVkColorBufferLocked(uint32_t width, uint32_t height, GLenum in
         return false;
     }
 
-    // TODO: Check the global ExternalObjectManager::resourceDescriptorInfo list for these
-    std::optional<ExternalHandleInfo> extMemHandleInfo = std::nullopt;
+    // Check the ExternalObjectManager for an external memory handle provided for import
+    auto extMemHandleInfo =
+        ExternalObjectManager::get()->removeResourceExternalHandleInfo(colorBufferHandle);
     if (extMemHandleInfo && !sVkEmulation->deviceInfo.supportsExternalMemoryImport) {
         ERR("Failed to initialize Vk ColorBuffer -- extMemHandleInfo provided, but device does "
             "not support externalMemoryImport");

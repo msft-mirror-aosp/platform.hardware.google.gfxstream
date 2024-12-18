@@ -108,6 +108,10 @@ class ExternalObjectManager {
                                uint32_t streamHandleType);
     std::optional<SyncDescriptorInfo> removeSyncDescriptorInfo(uint32_t ctx_id, uint64_t syncId);
 
+    void addResourceExternalHandleInfo(uint32_t resHandle,
+                                       const ExternalHandleInfo& externalHandleInfo);
+    std::optional<ExternalHandleInfo> removeResourceExternalHandleInfo(uint32_t resHandle);
+
    private:
     // Only for pairs of std::hash-able types for simplicity.
     // You can of course template this struct to allow other hash functions
@@ -129,6 +133,7 @@ class ExternalObjectManager {
         mBlobDescriptorInfos;
     std::unordered_map<std::pair<uint32_t, uint64_t>, SyncDescriptorInfo, pair_hash>
         mSyncDescriptorInfos;
+    std::unordered_map<uint32_t, ExternalHandleInfo> mResourceExternalHandleInfos;
     DISALLOW_COPY_ASSIGN_AND_MOVE(ExternalObjectManager);
 };
 
