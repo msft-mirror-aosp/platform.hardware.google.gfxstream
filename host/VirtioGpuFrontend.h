@@ -123,6 +123,8 @@ class VirtioGpuFrontend {
 #endif  // CONFIG_AEMU
 
    private:
+    VirtioGpuTimelines::FenceCompletionCallback getFenceCompletionCallback();
+
     int destroyVirtioGpuObjects();
 
 #ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT

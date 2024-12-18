@@ -34,7 +34,6 @@
 // address space device, though there are possible other consumers of this, so
 // it becomes a global object. It exports methods into VmOperations.
 
-using android::base::DescriptorType;
 using android::base::ManagedDescriptor;
 
 namespace gfxstream {
@@ -55,25 +54,12 @@ namespace gfxstream {
 #define STREAM_FENCE_HANDLE_TYPE_SYNC_FD 0x7
 #define STREAM_FENCE_HANDLE_TYPE_OPAQUE_WIN32 0x8
 #define STREAM_FENCE_HANDLE_TYPE_ZIRCON 0x9
-#define STREAM_MEM_HANDLE_TYPE_SCREEN_BUFFER_QNX 0xa
-
-typedef int64_t ExternalHandleType;
-
-struct ExternalHandleInfo {
-    ExternalHandleType handle;
-    uint32_t streamHandleType;
-};
 
 // A struct describing the information about host memory associated
 // with a host memory id. Used with virtio-gpu-next.
 struct HostMemInfo {
     void* addr;
     uint32_t caching;
-};
-
-struct GenericDescriptorInfo {
-    ManagedDescriptor descriptor;
-    uint32_t streamHandleType;
 };
 
 struct VulkanInfo {
@@ -83,12 +69,16 @@ struct VulkanInfo {
 };
 
 struct BlobDescriptorInfo {
-    GenericDescriptorInfo descriptorInfo;
+    ManagedDescriptor descriptor;
+    uint32_t handleType;
     uint32_t caching;
     std::optional<VulkanInfo> vulkanInfoOpt;
 };
 
-using SyncDescriptorInfo = GenericDescriptorInfo;
+struct SyncDescriptorInfo {
+    ManagedDescriptor descriptor;
+    uint32_t handleType;
+};
 
 class ExternalObjectManager {
    public:
@@ -100,12 +90,12 @@ class ExternalObjectManager {
     std::optional<HostMemInfo> removeMapping(uint32_t ctx_id, uint64_t blobId);
 
     void addBlobDescriptorInfo(uint32_t ctx_id, uint64_t blobId, ManagedDescriptor descriptor,
-                               uint32_t streamHandleType, uint32_t caching,
+                               uint32_t handleType, uint32_t caching,
                                std::optional<VulkanInfo> vulkanInfoOpt);
     std::optional<BlobDescriptorInfo> removeBlobDescriptorInfo(uint32_t ctx_id, uint64_t blobId);
 
     void addSyncDescriptorInfo(uint32_t ctx_id, uint64_t syncId, ManagedDescriptor descriptor,
-                               uint32_t streamHandleType);
+                               uint32_t handleType);
     std::optional<SyncDescriptorInfo> removeSyncDescriptorInfo(uint32_t ctx_id, uint64_t syncId);
 
    private:

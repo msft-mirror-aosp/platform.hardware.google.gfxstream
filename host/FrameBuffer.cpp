@@ -69,6 +69,7 @@
 namespace gfxstream {
 
 using android::base::AutoLock;
+using android::base::ManagedDescriptor;
 using android::base::MetricEventVulkanOutOfMemory;
 using android::base::Stream;
 using android::base::WorkerProcessingResult;
@@ -387,7 +388,9 @@ bool FrameBuffer::initialize(int width, int height, gfxstream::host::FeatureSet 
     std::unique_ptr<VkEmulationFeatures> vkEmulationFeatures =
         std::make_unique<VkEmulationFeatures>(VkEmulationFeatures{
             .glInteropSupported = false,  // Set later.
-            .deferredCommands = fb->m_features.VulkanQueueSubmitWithCommands.enabled,
+            .deferredCommands =
+                android::base::getEnvironmentVariable("ANDROID_EMU_VK_DISABLE_DEFERRED_COMMANDS")
+                    .empty(),
             .createResourceWithRequirements =
                 android::base::getEnvironmentVariable(
                     "ANDROID_EMU_VK_DISABLE_USE_CREATE_RESOURCES_WITH_REQUIREMENTS")
@@ -1805,17 +1808,6 @@ bool FrameBuffer::postImplSync(HandleType p_colorbuffer, bool needLockAndBind, b
 
 AsyncResult FrameBuffer::postImpl(HandleType p_colorbuffer, Post::CompletionCallback callback,
                                   bool needLockAndBind, bool repaint) {
-    std::unique_ptr<RecursiveScopedContextBind> bind;
-    if (needLockAndBind) {
-        m_lock.lock();
-#if GFXSTREAM_ENABLE_HOST_GLES
-        if (m_emulationGl) {
-            bind = std::make_unique<RecursiveScopedContextBind>(getPbufferSurfaceContextHelper());
-        }
-#endif
-    }
-    AsyncResult ret = AsyncResult::FAIL_AND_CALLBACK_NOT_SCHEDULED;
-
     ColorBufferPtr colorBuffer = nullptr;
     {
         AutoLock colorBufferMapLock(m_colorBufferMapLock);
@@ -1827,8 +1819,22 @@ AsyncResult FrameBuffer::postImpl(HandleType p_colorbuffer, Post::CompletionCall
         }
     }
     if (!colorBuffer) {
-        goto EXIT;
+        return AsyncResult::FAIL_AND_CALLBACK_NOT_SCHEDULED;
     }
+
+    std::optional<AutoLock> lock;
+#if GFXSTREAM_ENABLE_HOST_GLES
+    std::optional<RecursiveScopedContextBind> bind;
+#endif
+    if (needLockAndBind) {
+        lock.emplace(m_lock);
+#if GFXSTREAM_ENABLE_HOST_GLES
+        if (m_emulationGl) {
+            bind.emplace(getPbufferSurfaceContextHelper());
+        }
+#endif
+    }
+    AsyncResult ret = AsyncResult::FAIL_AND_CALLBACK_NOT_SCHEDULED;
 
     m_lastPostedColorBuffer = p_colorbuffer;
 
@@ -1866,51 +1872,45 @@ AsyncResult FrameBuffer::postImpl(HandleType p_colorbuffer, Post::CompletionCall
     //
     // Send framebuffer (without FPS overlay) to callback
     //
-    if (m_onPost.size() == 0) {
-        goto DEC_REFCOUNT_AND_EXIT;
-    }
-    for (auto& iter : m_onPost) {
-        ColorBufferPtr cb;
-        if (iter.first == 0) {
-            cb = colorBuffer;
-        } else {
-            uint32_t colorBuffer;
-            if (getDisplayColorBuffer(iter.first, &colorBuffer) < 0) {
-                ERR("Failed to get color buffer for display %d, skip onPost", iter.first);
-                continue;
+    if (!m_onPost.empty()) {
+        for (auto& iter : m_onPost) {
+            ColorBufferPtr cb;
+            if (iter.first == 0) {
+                cb = colorBuffer;
+            } else {
+                uint32_t colorBuffer;
+                if (getDisplayColorBuffer(iter.first, &colorBuffer) < 0) {
+                    ERR("Failed to get color buffer for display %d, skip onPost", iter.first);
+                    continue;
+                }
+
+                cb = findColorBuffer(colorBuffer);
+                if (!cb) {
+                    ERR("Failed to find colorbuffer %d, skip onPost", colorBuffer);
+                    continue;
+                }
             }
 
-            cb = findColorBuffer(colorBuffer);
-            if (!cb) {
-                ERR("Failed to find colorbuffer %d, skip onPost", colorBuffer);
-                continue;
-            }
-        }
-
-        if (asyncReadbackSupported()) {
-            ensureReadbackWorker();
-            const auto status = m_readbackWorker->doNextReadback(
-                iter.first, cb.get(), iter.second.img, repaint, iter.second.readBgra);
-            if (status == ReadbackWorker::DoNextReadbackResult::OK_READY_FOR_READ) {
+            if (asyncReadbackSupported()) {
+                ensureReadbackWorker();
+                const auto status = m_readbackWorker->doNextReadback(
+                    iter.first, cb.get(), iter.second.img, repaint, iter.second.readBgra);
+                if (status == ReadbackWorker::DoNextReadbackResult::OK_READY_FOR_READ) {
+                    doPostCallback(iter.second.img, iter.first);
+                }
+            } else {
+    #if GFXSTREAM_ENABLE_HOST_GLES
+                cb->glOpReadback(iter.second.img, iter.second.readBgra);
+    #endif
                 doPostCallback(iter.second.img, iter.first);
             }
-        } else {
-#if GFXSTREAM_ENABLE_HOST_GLES
-            cb->glOpReadback(iter.second.img, iter.second.readBgra);
-#endif
-            doPostCallback(iter.second.img, iter.first);
         }
     }
-DEC_REFCOUNT_AND_EXIT:
+
     if (!m_subWin) {  // m_subWin is supposed to be false
         decColorBufferRefCountLocked(p_colorbuffer);
     }
 
-EXIT:
-    if (needLockAndBind) {
-        bind.reset();
-        m_lock.unlock();
-    }
     return ret;
 }
 
@@ -2706,7 +2706,9 @@ void FrameBuffer::registerProcessCleanupCallback(void* key, std::function<void()
     if (!tInfo) return;
 
     auto& callbackMap = m_procOwnedCleanupCallbacks[tInfo->m_puid];
-    callbackMap[key] = cb;
+    if (!callbackMap.insert({key, std::move(cb)}).second) {
+        ERR("%s: tried to override existing key %p ", __func__, key);
+    }
 }
 
 void FrameBuffer::unregisterProcessCleanupCallback(void* key) {
@@ -2715,12 +2717,12 @@ void FrameBuffer::unregisterProcessCleanupCallback(void* key) {
     if (!tInfo) return;
 
     auto& callbackMap = m_procOwnedCleanupCallbacks[tInfo->m_puid];
-    if (callbackMap.find(key) == callbackMap.end()) {
-        ERR("warning: tried to erase nonexistent key %p "
+    auto erasedCount = callbackMap.erase(key);
+    if (erasedCount == 0) {
+        ERR("%s: tried to erase nonexistent key %p "
             "associated with process %llu",
-            key, (unsigned long long)(tInfo->m_puid));
+            __func__, key, (unsigned long long)(tInfo->m_puid));
     }
-    callbackMap.erase(key);
 }
 
 const ProcessResources* FrameBuffer::getProcessResources(uint64_t puid) {
@@ -2831,9 +2833,7 @@ bool FrameBuffer::platformImportResource(uint32_t handle, uint32_t info, void* r
         // Note: Additional non-EGL resource-types can be added here, and will
         // be propagated through color-buffer import functionality
         case RESOURCE_TYPE_VK_EXT_MEMORY_HANDLE:
-            // No support for preserveContent for Vulkan external memory handles
-            assert(!preserveContent);
-            return colorBuffer->importNativeResource(resource, type);
+            return colorBuffer->importNativeResource(resource, type, preserveContent);
         default:
             ERR("Error: unsupported resource type: %u", type);
             return false;

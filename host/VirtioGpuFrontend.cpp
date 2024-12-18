@@ -28,6 +28,7 @@
 #include "FrameBuffer.h"
 #include "FrameworkFormats.h"
 #include "VkCommonOperations.h"
+#include "aemu/base/ManagedDescriptor.hpp"
 #include "aemu/base/files/StdioStream.h"
 #include "aemu/base/memory/SharedMemory.h"
 #include "aemu/base/threads/WorkerThread.h"
@@ -125,21 +126,7 @@ int VirtioGpuFrontend::init(void* cookie, gfxstream::host::FeatureSet features,
         stream_renderer_error("Could not get address space device control ops!");
         return -EINVAL;
     }
-
-    // Forwards fence completions from VirtioGpuTimelines to the client (VMM).
-    auto fenceCompletionCallback = [this](const VirtioGpuTimelines::Ring& ring,
-                                          VirtioGpuTimelines::FenceId fenceId) {
-        struct stream_renderer_fence fence = {0};
-        fence.fence_id = fenceId;
-        fence.flags = STREAM_RENDERER_FLAG_FENCE;
-        if (const auto* contextSpecificRing = std::get_if<VirtioGpuRingContextSpecific>(&ring)) {
-            fence.flags |= STREAM_RENDERER_FLAG_FENCE_RING_IDX;
-            fence.ctx_id = contextSpecificRing->mCtxId;
-            fence.ring_idx = contextSpecificRing->mRingIdx;
-        }
-        mFenceCallback(mCookie, &fence);
-    };
-    mVirtioGpuTimelines = VirtioGpuTimelines::create(std::move(fenceCompletionCallback));
+    mVirtioGpuTimelines = VirtioGpuTimelines::create(getFenceCompletionCallback());
 
 #if !defined(_WIN32)
     mPageSize = getpagesize();
@@ -195,6 +182,21 @@ int VirtioGpuFrontend::createContext(VirtioGpuCtxId contextId, uint32_t nlen, co
     }
     mContexts[contextId] = std::move(*contextOpt);
     return 0;
+}
+
+VirtioGpuTimelines::FenceCompletionCallback VirtioGpuFrontend::getFenceCompletionCallback() {
+    // Forwards fence completions from VirtioGpuTimelines to the client (VMM).
+    return [this](const VirtioGpuTimelines::Ring& ring, VirtioGpuTimelines::FenceId fenceId) {
+        struct stream_renderer_fence fence = {0};
+        fence.fence_id = fenceId;
+        fence.flags = STREAM_RENDERER_FLAG_FENCE;
+        if (const auto* contextSpecificRing = std::get_if<VirtioGpuRingContextSpecific>(&ring)) {
+            fence.flags |= STREAM_RENDERER_FLAG_FENCE_RING_IDX;
+            fence.ctx_id = contextSpecificRing->mCtxId;
+            fence.ring_idx = contextSpecificRing->mRingIdx;
+        }
+        mFenceCallback(mCookie, &fence);
+    };
 }
 
 int VirtioGpuFrontend::destroyContext(VirtioGpuCtxId contextId) {
@@ -898,7 +900,7 @@ int VirtioGpuFrontend::exportFence(uint64_t fenceId, struct stream_renderer_hand
     else
         return -EINVAL;
 
-    handle->handle_type = entry->streamHandleType;
+    handle->handle_type = entry->handleType;
 
 #ifdef _WIN32
     handle->os_handle = static_cast<int64_t>(reinterpret_cast<intptr_t>(rawDescriptor));
@@ -1003,6 +1005,15 @@ int VirtioGpuFrontend::snapshotFrontend(const char* directory) {
             return -1;
         }
         (*snapshot.mutable_resources())[resourceId] = std::move(*resourceSnapshotOpt);
+    }
+
+    if (mVirtioGpuTimelines) {
+        auto timelinesSnapshotOpt = mVirtioGpuTimelines->Snapshot();
+        if (!timelinesSnapshotOpt) {
+            stream_renderer_error("Failed to snapshot timelines.");
+            return -1;
+        }
+        snapshot.mutable_timelines()->Swap(&*timelinesSnapshotOpt);
     }
 
     const std::filesystem::path snapshotDirectory = std::string(directory);
@@ -1120,6 +1131,14 @@ int VirtioGpuFrontend::restoreFrontend(const char* directory) {
         }
         mResources.emplace(resourceId, std::move(*resourceOpt));
     }
+
+    mVirtioGpuTimelines =
+        VirtioGpuTimelines::Restore(getFenceCompletionCallback(), snapshot.timelines());
+    if (!mVirtioGpuTimelines) {
+        stream_renderer_error("Failed to restore timelines.");
+        return -1;
+    }
+
     return 0;
 }
 

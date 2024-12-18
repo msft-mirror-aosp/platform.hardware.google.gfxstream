@@ -94,6 +94,7 @@ size_t glParamSize(GLenum param)
     case GL_PROJECTION_MATRIX:
     case GL_TEXTURE_MATRIX:
         s = 16;
+        break;
     default:
         s = 1; // assume 1
     }

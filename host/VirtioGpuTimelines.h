@@ -24,6 +24,9 @@
 #include <unordered_map>
 #include <variant>
 
+#ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
+#include "VirtioGpuTimelinesSnapshot.pb.h"
+#endif  // GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
 #include "gfxstream/virtio-gpu-gfxstream-renderer.h"
 
 typedef uint32_t VirtioGpuCtxId;
@@ -88,22 +91,53 @@ class VirtioGpuTimelines {
     void notifyTaskCompletion(TaskId);
     void poll();
 
+#ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
+    std::optional<gfxstream::host::snapshot::VirtioGpuTimelinesSnapshot> Snapshot() const;
+
+    static std::unique_ptr<VirtioGpuTimelines> Restore(
+        FenceCompletionCallback callback,
+        const gfxstream::host::snapshot::VirtioGpuTimelinesSnapshot& snapshot);
+#endif
+
    private:
     VirtioGpuTimelines(FenceCompletionCallback callback);
 
     struct Task {
+        Task(TaskId id, const Ring& ring, uint64_t traceId)
+            : mId(id), mRing(ring), mTraceId(traceId), mHasCompleted(false) {}
+
+        // LINT.IfChange(virtio_gpu_timeline_task)
         TaskId mId;
         Ring mRing;
         uint64_t mTraceId;
         std::atomic_bool mHasCompleted;
-        Task(TaskId id, const Ring& ring, uint64_t traceId)
-            : mId(id), mRing(ring), mTraceId(traceId), mHasCompleted(false) {}
+        // LINT.ThenChange(VirtioGpuTimelinesSnapshot.proto:virtio_gpu_timeline_task)
     };
 
+    // LINT.IfChange(virtio_gpu_timeline_item)
     using TimelineItem = std::variant<FenceId, std::shared_ptr<Task>>;
+    // LINT.ThenChange(VirtioGpuTimelinesSnapshot.proto:virtio_gpu_timeline_item)
+
+#ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
+    static std::optional<gfxstream::host::snapshot::VirtioGpuTimelineItem> SnapshotTimelineItem(
+        const TimelineItem& timelineItem);
+
+    static std::optional<TimelineItem> RestoreTimelineItem(
+        const gfxstream::host::snapshot::VirtioGpuTimelineItem& snapshot);
+#endif
+
     struct Timeline {
+        // LINT.IfChange(virtio_gpu_timeline)
         uint64_t mTraceTrackId;
         std::list<TimelineItem> mQueue;
+        // LINT.ThenChange(VirtioGpuTimelinesSnapshot.proto:virtio_gpu_timeline)
+
+#ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
+        std::optional<gfxstream::host::snapshot::VirtioGpuTimeline> Snapshot() const;
+
+        static std::optional<Timeline> Restore(
+            const gfxstream::host::snapshot::VirtioGpuTimeline& snapshot);
+#endif
     };
 
     Timeline& GetOrCreateTimelineLocked(const Ring& ring);
@@ -112,14 +146,18 @@ class VirtioGpuTimelines {
     // timeline items that are no longer needed.
     void poll_locked(const Ring&);
 
-    std::atomic<TaskId> mNextId;
     FenceCompletionCallback mFenceCompletionCallback;
-    std::mutex mTimelinesMutex;
+
+    mutable std::mutex mTimelinesMutex;
     // The mTaskIdToTask cache must be destroyed after the actual owner of Task,
     // mTimelineQueues, is destroyed, because the deleter of Task will
     // automatically remove the entry in mTaskIdToTask.
     std::unordered_map<TaskId, std::weak_ptr<Task>> mTaskIdToTask;
+
+    // LINT.IfChange(virtio_gpu_timelines)
+    std::atomic<TaskId> mNextId;
     std::unordered_map<Ring, Timeline> mTimelineQueues;
+    // LINT.ThenChange(VirtioGpuTimelinesSnapshot.proto:virtio_gpu_timelines)
 };
 
 #endif  // VIRTIO_GPU_TIMELINES_H
