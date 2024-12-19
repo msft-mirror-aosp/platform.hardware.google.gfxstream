@@ -28,7 +28,6 @@
 #include "FrameBuffer.h"
 #include "FrameworkFormats.h"
 #include "VkCommonOperations.h"
-#include "aemu/base/ManagedDescriptor.hpp"
 #include "aemu/base/files/StdioStream.h"
 #include "aemu/base/memory/SharedMemory.h"
 #include "aemu/base/threads/WorkerThread.h"
@@ -459,6 +458,24 @@ int VirtioGpuFrontend::createResource(struct stream_renderer_resource_create_arg
         return -EINVAL;
     }
     mResources[args->handle] = std::move(*resourceOpt);
+    return 0;
+}
+
+int VirtioGpuFrontend::importResource(uint32_t res_handle,
+                                      const struct stream_renderer_handle* import_handle,
+                                      const struct stream_renderer_import_data* import_data) {
+    if (import_data && (import_data->flags & STREAM_RENDERER_IMPORT_FLAG_RESOURCE_EXISTS)) {
+        stream_renderer_error("Importing handle to existing resource is currently not supported");
+        return -EINVAL;
+    }
+
+    auto resourceOpt = VirtioGpuResource::Create(res_handle, import_handle, import_data);
+    if (!resourceOpt) {
+        stream_renderer_error("Failed to create resource %u, with import_handle/import_data",
+                              res_handle);
+        return -EINVAL;
+    }
+    mResources[res_handle] = std::move(*resourceOpt);
     return 0;
 }
 
@@ -900,7 +917,7 @@ int VirtioGpuFrontend::exportFence(uint64_t fenceId, struct stream_renderer_hand
     else
         return -EINVAL;
 
-    handle->handle_type = entry->handleType;
+    handle->handle_type = entry->streamHandleType;
 
 #ifdef _WIN32
     handle->os_handle = static_cast<int64_t>(reinterpret_cast<intptr_t>(rawDescriptor));

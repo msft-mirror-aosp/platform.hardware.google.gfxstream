@@ -24,7 +24,6 @@
 #include "vulkan/VkCommonOperations.h"
 #include "FrameBuffer.h"
 
-using android::base::ManagedDescriptor;
 using emugl::ABORT_REASON_OTHER;
 using emugl::FatalError;
 
@@ -110,8 +109,14 @@ std::shared_ptr<ColorBuffer> ColorBuffer::create(gl::EmulationGl* emulationGl,
         auto memoryExport = vk::exportColorBufferMemory(handle);
         if (memoryExport) {
             if (colorBuffer->mColorBufferGl->importMemory(
-                    std::move(memoryExport->descriptor), memoryExport->size,
-                    memoryExport->dedicatedAllocation, memoryExport->linearTiling)) {
+#ifdef _WIN32
+                    ManagedDescriptor(static_cast<DescriptorType>(
+                        reinterpret_cast<void*>(memoryExport->handleInfo.handle))),
+#else
+                    ManagedDescriptor(static_cast<DescriptorType>(memoryExport->handleInfo.handle)),
+#endif
+                    memoryExport->size, memoryExport->dedicatedAllocation,
+                    memoryExport->linearTiling)) {
                 colorBuffer->mGlAndVkAreSharingExternalMemory = true;
             } else {
                 ERR("Failed to import memory to ColorBufferGl:%d", handle);
@@ -431,30 +436,6 @@ bool ColorBuffer::invalidateForVk() {
 #endif
     mGlTexDirty = false;
     return true;
-}
-
-bool ColorBuffer::importNativeResource(void* nativeResource, uint32_t type, bool preserveContent) {
-    switch (type) {
-        case RESOURCE_TYPE_VK_EXT_MEMORY_HANDLE: {
-            if (mColorBufferGl) {
-                GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                    << "Native resource import type %s is invalid when GL emulation is active. "
-                    << "Use RESOURCE_TYPE_EGL_NATIVE_PIXMAP of RESOURCE_TYPE_EGL_IMAGE imports "
-                       "instead.";
-                return false;
-            } else if (!mColorBufferVk) {
-                GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                    << "Vulkan emulation must be available for RESOURCE_TYPE_VK_EXT_MEMORY_HANDLE "
-                       "import.";
-                return false;
-            }
-            return mColorBufferVk->importExtMemoryHandle(nativeResource, type, preserveContent);
-        }
-        default:
-            GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                << "Unrecognized type for ColorBuffer::importNativeResource.";
-            return false;
-    }
 }
 
 int ColorBuffer::waitSync() {

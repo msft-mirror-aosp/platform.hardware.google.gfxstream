@@ -114,7 +114,6 @@ static char translate_severity(uint32_t type) {
 }
 
 using android::AndroidPipe;
-using android::base::ManagedDescriptor;
 using android::base::MetricsLogger;
 using gfxstream::host::VirtioGpuFrontend;
 
@@ -179,6 +178,15 @@ VG_EXPORT int stream_renderer_resource_create(struct stream_renderer_resource_cr
                           "stream_renderer_resource_create()");
 
     return sFrontend()->createResource(args, iov, num_iovs);
+}
+
+VG_EXPORT int stream_renderer_import_resource(
+    uint32_t res_handle, const struct stream_renderer_handle* import_handle,
+    const struct stream_renderer_import_data* import_data) {
+    GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY,
+                          "stream_renderer_import_resource()");
+
+    return sFrontend()->importResource(res_handle, import_handle, import_data);
 }
 
 VG_EXPORT void stream_renderer_resource_unref(uint32_t res_handle) {
