@@ -15,8 +15,6 @@
 
 #include <utility>
 
-using android::base::ManagedDescriptor;
-
 namespace gfxstream {
 
 static ExternalObjectManager* sMapping() {
@@ -53,12 +51,15 @@ std::optional<HostMemInfo> ExternalObjectManager::removeMapping(uint32_t ctxId, 
 }
 
 void ExternalObjectManager::addBlobDescriptorInfo(uint32_t ctxId, uint64_t blobId,
-                                                  ManagedDescriptor descriptor, uint32_t handleType,
-                                                  uint32_t caching,
+                                                  ManagedDescriptor descriptor,
+                                                  uint32_t streamHandleType, uint32_t caching,
                                                   std::optional<VulkanInfo> vulkanInfoOpt) {
     struct BlobDescriptorInfo info = {
-        .descriptor = std::move(descriptor),
-        .handleType = handleType,
+        .descriptorInfo =
+            {
+                .descriptor = std::move(descriptor),
+                .streamHandleType = streamHandleType,
+            },
         .caching = caching,
         .vulkanInfoOpt = vulkanInfoOpt,
     };
@@ -84,10 +85,10 @@ std::optional<BlobDescriptorInfo> ExternalObjectManager::removeBlobDescriptorInf
 
 void ExternalObjectManager::addSyncDescriptorInfo(uint32_t ctxId, uint64_t syncId,
                                                   ManagedDescriptor descriptor,
-                                                  uint32_t handleType) {
-    struct SyncDescriptorInfo info = {
+                                                  uint32_t streamHandleType) {
+    SyncDescriptorInfo info = {
         .descriptor = std::move(descriptor),
-        .handleType = handleType,
+        .streamHandleType = streamHandleType,
     };
 
     auto key = std::make_pair(ctxId, syncId);
@@ -103,6 +104,25 @@ std::optional<SyncDescriptorInfo> ExternalObjectManager::removeSyncDescriptorInf
     if (found != mSyncDescriptorInfos.end()) {
         std::optional<SyncDescriptorInfo> ret = std::move(found->second);
         mSyncDescriptorInfos.erase(found);
+        return ret;
+    }
+
+    return std::nullopt;
+}
+
+void ExternalObjectManager::addResourceExternalHandleInfo(
+    uint32_t resHandle, const ExternalHandleInfo& externalHandleInfo) {
+    std::lock_guard<std::mutex> lock(mLock);
+    mResourceExternalHandleInfos.insert(std::make_pair(resHandle, externalHandleInfo));
+}
+
+std::optional<ExternalHandleInfo> ExternalObjectManager::removeResourceExternalHandleInfo(
+    uint32_t resHandle) {
+    std::lock_guard<std::mutex> lock(mLock);
+    auto found = mResourceExternalHandleInfos.find(resHandle);
+    if (found != mResourceExternalHandleInfos.end()) {
+        std::optional<ExternalHandleInfo> ret = found->second;
+        mResourceExternalHandleInfos.erase(found);
         return ret;
     }
 

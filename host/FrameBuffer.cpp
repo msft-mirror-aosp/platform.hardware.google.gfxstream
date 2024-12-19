@@ -69,7 +69,6 @@
 namespace gfxstream {
 
 using android::base::AutoLock;
-using android::base::ManagedDescriptor;
 using android::base::MetricEventVulkanOutOfMemory;
 using android::base::Stream;
 using android::base::WorkerProcessingResult;
@@ -388,7 +387,9 @@ bool FrameBuffer::initialize(int width, int height, gfxstream::host::FeatureSet 
     std::unique_ptr<VkEmulationFeatures> vkEmulationFeatures =
         std::make_unique<VkEmulationFeatures>(VkEmulationFeatures{
             .glInteropSupported = false,  // Set later.
-            .deferredCommands = fb->m_features.VulkanQueueSubmitWithCommands.enabled,
+            .deferredCommands =
+                android::base::getEnvironmentVariable("ANDROID_EMU_VK_DISABLE_DEFERRED_COMMANDS")
+                    .empty(),
             .createResourceWithRequirements =
                 android::base::getEnvironmentVariable(
                     "ANDROID_EMU_VK_DISABLE_USE_CREATE_RESOURCES_WITH_REQUIREMENTS")
@@ -1179,13 +1180,14 @@ HandleType FrameBuffer::createColorBuffer(int p_width,
     sweepColorBuffersLocked();
     AutoLock colorBufferMapLock(m_colorBufferMapLock);
 
-    return createColorBufferWithHandleLocked(p_width, p_height, p_internalFormat, p_frameworkFormat,
-                                             genHandle_locked());
+    return createColorBufferWithResourceHandleLocked(p_width, p_height, p_internalFormat,
+                                                     p_frameworkFormat, genHandle_locked());
 }
 
-void FrameBuffer::createColorBufferWithHandle(int p_width, int p_height, GLenum p_internalFormat,
-                                              FrameworkFormat p_frameworkFormat, HandleType handle,
-                                              bool p_linear) {
+void FrameBuffer::createColorBufferWithResourceHandle(int p_width, int p_height,
+                                                      GLenum p_internalFormat,
+                                                      FrameworkFormat p_frameworkFormat,
+                                                      HandleType handle, bool p_linear) {
     {
         AutoLock mutex(m_lock);
         sweepColorBuffersLocked();
@@ -1200,15 +1202,16 @@ void FrameBuffer::createColorBufferWithHandle(int p_width, int p_height, GLenum 
             GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER));
         }
 
-        createColorBufferWithHandleLocked(p_width, p_height, p_internalFormat, p_frameworkFormat,
-                                          handle, p_linear);
+        createColorBufferWithResourceHandleLocked(p_width, p_height, p_internalFormat,
+                                                  p_frameworkFormat, handle, p_linear);
     }
 }
 
-HandleType FrameBuffer::createColorBufferWithHandleLocked(int p_width, int p_height,
-                                                          GLenum p_internalFormat,
-                                                          FrameworkFormat p_frameworkFormat,
-                                                          HandleType handle, bool p_linear) {
+HandleType FrameBuffer::createColorBufferWithResourceHandleLocked(int p_width, int p_height,
+                                                                  GLenum p_internalFormat,
+                                                                  FrameworkFormat p_frameworkFormat,
+                                                                  HandleType handle,
+                                                                  bool p_linear) {
     ColorBufferPtr cb =
         ColorBuffer::create(m_emulationGl.get(), m_emulationVk, p_width, p_height, p_internalFormat,
                             p_frameworkFormat, handle, nullptr /*stream*/, p_linear);
@@ -1252,10 +1255,10 @@ HandleType FrameBuffer::createColorBufferWithHandleLocked(int p_width, int p_hei
 HandleType FrameBuffer::createBuffer(uint64_t p_size, uint32_t memoryProperty) {
     AutoLock mutex(m_lock);
     AutoLock colorBufferMapLock(m_colorBufferMapLock);
-    return createBufferWithHandleLocked(p_size, genHandle_locked(), memoryProperty);
+    return createBufferWithResourceHandleLocked(p_size, genHandle_locked(), memoryProperty);
 }
 
-void FrameBuffer::createBufferWithHandle(uint64_t size, HandleType handle) {
+void FrameBuffer::createBufferWithResourceHandle(uint64_t size, HandleType handle) {
     AutoLock mutex(m_lock);
     AutoLock colorBufferMapLock(m_colorBufferMapLock);
 
@@ -1264,11 +1267,11 @@ void FrameBuffer::createBufferWithHandle(uint64_t size, HandleType handle) {
             << "Buffer already exists with handle " << handle;
     }
 
-    createBufferWithHandleLocked(size, handle, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+    createBufferWithResourceHandleLocked(size, handle, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 }
 
-HandleType FrameBuffer::createBufferWithHandleLocked(int p_size, HandleType handle,
-                                                     uint32_t memoryProperty) {
+HandleType FrameBuffer::createBufferWithResourceHandleLocked(int p_size, HandleType handle,
+                                                             uint32_t memoryProperty) {
     if (m_buffers.count(handle) != 0) {
         GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
             << "Buffer already exists with handle " << handle;
@@ -2828,10 +2831,6 @@ bool FrameBuffer::platformImportResource(uint32_t handle, uint32_t info, void* r
         case RESOURCE_TYPE_EGL_NATIVE_PIXMAP:
             return colorBuffer->glOpImportEglNativePixmap(resource, preserveContent);
 #endif
-        // Note: Additional non-EGL resource-types can be added here, and will
-        // be propagated through color-buffer import functionality
-        case RESOURCE_TYPE_VK_EXT_MEMORY_HANDLE:
-            return colorBuffer->importNativeResource(resource, type, preserveContent);
         default:
             ERR("Error: unsupported resource type: %u", type);
             return false;
