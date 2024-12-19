@@ -28,7 +28,6 @@
 #include "FrameBuffer.h"
 #include "FrameworkFormats.h"
 #include "VkCommonOperations.h"
-#include "aemu/base/ManagedDescriptor.hpp"
 #include "aemu/base/files/StdioStream.h"
 #include "aemu/base/memory/SharedMemory.h"
 #include "aemu/base/threads/WorkerThread.h"
@@ -900,7 +899,7 @@ int VirtioGpuFrontend::exportFence(uint64_t fenceId, struct stream_renderer_hand
     else
         return -EINVAL;
 
-    handle->handle_type = entry->handleType;
+    handle->handle_type = entry->streamHandleType;
 
 #ifdef _WIN32
     handle->os_handle = static_cast<int64_t>(reinterpret_cast<intptr_t>(rawDescriptor));
