@@ -100,6 +100,7 @@ if use_auto
   use_magma = host_machine.system() == 'linux'
 endif
 
+gfxstream_host_args += '-DGFXSTREAM_MESON_BUILD=1'
 gfxstream_host_args += '-DGFXSTREAM_ENABLE_HOST_GLES=@0@'.format(use_gles ? '1' : '0')
 
 if use_magma

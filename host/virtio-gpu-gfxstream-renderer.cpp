@@ -114,7 +114,6 @@ static char translate_severity(uint32_t type) {
 }
 
 using android::AndroidPipe;
-using android::base::ManagedDescriptor;
 using android::base::MetricsLogger;
 using gfxstream::host::VirtioGpuFrontend;
 
@@ -584,9 +583,10 @@ static int stream_renderer_opengles_init(uint32_t display_width, uint32_t displa
     androidHw->hw_gltransport_drawFlushInterval = 10000;
 
     EmuglConfig config;
-
     // Make all the console agents available.
+#ifndef GFXSTREAM_MESON_BUILD
     android::emulation::injectGraphicsAgents(android::emulation::GfxStreamGraphicsAgentFactory());
+#endif
 
     emuglConfig_init(&config, true /* gpu enabled */, "auto",
                      enable_egl2egl ? "swiftshader_indirect" : "host", 64, /* bitness */
