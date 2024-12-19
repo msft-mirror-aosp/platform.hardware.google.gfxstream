@@ -461,6 +461,24 @@ int VirtioGpuFrontend::createResource(struct stream_renderer_resource_create_arg
     return 0;
 }
 
+int VirtioGpuFrontend::importResource(uint32_t res_handle,
+                                      const struct stream_renderer_handle* import_handle,
+                                      const struct stream_renderer_import_data* import_data) {
+    if (import_data && (import_data->flags & STREAM_RENDERER_IMPORT_FLAG_RESOURCE_EXISTS)) {
+        stream_renderer_error("Importing handle to existing resource is currently not supported");
+        return -EINVAL;
+    }
+
+    auto resourceOpt = VirtioGpuResource::Create(res_handle, import_handle, import_data);
+    if (!resourceOpt) {
+        stream_renderer_error("Failed to create resource %u, with import_handle/import_data",
+                              res_handle);
+        return -EINVAL;
+    }
+    mResources[res_handle] = std::move(*resourceOpt);
+    return 0;
+}
+
 void VirtioGpuFrontend::unrefResource(uint32_t resourceId) {
     stream_renderer_debug("resource: %u", resourceId);
 

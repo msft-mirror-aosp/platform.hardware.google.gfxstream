@@ -479,9 +479,6 @@ bool createVkColorBuffer(uint32_t width, uint32_t height, GLenum format,
 
 bool teardownVkColorBuffer(uint32_t colorBufferHandle);
 
-bool importExtMemoryHandleToVkColorBuffer(uint32_t colorBufferHandle,
-                                          ExternalHandleInfo extMemHandleInfo);
-
 VkEmulation::ColorBufferInfo getColorBufferInfo(uint32_t colorBufferHandle);
 std::optional<ExternalHandleInfo> dupColorBufferExtMemoryHandle(uint32_t colorBufferHandle);
 #ifdef __APPLE__

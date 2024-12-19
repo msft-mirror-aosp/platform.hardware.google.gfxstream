@@ -2375,29 +2375,39 @@ static bool updateExternalMemoryInfo(std::optional<ExternalHandleInfo> extMemHan
 // buffers of one type index for image and one type index for buffer
 // to begin with, via filtering from the host.
 
-bool initializeVkColorBufferLocked(
-    uint32_t colorBufferHandle, std::optional<ExternalHandleInfo> extMemHandleInfo = std::nullopt) {
-    auto infoPtr = android::base::find(sVkEmulation->colorBuffers, colorBufferHandle);
-    // Not initialized
-    if (!infoPtr) {
-        return false;
-    }
-    // Already initialized Vulkan memory and other related Vulkan objects
-    if (infoPtr->initialized) {
-        return true;
-    }
-
-    if (!isFormatVulkanCompatible(infoPtr->internalFormat)) {
-        VERBOSE("Failed to create Vk ColorBuffer: format:%d not compatible.",
-                infoPtr->internalFormat);
+static bool createVkColorBufferLocked(uint32_t width, uint32_t height, GLenum internalFormat,
+                                      FrameworkFormat frameworkFormat, uint32_t colorBufferHandle,
+                                      bool vulkanOnly, uint32_t memoryProperty) {
+    if (!isFormatVulkanCompatible(internalFormat)) {
+        ERR("Failed to create Vk ColorBuffer: format:%d not compatible.", internalFormat);
         return false;
     }
 
+    // Check the ExternalObjectManager for an external memory handle provided for import
+    auto extMemHandleInfo =
+        ExternalObjectManager::get()->removeResourceExternalHandleInfo(colorBufferHandle);
     if (extMemHandleInfo && !sVkEmulation->deviceInfo.supportsExternalMemoryImport) {
         ERR("Failed to initialize Vk ColorBuffer -- extMemHandleInfo provided, but device does "
             "not support externalMemoryImport");
         return false;
     }
+
+    VkEmulation::ColorBufferInfo res;
+
+    res.handle = colorBufferHandle;
+    res.width = width;
+    res.height = height;
+    res.memoryProperty = memoryProperty;
+    res.internalFormat = internalFormat;
+    res.frameworkFormat = frameworkFormat;
+    res.frameworkStride = 0;
+
+    if (vulkanOnly) {
+        res.vulkanMode = VkEmulation::VulkanMode::VulkanOnly;
+    }
+
+    sVkEmulation->colorBuffers[colorBufferHandle] = res;
+    auto infoPtr = &sVkEmulation->colorBuffers[colorBufferHandle];
 
     VkFormat vkFormat;
     bool glCompatible = (infoPtr->frameworkFormat == FRAMEWORK_FORMAT_GL_COMPATIBLE);
@@ -2634,33 +2644,6 @@ bool initializeVkColorBufferLocked(
     return true;
 }
 
-static bool createVkColorBufferLocked(uint32_t width, uint32_t height, GLenum internalFormat,
-                                      FrameworkFormat frameworkFormat, uint32_t colorBufferHandle,
-                                      bool vulkanOnly, uint32_t memoryProperty) {
-    auto infoPtr = android::base::find(sVkEmulation->colorBuffers, colorBufferHandle);
-    // Already initialized
-    if (infoPtr) {
-        return true;
-    }
-
-    VkEmulation::ColorBufferInfo res;
-
-    res.handle = colorBufferHandle;
-    res.width = width;
-    res.height = height;
-    res.memoryProperty = memoryProperty;
-    res.internalFormat = internalFormat;
-    res.frameworkFormat = frameworkFormat;
-    res.frameworkStride = 0;
-
-    if (vulkanOnly) {
-        res.vulkanMode = VkEmulation::VulkanMode::VulkanOnly;
-    }
-
-    sVkEmulation->colorBuffers[colorBufferHandle] = res;
-    return true;
-}
-
 bool isFormatSupported(GLenum format) {
     VkFormat vkFormat = glFormat2VkFormat(format);
     bool supported = !gfxstream::vk::formatIsDepthOrStencil(vkFormat);
@@ -2690,22 +2673,14 @@ bool createVkColorBuffer(uint32_t width, uint32_t height, GLenum internalFormat,
     }
 
     AutoLock lock(sVkEmulationLock);
-    if (!createVkColorBufferLocked(width, height, internalFormat, frameworkFormat,
-                                   colorBufferHandle, vulkanOnly, memoryProperty)) {
+    auto infoPtr = android::base::find(sVkEmulation->colorBuffers, colorBufferHandle);
+    if (infoPtr) {
+        VERBOSE("ColorBuffer already exists for handle: %d", colorBufferHandle);
         return false;
     }
 
-    const auto& deviceInfo = sVkEmulation->deviceInfo;
-    if (!deviceInfo.supportsExternalMemoryExport && deviceInfo.supportsExternalMemoryImport) {
-        /* Returns, deferring initialization of the Vulkan components themselves.
-         * Platforms that support import but not export of external memory must
-         * use importExtMemoryHandleToVkColorBuffer(). Otherwise, the colorBuffer
-         * memory can not be externalized.
-         */
-        return true;
-    }
-
-    return initializeVkColorBufferLocked(colorBufferHandle);
+    return createVkColorBufferLocked(width, height, internalFormat, frameworkFormat,
+                                     colorBufferHandle, vulkanOnly, memoryProperty);
 }
 
 std::optional<VkColorBufferMemoryExport> exportColorBufferMemory(uint32_t colorBufferHandle) {
@@ -2788,18 +2763,6 @@ bool teardownVkColorBuffer(uint32_t colorBufferHandle) {
 
     AutoLock lock(sVkEmulationLock);
     return teardownVkColorBufferLocked(colorBufferHandle);
-}
-
-bool importExtMemoryHandleToVkColorBuffer(uint32_t colorBufferHandle,
-                                          ExternalHandleInfo extMemHandleInfo) {
-    if (!sVkEmulation || !sVkEmulation->live) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "VkEmulation not available.";
-    }
-
-    AutoLock lock(sVkEmulationLock);
-    // Initialize the colorBuffer with the external memory handle
-    // Note that this will fail if the colorBuffer memory was previously initialized.
-    return initializeVkColorBufferLocked(colorBufferHandle, extMemHandleInfo);
 }
 
 VkEmulation::ColorBufferInfo getColorBufferInfo(uint32_t colorBufferHandle) {
@@ -4233,10 +4196,6 @@ findRepresentativeColorBufferMemoryTypeIndexLocked() {
                                    FrameworkFormat::FRAMEWORK_FORMAT_GL_COMPATIBLE,
                                    kArbitraryHandle, true, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)) {
         ERR("Failed to setup memory type index test ColorBuffer.");
-        return std::nullopt;
-    }
-    if (!initializeVkColorBufferLocked(kArbitraryHandle)) {
-        ERR("Failed to initialize memory type index test ColorBuffer.");
         return std::nullopt;
     }
 

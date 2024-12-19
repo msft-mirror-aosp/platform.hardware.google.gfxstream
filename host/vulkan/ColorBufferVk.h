@@ -40,8 +40,6 @@ class ColorBufferVk {
     bool updateFromBytes(const std::vector<uint8_t>& bytes);
     bool updateFromBytes(uint32_t x, uint32_t y, uint32_t w, uint32_t h, const void* bytes);
 
-    bool importExtMemoryHandle(void* extMemHandle, uint32_t extMemStreamHandleType);
-
     void onSave(android::base::Stream* stream);
 
     int waitSync();
