@@ -4928,35 +4928,19 @@ class VkDecoderGlobalState::Impl {
         void* hva = info->pageAlignedHva;
         size_t sizeToPage = info->sizeToPage;
 
-        AutoLock occupiedGpasLock(mOccupiedGpasLock);
-
-        auto* existingMemoryInfo = android::base::find(mOccupiedGpas, gpa);
-        if (existingMemoryInfo) {
-            INFO("%s: WARNING: already mapped gpa 0x%llx, replacing", __func__,
-                    (unsigned long long)gpa);
-
-            get_emugl_vm_operations().unmapUserBackedRam(existingMemoryInfo->gpa,
-                                                         existingMemoryInfo->sizeToPage);
-
-            mOccupiedGpas.erase(gpa);
-        }
-
         get_emugl_vm_operations().mapUserBackedRam(gpa, hva, sizeToPage);
 
         if (mVerbosePrints) {
-            INFO("VERBOSE:%s: registering gpa 0x%llx to mOccupiedGpas", __func__,
+            INFO("VERBOSE:%s: registering gpa 0x%llx", __func__,
                     (unsigned long long)gpa);
         }
 
-        mOccupiedGpas[gpa] = {
-            vk, device, memory, gpa, sizeToPage,
-        };
-
         if (!mUseOldMemoryCleanupPath) {
             get_emugl_address_space_device_control_ops().register_deallocation_callback(
-                this, gpa, [](void* thisPtr, uint64_t gpa) {
-                    Impl* implPtr = (Impl*)thisPtr;
-                    implPtr->unmapMemoryAtGpaIfExists(gpa);
+                (void*)(new uint64_t(sizeToPage)), gpa, [](void* thisPtr, uint64_t gpa) {
+                    uint64_t* sizePtr = (uint64_t*)thisPtr;
+                    get_emugl_vm_operations().unmapUserBackedRam(gpa, *sizePtr);
+                    delete sizePtr;
                 });
         }
 
@@ -4966,21 +4950,16 @@ class VkDecoderGlobalState::Impl {
     // Only call this from the address space device deallocation operation's
     // context, or it's possible that the guest/host view of which gpa's are
     // occupied goes out of sync.
-    void unmapMemoryAtGpaIfExists(uint64_t gpa) {
-        AutoLock lock(mOccupiedGpasLock);
-
+    void unmapMemoryAtGpa(uint64_t gpa, uint64_t size) {
+        // DO NOT place any additional locks in here, as it may cause a deadlock due to mismatched
+        // lock ordering, as VM operations will typically have its own mutex already.
         if (mVerbosePrints) {
             INFO("VERBOSE:%s: deallocation callback for gpa 0x%llx", __func__,
                     (unsigned long long)gpa);
         }
 
-        auto* existingMemoryInfo = android::base::find(mOccupiedGpas, gpa);
-        if (!existingMemoryInfo) return;
-
-        get_emugl_vm_operations().unmapUserBackedRam(existingMemoryInfo->gpa,
-                                                     existingMemoryInfo->sizeToPage);
-
-        mOccupiedGpas.erase(gpa);
+        // Just blindly unmap here. Let the VM implementation deal with invalid addresses.
+        get_emugl_vm_operations().unmapUserBackedRam(gpa, size);
     }
 
     VkResult on_vkAllocateMemory(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
@@ -5572,7 +5551,7 @@ class VkDecoderGlobalState::Impl {
             // to unmap vs. address space allocate and mapMemory leading to
             // mapping the same gpa twice)
             if (mUseOldMemoryCleanupPath) {
-                unmapMemoryAtGpaIfExists(memoryInfo.guestPhysAddr);
+                unmapMemoryAtGpa(memoryInfo.guestPhysAddr, memoryInfo.sizeToPage);
             }
         }
 
@@ -9114,18 +9093,6 @@ class VkDecoderGlobalState::Impl {
     // replayed on the "same" RenderThread which originally made the API call so
     // RenderThreadInfoVk::ctx_id is not available.
     std::optional<std::unordered_map<VkDevice, uint32_t>> mSnapshotLoadVkDeviceToVirtioCpuContextId;
-
-    Lock mOccupiedGpasLock;
-    // Back-reference to the VkDeviceMemory that is occupying a particular
-    // guest physical address
-    struct OccupiedGpaInfo {
-        VulkanDispatch* vk;
-        VkDevice device;
-        VkDeviceMemory memory;
-        uint64_t gpa;
-        size_t sizeToPage;
-    };
-    std::unordered_map<uint64_t, OccupiedGpaInfo> mOccupiedGpas;
 
     struct LinearImageCreateInfo {
         VkExtent3D extent;
