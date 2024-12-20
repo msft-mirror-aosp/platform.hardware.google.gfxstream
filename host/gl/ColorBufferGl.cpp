@@ -1214,7 +1214,7 @@ bool ColorBufferGl::importEglNativePixmap(void* pixmap, bool preserveContent) {
     if (preserveContent) {
         size_t bytes;
         readContents(&bytes, nullptr);
-        std::vector<uint8_t> contents(bytes);
+        contents.resize(bytes);
         readContents(&bytes, contents.data());
     }
 
