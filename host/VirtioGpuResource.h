@@ -72,6 +72,9 @@ class VirtioGpuResource {
 
     int Destroy();
 
+    int ImportHandle(const stream_renderer_handle* handle,
+                     const stream_renderer_import_data* import_data);
+
     VirtioGpuResourceId GetId() const { return mId; }
 
     void AttachIov(struct iovec* iov, uint32_t num_iovs);
