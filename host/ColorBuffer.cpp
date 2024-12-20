@@ -438,44 +438,6 @@ bool ColorBuffer::invalidateForVk() {
     return true;
 }
 
-bool ColorBuffer::importNativeResource(void* nativeResource, uint32_t type) {
-    switch (type) {
-        case RESOURCE_TYPE_VK_EXT_MEMORY_HANDLE: {
-            if (mColorBufferGl) {
-                GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                    << "Native resource import type %s is invalid when GL emulation is active. "
-                    << "Use RESOURCE_TYPE_EGL_NATIVE_PIXMAP of RESOURCE_TYPE_EGL_IMAGE imports "
-                       "instead.";
-                return false;
-            } else if (!mColorBufferVk) {
-                GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                    << "Vulkan emulation must be available for RESOURCE_TYPE_VK_EXT_MEMORY_HANDLE "
-                       "import.";
-                return false;
-            }
-
-            uint32_t extMemStreamHandleType = 0x0;
-#if defined(__QNX__)
-            // TODO(aruby@blackberry.com): Remove RESOURCE_TYPE_VK_EXT_MEMORY_HANDLE,
-            // require STREAM_* types to be specified directly (allowing for multiple external
-            // memory memory handle types on a given platform).
-            extMemStreamHandleType = STREAM_MEM_HANDLE_TYPE_SCREEN_BUFFER_QNX;
-#endif
-            if (extMemStreamHandleType) {
-                return mColorBufferVk->importExtMemoryHandle(nativeResource,
-                                                             extMemStreamHandleType);
-            } else {
-                ERR("importNativeResource not supported for this platform.");
-                return false;
-            }
-        }
-        default:
-            GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                << "Unrecognized type for ColorBuffer::importNativeResource.";
-            return false;
-    }
-}
-
 int ColorBuffer::waitSync() {
     if (mColorBufferGl) {
         return -1;
