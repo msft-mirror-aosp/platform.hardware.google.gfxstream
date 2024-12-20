@@ -464,19 +464,30 @@ int VirtioGpuFrontend::createResource(struct stream_renderer_resource_create_arg
 int VirtioGpuFrontend::importResource(uint32_t res_handle,
                                       const struct stream_renderer_handle* import_handle,
                                       const struct stream_renderer_import_data* import_data) {
-    if (import_data && (import_data->flags & STREAM_RENDERER_IMPORT_FLAG_RESOURCE_EXISTS)) {
-        stream_renderer_error("Importing handle to existing resource is currently not supported");
+    if (!import_handle) {
+        stream_renderer_error(
+            "import_handle was not provided in call to importResource for handle: %d", res_handle);
         return -EINVAL;
+    } else if (import_data && (import_data->flags & STREAM_RENDERER_IMPORT_FLAG_RESOURCE_EXISTS)) {
+        auto resourceIt = mResources.find(res_handle);
+        if (resourceIt == mResources.end()) {
+            stream_renderer_error(
+                "import_data::flags specified STREAM_RENDERER_IMPORT_FLAG_RESOURCE_EXISTS, but "
+                "internal resource does not already exist",
+                res_handle);
+            return -EINVAL;
+        }
+        return resourceIt->second.ImportHandle(import_handle, import_data);
+    } else {
+        auto resourceOpt = VirtioGpuResource::Create(res_handle, import_handle, import_data);
+        if (!resourceOpt) {
+            stream_renderer_error("Failed to create resource %u, with import_handle/import_data",
+                                  res_handle);
+            return -EINVAL;
+        }
+        mResources[res_handle] = std::move(*resourceOpt);
+        return 0;
     }
-
-    auto resourceOpt = VirtioGpuResource::Create(res_handle, import_handle, import_data);
-    if (!resourceOpt) {
-        stream_renderer_error("Failed to create resource %u, with import_handle/import_data",
-                              res_handle);
-        return -EINVAL;
-    }
-    mResources[res_handle] = std::move(*resourceOpt);
-    return 0;
 }
 
 void VirtioGpuFrontend::unrefResource(uint32_t resourceId) {
