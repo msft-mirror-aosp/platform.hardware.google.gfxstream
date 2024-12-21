@@ -342,6 +342,41 @@ int VirtioGpuResource::Destroy() {
     return 0;
 }
 
+int VirtioGpuResource::ImportHandle(const struct stream_renderer_handle* handle,
+                                    const struct stream_renderer_import_data* import_data) {
+    if (mResourceType != VirtioGpuResourceType::COLOR_BUFFER) {
+        stream_renderer_error(
+            "Failed to ImportResource: importing external handles to existing resources is only "
+            "supported for ColorBuffer resources.");
+        return -EINVAL;
+    }
+
+    auto colorBufferPtr = FrameBuffer::getFB()->findColorBuffer(mId);
+    if (!colorBufferPtr) {
+        stream_renderer_error(
+            "Failed to ImportResource: could not find colorBuffer for res_handle: %d", mId);
+        return -EINVAL;
+    }
+
+    const bool preserveContent =
+        (import_data->flags & STREAM_RENDERER_IMPORT_FLAG_PRESERVE_CONTENT);
+    bool importSuccess = false;
+    switch (handle->handle_type) {
+#if GFXSTREAM_ENABLE_HOST_GLES
+        case STREAM_PLATFORM_HANDLE_TYPE_EGL_NATIVE_PIXMAP:
+            importSuccess = colorBufferPtr->glOpImportEglNativePixmap(
+                reinterpret_cast<void*>(handle->os_handle), preserveContent);
+            break;
+#endif
+        default:
+            ERR("Unsupported handle_type: 0x%x, specified for importing to resource: %d",
+                handle->handle_type, mId);
+            return -EINVAL;
+    }
+
+    return (importSuccess ? 0 : -EINVAL);
+}
+
 void VirtioGpuResource::AttachIov(struct iovec* iov, uint32_t num_iovs) {
     mIovs.clear();
     mLinear.clear();
