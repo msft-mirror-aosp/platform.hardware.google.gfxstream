@@ -188,27 +188,35 @@ void RenderThread::waitForSnapshotCompletion(AutoLock* lock) {
     }
 }
 
-template <class OpImpl>
-void RenderThread::snapshotOperation(AutoLock* lock, OpImpl&& implFunc) {
-    assert(isPausedForSnapshotLocked());
+bool RenderThread::isPausedForSnapshotLocked() const { return mState != SnapshotState::Empty; }
+
+bool RenderThread::doSnapshotOp(const SnapshotObjects& objects, SnapshotState expectedState,
+                                std::function<void()> op) {
+    AutoLock lock(mLock);
+
+    if (mState != expectedState) {
+        return false;
+    }
     mState = SnapshotState::InProgress;
-    mCondVar.broadcastAndUnlock(lock);
+    mCondVar.broadcastAndUnlock(&lock);
 
-    implFunc();
+    op();
 
-    lock->lock();
+    lock.lock();
 
     mState = SnapshotState::Finished;
     mCondVar.broadcast();
 
     // Only return after we're allowed to proceed.
     while (isPausedForSnapshotLocked()) {
-        mCondVar.wait(lock);
+        mCondVar.wait(&lock);
     }
+
+    return true;
 }
 
-void RenderThread::loadImpl(AutoLock* lock, const SnapshotObjects& objects) {
-    snapshotOperation(lock, [this, &objects] {
+bool RenderThread::loadSnapshot(const SnapshotObjects& objects) {
+    return doSnapshotOp(objects, SnapshotState::StartLoading, [this, &objects] {
         objects.readBuffer->onLoad(&*mStream);
         if (objects.channelStream) objects.channelStream->load(&*mStream);
         if (objects.ringStream) objects.ringStream->load(&*mStream);
@@ -217,36 +225,14 @@ void RenderThread::loadImpl(AutoLock* lock, const SnapshotObjects& objects) {
     });
 }
 
-void RenderThread::saveImpl(AutoLock* lock, const SnapshotObjects& objects) {
-    snapshotOperation(lock, [this, &objects] {
+bool RenderThread::saveSnapshot(const SnapshotObjects& objects) {
+    return doSnapshotOp(objects, SnapshotState::StartSaving, [this, &objects] {
         objects.readBuffer->onSave(&*mStream);
         if (objects.channelStream) objects.channelStream->save(&*mStream);
         if (objects.ringStream) objects.ringStream->save(&*mStream);
         objects.checksumCalc->save(&*mStream);
         objects.threadInfo->onSave(&*mStream);
     });
-}
-
-bool RenderThread::isPausedForSnapshotLocked() const {
-    return mState != SnapshotState::Empty;
-}
-
-bool RenderThread::doSnapshotOperation(const SnapshotObjects& objects,
-                                       SnapshotState state) {
-    AutoLock lock(mLock);
-    if (mState == state) {
-        switch (state) {
-            case SnapshotState::StartLoading:
-                loadImpl(&lock, objects);
-                return true;
-            case SnapshotState::StartSaving:
-                saveImpl(&lock, objects);
-                return true;
-            default:
-                return false;
-        }
-    }
-    return false;
 }
 
 void RenderThread::setFinished() {
@@ -313,7 +299,7 @@ intptr_t RenderThread::main() {
     // This is the only place where we try loading from snapshot.
     // But the context bind / restoration will be delayed after receiving
     // the first GL command.
-    if (doSnapshotOperation(snapshotObjects, SnapshotState::StartLoading)) {
+    if (loadSnapshot(snapshotObjects)) {
         GL_LOG("Loaded RenderThread @%p from snapshot", this);
         needRestoreFromSnapshot = true;
     } else {
@@ -322,7 +308,7 @@ intptr_t RenderThread::main() {
         uint32_t flags = 0;
         while (ioStream->read(&flags, sizeof(flags)) != sizeof(flags)) {
             // Stream read may fail because of a pending snapshot.
-            if (!doSnapshotOperation(snapshotObjects, SnapshotState::StartSaving)) {
+            if (!saveSnapshot(snapshotObjects)) {
                 setFinished();
                 GL_LOG("Exited a RenderThread @%p early", this);
                 return 0;
@@ -386,7 +372,7 @@ intptr_t RenderThread::main() {
         if (packetSize > readBuf.validData()) {
             stat = readBuf.getData(ioStream, packetSize);
             if (stat <= 0) {
-                if (doSnapshotOperation(snapshotObjects, SnapshotState::StartSaving)) {
+                if (saveSnapshot(snapshotObjects)) {
                     continue;
                 } else {
                     D("Warning: render thread could not read data from stream");
@@ -502,8 +488,9 @@ intptr_t RenderThread::main() {
                 }
             }
 
+            std::optional<android::base::AutoLock> limitedModeLock;
             if (mRunInLimitedMode) {
-                sThreadRunLimiter.lock();
+                limitedModeLock.emplace(sThreadRunLimiter);
             }
 
             // try to process some of the command buffer using the GLESv1
@@ -582,11 +569,6 @@ intptr_t RenderThread::main() {
                 }
             }
 #endif
-
-            if (mRunInLimitedMode) {
-                sThreadRunLimiter.unlock();
-            }
-
         } while (progress);
     }
 

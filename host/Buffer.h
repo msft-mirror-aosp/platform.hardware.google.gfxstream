@@ -63,8 +63,8 @@ class Buffer : public android::snapshot::LazySnapshotObj<Buffer> {
    private:
     Buffer(HandleType handle, uint64_t size);
 
-    const uint64_t mSize;
     const HandleType mHandle;
+    const uint64_t mSize;
 
 #if GFXSTREAM_ENABLE_HOST_GLES
     // If GL emulation is enabled.
