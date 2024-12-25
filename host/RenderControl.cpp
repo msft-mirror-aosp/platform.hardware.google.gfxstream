@@ -1378,9 +1378,8 @@ static void rcCreateColorBufferWithHandle(
         return;
     }
 
-    fb->createColorBufferWithHandle(
-        width, height, internalFormat,
-        FRAMEWORK_FORMAT_GL_COMPATIBLE, handle);
+    fb->createColorBufferWithResourceHandle(width, height, internalFormat,
+                                            FRAMEWORK_FORMAT_GL_COMPATIBLE, handle);
 }
 
 static uint32_t rcCreateBuffer2(uint64_t size, uint32_t memoryProperty) {
