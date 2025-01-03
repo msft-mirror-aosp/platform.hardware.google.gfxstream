@@ -72,18 +72,6 @@ VG_EXPORT void gfxstream_backend_setup_window(void* native_window_handle, int32_
 
 VG_EXPORT void stream_renderer_flush(uint32_t res_handle);
 
-// Platform resources and contexts support
-#define STREAM_RENDERER_PLATFORM_RESOURCE_USE_MASK 0xF0
-#define STREAM_RENDERER_PLATFORM_RESOURCE_TYPE_MASK 0x0F
-
-// types
-#define STREAM_RENDERER_PLATFORM_RESOURCE_TYPE_EGL_NATIVE_PIXMAP 0x01
-
-// uses
-#define STREAM_RENDERER_PLATFORM_RESOURCE_USE_PRESERVE 0x10
-
-VG_EXPORT int stream_renderer_platform_import_resource(int res_handle, int res_info,
-                                                       void* resource);
 VG_EXPORT void* stream_renderer_platform_create_shared_egl_context(void);
 VG_EXPORT int stream_renderer_platform_destroy_shared_egl_context(void*);
 

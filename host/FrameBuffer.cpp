@@ -2810,35 +2810,6 @@ void FrameBuffer::setGuestManagedColorBufferLifetime(bool guestManaged) {
     m_guestManagedColorBufferLifetime = guestManaged;
 }
 
-bool FrameBuffer::platformImportResource(uint32_t handle, uint32_t info, void* resource) {
-    if (!resource) {
-        ERR("Error: resource was null");
-    }
-
-    AutoLock mutex(m_lock);
-
-    ColorBufferPtr colorBuffer = findColorBuffer(handle);
-    if (!colorBuffer) {
-        ERR("Error: resource %u not found as a ColorBuffer", handle);
-        return false;
-    }
-
-    uint32_t type = (info & RESOURCE_TYPE_MASK);
-    bool preserveContent = (info & RESOURCE_USE_PRESERVE);
-
-    switch (type) {
-#if GFXSTREAM_ENABLE_HOST_GLES
-        case RESOURCE_TYPE_EGL_NATIVE_PIXMAP:
-            return colorBuffer->glOpImportEglNativePixmap(resource, preserveContent);
-#endif
-        default:
-            ERR("Error: unsupported resource type: %u", type);
-            return false;
-    }
-
-    return true;
-}
-
 std::unique_ptr<BorrowedImageInfo> FrameBuffer::borrowColorBufferForComposition(
     uint32_t colorBufferHandle, bool colorBufferIsTarget) {
     ColorBufferPtr colorBufferPtr = findColorBuffer(colorBufferHandle);
