@@ -855,14 +855,6 @@ int VirtioGpuFrontend::resourceUnmap(uint32_t resourceId) {
     return 0;
 }
 
-int VirtioGpuFrontend::platformImportResource(int res_handle, int res_info, void* resource) {
-    auto it = mResources.find(res_handle);
-    if (it == mResources.end()) return -EINVAL;
-    bool success =
-        gfxstream::FrameBuffer::getFB()->platformImportResource(res_handle, res_info, resource);
-    return success ? 0 : -1;
-}
-
 void* VirtioGpuFrontend::platformCreateSharedEglContext() {
     void* ptr = nullptr;
 #if GFXSTREAM_ENABLE_HOST_GLES
