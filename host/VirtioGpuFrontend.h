@@ -100,8 +100,6 @@ class VirtioGpuFrontend {
     int resourceMap(uint32_t resourceId, void** hvaOut, uint64_t* sizeOut);
     int resourceUnmap(uint32_t res_handle);
 
-    int platformImportResource(int res_handle, int res_info, void* resource);
-
     void* platformCreateSharedEglContext();
 
     int platformDestroySharedEglContext(void* context);
