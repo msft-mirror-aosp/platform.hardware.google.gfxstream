@@ -24,7 +24,6 @@
 #include "vulkan/VkCommonOperations.h"
 #include "FrameBuffer.h"
 
-using android::base::ManagedDescriptor;
 using emugl::ABORT_REASON_OTHER;
 using emugl::FatalError;
 
@@ -110,8 +109,14 @@ std::shared_ptr<ColorBuffer> ColorBuffer::create(gl::EmulationGl* emulationGl,
         auto memoryExport = vk::exportColorBufferMemory(handle);
         if (memoryExport) {
             if (colorBuffer->mColorBufferGl->importMemory(
-                    std::move(memoryExport->descriptor), memoryExport->size,
-                    memoryExport->dedicatedAllocation, memoryExport->linearTiling)) {
+#ifdef _WIN32
+                    ManagedDescriptor(static_cast<DescriptorType>(
+                        reinterpret_cast<void*>(memoryExport->handleInfo.handle))),
+#else
+                    ManagedDescriptor(static_cast<DescriptorType>(memoryExport->handleInfo.handle)),
+#endif
+                    memoryExport->size, memoryExport->dedicatedAllocation,
+                    memoryExport->linearTiling)) {
                 colorBuffer->mGlAndVkAreSharingExternalMemory = true;
             } else {
                 ERR("Failed to import memory to ColorBufferGl:%d", handle);
@@ -165,7 +170,7 @@ void ColorBuffer::restore() {
 }
 
 void ColorBuffer::readToBytes(int x, int y, int width, int height, GLenum pixelsFormat,
-                              GLenum pixelsType, void* outPixels) {
+                              GLenum pixelsType, void* outPixels, uint64_t outPixelsSize) {
     touch();
 
 #if GFXSTREAM_ENABLE_HOST_GLES
@@ -176,7 +181,7 @@ void ColorBuffer::readToBytes(int x, int y, int width, int height, GLenum pixels
 #endif
 
     if (mColorBufferVk) {
-        mColorBufferVk->readToBytes(x, y, width, height, outPixels);
+        mColorBufferVk->readToBytes(x, y, width, height, outPixels, outPixelsSize);
         return;
     }
 
@@ -200,18 +205,18 @@ void ColorBuffer::readToBytesScaled(int pixelsWidth, int pixelsHeight, GLenum pi
 }
 
 void ColorBuffer::readYuvToBytes(int x, int y, int width, int height, void* outPixels,
-                                 uint32_t pixelsSize) {
+                                 uint32_t outPixelsSize) {
     touch();
 
 #if GFXSTREAM_ENABLE_HOST_GLES
     if (mColorBufferGl) {
-        mColorBufferGl->readPixelsYUVCached(x, y, width, height, outPixels, pixelsSize);
+        mColorBufferGl->readPixelsYUVCached(x, y, width, height, outPixels, outPixelsSize);
         return;
     }
 #endif
 
     if (mColorBufferVk) {
-        mColorBufferVk->readToBytes(x, y, width, height, outPixels);
+        mColorBufferVk->readToBytes(x, y, width, height, outPixels, outPixelsSize);
         return;
     }
 
@@ -433,30 +438,6 @@ bool ColorBuffer::invalidateForVk() {
     return true;
 }
 
-bool ColorBuffer::importNativeResource(void* nativeResource, uint32_t type, bool preserveContent) {
-    switch (type) {
-        case RESOURCE_TYPE_VK_EXT_MEMORY_HANDLE: {
-            if (mColorBufferGl) {
-                GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                    << "Native resource import type %s is invalid when GL emulation is active. "
-                    << "Use RESOURCE_TYPE_EGL_NATIVE_PIXMAP of RESOURCE_TYPE_EGL_IMAGE imports "
-                       "instead.";
-                return false;
-            } else if (!mColorBufferVk) {
-                GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                    << "Vulkan emulation must be available for RESOURCE_TYPE_VK_EXT_MEMORY_HANDLE "
-                       "import.";
-                return false;
-            }
-            return mColorBufferVk->importExtMemoryHandle(nativeResource, type, preserveContent);
-        }
-        default:
-            GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                << "Unrecognized type for ColorBuffer::importNativeResource.";
-            return false;
-    }
-}
-
 int ColorBuffer::waitSync() {
     if (mColorBufferGl) {
         return -1;
@@ -544,14 +525,6 @@ void ColorBuffer::glOpReadbackAsync(GLuint buffer, bool readbackBgra) {
     touch();
 
     mColorBufferGl->readbackAsync(buffer, readbackBgra);
-}
-
-bool ColorBuffer::glOpImportEglImage(void* image, bool preserveContent) {
-    if (!mColorBufferGl) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "ColorBufferGl not available.";
-    }
-
-    return mColorBufferGl->importEglImage(image, preserveContent);
 }
 
 bool ColorBuffer::glOpImportEglNativePixmap(void* pixmap, bool preserveContent) {

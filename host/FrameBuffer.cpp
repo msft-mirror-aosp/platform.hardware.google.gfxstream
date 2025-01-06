@@ -69,7 +69,6 @@
 namespace gfxstream {
 
 using android::base::AutoLock;
-using android::base::ManagedDescriptor;
 using android::base::MetricEventVulkanOutOfMemory;
 using android::base::Stream;
 using android::base::WorkerProcessingResult;
@@ -1181,13 +1180,14 @@ HandleType FrameBuffer::createColorBuffer(int p_width,
     sweepColorBuffersLocked();
     AutoLock colorBufferMapLock(m_colorBufferMapLock);
 
-    return createColorBufferWithHandleLocked(p_width, p_height, p_internalFormat, p_frameworkFormat,
-                                             genHandle_locked());
+    return createColorBufferWithResourceHandleLocked(p_width, p_height, p_internalFormat,
+                                                     p_frameworkFormat, genHandle_locked());
 }
 
-void FrameBuffer::createColorBufferWithHandle(int p_width, int p_height, GLenum p_internalFormat,
-                                              FrameworkFormat p_frameworkFormat, HandleType handle,
-                                              bool p_linear) {
+void FrameBuffer::createColorBufferWithResourceHandle(int p_width, int p_height,
+                                                      GLenum p_internalFormat,
+                                                      FrameworkFormat p_frameworkFormat,
+                                                      HandleType handle, bool p_linear) {
     {
         AutoLock mutex(m_lock);
         sweepColorBuffersLocked();
@@ -1202,15 +1202,16 @@ void FrameBuffer::createColorBufferWithHandle(int p_width, int p_height, GLenum 
             GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER));
         }
 
-        createColorBufferWithHandleLocked(p_width, p_height, p_internalFormat, p_frameworkFormat,
-                                          handle, p_linear);
+        createColorBufferWithResourceHandleLocked(p_width, p_height, p_internalFormat,
+                                                  p_frameworkFormat, handle, p_linear);
     }
 }
 
-HandleType FrameBuffer::createColorBufferWithHandleLocked(int p_width, int p_height,
-                                                          GLenum p_internalFormat,
-                                                          FrameworkFormat p_frameworkFormat,
-                                                          HandleType handle, bool p_linear) {
+HandleType FrameBuffer::createColorBufferWithResourceHandleLocked(int p_width, int p_height,
+                                                                  GLenum p_internalFormat,
+                                                                  FrameworkFormat p_frameworkFormat,
+                                                                  HandleType handle,
+                                                                  bool p_linear) {
     ColorBufferPtr cb =
         ColorBuffer::create(m_emulationGl.get(), m_emulationVk, p_width, p_height, p_internalFormat,
                             p_frameworkFormat, handle, nullptr /*stream*/, p_linear);
@@ -1254,10 +1255,10 @@ HandleType FrameBuffer::createColorBufferWithHandleLocked(int p_width, int p_hei
 HandleType FrameBuffer::createBuffer(uint64_t p_size, uint32_t memoryProperty) {
     AutoLock mutex(m_lock);
     AutoLock colorBufferMapLock(m_colorBufferMapLock);
-    return createBufferWithHandleLocked(p_size, genHandle_locked(), memoryProperty);
+    return createBufferWithResourceHandleLocked(p_size, genHandle_locked(), memoryProperty);
 }
 
-void FrameBuffer::createBufferWithHandle(uint64_t size, HandleType handle) {
+void FrameBuffer::createBufferWithResourceHandle(uint64_t size, HandleType handle) {
     AutoLock mutex(m_lock);
     AutoLock colorBufferMapLock(m_colorBufferMapLock);
 
@@ -1266,11 +1267,11 @@ void FrameBuffer::createBufferWithHandle(uint64_t size, HandleType handle) {
             << "Buffer already exists with handle " << handle;
     }
 
-    createBufferWithHandleLocked(size, handle, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+    createBufferWithResourceHandleLocked(size, handle, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 }
 
-HandleType FrameBuffer::createBufferWithHandleLocked(int p_size, HandleType handle,
-                                                     uint32_t memoryProperty) {
+HandleType FrameBuffer::createBufferWithResourceHandleLocked(int p_size, HandleType handle,
+                                                             uint32_t memoryProperty) {
     if (m_buffers.count(handle) != 0) {
         GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
             << "Buffer already exists with handle " << handle;
@@ -1464,8 +1465,11 @@ void FrameBuffer::eraseDelayedCloseColorBufferLocked(
 }
 
 void FrameBuffer::createGraphicsProcessResources(uint64_t puid) {
-    AutoLock mutex(m_lock);
-    bool inserted = m_procOwnedResources.try_emplace(puid, ProcessResources::create()).second;
+    bool inserted = false;
+    {
+        AutoLock mutex(m_procOwnedResourcesLock);
+        inserted = m_procOwnedResources.try_emplace(puid, ProcessResources::create()).second;
+    }
     if (!inserted) {
         WARN("Failed to create process resource for puid %" PRIu64 ".", puid);
     }
@@ -1474,7 +1478,7 @@ void FrameBuffer::createGraphicsProcessResources(uint64_t puid) {
 std::unique_ptr<ProcessResources> FrameBuffer::removeGraphicsProcessResources(uint64_t puid) {
     std::unordered_map<uint64_t, std::unique_ptr<ProcessResources>>::node_type node;
     {
-        AutoLock mutex(m_lock);
+        AutoLock mutex(m_procOwnedResourcesLock);
         node = m_procOwnedResources.extract(puid);
     }
     if (node.empty()) {
@@ -1629,7 +1633,7 @@ void FrameBuffer::readBuffer(HandleType handle, uint64_t offset, uint64_t size, 
 }
 
 void FrameBuffer::readColorBuffer(HandleType p_colorbuffer, int x, int y, int width, int height,
-                                  GLenum format, GLenum type, void* pixels) {
+                                  GLenum format, GLenum type, void* outPixels, uint64_t outPixelsSize) {
     GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DEFAULT_CATEGORY, "FrameBuffer::readColorBuffer()",
                           "ColorBuffer", p_colorbuffer);
 
@@ -1641,11 +1645,11 @@ void FrameBuffer::readColorBuffer(HandleType p_colorbuffer, int x, int y, int wi
         return;
     }
 
-    colorBuffer->readToBytes(x, y, width, height, format, type, pixels);
+    colorBuffer->readToBytes(x, y, width, height, format, type, outPixels, outPixelsSize);
 }
 
 void FrameBuffer::readColorBufferYUV(HandleType p_colorbuffer, int x, int y, int width, int height,
-                                     void* pixels, uint32_t pixels_size) {
+                                     void* outPixels, uint32_t outPixelsSize) {
     AutoLock mutex(m_lock);
 
     ColorBufferPtr colorBuffer = findColorBuffer(p_colorbuffer);
@@ -1654,7 +1658,7 @@ void FrameBuffer::readColorBufferYUV(HandleType p_colorbuffer, int x, int y, int
         return;
     }
 
-    colorBuffer->readYuvToBytes(x, y, width, height, pixels, pixels_size);
+    colorBuffer->readYuvToBytes(x, y, width, height, outPixels, outPixelsSize);
 }
 
 bool FrameBuffer::updateBuffer(HandleType p_buffer, uint64_t offset, uint64_t size, void* bytes) {
@@ -1805,17 +1809,6 @@ bool FrameBuffer::postImplSync(HandleType p_colorbuffer, bool needLockAndBind, b
 
 AsyncResult FrameBuffer::postImpl(HandleType p_colorbuffer, Post::CompletionCallback callback,
                                   bool needLockAndBind, bool repaint) {
-    std::unique_ptr<RecursiveScopedContextBind> bind;
-    if (needLockAndBind) {
-        m_lock.lock();
-#if GFXSTREAM_ENABLE_HOST_GLES
-        if (m_emulationGl) {
-            bind = std::make_unique<RecursiveScopedContextBind>(getPbufferSurfaceContextHelper());
-        }
-#endif
-    }
-    AsyncResult ret = AsyncResult::FAIL_AND_CALLBACK_NOT_SCHEDULED;
-
     ColorBufferPtr colorBuffer = nullptr;
     {
         AutoLock colorBufferMapLock(m_colorBufferMapLock);
@@ -1827,8 +1820,22 @@ AsyncResult FrameBuffer::postImpl(HandleType p_colorbuffer, Post::CompletionCall
         }
     }
     if (!colorBuffer) {
-        goto EXIT;
+        return AsyncResult::FAIL_AND_CALLBACK_NOT_SCHEDULED;
     }
+
+    std::optional<AutoLock> lock;
+#if GFXSTREAM_ENABLE_HOST_GLES
+    std::optional<RecursiveScopedContextBind> bind;
+#endif
+    if (needLockAndBind) {
+        lock.emplace(m_lock);
+#if GFXSTREAM_ENABLE_HOST_GLES
+        if (m_emulationGl) {
+            bind.emplace(getPbufferSurfaceContextHelper());
+        }
+#endif
+    }
+    AsyncResult ret = AsyncResult::FAIL_AND_CALLBACK_NOT_SCHEDULED;
 
     m_lastPostedColorBuffer = p_colorbuffer;
 
@@ -1866,51 +1873,45 @@ AsyncResult FrameBuffer::postImpl(HandleType p_colorbuffer, Post::CompletionCall
     //
     // Send framebuffer (without FPS overlay) to callback
     //
-    if (m_onPost.size() == 0) {
-        goto DEC_REFCOUNT_AND_EXIT;
-    }
-    for (auto& iter : m_onPost) {
-        ColorBufferPtr cb;
-        if (iter.first == 0) {
-            cb = colorBuffer;
-        } else {
-            uint32_t colorBuffer;
-            if (getDisplayColorBuffer(iter.first, &colorBuffer) < 0) {
-                ERR("Failed to get color buffer for display %d, skip onPost", iter.first);
-                continue;
+    if (!m_onPost.empty()) {
+        for (auto& iter : m_onPost) {
+            ColorBufferPtr cb;
+            if (iter.first == 0) {
+                cb = colorBuffer;
+            } else {
+                uint32_t colorBuffer;
+                if (getDisplayColorBuffer(iter.first, &colorBuffer) < 0) {
+                    ERR("Failed to get color buffer for display %d, skip onPost", iter.first);
+                    continue;
+                }
+
+                cb = findColorBuffer(colorBuffer);
+                if (!cb) {
+                    ERR("Failed to find colorbuffer %d, skip onPost", colorBuffer);
+                    continue;
+                }
             }
 
-            cb = findColorBuffer(colorBuffer);
-            if (!cb) {
-                ERR("Failed to find colorbuffer %d, skip onPost", colorBuffer);
-                continue;
-            }
-        }
-
-        if (asyncReadbackSupported()) {
-            ensureReadbackWorker();
-            const auto status = m_readbackWorker->doNextReadback(
-                iter.first, cb.get(), iter.second.img, repaint, iter.second.readBgra);
-            if (status == ReadbackWorker::DoNextReadbackResult::OK_READY_FOR_READ) {
+            if (asyncReadbackSupported()) {
+                ensureReadbackWorker();
+                const auto status = m_readbackWorker->doNextReadback(
+                    iter.first, cb.get(), iter.second.img, repaint, iter.second.readBgra);
+                if (status == ReadbackWorker::DoNextReadbackResult::OK_READY_FOR_READ) {
+                    doPostCallback(iter.second.img, iter.first);
+                }
+            } else {
+    #if GFXSTREAM_ENABLE_HOST_GLES
+                cb->glOpReadback(iter.second.img, iter.second.readBgra);
+    #endif
                 doPostCallback(iter.second.img, iter.first);
             }
-        } else {
-#if GFXSTREAM_ENABLE_HOST_GLES
-            cb->glOpReadback(iter.second.img, iter.second.readBgra);
-#endif
-            doPostCallback(iter.second.img, iter.first);
         }
     }
-DEC_REFCOUNT_AND_EXIT:
+
     if (!m_subWin) {  // m_subWin is supposed to be false
         decColorBufferRefCountLocked(p_colorbuffer);
     }
 
-EXIT:
-    if (needLockAndBind) {
-        bind.reset();
-        m_lock.unlock();
-    }
     return ret;
 }
 
@@ -2365,6 +2366,7 @@ void FrameBuffer::onSave(Stream* stream, const android::snapshot::ITextureSaverP
 
     // TODO(b/309858017): remove if when ready to bump snapshot version
     if (m_features.VulkanSnapshots.enabled) {
+        AutoLock mutex(m_procOwnedResourcesLock);
         stream->putBe64(m_procOwnedResources.size());
         for (const auto& element : m_procOwnedResources) {
             stream->putBe64(element.first);
@@ -2480,7 +2482,10 @@ bool FrameBuffer::onLoad(Stream* stream,
                 }
             }
 
-            m_procOwnedResources.clear();
+            {
+                AutoLock mutex(m_procOwnedResourcesLock);
+                m_procOwnedResources.clear();
+            }
 
             performDelayedColorBufferCloseLocked(true);
 
@@ -2615,7 +2620,10 @@ bool FrameBuffer::onLoad(Stream* stream,
             uint32_t sequenceNumber = stream->getBe32();
             std::unique_ptr<ProcessResources> processResources = ProcessResources::create();
             processResources->getSequenceNumberPtr()->store(sequenceNumber);
-            m_procOwnedResources.emplace(puid, std::move(processResources));
+            {
+                AutoLock mutex(m_procOwnedResourcesLock);
+                m_procOwnedResources.emplace(puid, std::move(processResources));
+            }
         }
     }
 
@@ -2699,7 +2707,9 @@ void FrameBuffer::registerProcessCleanupCallback(void* key, std::function<void()
     if (!tInfo) return;
 
     auto& callbackMap = m_procOwnedCleanupCallbacks[tInfo->m_puid];
-    callbackMap[key] = cb;
+    if (!callbackMap.insert({key, std::move(cb)}).second) {
+        ERR("%s: tried to override existing key %p ", __func__, key);
+    }
 }
 
 void FrameBuffer::unregisterProcessCleanupCallback(void* key) {
@@ -2708,22 +2718,24 @@ void FrameBuffer::unregisterProcessCleanupCallback(void* key) {
     if (!tInfo) return;
 
     auto& callbackMap = m_procOwnedCleanupCallbacks[tInfo->m_puid];
-    if (callbackMap.find(key) == callbackMap.end()) {
-        ERR("warning: tried to erase nonexistent key %p "
+    auto erasedCount = callbackMap.erase(key);
+    if (erasedCount == 0) {
+        ERR("%s: tried to erase nonexistent key %p "
             "associated with process %llu",
-            key, (unsigned long long)(tInfo->m_puid));
+            __func__, key, (unsigned long long)(tInfo->m_puid));
     }
-    callbackMap.erase(key);
 }
 
 const ProcessResources* FrameBuffer::getProcessResources(uint64_t puid) {
-    AutoLock mutex(m_lock);
-    auto i = m_procOwnedResources.find(puid);
-    if (i == m_procOwnedResources.end()) {
-        ERR("Failed to find process owned resources for puid %" PRIu64 ".", puid);
-        return nullptr;
+    {
+        AutoLock mutex(m_procOwnedResourcesLock);
+        auto i = m_procOwnedResources.find(puid);
+        if (i != m_procOwnedResources.end()) {
+            return i->second.get();
+        }
     }
-    return i->second.get();
+    ERR("Failed to find process owned resources for puid %" PRIu64 ".", puid);
+    return nullptr;
 }
 
 int FrameBuffer::createDisplay(uint32_t* displayId) {
@@ -2796,41 +2808,6 @@ void FrameBuffer::asyncWaitForGpuVulkanQsriWithCb(uint64_t image, FenceCompletio
 
 void FrameBuffer::setGuestManagedColorBufferLifetime(bool guestManaged) {
     m_guestManagedColorBufferLifetime = guestManaged;
-}
-
-bool FrameBuffer::platformImportResource(uint32_t handle, uint32_t info, void* resource) {
-    if (!resource) {
-        ERR("Error: resource was null");
-    }
-
-    AutoLock mutex(m_lock);
-
-    ColorBufferPtr colorBuffer = findColorBuffer(handle);
-    if (!colorBuffer) {
-        ERR("Error: resource %u not found as a ColorBuffer", handle);
-        return false;
-    }
-
-    uint32_t type = (info & RESOURCE_TYPE_MASK);
-    bool preserveContent = (info & RESOURCE_USE_PRESERVE);
-
-    switch (type) {
-#if GFXSTREAM_ENABLE_HOST_GLES
-        case RESOURCE_TYPE_EGL_NATIVE_PIXMAP:
-            return colorBuffer->glOpImportEglNativePixmap(resource, preserveContent);
-        case RESOURCE_TYPE_EGL_IMAGE:
-            return colorBuffer->glOpImportEglImage(resource, preserveContent);
-#endif
-        // Note: Additional non-EGL resource-types can be added here, and will
-        // be propagated through color-buffer import functionality
-        case RESOURCE_TYPE_VK_EXT_MEMORY_HANDLE:
-            return colorBuffer->importNativeResource(resource, type, preserveContent);
-        default:
-            ERR("Error: unsupported resource type: %u", type);
-            return false;
-    }
-
-    return true;
 }
 
 std::unique_ptr<BorrowedImageInfo> FrameBuffer::borrowColorBufferForComposition(
@@ -2930,12 +2907,12 @@ void FrameBuffer::setDisplayActiveConfig(int configId) {
     INFO("setDisplayActiveConfig %d", configId);
 }
 
-const int FrameBuffer::getDisplayConfigsCount() {
+int FrameBuffer::getDisplayConfigsCount() {
     AutoLock mutex(m_lock);
     return mDisplayConfigs.size();
 }
 
-const int FrameBuffer::getDisplayConfigsParam(int configId, EGLint param) {
+int FrameBuffer::getDisplayConfigsParam(int configId, EGLint param) {
     AutoLock mutex(m_lock);
     if (mDisplayConfigs.find(configId) == mDisplayConfigs.end()) {
         return -1;
@@ -2960,7 +2937,7 @@ const int FrameBuffer::getDisplayConfigsParam(int configId, EGLint param) {
     }
 }
 
-const int FrameBuffer::getDisplayActiveConfig() {
+int FrameBuffer::getDisplayActiveConfig() {
     AutoLock mutex(m_lock);
     return mDisplayActiveConfigId >= 0 ? mDisplayActiveConfigId : -1;
 }

@@ -14,17 +14,27 @@
 
 #include "VirtioGpuFrontend.h"
 
+#ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
+#include <filesystem>
+#include <fcntl.h>
+// X11 defines status as a preprocessor define which messes up
+// anyone with a `Status` type.
+#include <google/protobuf/io/zero_copy_stream_impl.h>
+#include <google/protobuf/text_format.h>
+#endif  // ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
+
 #include <vulkan/vulkan.h>
 
 #include "FrameBuffer.h"
 #include "FrameworkFormats.h"
 #include "VkCommonOperations.h"
-#include "aemu/base/ManagedDescriptor.hpp"
+#include "aemu/base/files/StdioStream.h"
 #include "aemu/base/memory/SharedMemory.h"
 #include "aemu/base/threads/WorkerThread.h"
 #include "gfxstream/host/Tracing.h"
 #include "host-common/AddressSpaceService.h"
 #include "host-common/address_space_device.h"
+#include "host-common/address_space_device.hpp"
 #include "host-common/address_space_device_control_ops.h"
 #include "host-common/opengles.h"
 #include "virtgpu_gfxstream_protocol.h"
@@ -84,6 +94,13 @@ class CleanupThread {
 
     void enqueueCleanup(GenericCleanup command) { mWorker.enqueue(std::move(command)); }
 
+    void waitForPendingCleanups() {
+        std::promise<void> pendingCleanupsCompletedSignal;
+        std::future<void> pendingCleanupsCompltedWaitable = pendingCleanupsCompletedSignal.get_future();
+        enqueueCleanup([&]() { pendingCleanupsCompletedSignal.set_value(); });
+        pendingCleanupsCompltedWaitable.wait();
+    }
+
     void stop() {
         mWorker.enqueue(Exit{});
         mWorker.join();
@@ -108,8 +125,7 @@ int VirtioGpuFrontend::init(void* cookie, gfxstream::host::FeatureSet features,
         stream_renderer_error("Could not get address space device control ops!");
         return -EINVAL;
     }
-    mVirtioGpuTimelines = VirtioGpuTimelines::create(true);
-    mVirtioGpuTimelines = VirtioGpuTimelines::create(true);
+    mVirtioGpuTimelines = VirtioGpuTimelines::create(getFenceCompletionCallback());
 
 #if !defined(_WIN32)
     mPageSize = getpagesize();
@@ -120,7 +136,11 @@ int VirtioGpuFrontend::init(void* cookie, gfxstream::host::FeatureSet features,
     return 0;
 }
 
-void VirtioGpuFrontend::teardown() { mCleanupThread.reset(); }
+void VirtioGpuFrontend::teardown() {
+    destroyVirtioGpuObjects();
+
+    mCleanupThread.reset();
+}
 
 int VirtioGpuFrontend::resetPipe(VirtioGpuContextId contextId, GoldfishHostPipe* hostPipe) {
     stream_renderer_debug("reset pipe for context %u to hostpipe %p", contextId, hostPipe);
@@ -131,16 +151,10 @@ int VirtioGpuFrontend::resetPipe(VirtioGpuContextId contextId, GoldfishHostPipe*
         return -EINVAL;
     }
     auto& context = contextIt->second;
-    context.hostPipe = hostPipe;
+    context.SetHostPipe(hostPipe);
 
     // Also update any resources associated with it
-    auto contextResourcesIt = mContextResources.find(contextId);
-    if (contextResourcesIt == mContextResources.end()) {
-        return 0;
-    }
-    const auto& contextResources = contextResourcesIt->second;
-
-    for (auto resourceId : contextResources) {
+    for (auto resourceId : context.GetAttachedResources()) {
         auto resourceIt = mResources.find(resourceId);
         if (resourceIt == mResources.end()) {
             stream_renderer_error("failed to reset pipe: resource %d not found.", resourceId);
@@ -153,35 +167,35 @@ int VirtioGpuFrontend::resetPipe(VirtioGpuContextId contextId, GoldfishHostPipe*
     return 0;
 }
 
-int VirtioGpuFrontend::createContext(VirtioGpuCtxId ctx_id, uint32_t nlen, const char* name,
-                                     uint32_t context_init) {
+int VirtioGpuFrontend::createContext(VirtioGpuCtxId contextId, uint32_t nlen, const char* name,
+                                     uint32_t contextInit) {
     std::string contextName(name, nlen);
 
-    stream_renderer_debug("ctxid: %u len: %u name: %s", ctx_id, nlen, contextName.c_str());
+    stream_renderer_debug("ctxid: %u len: %u name: %s", contextId, nlen, contextName.c_str());
     auto ops = ensureAndGetServiceOps();
-    auto hostPipe =
-        ops->guest_open_with_flags(reinterpret_cast<GoldfishHwPipe*>(ctx_id), 0x1 /* is virtio */);
 
-    if (!hostPipe) {
-        stream_renderer_error("failed to create hw pipe!");
+    auto contextOpt = VirtioGpuContext::Create(ops, contextId, contextName, contextInit);
+    if (!contextOpt) {
+        stream_renderer_error("Failed to create context %u.", contextId);
         return -EINVAL;
     }
-    std::unordered_map<uint32_t, uint32_t> map;
-    std::unordered_map<uint32_t, struct stream_renderer_resource_create_args> blobMap;
-
-    VirtioGpuContext res = {
-        std::move(contextName),  // contextName
-        context_init,            // capsetId
-        ctx_id,                  // ctxId
-        hostPipe,                // hostPipe
-        map,                     // resourceId --> ASG handle map
-        blobMap,                 // blobId -> resource create args
-    };
-
-    stream_renderer_debug("initial host pipe for ctxid %u: %p", ctx_id, hostPipe);
-    mContexts[ctx_id] = res;
-    android_onGuestGraphicsProcessCreate(ctx_id);
+    mContexts[contextId] = std::move(*contextOpt);
     return 0;
+}
+
+VirtioGpuTimelines::FenceCompletionCallback VirtioGpuFrontend::getFenceCompletionCallback() {
+    // Forwards fence completions from VirtioGpuTimelines to the client (VMM).
+    return [this](const VirtioGpuTimelines::Ring& ring, VirtioGpuTimelines::FenceId fenceId) {
+        struct stream_renderer_fence fence = {0};
+        fence.fence_id = fenceId;
+        fence.flags = STREAM_RENDERER_FLAG_FENCE;
+        if (const auto* contextSpecificRing = std::get_if<VirtioGpuRingContextSpecific>(&ring)) {
+            fence.flags |= STREAM_RENDERER_FLAG_FENCE_RING_IDX;
+            fence.ctx_id = contextSpecificRing->mCtxId;
+            fence.ring_idx = contextSpecificRing->mRingIdx;
+        }
+        mFenceCallback(mCookie, &fence);
+    };
 }
 
 int VirtioGpuFrontend::destroyContext(VirtioGpuCtxId contextId) {
@@ -189,59 +203,15 @@ int VirtioGpuFrontend::destroyContext(VirtioGpuCtxId contextId) {
 
     auto contextIt = mContexts.find(contextId);
     if (contextIt == mContexts.end()) {
-        stream_renderer_error("could not find context handle %u", contextId);
+        stream_renderer_error("failed to destroy context %d: context not found", contextId);
         return -EINVAL;
     }
     auto& context = contextIt->second;
 
-    for (auto const& [resourceId, handle] : context.addressSpaceHandles) {
-        // Note: this can hang as is but this has only been observed to
-        // happen during shutdown. See b/329287602#comment8.
-        mAddressSpaceDeviceControlOps->destroy_handle(handle);
-    }
+    context.Destroy(ensureAndGetServiceOps(), mAddressSpaceDeviceControlOps);
 
-    auto hostPipe = context.hostPipe;
-    if (!hostPipe) {
-        stream_renderer_error("0 is not a valid hostpipe");
-        return -EINVAL;
-    }
-
-    auto ops = ensureAndGetServiceOps();
-    ops->guest_close(hostPipe, GOLDFISH_PIPE_CLOSE_GRACEFUL);
-
-    android_cleanupProcGLObjects(contextId);
     mContexts.erase(contextIt);
     return 0;
-}
-
-int VirtioGpuFrontend::setContextAddressSpaceHandleLocked(VirtioGpuCtxId ctxId, uint32_t handle,
-                                                          uint32_t resourceId) {
-    auto ctxIt = mContexts.find(ctxId);
-    if (ctxIt == mContexts.end()) {
-        stream_renderer_error("ctx id %u is not found", ctxId);
-        return -EINVAL;
-    }
-
-    auto& ctxEntry = ctxIt->second;
-    ctxEntry.addressSpaceHandles[resourceId] = handle;
-    return 0;
-}
-
-uint32_t VirtioGpuFrontend::getAddressSpaceHandleLocked(VirtioGpuCtxId ctxId, uint32_t resourceId) {
-    auto ctxIt = mContexts.find(ctxId);
-    if (ctxIt == mContexts.end()) {
-        stream_renderer_error("ctx id %u is not found", ctxId);
-        return -EINVAL;
-    }
-
-    auto& ctxEntry = ctxIt->second;
-
-    if (!ctxEntry.addressSpaceHandles.count(resourceId)) {
-        stream_renderer_error("ASG context with resource id %u", resourceId);
-        return -EINVAL;
-    }
-
-    return ctxEntry.addressSpaceHandles[resourceId];
 }
 
 #define DECODE(variable, type, input) \
@@ -250,6 +220,13 @@ uint32_t VirtioGpuFrontend::getAddressSpaceHandleLocked(VirtioGpuCtxId ctxId, ui
 
 int VirtioGpuFrontend::addressSpaceProcessCmd(VirtioGpuCtxId ctxId, uint32_t* dwords) {
     DECODE(header, gfxstream::gfxstreamHeader, dwords)
+
+    auto contextIt = mContexts.find(ctxId);
+    if (contextIt == mContexts.end()) {
+        stream_renderer_error("ctx id %u not found", ctxId);
+        return -EINVAL;
+    }
+    auto& context = contextIt->second;
 
     switch (header.opCode) {
         case GFXSTREAM_CONTEXT_CREATE: {
@@ -263,54 +240,14 @@ int VirtioGpuFrontend::addressSpaceProcessCmd(VirtioGpuCtxId ctxId, uint32_t* dw
             }
             auto& resource = resourceIt->second;
 
-            void* resourceHva = nullptr;
-            uint64_t resourceHvaSize = 0;
-            if (resource.Map(&resourceHva, &resourceHvaSize) != 0) {
-                stream_renderer_error("failed to create ASG: failed to map resource %u",
-                                      contextCreate.resourceId);
-                return -EINVAL;
-            }
-
-            auto contextIt = mContexts.find(ctxId);
-            if (contextIt == mContexts.end()) {
-                stream_renderer_error("ctx id %u not found", ctxId);
-                return -EINVAL;
-            }
-            auto& context = contextIt->second;
-
-            std::string name = context.name + "-" + std::to_string(contextCreate.resourceId);
-
-            // Note: resource ids can not be used as ASG handles because ASGs may outlive the
-            // containing resource due asynchronous ASG destruction.
-            uint32_t handle = mAddressSpaceDeviceControlOps->gen_handle();
-
-            struct AddressSpaceCreateInfo createInfo = {
-                .handle = handle,
-                .type = android::emulation::VirtioGpuGraphics,
-                .createRenderThread = true,
-                .externalAddr = resourceHva,
-                .externalAddrSize = resourceHvaSize,
-                .virtioGpuContextId = ctxId,
-                .virtioGpuCapsetId = context.capsetId,
-                .contextName = name.c_str(),
-                .contextNameSize = static_cast<uint32_t>(context.name.size()),
-            };
-
-            mAddressSpaceDeviceControlOps->create_instance(createInfo);
-            if (setContextAddressSpaceHandleLocked(ctxId, handle, contextCreate.resourceId)) {
-                return -EINVAL;
-            }
-            break;
+            return context.CreateAddressSpaceGraphicsInstance(mAddressSpaceDeviceControlOps,
+                                                              resource);
         }
         case GFXSTREAM_CONTEXT_PING: {
             DECODE(contextPing, gfxstream::gfxstreamContextPing, dwords)
 
-            struct android::emulation::AddressSpaceDevicePingInfo ping = {0};
-            ping.metadata = ASG_NOTIFY_AVAILABLE;
-
-            mAddressSpaceDeviceControlOps->ping_at_hva(
-                getAddressSpaceHandleLocked(ctxId, contextPing.resourceId), &ping);
-            break;
+            return context.PingAddressSpaceGraphicsInstance(mAddressSpaceDeviceControlOps,
+                                                            contextPing.resourceId);
         }
         default:
             break;
@@ -354,6 +291,12 @@ int VirtioGpuFrontend::submitCmd(struct stream_renderer_command* cmd) {
         case GFXSTREAM_CREATE_EXPORT_SYNC: {
             GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY,
                                   "GFXSTREAM_CREATE_EXPORT_SYNC");
+
+            // Make sure the context-specific ring is used
+            ring = VirtioGpuRingContextSpecific{
+                .mCtxId = cmd->ctx_id,
+                .mRingIdx = 0,
+            };
 
             DECODE(exportSync, gfxstream::gfxstreamCreateExportSync, buffer)
 
@@ -440,20 +383,14 @@ int VirtioGpuFrontend::submitCmd(struct stream_renderer_command* cmd) {
             rc3d.nr_samples = create3d.nrSamples;
             rc3d.flags = create3d.flags;
 
-            auto ctxIt = mContexts.find(cmd->ctx_id);
-            if (ctxIt == mContexts.end()) {
+            auto contextIt = mContexts.find(cmd->ctx_id);
+            if (contextIt == mContexts.end()) {
                 stream_renderer_error("ctx id %u is not found", cmd->ctx_id);
                 return -EINVAL;
             }
+            auto& context = contextIt->second;
 
-            auto& ctxEntry = ctxIt->second;
-            if (ctxEntry.blobMap.count(create3d.blobId)) {
-                stream_renderer_error("blob ID already in use");
-                return -EINVAL;
-            }
-
-            ctxEntry.blobMap[create3d.blobId] = rc3d;
-            break;
+            return context.AddPendingBlob(create3d.blobId, rc3d);
         }
         case GFXSTREAM_ACQUIRE_SYNC: {
             GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY,
@@ -461,29 +398,13 @@ int VirtioGpuFrontend::submitCmd(struct stream_renderer_command* cmd) {
 
             DECODE(acquireSync, gfxstream::gfxstreamAcquireSync, buffer);
 
-            auto ctxIt = mContexts.find(cmd->ctx_id);
-            if (ctxIt == mContexts.end()) {
+            auto contextIt = mContexts.find(cmd->ctx_id);
+            if (contextIt == mContexts.end()) {
                 stream_renderer_error("ctx id %u is not found", cmd->ctx_id);
                 return -EINVAL;
             }
-
-            auto& ctxEntry = ctxIt->second;
-            if (ctxEntry.latestFence) {
-                stream_renderer_error("expected latest fence to empty");
-                return -EINVAL;
-            }
-
-            auto syncDescriptorInfoOpt = ExternalObjectManager::get()->removeSyncDescriptorInfo(
-                cmd->ctx_id, acquireSync.syncId);
-            if (syncDescriptorInfoOpt) {
-                ctxEntry.latestFence = std::make_shared<gfxstream::SyncDescriptorInfo>(
-                    std::move(*syncDescriptorInfoOpt));
-            } else {
-                stream_renderer_error("failed to get sync descriptor info");
-                return -EINVAL;
-            }
-
-            break;
+            auto& context = contextIt->second;
+            return context.AcquireSync(acquireSync.syncId);
         }
         case GFXSTREAM_PLACEHOLDER_COMMAND_VK: {
             GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY,
@@ -503,56 +424,26 @@ int VirtioGpuFrontend::createFence(uint64_t fence_id, const VirtioGpuRing& ring)
     stream_renderer_debug("fenceid: %llu ring: %s", (unsigned long long)fence_id,
                           to_string(ring).c_str());
 
-    struct {
-        FenceCompletionCallback operator()(const VirtioGpuRingGlobal&) {
-            return [frontend = mFrontend, fenceId = mFenceId] {
-                struct stream_renderer_fence fence = {0};
-                fence.fence_id = fenceId;
-                fence.flags = STREAM_RENDERER_FLAG_FENCE;
-                frontend->mFenceCallback(frontend->mCookie, &fence);
-            };
-        }
-        FenceCompletionCallback operator()(const VirtioGpuRingContextSpecific& ring) {
-            return [frontend = mFrontend, fenceId = mFenceId, ring] {
-                struct stream_renderer_fence fence = {0};
-                fence.fence_id = fenceId;
-                fence.flags = STREAM_RENDERER_FLAG_FENCE | STREAM_RENDERER_FLAG_FENCE_RING_IDX;
-                fence.ctx_id = ring.mCtxId;
-                fence.ring_idx = ring.mRingIdx;
-                frontend->mFenceCallback(frontend->mCookie, &fence);
-            };
-        }
-
-        VirtioGpuFrontend* mFrontend;
-        VirtioGpuTimelines::FenceId mFenceId;
-    } visitor{
-        .mFrontend = this,
-        .mFenceId = fence_id,
-    };
-    FenceCompletionCallback callback = std::visit(visitor, ring);
-    if (!callback) {
-        return -EINVAL;
-    }
-    mVirtioGpuTimelines->enqueueFence(ring, fence_id, std::move(callback));
+    mVirtioGpuTimelines->enqueueFence(ring, fence_id);
 
     return 0;
 }
 
-int VirtioGpuFrontend::acquireContextFence(uint32_t ctx_id, uint64_t fenceId) {
-    auto ctxIt = mContexts.find(ctx_id);
-    if (ctxIt == mContexts.end()) {
-        stream_renderer_error("ctx id %u is not found", ctx_id);
+int VirtioGpuFrontend::acquireContextFence(uint32_t contextId, uint64_t fenceId) {
+    auto contextIt = mContexts.find(contextId);
+    if (contextIt == mContexts.end()) {
+        stream_renderer_error("failed to acquire context %u fence: context not found", contextId);
+        return -EINVAL;
+    }
+    auto& context = contextIt->second;
+
+    auto syncInfoOpt = context.TakeSync();
+    if (!syncInfoOpt) {
+        stream_renderer_error("failed to acquire context %u fence: no sync acquired", contextId);
         return -EINVAL;
     }
 
-    auto& ctxEntry = ctxIt->second;
-    if (ctxEntry.latestFence) {
-        mSyncMap[fenceId] = ctxEntry.latestFence;
-        ctxEntry.latestFence = nullptr;
-    } else {
-        stream_renderer_error("Failed to acquire sync descriptor");
-        return -EINVAL;
-    }
+    mSyncMap[fenceId] = std::make_shared<gfxstream::SyncDescriptorInfo>(std::move(*syncInfoOpt));
 
     return 0;
 }
@@ -570,21 +461,50 @@ int VirtioGpuFrontend::createResource(struct stream_renderer_resource_create_arg
     return 0;
 }
 
-void VirtioGpuFrontend::unrefResource(uint32_t toUnrefId) {
-    stream_renderer_debug("handle: %u", toUnrefId);
-
-    auto it = mResources.find(toUnrefId);
-    if (it == mResources.end()) return;
-
-    for (auto& ctxIdResources : mContextResources) {
-        detachResourceLocked(ctxIdResources.first, toUnrefId);
+int VirtioGpuFrontend::importResource(uint32_t res_handle,
+                                      const struct stream_renderer_handle* import_handle,
+                                      const struct stream_renderer_import_data* import_data) {
+    if (!import_handle) {
+        stream_renderer_error(
+            "import_handle was not provided in call to importResource for handle: %d", res_handle);
+        return -EINVAL;
+    } else if (import_data && (import_data->flags & STREAM_RENDERER_IMPORT_FLAG_RESOURCE_EXISTS)) {
+        auto resourceIt = mResources.find(res_handle);
+        if (resourceIt == mResources.end()) {
+            stream_renderer_error(
+                "import_data::flags specified STREAM_RENDERER_IMPORT_FLAG_RESOURCE_EXISTS, but "
+                "internal resource does not already exist",
+                res_handle);
+            return -EINVAL;
+        }
+        return resourceIt->second.ImportHandle(import_handle, import_data);
+    } else {
+        auto resourceOpt = VirtioGpuResource::Create(res_handle, import_handle, import_data);
+        if (!resourceOpt) {
+            stream_renderer_error("Failed to create resource %u, with import_handle/import_data",
+                                  res_handle);
+            return -EINVAL;
+        }
+        mResources[res_handle] = std::move(*resourceOpt);
+        return 0;
     }
+}
 
-    auto& resource = it->second;
+void VirtioGpuFrontend::unrefResource(uint32_t resourceId) {
+    stream_renderer_debug("resource: %u", resourceId);
+
+    auto resourceIt = mResources.find(resourceId);
+    if (resourceIt == mResources.end()) return;
+    auto& resource = resourceIt->second;
+
+    auto attachedContextIds = resource.GetAttachedContexts();
+    for (auto contextId : attachedContextIds) {
+        detachResource(contextId, resourceId);
+    }
 
     resource.Destroy();
 
-    mResources.erase(it);
+    mResources.erase(resourceIt);
 }
 
 int VirtioGpuFrontend::attachIov(int resourceId, struct iovec* iov, int num_iovs) {
@@ -797,36 +717,56 @@ void VirtioGpuFrontend::fillCaps(uint32_t set, void* caps) {
     }
 }
 
-void VirtioGpuFrontend::attachResource(uint32_t ctxId, uint32_t resId) {
-    stream_renderer_debug("ctxid: %u resid: %u", ctxId, resId);
+void VirtioGpuFrontend::attachResource(uint32_t contextId, uint32_t resourceId) {
+    stream_renderer_debug("ctxid: %u resid: %u", contextId, resourceId);
 
-    auto resourcesIt = mContextResources.find(ctxId);
-    if (resourcesIt == mContextResources.end()) {
-        std::vector<VirtioGpuResourceId> ids;
-        ids.push_back(resId);
-        mContextResources[ctxId] = ids;
-    } else {
-        auto& ids = resourcesIt->second;
-        auto idIt = std::find(ids.begin(), ids.end(), resId);
-        if (idIt == ids.end()) ids.push_back(resId);
+    auto contextIt = mContexts.find(contextId);
+    if (contextIt == mContexts.end()) {
+        stream_renderer_error("failed to attach resource %u to context %u: context not found.",
+                              resourceId, contextId);
+        return;
     }
+    auto& context = contextIt->second;
 
-    // Associate the host pipe of the resource entry with the host pipe of
-    // the context entry.  That is, the last context to call attachResource
-    // wins if there is any conflict.
-    auto ctxEntryIt = mContexts.find(ctxId);
-    auto resEntryIt = mResources.find(resId);
+    auto resourceIt = mResources.find(resourceId);
+    if (resourceIt == mResources.end()) {
+        stream_renderer_error("failed to attach resource %u to context %u: resource not found.",
+                              resourceId, contextId);
+        return;
+    }
+    auto& resource = resourceIt->second;
 
-    if (ctxEntryIt == mContexts.end() || resEntryIt == mResources.end()) return;
-
-    stream_renderer_debug("hostPipe: %p", ctxEntryIt->second.hostPipe);
-    resEntryIt->second.SetHostPipe(ctxEntryIt->second.hostPipe);
-    resEntryIt->second.AttachToContext(ctxId);
+    context.AttachResource(resource);
 }
 
-void VirtioGpuFrontend::detachResource(uint32_t ctxId, uint32_t toUnrefId) {
-    stream_renderer_debug("ctxid: %u resid: %u", ctxId, toUnrefId);
-    detachResourceLocked(ctxId, toUnrefId);
+void VirtioGpuFrontend::detachResource(uint32_t contextId, uint32_t resourceId) {
+    stream_renderer_debug("ctxid: %u resid: %u", contextId, resourceId);
+
+    auto contextIt = mContexts.find(contextId);
+    if (contextIt == mContexts.end()) {
+        stream_renderer_error("failed to detach resource %u to context %u: context not found.",
+                              resourceId, contextId);
+        return;
+    }
+    auto& context = contextIt->second;
+
+    auto resourceIt = mResources.find(resourceId);
+    if (resourceIt == mResources.end()) {
+        stream_renderer_error("failed to attach resource %u to context %u: resource not found.",
+                              resourceId, contextId);
+        return;
+    }
+    auto& resource = resourceIt->second;
+
+    auto resourceAsgOpt = context.TakeAddressSpaceGraphicsHandle(resourceId);
+    if (resourceAsgOpt) {
+        mCleanupThread->enqueueCleanup(
+            [this, asgBlob = resource.ShareRingBlob(), asgHandle = *resourceAsgOpt]() {
+                mAddressSpaceDeviceControlOps->destroy_handle(asgHandle);
+            });
+    }
+
+    context.DetachResource(resource);
 }
 
 int VirtioGpuFrontend::getResourceInfo(uint32_t resourceId,
@@ -867,13 +807,7 @@ int VirtioGpuFrontend::createBlob(uint32_t contextId, uint32_t resourceId,
     }
     auto& context = contextIt->second;
 
-    std::optional<struct stream_renderer_resource_create_args> createArgs;
-
-    auto blobIt = context.blobMap.find(createBlobArgs->blob_id);
-    if (blobIt != context.blobMap.end()) {
-        createArgs = blobIt->second;
-        context.blobMap.erase(blobIt);
-    }
+    auto createArgs = context.TakePendingBlob(createBlobArgs->blob_id);
 
     auto resourceOpt =
         VirtioGpuResource::Create(mFeatures, mPageSize, contextId, resourceId,
@@ -899,7 +833,7 @@ int VirtioGpuFrontend::resourceMap(uint32_t resourceId, void** hvaOut, uint64_t*
         if (hvaOut) *hvaOut = nullptr;
         if (sizeOut) *sizeOut = 0;
 
-        stream_renderer_error("Failed to map resource: unknown resource id %s.", resourceId);
+        stream_renderer_error("Failed to map resource: unknown resource id %d.", resourceId);
         return -EINVAL;
     }
 
@@ -912,21 +846,13 @@ int VirtioGpuFrontend::resourceUnmap(uint32_t resourceId) {
 
     auto it = mResources.find(resourceId);
     if (it == mResources.end()) {
-        stream_renderer_error("Failed to map resource: unknown resource id %s.", resourceId);
+        stream_renderer_error("Failed to map resource: unknown resource id %d.", resourceId);
         return -EINVAL;
     }
 
     // TODO(lfy): Good place to run any registered cleanup callbacks.
     // No-op for now.
     return 0;
-}
-
-int VirtioGpuFrontend::platformImportResource(int res_handle, int res_info, void* resource) {
-    auto it = mResources.find(res_handle);
-    if (it == mResources.end()) return -EINVAL;
-    bool success =
-        gfxstream::FrameBuffer::getFB()->platformImportResource(res_handle, res_info, resource);
-    return success ? 0 : -1;
 }
 
 void* VirtioGpuFrontend::platformCreateSharedEglContext() {
@@ -994,7 +920,7 @@ int VirtioGpuFrontend::exportFence(uint64_t fenceId, struct stream_renderer_hand
     else
         return -EINVAL;
 
-    handle->handle_type = entry->handleType;
+    handle->handle_type = entry->streamHandleType;
 
 #ifdef _WIN32
     handle->os_handle = static_cast<int64_t>(reinterpret_cast<intptr_t>(rawDescriptor));
@@ -1016,43 +942,44 @@ int VirtioGpuFrontend::vulkanInfo(uint32_t resourceId,
     return resource.GetVulkanInfo(vulkanInfo);
 }
 
+int VirtioGpuFrontend::destroyVirtioGpuObjects() {
+    {
+        std::vector<VirtioGpuResourceId> resourceIds;
+        resourceIds.reserve(mResources.size());
+        for (auto& [resourceId, resource] : mResources) {
+            const auto contextIds = resource.GetAttachedContexts();
+            for (const VirtioGpuContextId contextId : contextIds) {
+                detachResource(contextId, resourceId);
+            }
+            resourceIds.push_back(resourceId);
+        }
+        for (const VirtioGpuResourceId resourceId : resourceIds) {
+            unrefResource(resourceId);
+        }
+        mResources.clear();
+    }
+    {
+        std::vector<VirtioGpuContextId> contextIds;
+        contextIds.reserve(mContexts.size());
+        for (const auto& [contextId, _] : mContexts) {
+            contextIds.push_back(contextId);
+        }
+        for (const VirtioGpuContextId contextId : contextIds) {
+            destroyContext(contextId);
+        }
+        mContexts.clear();
+    }
+
+    if (mCleanupThread) {
+        mCleanupThread->waitForPendingCleanups();
+    }
+
+    return 0;
+}
+
 #ifdef CONFIG_AEMU
 void VirtioGpuFrontend::setServiceOps(const GoldfishPipeServiceOps* ops) { mServiceOps = ops; }
 #endif  // CONFIG_AEMU
-
-void VirtioGpuFrontend::detachResourceLocked(uint32_t ctxId, uint32_t toUnrefId) {
-    stream_renderer_debug("ctxid: %u resid: %u", ctxId, toUnrefId);
-
-    auto it = mContextResources.find(ctxId);
-    if (it == mContextResources.end()) return;
-
-    std::vector<VirtioGpuResourceId> withoutRes;
-    for (auto resId : it->second) {
-        if (resId != toUnrefId) {
-            withoutRes.push_back(resId);
-        }
-    }
-    mContextResources[ctxId] = withoutRes;
-
-    auto resourceIt = mResources.find(toUnrefId);
-    if (resourceIt == mResources.end()) return;
-    auto& resource = resourceIt->second;
-    resource.DetachFromContext();
-
-    auto ctxIt = mContexts.find(ctxId);
-    if (ctxIt != mContexts.end()) {
-        auto& ctxEntry = ctxIt->second;
-        if (ctxEntry.addressSpaceHandles.count(toUnrefId)) {
-            uint32_t asgHandle = ctxEntry.addressSpaceHandles[toUnrefId];
-
-            mCleanupThread->enqueueCleanup([this, asgBlob = resource.ShareRingBlob(), asgHandle]() {
-                mAddressSpaceDeviceControlOps->destroy_handle(asgHandle);
-            });
-
-            ctxEntry.addressSpaceHandles.erase(toUnrefId);
-        }
-    }
-}
 
 inline const GoldfishPipeServiceOps* VirtioGpuFrontend::ensureAndGetServiceOps() {
     if (mServiceOps) return mServiceOps;
@@ -1062,14 +989,34 @@ inline const GoldfishPipeServiceOps* VirtioGpuFrontend::ensureAndGetServiceOps()
 
 #ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
 
-int VirtioGpuFrontend::snapshot(gfxstream::host::snapshot::VirtioGpuFrontendSnapshot& outSnapshot) {
+static constexpr const char kSnapshotBasenameAsg[] = "gfxstream_asg.bin";
+static constexpr const char kSnapshotBasenameFrontend[] = "gfxstream_frontend.txtproto";
+static constexpr const char kSnapshotBasenameRenderer[] = "gfxstream_renderer.bin";
+
+int VirtioGpuFrontend::snapshotRenderer(const char* directory) {
+    const std::filesystem::path snapshotDirectory = std::string(directory);
+    const std::filesystem::path snapshotPath = snapshotDirectory / kSnapshotBasenameRenderer;
+
+    android::base::StdioStream stream(fopen(snapshotPath.c_str(), "wb"),
+                                      android::base::StdioStream::kOwner);
+    android::snapshot::SnapshotSaveStream saveStream{
+        .stream = &stream,
+    };
+
+    android_getOpenglesRenderer()->save(saveStream.stream, saveStream.textureSaver);
+    return 0;
+}
+
+int VirtioGpuFrontend::snapshotFrontend(const char* directory) {
+    gfxstream::host::snapshot::VirtioGpuFrontendSnapshot snapshot;
+
     for (const auto& [contextId, context] : mContexts) {
-        auto contextSnapshotOpt = SnapshotContext(context);
+        auto contextSnapshotOpt = context.Snapshot();
         if (!contextSnapshotOpt) {
             stream_renderer_error("Failed to snapshot context %d", contextId);
             return -1;
         }
-        (*outSnapshot.mutable_contexts())[contextId] = std::move(*contextSnapshotOpt);
+        (*snapshot.mutable_contexts())[contextId] = std::move(*contextSnapshotOpt);
     }
     for (const auto& [resourceId, resource] : mResources) {
         auto resourceSnapshotOpt = resource.Snapshot();
@@ -1077,16 +1024,119 @@ int VirtioGpuFrontend::snapshot(gfxstream::host::snapshot::VirtioGpuFrontendSnap
             stream_renderer_error("Failed to snapshot resource %d", resourceId);
             return -1;
         }
-        (*outSnapshot.mutable_resources())[resourceId] = std::move(*resourceSnapshotOpt);
+        (*snapshot.mutable_resources())[resourceId] = std::move(*resourceSnapshotOpt);
+    }
+
+    if (mVirtioGpuTimelines) {
+        auto timelinesSnapshotOpt = mVirtioGpuTimelines->Snapshot();
+        if (!timelinesSnapshotOpt) {
+            stream_renderer_error("Failed to snapshot timelines.");
+            return -1;
+        }
+        snapshot.mutable_timelines()->Swap(&*timelinesSnapshotOpt);
+    }
+
+    const std::filesystem::path snapshotDirectory = std::string(directory);
+    const std::filesystem::path snapshotPath = snapshotDirectory / kSnapshotBasenameFrontend;
+    int snapshotFd = open(snapshotPath.c_str(), O_CREAT | O_WRONLY | O_TRUNC, 0660);
+    if (snapshotFd < 0) {
+        stream_renderer_error("Failed to save snapshot: failed to open %s", snapshotPath.c_str());
+        return -1;
+    }
+    google::protobuf::io::FileOutputStream snapshotOutputStream(snapshotFd);
+    snapshotOutputStream.SetCloseOnDelete(true);
+    if (!google::protobuf::TextFormat::Print(snapshot, &snapshotOutputStream)) {
+        stream_renderer_error("Failed to save snapshot: failed to serialize to stream.");
+        return -1;
+    }
+
+    return 0;
+}
+
+int VirtioGpuFrontend::snapshotAsg(const char* directory) {
+    const std::filesystem::path snapshotDirectory = std::string(directory);
+    const std::filesystem::path snapshotPath = snapshotDirectory / kSnapshotBasenameAsg;
+
+    android::base::StdioStream stream(fopen(snapshotPath.c_str(), "wb"),
+                                      android::base::StdioStream::kOwner);
+    android::snapshot::SnapshotLoadStream saveStream{
+        .stream = &stream,
+    };
+
+    int ret = android::emulation::goldfish_address_space_memory_state_save(saveStream.stream);
+    if (ret) {
+        stream_renderer_error("Failed to save snapshot: failed to save ASG state.");
+        return ret;
     }
     return 0;
 }
 
-int VirtioGpuFrontend::restore(const VirtioGpuFrontendSnapshot& snapshot) {
+int VirtioGpuFrontend::snapshot(const char* directory) {
+    stream_renderer_debug("directory:%s", directory);
+
+    android_getOpenglesRenderer()->pauseAllPreSave();
+
+    int ret = snapshotRenderer(directory);
+    if (ret) {
+        stream_renderer_error("Failed to save snapshot: failed to snapshot renderer.");
+        return ret;
+    }
+
+    ret = snapshotFrontend(directory);
+    if (ret) {
+        stream_renderer_error("Failed to save snapshot: failed to snapshot frontend.");
+        return ret;
+    }
+
+    ret = snapshotAsg(directory);
+    if (ret) {
+        stream_renderer_error("Failed to save snapshot: failed to snapshot ASG device.");
+        return ret;
+    }
+
+    stream_renderer_debug("directory:%s - done!", directory);
+    return 0;
+}
+
+int VirtioGpuFrontend::restoreRenderer(const char* directory) {
+    const std::filesystem::path snapshotDirectory = std::string(directory);
+    const std::filesystem::path snapshotPath = snapshotDirectory / kSnapshotBasenameRenderer;
+
+    android::base::StdioStream stream(fopen(snapshotPath.c_str(), "rb"),
+                                      android::base::StdioStream::kOwner);
+    android::snapshot::SnapshotLoadStream loadStream{
+        .stream = &stream,
+    };
+
+    android_getOpenglesRenderer()->load(loadStream.stream, loadStream.textureLoader);
+    return 0;
+}
+
+int VirtioGpuFrontend::restoreFrontend(const char* directory) {
+    const std::filesystem::path snapshotDirectory = std::string(directory);
+    const std::filesystem::path snapshotPath = snapshotDirectory / kSnapshotBasenameFrontend;
+
+    gfxstream::host::snapshot::VirtioGpuFrontendSnapshot snapshot;
+    {
+        int snapshotFd = open(snapshotPath.c_str(), O_RDONLY);
+        if (snapshotFd < 0) {
+            stream_renderer_error("Failed to restore snapshot: failed to open %s",
+                                snapshotPath.c_str());
+            return -1;
+        }
+        google::protobuf::io::FileInputStream snapshotInputStream(snapshotFd);
+        snapshotInputStream.SetCloseOnDelete(true);
+        if (!google::protobuf::TextFormat::Parse(&snapshotInputStream, &snapshot)) {
+            stream_renderer_error("Failed to restore snapshot: failed to parse from file.");
+            return -1;
+        }
+    }
+
     mContexts.clear();
     mResources.clear();
+
     for (const auto& [contextId, contextSnapshot] : snapshot.contexts()) {
-        auto contextOpt = RestoreContext(contextSnapshot);
+        auto contextOpt = VirtioGpuContext::Restore(contextSnapshot);
         if (!contextOpt) {
             stream_renderer_error("Failed to restore context %d", contextId);
             return -1;
@@ -1101,6 +1151,99 @@ int VirtioGpuFrontend::restore(const VirtioGpuFrontendSnapshot& snapshot) {
         }
         mResources.emplace(resourceId, std::move(*resourceOpt));
     }
+
+    mVirtioGpuTimelines =
+        VirtioGpuTimelines::Restore(getFenceCompletionCallback(), snapshot.timelines());
+    if (!mVirtioGpuTimelines) {
+        stream_renderer_error("Failed to restore timelines.");
+        return -1;
+    }
+
+    return 0;
+}
+
+int VirtioGpuFrontend::restoreAsg(const char* directory) {
+    const std::filesystem::path snapshotDirectory = std::string(directory);
+    const std::filesystem::path snapshotPath = snapshotDirectory / kSnapshotBasenameAsg;
+
+    android::base::StdioStream stream(fopen(snapshotPath.c_str(), "rb"),
+                                      android::base::StdioStream::kOwner);
+    android::snapshot::SnapshotLoadStream loadStream{
+        .stream = &stream,
+    };
+
+    // Gather external memory info that the ASG device needs to reload.
+    android::emulation::AddressSpaceDeviceLoadResources asgLoadResources;
+    for (const auto& [contextId, context] : mContexts) {
+        for (const auto [resourceId, asgId] : context.AsgInstances()) {
+            auto resourceIt = mResources.find(resourceId);
+            if (resourceIt == mResources.end()) {
+                stream_renderer_error("Failed to restore ASG device: context %" PRIu32
+                                      " claims resource %" PRIu32 " is used for ASG %" PRIu32
+                                      " but resource not found.",
+                                      contextId, resourceId, asgId);
+                return -1;
+            }
+            auto& resource = resourceIt->second;
+
+            void* mappedAddr = nullptr;
+            uint64_t mappedSize = 0;
+
+            int ret = resource.Map(&mappedAddr, &mappedSize);
+            if (ret) {
+                stream_renderer_error("Failed to restore ASG device: failed to map resource %" PRIu32, resourceId);
+                return -1;
+            }
+
+            asgLoadResources.contextExternalMemoryMap[asgId] = {
+                .externalAddress = mappedAddr,
+                .externalAddressSize = mappedSize,
+            };
+        }
+    }
+
+    int ret = android::emulation::goldfish_address_space_memory_state_set_load_resources(asgLoadResources);
+    if (ret) {
+        stream_renderer_error("Failed to restore ASG device: failed to set ASG load resources.");
+        return ret;
+    }
+
+    ret = android::emulation::goldfish_address_space_memory_state_load(loadStream.stream);
+    if (ret) {
+        stream_renderer_error("Failed to restore ASG device: failed to restore ASG state.");
+        return ret;
+    }
+    return 0;
+}
+
+int VirtioGpuFrontend::restore(const char* directory) {
+    stream_renderer_debug("directory:%s", directory);
+
+    destroyVirtioGpuObjects();
+
+    int ret = restoreRenderer(directory);
+    if (ret) {
+        stream_renderer_error("Failed to load snapshot: failed to load renderer.");
+        return ret;
+    }
+
+    ret = restoreFrontend(directory);
+    if (ret) {
+        stream_renderer_error("Failed to load snapshot: failed to load frontend.");
+        return ret;
+    }
+
+    ret = restoreAsg(directory);
+    if (ret) {
+        stream_renderer_error("Failed to load snapshot: failed to load ASG device.");
+        return ret;
+    }
+
+    // In end2end tests, we don't really do snapshot save for render threads.
+    // We will need to resume all render threads without waiting for snapshot.
+    android_getOpenglesRenderer()->resumeAll(false);
+
+    stream_renderer_debug("directory:%s - done!", directory);
     return 0;
 }
 

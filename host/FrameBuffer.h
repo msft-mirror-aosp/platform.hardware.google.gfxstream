@@ -41,8 +41,8 @@
 #include "aemu/base/AsyncResult.h"
 #include "aemu/base/EventNotificationSupport.h"
 #include "aemu/base/HealthMonitor.h"
-#include "aemu/base/ManagedDescriptor.hpp"
 #include "aemu/base/Metrics.h"
+#include "aemu/base/ThreadAnnotations.h"
 #include "aemu/base/files/Stream.h"
 #include "aemu/base/synchronization/Lock.h"
 #include "aemu/base/synchronization/MessageChannel.h"
@@ -86,16 +86,6 @@
 #include "snapshot/common.h"
 #include "utils/RenderDoc.h"
 #include "vulkan/vk_util.h"
-
-//// Import info types for FrameBuffer::platformImportResource
-// Platform resources and contexts support
-#define RESOURCE_TYPE_MASK 0x0F
-// types
-#define RESOURCE_TYPE_EGL_NATIVE_PIXMAP 0x01
-#define RESOURCE_TYPE_EGL_IMAGE 0x02
-#define RESOURCE_TYPE_VK_EXT_MEMORY_HANDLE 0x03
-// uses
-#define RESOURCE_USE_PRESERVE 0x10
 
 namespace gfxstream {
 namespace vk {
@@ -217,9 +207,9 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
     // Variant of createColorBuffer except with a particular
     // handle already assigned. This is for use with
     // virtio-gpu's RESOURCE_CREATE ioctl.
-    void createColorBufferWithHandle(int p_width, int p_height, GLenum p_internalFormat,
-                                     FrameworkFormat p_frameworkFormat, HandleType handle,
-                                     bool linear = false);
+    void createColorBufferWithResourceHandle(int p_width, int p_height, GLenum p_internalFormat,
+                                             FrameworkFormat p_frameworkFormat, HandleType handle,
+                                             bool linear = false);
 
     // Create a new data Buffer instance from this display instance.
     // The buffer will be backed by a VkBuffer and VkDeviceMemory (if Vulkan
@@ -232,7 +222,7 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
     // Variant of createBuffer except with a particular handle already
     // assigned and using device local memory. This is for use with
     // virtio-gpu's RESOURCE_CREATE ioctl for BLOB resources.
-    void createBufferWithHandle(uint64_t size, HandleType handle);
+    void createBufferWithResourceHandle(uint64_t size, HandleType handle);
 
     // Increment the reference count associated with a given ColorBuffer
     // instance. |p_colorbuffer| is its handle value as returned by
@@ -274,8 +264,16 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
     // |type| is the type of pixel data, e.g. GL_UNSIGNED_BYTE.
     // |pixels| is the address of a caller-provided buffer that will be filled
     // with the pixel data.
-    void readColorBuffer(HandleType p_colorbuffer, int x, int y, int width,
-                         int height, GLenum format, GLenum type, void* pixels);
+    // |outPixelsSize| is the size of buffer
+    void readColorBuffer(HandleType p_colorbuffer, int x, int y, int width, int height,
+                         GLenum format, GLenum type, void* pixels, uint64_t outPixelsSize);
+
+    // Old, unsafe version for backwards compatibility
+    void readColorBuffer(HandleType p_colorbuffer, int x, int y, int width, int height,
+                         GLenum format, GLenum type, void* pixels) {
+        return readColorBuffer(p_colorbuffer, x, y, width, height, format, type, pixels,
+                               std::numeric_limits<uint64_t>::max());
+    }
 
     // Read the content of a given YUV420_888 ColorBuffer into client memory.
     // |p_colorbuffer| is the ColorBuffer's handle value. Similar
@@ -284,9 +282,9 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
     // a rectangle whose pixel values will be transfered to the host.
     // |pixels| is the address of a caller-provided buffer that will be filled
     // with the pixel data.
-    // |pixles_size| is the size of buffer
+    // |outPixelsSize| is the size of buffer
     void readColorBufferYUV(HandleType p_colorbuffer, int x, int y, int width,
-                            int height, void* pixels, uint32_t pixels_size);
+                            int height, void* pixels, uint32_t outPixelsSize);
 
     // Update the content of a given Buffer from client data.
     // |p_buffer| is the Buffer's handle value.
@@ -401,8 +399,8 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
                 const android::snapshot::ITextureLoaderPtr& textureLoader);
 
     // lock and unlock handles (EmulatedEglContext, ColorBuffer, EmulatedEglWindowSurface)
-    void lock();
-    void unlock();
+    void lock() ACQUIRE(m_lock);
+    void unlock() RELEASE(m_lock);
 
     float getDpr() const { return m_dpr; }
     int windowWidth() const { return m_windowWidth; }
@@ -479,8 +477,6 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
     void asyncWaitForGpuVulkanWithCb(uint64_t deviceHandle, uint64_t fenceHandle, FenceCompletionCallback cb);
     void asyncWaitForGpuVulkanQsriWithCb(uint64_t image, FenceCompletionCallback cb);
 
-    bool platformImportResource(uint32_t handle, uint32_t info, void* resource);
-
     void setGuestManagedColorBufferLifetime(bool guestManaged);
 
     std::unique_ptr<BorrowedImageInfo> borrowColorBufferForComposition(uint32_t colorBufferHandle,
@@ -501,9 +497,9 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
     void scheduleVsyncTask(VsyncThread::VsyncTask task);
     void setDisplayConfigs(int configId, int w, int h, int dpiX, int dpiY);
     void setDisplayActiveConfig(int configId);
-    const int getDisplayConfigsCount();
-    const int getDisplayConfigsParam(int configId, EGLint param);
-    const int getDisplayActiveConfig();
+    int getDisplayConfigsCount();
+    int getDisplayConfigsParam(int configId, EGLint param);
+    int getDisplayActiveConfig();
 
     bool flushColorBufferFromVk(HandleType colorBufferHandle);
     bool flushColorBufferFromVkBytes(HandleType colorBufferHandle, const void* bytes,
@@ -718,10 +714,12 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
         m_guestPostedAFrame = true;
         fireEvent({FrameBufferChange::FrameReady, mFrameNumber++});
     }
-    HandleType createColorBufferWithHandleLocked(int p_width, int p_height, GLenum p_internalFormat,
-                                                 FrameworkFormat p_frameworkFormat,
-                                                 HandleType handle, bool linear = false);
-    HandleType createBufferWithHandleLocked(int p_size, HandleType handle, uint32_t memoryProperty);
+    HandleType createColorBufferWithResourceHandleLocked(int p_width, int p_height,
+                                                         GLenum p_internalFormat,
+                                                         FrameworkFormat p_frameworkFormat,
+                                                         HandleType handle, bool linear = false);
+    HandleType createBufferWithResourceHandleLocked(int p_size, HandleType handle,
+                                                    uint32_t memoryProperty);
 
     void recomputeLayout();
     void setDisplayPoseInSkinUI(int totalHeight);
@@ -832,6 +830,7 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
     std::string m_graphicsApiVersion;
     std::string m_graphicsApiExtensions;
     std::string m_graphicsDeviceExtensions;
+    android::base::Lock m_procOwnedResourcesLock;
     std::unordered_map<uint64_t, std::unique_ptr<ProcessResources>> m_procOwnedResources;
 
     // Flag set when emulator is shutting down.

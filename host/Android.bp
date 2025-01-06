@@ -34,6 +34,7 @@ cc_library_host_static {
         "VirtioGpuFrontendSnapshot.proto",
         "VirtioGpuRingBlobSnapshot.proto",
         "VirtioGpuResourceSnapshot.proto",
+        "VirtioGpuTimelinesSnapshot.proto",
     ],
 }
 
@@ -86,7 +87,6 @@ cc_defaults {
         "-Wno-unused-parameter",
         "-Wno-unused-variable",
         "-Wno-unused-function",
-        "-Wno-unreachable-code-loop-increment",
     ],
     header_libs: [
         "gfxstream_opengl_headers",
@@ -320,6 +320,28 @@ cc_test_host {
         "libbase",
         "libgfxstream_backend_magma",
     ],
+    test_suites: [
+        "general-tests",
+    ],
+}
+
+// Run with `atest GfxstreamVirtioGpuTimelineTests`
+cc_test_host {
+    name: "GfxstreamVirtioGpuTimelineTests",
+    defaults: ["gfxstream_defaults"],
+    srcs: [
+        "VirtioGpuTimelinesTests.cpp",
+    ],
+    shared_libs: [
+        "libbase",
+        "libgfxstream_backend",
+    ],
+    static_libs: [
+        "libgmock",
+    ],
+    test_options: {
+        unit_test: true,
+    },
     test_suites: [
         "general-tests",
     ],

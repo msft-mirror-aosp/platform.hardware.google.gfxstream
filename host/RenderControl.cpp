@@ -1088,6 +1088,7 @@ static void rcTriggerWait(uint64_t eglsync_ptr,
         FrameBuffer *fb = FrameBuffer::getFB();
         if (fb && fenceSync && fenceSync->isCompositionFence()) {
             fb->scheduleVsyncTask([eglsync_ptr, fenceSync, timeline](uint64_t) {
+                (void)eglsync_ptr;
                 EGLSYNC_DPRINT(
                     "vsync: eglsync=0x%llx fenceSync=%p thread_ptr=0x%llx "
                     "timeline=0x%llx",
@@ -1377,9 +1378,8 @@ static void rcCreateColorBufferWithHandle(
         return;
     }
 
-    fb->createColorBufferWithHandle(
-        width, height, internalFormat,
-        FRAMEWORK_FORMAT_GL_COMPATIBLE, handle);
+    fb->createColorBufferWithResourceHandle(width, height, internalFormat,
+                                            FRAMEWORK_FORMAT_GL_COMPATIBLE, handle);
 }
 
 static uint32_t rcCreateBuffer2(uint64_t size, uint32_t memoryProperty) {
@@ -1506,7 +1506,7 @@ static int rcReadColorBufferDMA(uint32_t colorBuffer,
         return -1;
     }
 
-    fb->readColorBuffer(colorBuffer, x, y, width, height, format, type, pixels);
+    fb->readColorBuffer(colorBuffer, x, y, width, height, format, type, pixels, pixels_size);
     return 0;
 }
 

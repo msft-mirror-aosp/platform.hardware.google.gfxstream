@@ -212,8 +212,10 @@ TEST_F(FrameBufferTest, CreateOpenUpdateCloseColorBuffer) {
     TestTexture forUpdate = createTestPatternRGBA8888(mWidth, mHeight);
     mFb->updateColorBuffer(handle, 0, 0, mWidth, mHeight, GL_RGBA, GL_UNSIGNED_BYTE, forUpdate.data());
 
-    TestTexture forRead = createTestTextureRGBA8888SingleColor(mWidth, mHeight, 0.0f, 0.0f, 0.0f, 0.0f);
-    mFb->readColorBuffer(handle, 0, 0, mWidth, mHeight, GL_RGBA, GL_UNSIGNED_BYTE, forRead.data());
+    TestTexture forRead =
+        createTestTextureRGBA8888SingleColor(mWidth, mHeight, 0.0f, 0.0f, 0.0f, 0.0f);
+    mFb->readColorBuffer(handle, 0, 0, mWidth, mHeight, GL_RGBA, GL_UNSIGNED_BYTE, forRead.data(),
+                         forRead.size());
 
     EXPECT_TRUE(ImageMatches(mWidth, mHeight, 4, mWidth, forUpdate.data(), forRead.data()));
 
@@ -368,8 +370,10 @@ TEST_F(FrameBufferTest, CreateOpenUpdateCloseColorBuffer_FormatChange) {
     TestTexture forUpdate = createTestPatternRGBA8888(mWidth, mHeight);
     mFb->updateColorBuffer(handle, 0, 0, mWidth, mHeight, GL_RGBA, GL_UNSIGNED_BYTE, forUpdate.data());
 
-    TestTexture forRead = createTestTextureRGBA8888SingleColor(mWidth, mHeight, 0.0f, 0.0f, 0.0f, 0.0f);
-    mFb->readColorBuffer(handle, 0, 0, mWidth, mHeight, GL_RGBA, GL_UNSIGNED_BYTE, forRead.data());
+    TestTexture forRead =
+        createTestTextureRGBA8888SingleColor(mWidth, mHeight, 0.0f, 0.0f, 0.0f, 0.0f);
+    mFb->readColorBuffer(handle, 0, 0, mWidth, mHeight, GL_RGBA, GL_UNSIGNED_BYTE, forRead.data(),
+                         forRead.size());
 
     EXPECT_TRUE(ImageMatches(mWidth, mHeight, 4, mWidth, forUpdate.data(),
                              forRead.data()));
@@ -441,9 +445,8 @@ TEST_F(FrameBufferTest, BasicBlit) {
             createTestTextureRGBA8888SingleColor(
                 mWidth, mHeight, 0.0f, 0.0f, 0.0f, 0.0f);
 
-        mFb->readColorBuffer(
-            colorBuffer, 0, 0, mWidth, mHeight,
-            GL_RGBA, GL_UNSIGNED_BYTE, forRead.data());
+        mFb->readColorBuffer(colorBuffer, 0, 0, mWidth, mHeight, GL_RGBA, GL_UNSIGNED_BYTE,
+                             forRead.data(), forRead.size());
 
         EXPECT_TRUE(
             ImageMatches(
@@ -506,8 +509,10 @@ TEST_F(FrameBufferTest, SnapshotSingleColorBuffer) {
     saveSnapshot();
     loadSnapshot();
 
-    TestTexture forRead = createTestTextureRGBA8888SingleColor(mWidth, mHeight, 0.0f, 0.0f, 0.0f, 0.0f);
-    mFb->readColorBuffer(handle, 0, 0, mWidth, mHeight, GL_RGBA, GL_UNSIGNED_BYTE, forRead.data());
+    TestTexture forRead =
+        createTestTextureRGBA8888SingleColor(mWidth, mHeight, 0.0f, 0.0f, 0.0f, 0.0f);
+    mFb->readColorBuffer(handle, 0, 0, mWidth, mHeight, GL_RGBA, GL_UNSIGNED_BYTE, forRead.data(),
+                         forRead.size());
 
     EXPECT_TRUE(ImageMatches(mWidth, mHeight, 4, mWidth, forUpdate.data(), forRead.data()));
 
@@ -528,8 +533,10 @@ TEST_F(FrameBufferTest, SnapshotColorBufferSubUpdateRestore) {
     TestTexture forUpdate = createTestPatternRGBA8888(mWidth, mHeight);
     mFb->updateColorBuffer(handle, 0, 0, mWidth, mHeight, GL_RGBA, GL_UNSIGNED_BYTE, forUpdate.data());
 
-    TestTexture forRead = createTestTextureRGBA8888SingleColor(mWidth, mHeight, 0.0f, 0.0f, 0.0f, 0.0f);
-    mFb->readColorBuffer(handle, 0, 0, mWidth, mHeight, GL_RGBA, GL_UNSIGNED_BYTE, forRead.data());
+    TestTexture forRead =
+        createTestTextureRGBA8888SingleColor(mWidth, mHeight, 0.0f, 0.0f, 0.0f, 0.0f);
+    mFb->readColorBuffer(handle, 0, 0, mWidth, mHeight, GL_RGBA, GL_UNSIGNED_BYTE, forRead.data(),
+                         forRead.size());
 
     EXPECT_TRUE(ImageMatches(mWidth, mHeight, 4, mWidth, forUpdate.data(), forRead.data()));
 
@@ -753,9 +760,11 @@ TEST_F(FrameBufferTest, DISABLED_ReadColorBufferSwitchRedBlue) {
     TestTexture forUpdate = createTestPatternRGBA8888(mWidth, mHeight);
     mFb->updateColorBuffer(handle, 0, 0, mWidth, mHeight, GL_RGBA, GL_UNSIGNED_BYTE, forUpdate.data());
 
-    TestTexture forRead = createTestTextureRGBA8888SingleColor(mWidth, mHeight, 0.0f, 0.0f, 0.0f, 0.0f);
+    TestTexture forRead =
+        createTestTextureRGBA8888SingleColor(mWidth, mHeight, 0.0f, 0.0f, 0.0f, 0.0f);
     // Switch red and blue
-    mFb->readColorBuffer(handle, 0, 0, mWidth, mHeight, GL_BGRA_EXT, GL_UNSIGNED_BYTE, forRead.data());
+    mFb->readColorBuffer(handle, 0, 0, mWidth, mHeight, GL_BGRA_EXT, GL_UNSIGNED_BYTE,
+                         forRead.data(), forRead.size());
 
     // Switch them back, so we get the original image
     uint8_t* forReadBytes = forRead.data();
@@ -877,115 +886,6 @@ TEST_F(FrameBufferTest, ComposeMultiDisplay) {
     mFb->destroyDisplay(ids[2]);
     mFb->destroyEmulatedEglWindowSurface(surface);
 }
-
-#ifdef GFXSTREAM_HAS_X11
-// Tests basic pixmap import. Can we import a native pixmap and successfully
-// upload and read back some color?
-TEST_F(FrameBufferTest, PixmapImport_Basic) {
-    const int kWidth = 16;
-    const int kHeight = 16;
-    const int kBytesPerPixel = 4;
-
-    // Only run this test on display :0.
-    auto disp =  android::base::getEnvironmentVariable("DISPLAY");
-    if (disp != ":0" ) {
-        fprintf(stderr, "%s: Wawrning: Skipping test because DISPLAY is [%s] (not :0)\n", __func__,
-                disp.c_str());
-        return;
-    }
-
-    void* pixmap = createNativePixmap(kWidth, kHeight, kBytesPerPixel);
-    EXPECT_NE(nullptr, pixmap);
-
-    HandleType cb =
-        mFb->createColorBuffer(kWidth, kHeight, GL_RGBA, FRAMEWORK_FORMAT_GL_COMPATIBLE);
-    TestTexture forUpdate = createTestTextureRGBA8888SingleColor(kWidth, kHeight, 1.0f, 0.0f, 1.0f, 1.0f);
-    EXPECT_EQ(0, mFb->openColorBuffer(cb));
-    mFb->updateColorBuffer(cb, 0, 0, kWidth, kHeight, GL_RGBA, GL_UNSIGNED_BYTE, forUpdate.data());
-
-    EXPECT_TRUE(mFb->platformImportResource(cb, RESOURCE_TYPE_EGL_NATIVE_PIXMAP|RESOURCE_USE_PRESERVE, pixmap));
-
-    TestTexture forRead = createTestTextureRGBA8888SingleColor(kWidth, kHeight, 0.0f, 0.0f, 0.0f, 0.0f);
-    mFb->readColorBuffer(cb, 0, 0, kWidth, kHeight, GL_RGBA, GL_UNSIGNED_BYTE, forRead.data());
-
-    EXPECT_TRUE(ImageMatches(kWidth, kHeight, 4, kWidth, forUpdate.data(), forRead.data()));
-
-    mFb->closeColorBuffer(cb);
-
-    freeNativePixmap(pixmap);
-}
-
-// Similar to BasicBlit, except the color buffer is backed by a pixmap.
-// Can we render to the pixmap and read back contents?
-TEST_F(FrameBufferTest, PixmapImport_Blit) {
-    // Only run this test on display :0.
-    auto disp =  android::base::getEnvironmentVariable("DISPLAY");
-    if (disp != ":0" ) {
-        fprintf(stderr, "%s: Wawrning: Skipping test because DISPLAY is [%s] (not :0)\n", __func__,
-                disp.c_str());
-        return;
-    }
-
-    auto gl = LazyLoadedGLESv2Dispatch::get();
-
-    void* pixmap = createNativePixmap(mWidth, mHeight, 4);
-    EXPECT_NE(nullptr, pixmap);
-
-    HandleType colorBuffer =
-        mFb->createColorBuffer(mWidth, mHeight, GL_RGBA, FRAMEWORK_FORMAT_GL_COMPATIBLE);
-
-    EXPECT_TRUE(mFb->platformImportResource(colorBuffer, RESOURCE_TYPE_EGL_NATIVE_PIXMAP, pixmap));
-
-    HandleType context = mFb->createEmulatedEglContext(0, 0, GLESApi_3_0);
-    HandleType surface = mFb->createEmulatedEglWindowSurface(0, mWidth, mHeight);
-
-    EXPECT_TRUE(mFb->bindContext(context, surface, surface));
-    EXPECT_TRUE(mFb->setEmulatedEglWindowSurfaceColorBuffer(surface, colorBuffer));
-
-    float colors[3][4] = {
-        { 1.0f, 0.0f, 0.0f, 1.0f},
-        { 0.0f, 1.0f, 0.0f, 1.0f},
-        { 0.0f, 0.0f, 1.0f, 1.0f},
-    };
-
-    for (int i = 0; i < 3; i++) {
-        float* color = colors[i];
-
-        gl->glClearColor(color[0], color[1], color[2], color[3]);
-        gl->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        mFb->flushEmulatedEglWindowSurfaceColorBuffer(surface);
-
-        TestTexture targetBuffer =
-            createTestTextureRGBA8888SingleColor(
-                mWidth, mHeight, color[0], color[1], color[2], color[3]);
-
-        TestTexture forRead =
-            createTestTextureRGBA8888SingleColor(
-                mWidth, mHeight, 0.0f, 0.0f, 0.0f, 0.0f);
-
-        mFb->readColorBuffer(
-            colorBuffer, 0, 0, mWidth, mHeight,
-            GL_RGBA, GL_UNSIGNED_BYTE, forRead.data());
-
-        EXPECT_TRUE(
-            ImageMatches(
-                mWidth, mHeight, 4, mWidth,
-                targetBuffer.data(), forRead.data()));
-
-        if (mUseSubWindow) {
-            mFb->post(colorBuffer);
-            mWindow->messageLoop();
-        }
-    }
-
-    EXPECT_TRUE(mFb->bindContext(0, 0, 0));
-    mFb->closeColorBuffer(colorBuffer);
-    mFb->closeColorBuffer(colorBuffer);
-    mFb->destroyEmulatedEglWindowSurface(surface);
-
-    freeNativePixmap(pixmap);
-}
-#endif
 
 }  // namespace
 }  // namespace gfxstream

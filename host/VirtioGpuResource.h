@@ -18,6 +18,7 @@
 
 #include <memory>
 #include <optional>
+#include <unordered_set>
 
 extern "C" {
 #include "host-common/goldfish_pipe.h"
@@ -36,17 +37,20 @@ extern "C" {
 namespace gfxstream {
 namespace host {
 
+// LINT.IfChange(virtio_gpu_resource_type)
 enum class VirtioGpuResourceType {
+    UNKNOWN = 0,
     // Used as a communication channel between the guest and the host
     // which does not need an allocation on the host GPU.
-    PIPE,
+    PIPE = 1,
     // Used as a GPU data buffer.
-    BUFFER,
+    BUFFER = 2,
     // Used as a GPU texture.
-    COLOR_BUFFER,
+    COLOR_BUFFER = 3,
     // Used as a blob and not known to FrameBuffer.
-    BLOB,
+    BLOB = 4,
 };
+// LINT.ThenChange(VirtioGpuResourceSnapshot.proto:virtio_gpu_resource_type)
 
 class VirtioGpuResource {
    public:
@@ -57,6 +61,10 @@ class VirtioGpuResource {
         uint32_t num_iovs);
 
     static std::optional<VirtioGpuResource> Create(
+        uint32_t res_handle, const struct stream_renderer_handle* import_handle,
+        const struct stream_renderer_import_data* import_data);
+
+    static std::optional<VirtioGpuResource> Create(
         const gfxstream::host::FeatureSet& features, uint32_t pageSize, uint32_t contextId,
         uint32_t resourceId, const struct stream_renderer_resource_create_args* createArgs,
         const struct stream_renderer_create_blob* createBlobArgs,
@@ -64,11 +72,17 @@ class VirtioGpuResource {
 
     int Destroy();
 
+    int ImportHandle(const stream_renderer_handle* handle,
+                     const stream_renderer_import_data* import_data);
+
+    VirtioGpuResourceId GetId() const { return mId; }
+
     void AttachIov(struct iovec* iov, uint32_t num_iovs);
     void DetachIov();
 
     void AttachToContext(VirtioGpuContextId contextId);
-    void DetachFromContext();
+    void DetachFromContext(VirtioGpuContextId contextId);
+    std::unordered_set<VirtioGpuContextId> GetAttachedContexts() const;
 
     int Map(void** outAddress, uint64_t* outSize);
 
@@ -145,13 +159,14 @@ class VirtioGpuResource {
 
     // LINT.IfChange(virtio_gpu_resource)
     VirtioGpuResourceId mId = -1;
-    VirtioGpuResourceType mResourceType;
+    VirtioGpuResourceType mResourceType = VirtioGpuResourceType::UNKNOWN;
     std::optional<struct stream_renderer_resource_create_args> mCreateArgs;
     std::optional<struct stream_renderer_create_blob> mCreateBlobArgs;
     std::vector<struct iovec> mIovs;
     std::vector<char> mLinear;
     GoldfishHostPipe* mHostPipe = nullptr;
-    std::optional<VirtioGpuContextId> mContextId;
+    std::optional<VirtioGpuContextId> mLatestAttachedContext;
+    std::unordered_set<VirtioGpuContextId> mAttachedToContexts;
 
     // If this resource is a blob resource, the source of the external memory.
     //
@@ -162,11 +177,10 @@ class VirtioGpuResource {
     //   * For non ring blobs, the memory from the backend as either an external
     //     memory handle (`BlobDescriptorInfo`) or a raw mapping.
     using RingBlobMemory = std::shared_ptr<RingBlob>;
-    using ExternalMemoryDescriptor = std::shared_ptr<BlobDescriptorInfo>;
+    using ExternalMemoryInfo = std::shared_ptr<BlobDescriptorInfo>;
     using ExternalMemoryMapping = HostMemInfo;
 
-    using BlobMemory =
-        std::variant<RingBlobMemory, ExternalMemoryDescriptor, ExternalMemoryMapping>;
+    using BlobMemory = std::variant<RingBlobMemory, ExternalMemoryInfo, ExternalMemoryMapping>;
     std::optional<BlobMemory> mBlobMemory;
     // LINT.ThenChange(VirtioGpuResourceSnapshot.proto:virtio_gpu_resource)
 };

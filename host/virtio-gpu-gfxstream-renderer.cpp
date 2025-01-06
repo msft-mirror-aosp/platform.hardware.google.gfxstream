@@ -15,28 +15,16 @@
 #include <cstdarg>
 #include <cstdint>
 
-#ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
-#include <filesystem>
-#include <fcntl.h>
-#include <google/protobuf/io/zero_copy_stream_impl.h>
-#include <google/protobuf/text_format.h>
-#include "aemu/base/files/StdioStream.h"
-#endif  // ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
-
 #include "FrameBuffer.h"
 #include "GfxStreamAgents.h"
 #include "VirtioGpuFrontend.h"
 #include "aemu/base/Metrics.h"
-#ifdef GFXSTREAM_ENABLE_HOST_VK_SNAPSHOT
-#include "aemu/base/files/StdioStream.h"
-#endif
 #include "aemu/base/system/System.h"
 #include "gfxstream/Strings.h"
 #include "gfxstream/host/Features.h"
 #include "gfxstream/host/Tracing.h"
 #include "host-common/FeatureControl.h"
 #include "host-common/GraphicsAgentFactory.h"
-#include "host-common/address_space_device.h"
 #include "host-common/android_pipe_common.h"
 #include "host-common/android_pipe_device.h"
 #include "host-common/globals.h"
@@ -126,7 +114,6 @@ static char translate_severity(uint32_t type) {
 }
 
 using android::AndroidPipe;
-using android::base::ManagedDescriptor;
 using android::base::MetricsLogger;
 using gfxstream::host::VirtioGpuFrontend;
 
@@ -191,6 +178,15 @@ VG_EXPORT int stream_renderer_resource_create(struct stream_renderer_resource_cr
                           "stream_renderer_resource_create()");
 
     return sFrontend()->createResource(args, iov, num_iovs);
+}
+
+VG_EXPORT int stream_renderer_import_resource(
+    uint32_t res_handle, const struct stream_renderer_handle* import_handle,
+    const struct stream_renderer_import_data* import_data) {
+    GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY,
+                          "stream_renderer_import_resource()");
+
+    return sFrontend()->importResource(res_handle, import_handle, import_data);
 }
 
 VG_EXPORT void stream_renderer_resource_unref(uint32_t res_handle) {
@@ -366,14 +362,6 @@ VG_EXPORT int stream_renderer_export_fence(uint64_t fence_id,
     return sFrontend()->exportFence(fence_id, handle);
 }
 
-VG_EXPORT int stream_renderer_platform_import_resource(int res_handle, int res_info,
-                                                       void* resource) {
-    GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY,
-                          "stream_renderer_platform_import_resource()");
-
-    return sFrontend()->platformImportResource(res_handle, res_info, resource);
-}
-
 VG_EXPORT void* stream_renderer_platform_create_shared_egl_context() {
     GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY,
                           "stream_renderer_platform_create_shared_egl_context()");
@@ -418,47 +406,11 @@ VG_EXPORT int stream_renderer_suspend() {
     return 0;
 }
 
-// Work in progress. Disabled for now but code is present to get build CI.
-static constexpr const bool kEnableFrontendSnapshots = false;
-
 VG_EXPORT int stream_renderer_snapshot(const char* dir) {
     GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY, "stream_renderer_snapshot()");
 
 #ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
-    std::filesystem::path snapshotDirectory = std::string(dir);
-
-    if (kEnableFrontendSnapshots) {
-        gfxstream::host::snapshot::VirtioGpuFrontendSnapshot snapshot;
-        if (sFrontend()->snapshot(snapshot)) {
-            stream_renderer_error("Failed to save snapshot: failed to snapshot frontend.");
-            return -1;
-        }
-        std::filesystem::path snapshotPath = snapshotDirectory / "gfxstream_snapshot.txtproto";
-        int snapshotFd = open(snapshotPath.c_str(), O_CREAT | O_WRONLY | O_TRUNC, 0660);
-        if (snapshotFd < 0) {
-            stream_renderer_error("Failed to save snapshot: failed to open %s", snapshotPath.c_str());
-            return -1;
-        }
-        google::protobuf::io::FileOutputStream snapshotOutputStream(snapshotFd);
-        snapshotOutputStream.SetCloseOnDelete(true);
-        if (!google::protobuf::TextFormat::Print(snapshot, &snapshotOutputStream)) {
-            stream_renderer_error("Failed to save snapshot: failed to serialize to stream.");
-            return -1;
-        }
-    }
-
-    std::filesystem::path snapshotBinaryPath = snapshotDirectory / "gfxstream_snapshot.bin";
-
-    std::unique_ptr<android::base::StdioStream> stream(new android::base::StdioStream(
-        fopen(snapshotBinaryPath.c_str(), "wb"), android::base::StdioStream::kOwner));
-
-    android_getOpenglesRenderer()->pauseAllPreSave();
-    android::snapshot::SnapshotSaveStream saveStream{
-        .stream = stream.get(),
-    };
-
-    android_getOpenglesRenderer()->save(saveStream.stream, saveStream.textureSaver);
-    return 0;
+    return sFrontend()->snapshot(dir);
 #else
     stream_renderer_error("Snapshot save requested without support.");
     return -EINVAL;
@@ -469,41 +421,7 @@ VG_EXPORT int stream_renderer_restore(const char* dir) {
     GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY, "stream_renderer_restore()");
 
 #ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
-    std::filesystem::path snapshotDirectory = std::string(dir);
-
-    std::filesystem::path snapshotBinaryPath = snapshotDirectory / "gfxstream_snapshot.bin";
-    std::unique_ptr<android::base::StdioStream> stream(new android::base::StdioStream(
-        fopen(snapshotBinaryPath.c_str(), "rb"), android::base::StdioStream::kOwner));
-    android::snapshot::SnapshotLoadStream loadStream{
-        .stream = stream.get(),
-    };
-    android_getOpenglesRenderer()->load(loadStream.stream, loadStream.textureLoader);
-    // In end2end tests, we don't really do snapshot save for render threads.
-    // We will need to resume all render threads without waiting for snapshot.
-    android_getOpenglesRenderer()->resumeAll(false);
-
-    if (kEnableFrontendSnapshots) {
-        std::filesystem::path snapshotPath = snapshotDirectory / "gfxstream_snapshot.txtproto";
-        int snapshotFd = open(snapshotPath.c_str(), O_RDONLY);
-        if (snapshotFd < 0) {
-            stream_renderer_error("Failed to restore snapshot: failed to open %s",
-                                snapshotPath.c_str());
-            return -1;
-        }
-        google::protobuf::io::FileInputStream snapshotInputStream(snapshotFd);
-        snapshotInputStream.SetCloseOnDelete(true);
-        gfxstream::host::snapshot::VirtioGpuFrontendSnapshot snapshot;
-        if (!google::protobuf::TextFormat::Parse(&snapshotInputStream, &snapshot)) {
-            stream_renderer_error("Failed to restore snapshot: failed to parse from file.");
-            return -1;
-        }
-        if (sFrontend()->restore(snapshot) < 0) {
-            stream_renderer_error("Failed to restore snapshot: failed to restore frontend.");
-            return -1;
-        }
-    }
-
-    return 0;
+    return sFrontend()->restore(dir);
 #else
     stream_renderer_error("Snapshot save requested without support.");
     return -EINVAL;
@@ -666,9 +584,10 @@ static int stream_renderer_opengles_init(uint32_t display_width, uint32_t displa
     androidHw->hw_gltransport_drawFlushInterval = 10000;
 
     EmuglConfig config;
-
     // Make all the console agents available.
+#ifndef GFXSTREAM_MESON_BUILD
     android::emulation::injectGraphicsAgents(android::emulation::GfxStreamGraphicsAgentFactory());
+#endif
 
     emuglConfig_init(&config, true /* gpu enabled */, "auto",
                      enable_egl2egl ? "swiftshader_indirect" : "host", 64, /* bitness */
@@ -764,7 +683,7 @@ int parseGfxstreamFeatures(const int renderer_flags,
         &features, Vulkan,
         renderer_flags & STREAM_RENDERER_FLAGS_USE_VK_BIT);
     GFXSTREAM_SET_FEATURE_ON_CONDITION(
-        &features, VulkanBatchedDescriptorSetUpdate, features.VulkanBatchedDescriptorSetUpdate.enabled);
+        &features, VulkanBatchedDescriptorSetUpdate, true);
     GFXSTREAM_SET_FEATURE_ON_CONDITION(
         &features, VulkanIgnoredHandles, true);
     GFXSTREAM_SET_FEATURE_ON_CONDITION(
@@ -1085,11 +1004,12 @@ VG_EXPORT void gfxstream_backend_setup_window(void* native_window_handle, int32_
 }
 
 VG_EXPORT void stream_renderer_teardown() {
+    sFrontend()->teardown();
+
     android_finishOpenglesRenderer();
     android_hideOpenglesWindow();
     android_stopOpenglesRenderer(true);
 
-    sFrontend()->teardown();
     stream_renderer_info("Gfxstream shut down completed!");
 }
 

@@ -26,6 +26,9 @@ uint32_t getMemoryType(const vkhpp::PhysicalDevice& physicalDevice,
 void readImageData(vkhpp::Image image, uint32_t width, uint32_t height,
                    vkhpp::ImageLayout currentLayout, void* dst, uint64_t dstSize,
                    const GfxstreamEnd2EndTest::TypicalVkTestEnvironment& testEnvironment);
+
+std::vector<uint8_t> getRandomNByteData(size_t len);
+
 }  // namespace utils
 }  // namespace tests
 }  // namespace gfxstream

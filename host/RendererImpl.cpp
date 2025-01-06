@@ -551,12 +551,12 @@ void RendererImpl::cleanupProcGLObjects(uint64_t puid) {
 static struct AndroidVirtioGpuOps sVirtioGpuOps = {
     .create_buffer_with_handle =
         [](uint64_t size, uint32_t handle) {
-            FrameBuffer::getFB()->createBufferWithHandle(size, handle);
+            FrameBuffer::getFB()->createBufferWithResourceHandle(size, handle);
         },
     .create_color_buffer_with_handle =
         [](uint32_t width, uint32_t height, uint32_t format, uint32_t fwkFormat, uint32_t handle,
            bool linear) {
-            FrameBuffer::getFB()->createColorBufferWithHandle(
+            FrameBuffer::getFB()->createColorBufferWithResourceHandle(
                 width, height, (GLenum)format, (FrameworkFormat)fwkFormat, handle, linear);
         },
     .open_color_buffer = [](uint32_t handle) { FrameBuffer::getFB()->openColorBuffer(handle); },
@@ -581,6 +581,12 @@ static struct AndroidVirtioGpuOps sVirtioGpuOps = {
            void* pixels) {
             FrameBuffer::getFB()->readColorBuffer(handle, x, y, width, height, format, type,
                                                   pixels);
+        },
+    .read_color_buffer2 =
+        [](uint32_t handle, int x, int y, int width, int height, uint32_t format, uint32_t type,
+           void* pixels, uint64_t pixels_size) {
+            FrameBuffer::getFB()->readColorBuffer(handle, x, y, width, height, format, type,
+                                                  pixels, pixels_size);
         },
     .read_color_buffer_yuv =
         [](uint32_t handle, int x, int y, int width, int height, void* pixels,
