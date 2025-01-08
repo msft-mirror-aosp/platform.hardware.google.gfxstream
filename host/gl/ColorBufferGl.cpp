@@ -351,7 +351,7 @@ std::unique_ptr<ColorBufferGl> ColorBufferGl::create(EGLDisplay p_display, int p
         ExternalObjectManager::get()->removeResourceExternalHandleInfo(hndl);
     if (extResourceHandleInfo) {
         switch (extResourceHandleInfo->streamHandleType) {
-            case STREAM_PLATFORM_HANDLE_TYPE_EGL_NATIVE_PIXMAP: {
+            case STREAM_HANDLE_TYPE_PLATFORM_EGL_NATIVE_PIXMAP: {
                 void* nativePixmap = reinterpret_cast<void*>(extResourceHandleInfo->handle);
                 cb->m_eglImage =
                     s_egl.eglCreateImageKHR(p_display, s_egl.eglGetCurrentContext(),
