@@ -1143,7 +1143,12 @@ void GLEScontext::convertDirectVBO(GLESConversionArrays& cArrs,GLint first,GLsiz
 }
 
 unsigned int GLEScontext::findMaxIndex(GLsizei count,GLenum type,const GLvoid* indices) {
-    //finding max index
+    // finding max index
+    if (!indices || !GLESvalidate::drawType(type)) {
+        ERR("%s called with invalid arguments (%d, %u, %p)", __func__, count, type, indices);
+        return 0;
+    }
+
     unsigned int max = 0;
     if(type == GL_UNSIGNED_BYTE) {
         GLubyte*  b_indices  =(GLubyte *)indices;
