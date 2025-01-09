@@ -51,6 +51,7 @@ class VkDecoderSnapshot::Impl {
     Impl() {}
 
     void save(android::base::Stream* stream) {
+        std::lock_guard<std::mutex> lock(mReconstructionMutex);
         mReconstruction.save(stream);
     }
 
