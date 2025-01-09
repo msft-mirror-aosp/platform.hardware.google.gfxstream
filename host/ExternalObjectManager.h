@@ -34,6 +34,7 @@
 // address space device, though there are possible other consumers of this, so
 // it becomes a global object. It exports methods into VmOperations.
 
+using android::base::DescriptorType;
 using android::base::ManagedDescriptor;
 
 namespace gfxstream {
@@ -45,21 +46,38 @@ namespace gfxstream {
 #define MAP_CACHE_UNCACHED 0x02
 #define MAP_CACHE_WC 0x03
 
-#define STREAM_MEM_HANDLE_TYPE_OPAQUE_FD 0x1
-#define STREAM_MEM_HANDLE_TYPE_DMABUF 0x2
-#define STREAM_MEM_HANDLE_TYPE_OPAQUE_WIN32 0x3
-#define STREAM_MEM_HANDLE_TYPE_SHM 0x4
-#define STREAM_MEM_HANDLE_TYPE_ZIRCON 0x5
-#define STREAM_FENCE_HANDLE_TYPE_OPAQUE_FD 0x6
-#define STREAM_FENCE_HANDLE_TYPE_SYNC_FD 0x7
-#define STREAM_FENCE_HANDLE_TYPE_OPAQUE_WIN32 0x8
-#define STREAM_FENCE_HANDLE_TYPE_ZIRCON 0x9
+#define STREAM_HANDLE_TYPE_MEM_OPAQUE_FD 0x1
+#define STREAM_HANDLE_TYPE_MEM_DMABUF 0x2
+#define STREAM_HANDLE_TYPE_MEM_OPAQUE_WIN32 0x3
+#define STREAM_HANDLE_TYPE_MEM_SHM 0x4
+#define STREAM_HANDLE_TYPE_MEM_ZIRCON 0x5
+
+#define STREAM_HANDLE_TYPE_SIGNAL_OPAQUE_FD 0x10
+#define STREAM_HANDLE_TYPE_SIGNAL_SYNC_FD 0x20
+#define STREAM_HANDLE_TYPE_SIGNAL_OPAQUE_WIN32 0x30
+#define STREAM_HANDLE_TYPE_SIGNAL_ZIRCON 0x40
+#define STREAM_HANDLE_TYPE_SIGNAL_EVENT_FD 0x50
+
+#define STREAM_HANDLE_TYPE_PLATFORM_SCREEN_BUFFER_QNX 0x01000000
+#define STREAM_HANDLE_TYPE_PLATFORM_EGL_NATIVE_PIXMAP 0x02000000
+
+typedef int64_t ExternalHandleType;
+
+struct ExternalHandleInfo {
+    ExternalHandleType handle;
+    uint32_t streamHandleType;
+};
 
 // A struct describing the information about host memory associated
 // with a host memory id. Used with virtio-gpu-next.
 struct HostMemInfo {
     void* addr;
     uint32_t caching;
+};
+
+struct GenericDescriptorInfo {
+    ManagedDescriptor descriptor;
+    uint32_t streamHandleType;
 };
 
 struct VulkanInfo {
@@ -69,16 +87,12 @@ struct VulkanInfo {
 };
 
 struct BlobDescriptorInfo {
-    ManagedDescriptor descriptor;
-    uint32_t handleType;
+    GenericDescriptorInfo descriptorInfo;
     uint32_t caching;
     std::optional<VulkanInfo> vulkanInfoOpt;
 };
 
-struct SyncDescriptorInfo {
-    ManagedDescriptor descriptor;
-    uint32_t handleType;
-};
+using SyncDescriptorInfo = GenericDescriptorInfo;
 
 class ExternalObjectManager {
    public:
@@ -90,13 +104,17 @@ class ExternalObjectManager {
     std::optional<HostMemInfo> removeMapping(uint32_t ctx_id, uint64_t blobId);
 
     void addBlobDescriptorInfo(uint32_t ctx_id, uint64_t blobId, ManagedDescriptor descriptor,
-                               uint32_t handleType, uint32_t caching,
+                               uint32_t streamHandleType, uint32_t caching,
                                std::optional<VulkanInfo> vulkanInfoOpt);
     std::optional<BlobDescriptorInfo> removeBlobDescriptorInfo(uint32_t ctx_id, uint64_t blobId);
 
     void addSyncDescriptorInfo(uint32_t ctx_id, uint64_t syncId, ManagedDescriptor descriptor,
-                               uint32_t handleType);
+                               uint32_t streamHandleType);
     std::optional<SyncDescriptorInfo> removeSyncDescriptorInfo(uint32_t ctx_id, uint64_t syncId);
+
+    void addResourceExternalHandleInfo(uint32_t resHandle,
+                                       const ExternalHandleInfo& externalHandleInfo);
+    std::optional<ExternalHandleInfo> removeResourceExternalHandleInfo(uint32_t resHandle);
 
    private:
     // Only for pairs of std::hash-able types for simplicity.
@@ -119,6 +137,7 @@ class ExternalObjectManager {
         mBlobDescriptorInfos;
     std::unordered_map<std::pair<uint32_t, uint64_t>, SyncDescriptorInfo, pair_hash>
         mSyncDescriptorInfos;
+    std::unordered_map<uint32_t, ExternalHandleInfo> mResourceExternalHandleInfos;
     DISALLOW_COPY_ASSIGN_AND_MOVE(ExternalObjectManager);
 };
 

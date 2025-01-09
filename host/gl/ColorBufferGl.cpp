@@ -324,10 +324,6 @@ std::unique_ptr<ColorBufferGl> ColorBufferGl::create(EGLDisplay p_display, int p
         cb->m_BRSwizzle = true;
     }
 
-    cb->m_eglImage = s_egl.eglCreateImageKHR(
-            p_display, s_egl.eglGetCurrentContext(), EGL_GL_TEXTURE_2D_KHR,
-            (EGLClientBuffer)SafePointerFromUInt(cb->m_tex), NULL);
-
     cb->m_blitEGLImage = s_egl.eglCreateImageKHR(
             p_display, s_egl.eglGetCurrentContext(), EGL_GL_TEXTURE_2D_KHR,
             (EGLClientBuffer)SafePointerFromUInt(cb->m_blitTex), NULL);
@@ -350,9 +346,50 @@ std::unique_ptr<ColorBufferGl> ColorBufferGl::create(EGLDisplay p_display, int p
         cb->m_asyncReadbackType = GL_UNSIGNED_INT_8_8_8_8_REV;
     }
 
+    // Check the ExternalObjectManager for an external memory handle provided for import
+    auto extResourceHandleInfo =
+        ExternalObjectManager::get()->removeResourceExternalHandleInfo(hndl);
+    if (extResourceHandleInfo) {
+        switch (extResourceHandleInfo->streamHandleType) {
+            case STREAM_HANDLE_TYPE_PLATFORM_EGL_NATIVE_PIXMAP: {
+                void* nativePixmap = reinterpret_cast<void*>(extResourceHandleInfo->handle);
+                cb->m_eglImage =
+                    s_egl.eglCreateImageKHR(p_display, s_egl.eglGetCurrentContext(),
+                                            EGL_NATIVE_PIXMAP_KHR, nativePixmap, nullptr);
+                if (cb->m_eglImage == EGL_NO_IMAGE_KHR) {
+                    ERR("ColorBufferGl::create(): EGL_NATIVE_PIXMAP handle provided as external "
+                        "resource info, but failed to import pixmap (nativePixmap=0x%x)",
+                        nativePixmap);
+                    return nullptr;
+                }
+
+                // Assume nativePixmap is compatible with ColorBufferGl's current dimensions and
+                // internal format.
+                EGLBoolean setInfoRes = s_egl.eglSetImageInfoANDROID(
+                    p_display, cb->m_eglImage, cb->m_width, cb->m_height, cb->m_internalFormat);
+                if (EGL_TRUE != setInfoRes) {
+                    ERR("ColorBufferGl::create(): Failed to set image info");
+                    return nullptr;
+                }
+
+                s_gles2.glBindTexture(GL_TEXTURE_2D, cb->m_tex);
+                s_gles2.glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, (GLeglImageOES)cb->m_eglImage);
+            } break;
+            default:
+                ERR("ColorBufferGl::create -- external memory info was provided, but ",
+                    p_internalFormat);
+                return nullptr;
+        }
+    } else {
+        cb->m_eglImage =
+            s_egl.eglCreateImageKHR(p_display, s_egl.eglGetCurrentContext(), EGL_GL_TEXTURE_2D_KHR,
+                                    (EGLClientBuffer)SafePointerFromUInt(cb->m_tex), NULL);
+    }
+
     s_gles2.glPixelStorei(GL_UNPACK_ALIGNMENT, prevUnpackAlignment);
 
     s_gles2.glFinish();
+
     return cb;
 }
 
@@ -1171,63 +1208,28 @@ bool ColorBufferGl::importEglNativePixmap(void* pixmap, bool preserveContent) {
         return false;
     }
 
-    rebindEglImage(image, preserveContent);
-    return true;
-}
-
-bool ColorBufferGl::importEglImage(void* nativeEglImage, bool preserveContent) {
-    EGLImageKHR image = s_egl.eglImportImageANDROID(m_display, (EGLImage)nativeEglImage);
-
-    if (image == EGL_NO_IMAGE_KHR) return false;
-
-    // Assume nativeEglImage is compatible with ColorBufferGl's current dimensions and internal
-    // format.
-    EGLBoolean setInfoRes = s_egl.eglSetImageInfoANDROID(m_display, image, m_width, m_height, m_internalFormat);
-
-    if (EGL_TRUE != setInfoRes) {
-        s_egl.eglDestroyImageKHR(m_display, image);
-        return false;
-    }
-
-    rebindEglImage(image, preserveContent);
-    return true;
-}
-
-std::vector<uint8_t> ColorBufferGl::getContents() {
-    // Assume there is a current context.
-    size_t bytes;
-    readContents(&bytes, nullptr);
-    std::vector<uint8_t> contents(bytes);
-    readContents(&bytes, contents.data());
-    return contents;
-}
-
-void ColorBufferGl::clearStorage() {
-    s_gles2.glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, (GLeglImageOES)NULL);
-    s_egl.eglDestroyImageKHR(m_display, m_eglImage);
-    m_eglImage = (EGLImageKHR)0;
-}
-
-void ColorBufferGl::restoreEglImage(EGLImageKHR image) {
-    s_gles2.glBindTexture(GL_TEXTURE_2D, m_tex);
-
-    m_eglImage = image;
-    s_gles2.glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, (GLeglImageOES)m_eglImage);
-}
-
-void ColorBufferGl::rebindEglImage(EGLImageKHR image, bool preserveContent) {
     RecursiveScopedContextBind context(m_helper);
 
     std::vector<uint8_t> contents;
     if (preserveContent) {
-        contents = getContents();
+        size_t bytes;
+        readContents(&bytes, nullptr);
+        contents.resize(bytes);
+        readContents(&bytes, contents.data());
     }
-    clearStorage();
-    restoreEglImage(image);
+
+    s_gles2.glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, (GLeglImageOES)NULL);
+    s_egl.eglDestroyImageKHR(m_display, m_eglImage);
+
+    m_eglImage = image;
+    s_gles2.glBindTexture(GL_TEXTURE_2D, m_tex);
+    s_gles2.glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, (GLeglImageOES)m_eglImage);
 
     if (preserveContent) {
         replaceContents(contents.data(), m_numBytes);
     }
+
+    return true;
 }
 
 std::unique_ptr<BorrowedImageInfo> ColorBufferGl::getBorrowedImageInfo() {

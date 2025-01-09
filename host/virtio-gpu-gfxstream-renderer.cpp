@@ -114,7 +114,6 @@ static char translate_severity(uint32_t type) {
 }
 
 using android::AndroidPipe;
-using android::base::ManagedDescriptor;
 using android::base::MetricsLogger;
 using gfxstream::host::VirtioGpuFrontend;
 
@@ -179,6 +178,15 @@ VG_EXPORT int stream_renderer_resource_create(struct stream_renderer_resource_cr
                           "stream_renderer_resource_create()");
 
     return sFrontend()->createResource(args, iov, num_iovs);
+}
+
+VG_EXPORT int stream_renderer_import_resource(
+    uint32_t res_handle, const struct stream_renderer_handle* import_handle,
+    const struct stream_renderer_import_data* import_data) {
+    GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY,
+                          "stream_renderer_import_resource()");
+
+    return sFrontend()->importResource(res_handle, import_handle, import_data);
 }
 
 VG_EXPORT void stream_renderer_resource_unref(uint32_t res_handle) {
@@ -352,14 +360,6 @@ VG_EXPORT int stream_renderer_export_fence(uint64_t fence_id,
                           "stream_renderer_export_fence()");
 
     return sFrontend()->exportFence(fence_id, handle);
-}
-
-VG_EXPORT int stream_renderer_platform_import_resource(int res_handle, int res_info,
-                                                       void* resource) {
-    GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY,
-                          "stream_renderer_platform_import_resource()");
-
-    return sFrontend()->platformImportResource(res_handle, res_info, resource);
 }
 
 VG_EXPORT void* stream_renderer_platform_create_shared_egl_context() {
@@ -584,9 +584,10 @@ static int stream_renderer_opengles_init(uint32_t display_width, uint32_t displa
     androidHw->hw_gltransport_drawFlushInterval = 10000;
 
     EmuglConfig config;
-
     // Make all the console agents available.
+#ifndef GFXSTREAM_MESON_BUILD
     android::emulation::injectGraphicsAgents(android::emulation::GfxStreamGraphicsAgentFactory());
+#endif
 
     emuglConfig_init(&config, true /* gpu enabled */, "auto",
                      enable_egl2egl ? "swiftshader_indirect" : "host", 64, /* bitness */

@@ -21,7 +21,6 @@
 #include <unordered_map>
 #include <vector>
 
-#include "ExternalObjectManager.h"
 #include "RenderThreadInfoVk.h"
 #include "VkAndroidNativeBuffer.h"
 #include "VkCommonOperations.h"
@@ -32,7 +31,6 @@
 #include "VkEmulatedPhysicalDeviceMemory.h"
 #include "VulkanDispatch.h"
 #include "VulkanStream.h"
-#include "aemu/base/ManagedDescriptor.hpp"
 #include "aemu/base/Optional.h"
 #include "aemu/base/containers/EntityManager.h"
 #include "aemu/base/containers/HybridEntityManager.h"
@@ -77,6 +75,12 @@
     }
 #endif
 
+// Verbose logging only when ANDROID_EMU_VK_LOG_CALLS is set
+#define LOG_CALLS_VERBOSE(fmt, ...)  \
+    if (mLogging) {                  \
+        VERBOSE(fmt, ##__VA_ARGS__); \
+    }
+
 #include <climits>
 
 namespace gfxstream {
@@ -86,7 +90,6 @@ using android::base::AutoLock;
 using android::base::ConditionVariable;
 using android::base::DescriptorType;
 using android::base::Lock;
-using android::base::ManagedDescriptor;
 using android::base::MetricEventBadPacketLength;
 using android::base::MetricEventDuplicateSequenceNum;
 using android::base::MetricEventVulkanOutOfMemory;
@@ -373,11 +376,14 @@ class VkDecoderGlobalState::Impl {
           m_emu(getGlobalVkEmulation()),
           mRenderDocWithMultipleVkInstances(m_emu->guestRenderDoc.get()) {
         mSnapshotsEnabled = m_emu->features.VulkanSnapshots.enabled;
-        mBatchedDescriptorSetUpdateEnabled = m_emu->features.VulkanBatchedDescriptorSetUpdate.enabled;
+        mBatchedDescriptorSetUpdateEnabled =
+            m_emu->features.VulkanBatchedDescriptorSetUpdate.enabled;
         mVkCleanupEnabled =
             android::base::getEnvironmentVariable("ANDROID_EMU_VK_NO_CLEANUP") != "1";
         mLogging = android::base::getEnvironmentVariable("ANDROID_EMU_VK_LOG_CALLS") == "1";
         mVerbosePrints = android::base::getEnvironmentVariable("ANDROID_EMUGL_VERBOSE") == "1";
+        mEnableVirtualVkQueue = m_emu->features.VulkanVirtualQueue.enabled;
+
         if (get_emugl_address_space_device_control_ops().control_get_hw_funcs &&
             get_emugl_address_space_device_control_ops().control_get_hw_funcs()) {
             mUseOldMemoryCleanupPath = 0 == get_emugl_address_space_device_control_ops()
@@ -923,9 +929,10 @@ class VkDecoderGlobalState::Impl {
             const auto& deviceInfo = android::base::find(mDeviceInfo, device);
             VulkanDispatch* dvk = dispatch_VkDevice(deviceInfo->boxed);
             on_vkQueueCommitDescriptorSetUpdatesGOOGLE(
-                &bumpPool, dvk, device, 1, &unboxedDescriptorPool, poolIds.size(), layouts.data(),
-                poolIds.data(), whichPool.data(), pendingAlloc.data(), writeStartingIndices.data(),
-                writeDescriptorSets.size(), writeDescriptorSets.data());
+                &bumpPool, nullptr, dvk, device, 1, &unboxedDescriptorPool, poolIds.size(),
+                layouts.data(), poolIds.data(), whichPool.data(), pendingAlloc.data(),
+                writeStartingIndices.data(), writeDescriptorSets.size(),
+                writeDescriptorSets.data());
         }
         // Fences
         uint64_t fenceCount = stream->getBe64();
@@ -999,7 +1006,8 @@ class VkDecoderGlobalState::Impl {
         return *deviceInfo.virtioGpuContextId;
     }
 
-    VkResult on_vkEnumerateInstanceVersion(android::base::BumpPool* pool, uint32_t* pApiVersion) {
+    VkResult on_vkEnumerateInstanceVersion(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                                           uint32_t* pApiVersion) {
         if (m_vk->vkEnumerateInstanceVersion) {
             VkResult res = m_vk->vkEnumerateInstanceVersion(pApiVersion);
 
@@ -1013,7 +1021,7 @@ class VkDecoderGlobalState::Impl {
         return VK_SUCCESS;
     }
 
-    VkResult on_vkCreateInstance(android::base::BumpPool* pool,
+    VkResult on_vkCreateInstance(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
                                  const VkInstanceCreateInfo* pCreateInfo,
                                  const VkAllocationCallbacks* pAllocator, VkInstance* pInstance) {
         std::vector<const char*> finalExts = filteredInstanceExtensionNames(
@@ -1129,7 +1137,7 @@ class VkDecoderGlobalState::Impl {
         if (vkCleanupEnabled()) {
             m_emu->callbacks.registerProcessCleanupCallback(unbox_VkInstance(boxed), [this, boxed] {
                 if (snapshotsEnabled()) {
-                    snapshot()->vkDestroyInstance(nullptr, 0, nullptr, boxed, nullptr);
+                    snapshot()->vkDestroyInstance(nullptr, nullptr, nullptr, 0, boxed, nullptr);
                 }
                 vkDestroyInstanceImpl(unbox_VkInstance(boxed), nullptr);
             });
@@ -1172,16 +1180,17 @@ class VkDecoderGlobalState::Impl {
         destroyInstanceObjects(instanceObjects);
     }
 
-    void on_vkDestroyInstance(android::base::BumpPool* pool, VkInstance boxed_instance,
-                              const VkAllocationCallbacks* pAllocator) {
+    void on_vkDestroyInstance(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                              VkInstance boxed_instance, const VkAllocationCallbacks* pAllocator) {
         auto instance = try_unbox_VkInstance(boxed_instance);
         if (instance == VK_NULL_HANDLE) {
             return;
         }
+        // The instance should not be used after vkDestroyInstanceImpl is called,
+        // remove it from the cleanup callback mapping.
+        m_emu->callbacks.unregisterProcessCleanupCallback(instance);
 
         vkDestroyInstanceImpl(instance, pAllocator);
-
-        m_emu->callbacks.unregisterProcessCleanupCallback(instance);
     }
 
     VkResult GetPhysicalDevices(VkInstance instance, VulkanDispatch* vk,
@@ -1252,7 +1261,8 @@ class VkDecoderGlobalState::Impl {
         }
     }
 
-    VkResult on_vkEnumeratePhysicalDevices(android::base::BumpPool* pool, VkInstance boxed_instance,
+    VkResult on_vkEnumeratePhysicalDevices(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                                           VkInstance boxed_instance,
                                            uint32_t* pPhysicalDeviceCount,
                                            VkPhysicalDevice* pPhysicalDevices) {
         auto instance = unbox_VkInstance(boxed_instance);
@@ -1312,6 +1322,18 @@ class VkDecoderGlobalState::Impl {
                     physicalDevices[i], &queueFamilyPropCount,
                     physdevInfo.queueFamilyProperties.data());
 
+                // Override queueCount for the virtual queue to be provided with device creations
+                if (mEnableVirtualVkQueue) {
+                    for (VkQueueFamilyProperties& qfp : physdevInfo.queueFamilyProperties) {
+                        // Check if the queue requires a virtualized version. For Android, we need
+                        // 2 graphics queues on the same queue family.
+                        if ( (qfp.queueFlags & VK_QUEUE_GRAPHICS_BIT) && qfp.queueCount == 1 ) {
+                            qfp.queueCount = 2;
+                            physdevInfo.hasVirtualGraphicsQueues = true;
+                        }
+                    }
+                }
+
                 pPhysicalDevices[i] = (VkPhysicalDevice)physdevInfo.boxed;
             }
             if (requestedCount < availableCount) {
@@ -1322,7 +1344,7 @@ class VkDecoderGlobalState::Impl {
         return res;
     }
 
-    void on_vkGetPhysicalDeviceFeatures(android::base::BumpPool* pool,
+    void on_vkGetPhysicalDeviceFeatures(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
                                         VkPhysicalDevice boxed_physicalDevice,
                                         VkPhysicalDeviceFeatures* pFeatures) {
         auto physicalDevice = unbox_VkPhysicalDevice(boxed_physicalDevice);
@@ -1333,7 +1355,7 @@ class VkDecoderGlobalState::Impl {
         pFeatures->textureCompressionASTC_LDR |= enableEmulatedAstc(physicalDevice, vk);
     }
 
-    void on_vkGetPhysicalDeviceFeatures2(android::base::BumpPool* pool,
+    void on_vkGetPhysicalDeviceFeatures2(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
                                          VkPhysicalDevice boxed_physicalDevice,
                                          VkPhysicalDeviceFeatures2* pFeatures) {
         auto physicalDevice = unbox_VkPhysicalDevice(boxed_physicalDevice);
@@ -1419,8 +1441,9 @@ class VkDecoderGlobalState::Impl {
     }
 
     VkResult on_vkGetPhysicalDeviceImageFormatProperties(
-        android::base::BumpPool* pool, VkPhysicalDevice boxed_physicalDevice, VkFormat format,
-        VkImageType type, VkImageTiling tiling, VkImageUsageFlags usage, VkImageCreateFlags flags,
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+        VkPhysicalDevice boxed_physicalDevice, VkFormat format, VkImageType type,
+        VkImageTiling tiling, VkImageUsageFlags usage, VkImageCreateFlags flags,
         VkImageFormatProperties* pImageFormatProperties) {
         auto physicalDevice = unbox_VkPhysicalDevice(boxed_physicalDevice);
         auto vk = dispatch_VkPhysicalDevice(boxed_physicalDevice);
@@ -1448,7 +1471,8 @@ class VkDecoderGlobalState::Impl {
     }
 
     VkResult on_vkGetPhysicalDeviceImageFormatProperties2(
-        android::base::BumpPool* pool, VkPhysicalDevice boxed_physicalDevice,
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+        VkPhysicalDevice boxed_physicalDevice,
         const VkPhysicalDeviceImageFormatInfo2* pImageFormatInfo,
         VkImageFormatProperties2* pImageFormatProperties) {
         auto physicalDevice = unbox_VkPhysicalDevice(boxed_physicalDevice);
@@ -1536,6 +1560,7 @@ class VkDecoderGlobalState::Impl {
     }
 
     void on_vkGetPhysicalDeviceFormatProperties(android::base::BumpPool* pool,
+                                                VkSnapshotApiCallInfo*,
                                                 VkPhysicalDevice boxed_physicalDevice,
                                                 VkFormat format,
                                                 VkFormatProperties* pFormatProperties) {
@@ -1550,6 +1575,7 @@ class VkDecoderGlobalState::Impl {
     }
 
     void on_vkGetPhysicalDeviceFormatProperties2(android::base::BumpPool* pool,
+                                                 VkSnapshotApiCallInfo*,
                                                  VkPhysicalDevice boxed_physicalDevice,
                                                  VkFormat format,
                                                  VkFormatProperties2* pFormatProperties) {
@@ -1603,7 +1629,7 @@ class VkDecoderGlobalState::Impl {
         }
     }
 
-    void on_vkGetPhysicalDeviceProperties(android::base::BumpPool* pool,
+    void on_vkGetPhysicalDeviceProperties(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
                                           VkPhysicalDevice boxed_physicalDevice,
                                           VkPhysicalDeviceProperties* pProperties) {
         auto physicalDevice = unbox_VkPhysicalDevice(boxed_physicalDevice);
@@ -1616,7 +1642,7 @@ class VkDecoderGlobalState::Impl {
         }
     }
 
-    void on_vkGetPhysicalDeviceProperties2(android::base::BumpPool* pool,
+    void on_vkGetPhysicalDeviceProperties2(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
                                            VkPhysicalDevice boxed_physicalDevice,
                                            VkPhysicalDeviceProperties2* pProperties) {
         auto physicalDevice = unbox_VkPhysicalDevice(boxed_physicalDevice);
@@ -1659,29 +1685,76 @@ class VkDecoderGlobalState::Impl {
     }
 
     void on_vkGetPhysicalDeviceQueueFamilyProperties(
-        android::base::BumpPool* pool, VkPhysicalDevice boxed_physicalDevice,
-        uint32_t* pQueueFamilyPropertyCount, VkQueueFamilyProperties* pQueueFamilyProperties) {
-
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+        VkPhysicalDevice boxed_physicalDevice, uint32_t* pQueueFamilyPropertyCount,
+        VkQueueFamilyProperties* pQueueFamilyProperties) {
         auto physicalDevice = unbox_VkPhysicalDevice(boxed_physicalDevice);
         auto vk = dispatch_VkPhysicalDevice(boxed_physicalDevice);
 
-        return vk->vkGetPhysicalDeviceQueueFamilyProperties(
-            physicalDevice, pQueueFamilyPropertyCount, pQueueFamilyProperties);
+        const bool requiresPropertyOverrides = mEnableVirtualVkQueue && pQueueFamilyProperties;
+        if (!requiresPropertyOverrides) {
+            // Can just use results from the driver
+            return vk->vkGetPhysicalDeviceQueueFamilyProperties(
+                physicalDevice, pQueueFamilyPropertyCount, pQueueFamilyProperties);
+        }
+
+        // Use cached queue family properties to accommodate for any property overrides/emulation
+        std::lock_guard<std::recursive_mutex> lock(mLock);
+        const PhysicalDeviceInfo* physicalDeviceInfo =
+            android::base::find(mPhysdevInfo, physicalDevice);
+        if (!physicalDeviceInfo) {
+            ERR("Failed to find physical device info.");
+            return;
+        }
+
+        const auto& properties = physicalDeviceInfo->queueFamilyProperties;
+        *pQueueFamilyPropertyCount =
+            std::min((uint32_t)properties.size(), *pQueueFamilyPropertyCount);
+        for (uint32_t i = 0; i < *pQueueFamilyPropertyCount; i++) {
+            pQueueFamilyProperties[i] = properties[i];
+        }
     }
 
     void on_vkGetPhysicalDeviceQueueFamilyProperties2(
-        android::base::BumpPool* pool, VkPhysicalDevice boxed_physicalDevice,
-        uint32_t* pQueueFamilyPropertyCount, VkQueueFamilyProperties2* pQueueFamilyProperties) {
-
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+        VkPhysicalDevice boxed_physicalDevice, uint32_t* pQueueFamilyPropertyCount,
+        VkQueueFamilyProperties2* pQueueFamilyProperties) {
         auto physicalDevice = unbox_VkPhysicalDevice(boxed_physicalDevice);
         auto vk = dispatch_VkPhysicalDevice(boxed_physicalDevice);
 
-        return vk->vkGetPhysicalDeviceQueueFamilyProperties2(
-            physicalDevice, pQueueFamilyPropertyCount, pQueueFamilyProperties);
+        const bool requiresPropertyOverrides = mEnableVirtualVkQueue && pQueueFamilyProperties;
+        if (!requiresPropertyOverrides) {
+            // Can just use results from the driver
+            return vk->vkGetPhysicalDeviceQueueFamilyProperties2(
+                physicalDevice, pQueueFamilyPropertyCount, pQueueFamilyProperties);
+        }
+
+        if (pQueueFamilyProperties->pNext) {
+            // We still need to call the driver version to fill in any pNext values
+            vk->vkGetPhysicalDeviceQueueFamilyProperties2(physicalDevice, pQueueFamilyPropertyCount,
+                                                          pQueueFamilyProperties);
+        }
+
+        // Use cached queue family properties to accommodate for any property overrides/emulation
+        std::lock_guard<std::recursive_mutex> lock(mLock);
+        const PhysicalDeviceInfo* physicalDeviceInfo =
+            android::base::find(mPhysdevInfo, physicalDevice);
+        if (!physicalDeviceInfo) {
+            ERR("Failed to find physical device info.");
+            return;
+        }
+
+        const auto& properties = physicalDeviceInfo->queueFamilyProperties;
+        *pQueueFamilyPropertyCount =
+            std::min((uint32_t)properties.size(), *pQueueFamilyPropertyCount);
+        for (uint32_t i = 0; i < *pQueueFamilyPropertyCount; i++) {
+            pQueueFamilyProperties[i].queueFamilyProperties = properties[i];
+        }
     }
 
     void on_vkGetPhysicalDeviceMemoryProperties(
-        android::base::BumpPool* pool, VkPhysicalDevice boxed_physicalDevice,
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+        VkPhysicalDevice boxed_physicalDevice,
         VkPhysicalDeviceMemoryProperties* pMemoryProperties) {
         auto physicalDevice = unbox_VkPhysicalDevice(boxed_physicalDevice);
         auto vk = dispatch_VkPhysicalDevice(boxed_physicalDevice);
@@ -1699,7 +1772,8 @@ class VkDecoderGlobalState::Impl {
     }
 
     void on_vkGetPhysicalDeviceMemoryProperties2(
-        android::base::BumpPool* pool, VkPhysicalDevice boxed_physicalDevice,
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+        VkPhysicalDevice boxed_physicalDevice,
         VkPhysicalDeviceMemoryProperties2* pMemoryProperties) {
         auto physicalDevice = unbox_VkPhysicalDevice(boxed_physicalDevice);
         auto vk = dispatch_VkPhysicalDevice(boxed_physicalDevice);
@@ -1738,6 +1812,7 @@ class VkDecoderGlobalState::Impl {
     }
 
     VkResult on_vkEnumerateDeviceExtensionProperties(android::base::BumpPool* pool,
+                                                     VkSnapshotApiCallInfo*,
                                                      VkPhysicalDevice boxed_physicalDevice,
                                                      const char* pLayerName,
                                                      uint32_t* pPropertyCount,
@@ -1793,7 +1868,8 @@ class VkDecoderGlobalState::Impl {
         return *pPropertyCount < properties.size() ? VK_INCOMPLETE : VK_SUCCESS;
     }
 
-    VkResult on_vkCreateDevice(android::base::BumpPool* pool, VkPhysicalDevice boxed_physicalDevice,
+    VkResult on_vkCreateDevice(android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo,
+                               VkPhysicalDevice boxed_physicalDevice,
                                const VkDeviceCreateInfo* pCreateInfo,
                                const VkAllocationCallbacks* pAllocator, VkDevice* pDevice) {
         auto physicalDevice = unbox_VkPhysicalDevice(boxed_physicalDevice);
@@ -1850,6 +1926,15 @@ class VkDecoderGlobalState::Impl {
         if (VkPhysicalDeviceFeatures2* features2 =
                 vk_find_struct<VkPhysicalDeviceFeatures2>(&createInfoFiltered)) {
             featuresToFilter.emplace_back(&features2->features);
+        }
+
+        VkPhysicalDeviceDiagnosticsConfigFeaturesNV deviceDiagnosticsConfigFeatures = {
+            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DIAGNOSTICS_CONFIG_FEATURES_NV,
+            .diagnosticsConfig = VK_TRUE,
+        };
+        if (m_emu->commandBufferCheckpointsSupportedAndRequested) {
+            deviceDiagnosticsConfigFeatures.pNext = const_cast<void*>(createInfoFiltered.pNext);
+            createInfoFiltered.pNext = &deviceDiagnosticsConfigFeatures;
         }
 
         for (VkPhysicalDeviceFeatures* feature : featuresToFilter) {
@@ -2054,12 +2139,11 @@ class VkDecoderGlobalState::Impl {
             queueFamilyIndexCounts[queueFamilyIndex] = queueCount;
         }
 
-        VulkanDispatch* dispatchDevice = dispatch_VkDevice(deviceInfo.boxed);
-
         std::vector<uint64_t> extraHandles;
         for (auto it : queueFamilyIndexCounts) {
             auto index = it.first;
             auto count = it.second;
+            auto addVirtualQueue = (count == 2) && physicalDeviceInfo.hasVirtualGraphicsQueues;
             auto& queues = deviceInfo.queues[index];
             for (uint32_t i = 0; i < count; ++i) {
                 VkQueue physicalQueue;
@@ -2068,25 +2152,60 @@ class VkDecoderGlobalState::Impl {
                     INFO("%s: get device queue (begin)", __func__);
                 }
 
+                assert(i == 0 || !physicalDeviceInfo.hasVirtualGraphicsQueues);
                 vk->vkGetDeviceQueue(*pDevice, index, i, &physicalQueue);
 
                 if (mLogging) {
                     INFO("%s: get device queue (end)", __func__);
                 }
-                queues.push_back(physicalQueue);
-                VALIDATE_NEW_HANDLE_INFO_ENTRY(mQueueInfo, physicalQueue);
-                mQueueInfo[physicalQueue].device = *pDevice;
-                mQueueInfo[physicalQueue].queueFamilyIndex = index;
-
-                auto boxedQueue = new_boxed_VkQueue(physicalQueue, dispatch_VkDevice(deviceInfo.boxed),
-                                               false /* does not own dispatch */);
+                auto boxedQueue =
+                    new_boxed_VkQueue(physicalQueue, dispatch, false /* does not own dispatch */);
                 extraHandles.push_back((uint64_t)boxedQueue);
-                mQueueInfo[physicalQueue].boxed = boxedQueue;
-                mQueueInfo[physicalQueue].lock = new Lock;
+
+                VALIDATE_NEW_HANDLE_INFO_ENTRY(mQueueInfo, physicalQueue);
+                QueueInfo& physicalQueueInfo = mQueueInfo[physicalQueue];
+                physicalQueueInfo.device = *pDevice;
+                physicalQueueInfo.queueFamilyIndex = index;
+                physicalQueueInfo.boxed = boxedQueue;
+                physicalQueueInfo.queueMutex = std::make_shared<std::mutex>();
+                queues.push_back(physicalQueue);
+
+                if (addVirtualQueue) {
+                    VERBOSE("Creating virtual device queue for physical VkQueue %p", physicalQueue);
+                    const uint64_t physicalQueue64 = reinterpret_cast<uint64_t>(physicalQueue);
+
+                    if ((physicalQueue64 & QueueInfo::kVirtualQueueBit) != 0) {
+                        // Cannot use queue virtualization on this GPU, where the pysical handle
+                        // values generated are not 2-byte aligned. This is very unusual, but the
+                        // spec is not enforcing handle values to be aligned and the driver is free
+                        // to use a similar logic to use the last bit for other purposes.
+                        // In this case, we disable the virtual queue support and unboxing will not
+                        // remove the last bit coming from the actual driver.
+                        ERR("Cannot create virtual queue for handle %p", physicalQueue);
+                        mEnableVirtualVkQueue = false;
+                    } else {
+                        uint64_t virtualQueue64 = (physicalQueue64 | QueueInfo::kVirtualQueueBit);
+                        VkQueue virtualQueue = reinterpret_cast<VkQueue>(virtualQueue64);
+
+                        auto boxedVirtualQueue = new_boxed_VkQueue(
+                            virtualQueue, dispatch, false /* does not own dispatch */);
+                        extraHandles.push_back((uint64_t)boxedVirtualQueue);
+
+                        VALIDATE_NEW_HANDLE_INFO_ENTRY(mQueueInfo, virtualQueue);
+                        QueueInfo& virtualQueueInfo = mQueueInfo[virtualQueue];
+                        virtualQueueInfo.device = physicalQueueInfo.device;
+                        virtualQueueInfo.queueFamilyIndex = physicalQueueInfo.queueFamilyIndex;
+                        virtualQueueInfo.boxed = boxedVirtualQueue;
+                        virtualQueueInfo.queueMutex = physicalQueueInfo.queueMutex;  // Shares the same lock!
+                        queues.push_back(virtualQueue);
+                    }
+                    i++;
+                }
             }
         }
-        if (snapshotsEnabled()) {
-            snapshot()->createExtraHandlesForNextApi(extraHandles.data(), extraHandles.size());
+        if (snapshotsEnabled() && snapshotInfo) {
+            snapshotInfo->addOrderedBoxedHandlesCreatedByCall(extraHandles.data(),
+                                                              extraHandles.size());
         }
 
         // Box the device.
@@ -2099,8 +2218,9 @@ class VkDecoderGlobalState::Impl {
         return VK_SUCCESS;
     }
 
-    void on_vkGetDeviceQueue(android::base::BumpPool* pool, VkDevice boxed_device,
-                             uint32_t queueFamilyIndex, uint32_t queueIndex, VkQueue* pQueue) {
+    void on_vkGetDeviceQueue(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                             VkDevice boxed_device, uint32_t queueFamilyIndex, uint32_t queueIndex,
+                             VkQueue* pQueue) {
         auto device = unbox_VkDevice(boxed_device);
 
         std::lock_guard<std::recursive_mutex> lock(mLock);
@@ -2124,11 +2244,12 @@ class VkDecoderGlobalState::Impl {
             return;
         }
 
-        *pQueue = (VkQueue)queueInfo->boxed;
+        *pQueue = queueInfo->boxed;
     }
 
-    void on_vkGetDeviceQueue2(android::base::BumpPool* pool, VkDevice boxed_device,
-                              const VkDeviceQueueInfo2* pQueueInfo, VkQueue* pQueue) {
+    void on_vkGetDeviceQueue2(android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo,
+                              VkDevice boxed_device, const VkDeviceQueueInfo2* pQueueInfo,
+                              VkQueue* pQueue) {
         // Protected memory is not supported on emulators. So we should
         // not return any queue if a client requests a protected device
         // queue. See b/328436383.
@@ -2139,7 +2260,7 @@ class VkDecoderGlobalState::Impl {
         }
         uint32_t queueFamilyIndex = pQueueInfo->queueFamilyIndex;
         uint32_t queueIndex = pQueueInfo->queueIndex;
-        on_vkGetDeviceQueue(pool, boxed_device, queueFamilyIndex, queueIndex, pQueue);
+        on_vkGetDeviceQueue(pool, snapshotInfo, boxed_device, queueFamilyIndex, queueIndex, pQueue);
     }
 
     void destroyDeviceWithExclusiveInfo(VkDevice device, DeviceInfo& deviceInfo,
@@ -2151,7 +2272,7 @@ class VkDecoderGlobalState::Impl {
         auto eraseIt = queueInfos.begin();
         for (; eraseIt != queueInfos.end();) {
             if (eraseIt->second.device == device) {
-                delete eraseIt->second.lock;
+                eraseIt->second.queueMutex.reset();
                 delete_VkQueue(eraseIt->second.boxed);
                 eraseIt = queueInfos.erase(eraseIt);
             } else {
@@ -2192,16 +2313,18 @@ class VkDecoderGlobalState::Impl {
     void destroyDeviceLocked(VkDevice device, const VkAllocationCallbacks* pAllocator) {
         auto deviceInfoIt = mDeviceInfo.find(device);
         if (deviceInfoIt == mDeviceInfo.end()) return;
-        auto& deviceInfo = deviceInfoIt->second;
 
-        destroyDeviceWithExclusiveInfo(device, deviceInfo, mFenceInfo, mQueueInfo, pAllocator);
+        InstanceObjects::DeviceObjects deviceObjects;
+        deviceObjects.device = mDeviceInfo.extract(deviceInfoIt);
+        extractDeviceAndDependenciesLocked(device, deviceObjects);
+        destroyDeviceObjects(deviceObjects);
 
         mDeviceInfo.erase(device);
         mDeviceToPhysicalDevice.erase(device);
     }
 
-    void on_vkDestroyDevice(android::base::BumpPool* pool, VkDevice boxed_device,
-                            const VkAllocationCallbacks* pAllocator) {
+    void on_vkDestroyDevice(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                            VkDevice boxed_device, const VkAllocationCallbacks* pAllocator) {
         auto device = unbox_VkDevice(boxed_device);
 
         std::lock_guard<std::recursive_mutex> lock(mLock);
@@ -2211,8 +2334,8 @@ class VkDecoderGlobalState::Impl {
         destroyDeviceLocked(device, pAllocator);
     }
 
-    VkResult on_vkCreateBuffer(android::base::BumpPool* pool, VkDevice boxed_device,
-                               const VkBufferCreateInfo* pCreateInfo,
+    VkResult on_vkCreateBuffer(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                               VkDevice boxed_device, const VkBufferCreateInfo* pCreateInfo,
                                const VkAllocationCallbacks* pAllocator, VkBuffer* pBuffer) {
         auto device = unbox_VkDevice(boxed_device);
         auto vk = dispatch_VkDevice(boxed_device);
@@ -2282,7 +2405,8 @@ class VkDecoderGlobalState::Impl {
         mBufferInfo.erase(buffer);
     }
 
-    void on_vkDestroyBuffer(android::base::BumpPool* pool, VkDevice boxed_device, VkBuffer buffer,
+    void on_vkDestroyBuffer(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                            VkDevice boxed_device, VkBuffer buffer,
                             const VkAllocationCallbacks* pAllocator) {
         auto device = unbox_VkDevice(boxed_device);
         auto deviceDispatch = dispatch_VkDevice(boxed_device);
@@ -2308,8 +2432,8 @@ class VkDecoderGlobalState::Impl {
         }
     }
 
-    VkResult on_vkBindBufferMemory(android::base::BumpPool* pool, VkDevice boxed_device,
-                                   VkBuffer buffer, VkDeviceMemory memory,
+    VkResult on_vkBindBufferMemory(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                                   VkDevice boxed_device, VkBuffer buffer, VkDeviceMemory memory,
                                    VkDeviceSize memoryOffset) {
         auto device = unbox_VkDevice(boxed_device);
         auto vk = dispatch_VkDevice(boxed_device);
@@ -2324,8 +2448,8 @@ class VkDecoderGlobalState::Impl {
         return result;
     }
 
-    VkResult on_vkBindBufferMemory2(android::base::BumpPool* pool, VkDevice boxed_device,
-                                    uint32_t bindInfoCount,
+    VkResult on_vkBindBufferMemory2(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                                    VkDevice boxed_device, uint32_t bindInfoCount,
                                     const VkBindBufferMemoryInfo* pBindInfos) {
         auto device = unbox_VkDevice(boxed_device);
         auto vk = dispatch_VkDevice(boxed_device);
@@ -2346,8 +2470,8 @@ class VkDecoderGlobalState::Impl {
         return result;
     }
 
-    VkResult on_vkBindBufferMemory2KHR(android::base::BumpPool* pool, VkDevice boxed_device,
-                                       uint32_t bindInfoCount,
+    VkResult on_vkBindBufferMemory2KHR(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                                       VkDevice boxed_device, uint32_t bindInfoCount,
                                        const VkBindBufferMemoryInfo* pBindInfos) {
         auto device = unbox_VkDevice(boxed_device);
         auto vk = dispatch_VkDevice(boxed_device);
@@ -2368,8 +2492,8 @@ class VkDecoderGlobalState::Impl {
         return result;
     }
 
-    VkResult on_vkCreateImage(android::base::BumpPool* pool, VkDevice boxed_device,
-                              const VkImageCreateInfo* pCreateInfo,
+    VkResult on_vkCreateImage(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                              VkDevice boxed_device, const VkImageCreateInfo* pCreateInfo,
                               const VkAllocationCallbacks* pAllocator, VkImage* pImage,
                               bool boxImage = true) {
         auto device = unbox_VkDevice(boxed_device);
@@ -2494,7 +2618,8 @@ class VkDecoderGlobalState::Impl {
         mImageInfo.erase(image);
     }
 
-    void on_vkDestroyImage(android::base::BumpPool* pool, VkDevice boxed_device, VkImage image,
+    void on_vkDestroyImage(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                           VkDevice boxed_device, VkImage image,
                            const VkAllocationCallbacks* pAllocator) {
         auto device = unbox_VkDevice(boxed_device);
         auto deviceDispatch = dispatch_VkDevice(boxed_device);
@@ -2504,6 +2629,7 @@ class VkDecoderGlobalState::Impl {
     }
 
     VkResult performBindImageMemoryDeferredAhb(android::base::BumpPool* pool,
+                                               VkSnapshotApiCallInfo* snapshotInfo,
                                                VkDevice boxed_device,
                                                const VkBindImageMemoryInfo* bimi) {
         auto device = unbox_VkDevice(boxed_device);
@@ -2532,14 +2658,14 @@ class VkDecoderGlobalState::Impl {
         }
 
         VkImage underlying_replacement_image = VK_NULL_HANDLE;
-        VkResult result = on_vkCreateImage(pool, boxed_device, &ici, nullptr,
+        VkResult result = on_vkCreateImage(pool, snapshotInfo, boxed_device, &ici, nullptr,
                                            &underlying_replacement_image, false);
         if (result != VK_SUCCESS) {
             ERR("Failed to create image for deferred AHB bind.");
             return VK_ERROR_OUT_OF_HOST_MEMORY;
         }
 
-        on_vkDestroyImage(pool, boxed_device, original_underlying_image, nullptr);
+        on_vkDestroyImage(pool, snapshotInfo, boxed_device, original_underlying_image, nullptr);
 
         {
             std::lock_guard<std::recursive_mutex> lock(mLock);
@@ -2552,7 +2678,8 @@ class VkDecoderGlobalState::Impl {
         return VK_SUCCESS;
     }
 
-    VkResult performBindImageMemory(android::base::BumpPool* pool, VkDevice boxed_device,
+    VkResult performBindImageMemory(android::base::BumpPool* pool,
+                                    VkSnapshotApiCallInfo* snapshotInfo, VkDevice boxed_device,
                                     const VkBindImageMemoryInfo* bimi) {
         auto image = bimi->image;
         auto memory = bimi->memory;
@@ -2560,7 +2687,7 @@ class VkDecoderGlobalState::Impl {
 
         const auto* anb = vk_find_struct<VkNativeBufferANDROID>(bimi);
         if (memory == VK_NULL_HANDLE && anb != nullptr) {
-            return performBindImageMemoryDeferredAhb(pool, boxed_device, bimi);
+            return performBindImageMemoryDeferredAhb(pool, snapshotInfo, boxed_device, bimi);
         }
 
         auto device = unbox_VkDevice(boxed_device);
@@ -2600,7 +2727,8 @@ class VkDecoderGlobalState::Impl {
         return cmpInfo.bindCompressedMipmapsMemory(vk, memory, memoryOffset);
     }
 
-    VkResult on_vkBindImageMemory(android::base::BumpPool* pool, VkDevice boxed_device,
+    VkResult on_vkBindImageMemory(android::base::BumpPool* pool,
+                                  VkSnapshotApiCallInfo* snapshotInfo, VkDevice boxed_device,
                                   VkImage image, VkDeviceMemory memory, VkDeviceSize memoryOffset) {
         const VkBindImageMemoryInfo bimi = {
             .sType = VK_STRUCTURE_TYPE_BIND_IMAGE_MEMORY_INFO,
@@ -2609,10 +2737,11 @@ class VkDecoderGlobalState::Impl {
             .memory = memory,
             .memoryOffset = memoryOffset,
         };
-        return performBindImageMemory(pool, boxed_device, &bimi);
+        return performBindImageMemory(pool, snapshotInfo, boxed_device, &bimi);
     }
 
-    VkResult on_vkBindImageMemory2(android::base::BumpPool* pool, VkDevice boxed_device,
+    VkResult on_vkBindImageMemory2(android::base::BumpPool* pool,
+                                   VkSnapshotApiCallInfo* snapshotInfo, VkDevice boxed_device,
                                    uint32_t bindInfoCount,
                                    const VkBindImageMemoryInfo* pBindInfos) {
 #ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_SUPPORT
@@ -2652,7 +2781,7 @@ class VkDecoderGlobalState::Impl {
         if (needEmulation) {
             VkResult result;
             for (uint32_t i = 0; i < bindInfoCount; i++) {
-                result = performBindImageMemory(pool, boxed_device, &pBindInfos[i]);
+                result = performBindImageMemory(pool, snapshotInfo, boxed_device, &pBindInfos[i]);
                 if (result != VK_SUCCESS) return result;
             }
 
@@ -2680,8 +2809,8 @@ class VkDecoderGlobalState::Impl {
         return result;
     }
 
-    VkResult on_vkCreateImageView(android::base::BumpPool* pool, VkDevice boxed_device,
-                                  const VkImageViewCreateInfo* pCreateInfo,
+    VkResult on_vkCreateImageView(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                                  VkDevice boxed_device, const VkImageViewCreateInfo* pCreateInfo,
                                   const VkAllocationCallbacks* pAllocator, VkImageView* pView) {
         auto device = unbox_VkDevice(boxed_device);
         auto vk = dispatch_VkDevice(boxed_device);
@@ -2756,8 +2885,9 @@ class VkDecoderGlobalState::Impl {
         mImageViewInfo.erase(imageView);
     }
 
-    void on_vkDestroyImageView(android::base::BumpPool* pool, VkDevice boxed_device,
-                               VkImageView imageView, const VkAllocationCallbacks* pAllocator) {
+    void on_vkDestroyImageView(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                               VkDevice boxed_device, VkImageView imageView,
+                               const VkAllocationCallbacks* pAllocator) {
         auto device = unbox_VkDevice(boxed_device);
         auto deviceDispatch = dispatch_VkDevice(boxed_device);
 
@@ -2765,8 +2895,8 @@ class VkDecoderGlobalState::Impl {
         destroyImageViewLocked(device, deviceDispatch, imageView, pAllocator);
     }
 
-    VkResult on_vkCreateSampler(android::base::BumpPool* pool, VkDevice boxed_device,
-                                const VkSamplerCreateInfo* pCreateInfo,
+    VkResult on_vkCreateSampler(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                                VkDevice boxed_device, const VkSamplerCreateInfo* pCreateInfo,
                                 const VkAllocationCallbacks* pAllocator, VkSampler* pSampler) {
         auto device = unbox_VkDevice(boxed_device);
         auto vk = dispatch_VkDevice(boxed_device);
@@ -2817,8 +2947,9 @@ class VkDecoderGlobalState::Impl {
         mSamplerInfo.erase(samplerInfoIt);
     }
 
-    void on_vkDestroySampler(android::base::BumpPool* pool, VkDevice boxed_device,
-                             VkSampler sampler, const VkAllocationCallbacks* pAllocator) {
+    void on_vkDestroySampler(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                             VkDevice boxed_device, VkSampler sampler,
+                             const VkAllocationCallbacks* pAllocator) {
         auto device = unbox_VkDevice(boxed_device);
         auto deviceDispatch = dispatch_VkDevice(boxed_device);
 
@@ -2865,8 +2996,8 @@ class VkDecoderGlobalState::Impl {
 #endif
     }
 
-    VkResult on_vkCreateSemaphore(android::base::BumpPool* pool, VkDevice boxed_device,
-                                  const VkSemaphoreCreateInfo* pCreateInfo,
+    VkResult on_vkCreateSemaphore(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                                  VkDevice boxed_device, const VkSemaphoreCreateInfo* pCreateInfo,
                                   const VkAllocationCallbacks* pAllocator,
                                   VkSemaphore* pSemaphore) {
         auto device = unbox_VkDevice(boxed_device);
@@ -2947,8 +3078,8 @@ class VkDecoderGlobalState::Impl {
         return res;
     }
 
-    VkResult on_vkCreateFence(android::base::BumpPool* pool, VkDevice boxed_device,
-                              const VkFenceCreateInfo* pCreateInfo,
+    VkResult on_vkCreateFence(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                              VkDevice boxed_device, const VkFenceCreateInfo* pCreateInfo,
                               const VkAllocationCallbacks* pAllocator, VkFence* pFence) {
         VkFenceCreateInfo localCreateInfo;
         if (mSnapshotState == SnapshotState::Loading) {
@@ -3014,8 +3145,8 @@ class VkDecoderGlobalState::Impl {
         return VK_SUCCESS;
     }
 
-    VkResult on_vkResetFences(android::base::BumpPool* pool, VkDevice boxed_device,
-                              uint32_t fenceCount, const VkFence* pFences) {
+    VkResult on_vkResetFences(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                              VkDevice boxed_device, uint32_t fenceCount, const VkFence* pFences) {
         auto device = unbox_VkDevice(boxed_device);
         auto vk = dispatch_VkDevice(boxed_device);
 
@@ -3078,7 +3209,8 @@ class VkDecoderGlobalState::Impl {
         return VK_SUCCESS;
     }
 
-    VkResult on_vkImportSemaphoreFdKHR(android::base::BumpPool* pool, VkDevice boxed_device,
+    VkResult on_vkImportSemaphoreFdKHR(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                                       VkDevice boxed_device,
                                        const VkImportSemaphoreFdInfoKHR* pImportSemaphoreFdInfo) {
         auto device = unbox_VkDevice(boxed_device);
         auto vk = dispatch_VkDevice(boxed_device);
@@ -3120,7 +3252,8 @@ class VkDecoderGlobalState::Impl {
 #endif
     }
 
-    VkResult on_vkGetSemaphoreFdKHR(android::base::BumpPool* pool, VkDevice boxed_device,
+    VkResult on_vkGetSemaphoreFdKHR(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                                    VkDevice boxed_device,
                                     const VkSemaphoreGetFdInfoKHR* pGetFdInfo, int* pFd) {
         auto device = unbox_VkDevice(boxed_device);
         auto vk = dispatch_VkDevice(boxed_device);
@@ -3144,8 +3277,9 @@ class VkDecoderGlobalState::Impl {
         return result;
     }
 
-    VkResult on_vkGetSemaphoreGOOGLE(android::base::BumpPool* pool, VkDevice boxed_device,
-                                     VkSemaphore semaphore, uint64_t syncId) {
+    VkResult on_vkGetSemaphoreGOOGLE(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                                     VkDevice boxed_device, VkSemaphore semaphore,
+                                     uint64_t syncId) {
         if (!m_emu->features.VulkanExternalSync.enabled) {
             return VK_ERROR_FEATURE_NOT_PRESENT;
         }
@@ -3229,8 +3363,9 @@ class VkDecoderGlobalState::Impl {
         mSemaphoreInfo.erase(semaphoreInfoIt);
     }
 
-    void on_vkDestroySemaphore(android::base::BumpPool* pool, VkDevice boxed_device,
-                               VkSemaphore semaphore, const VkAllocationCallbacks* pAllocator) {
+    void on_vkDestroySemaphore(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                               VkDevice boxed_device, VkSemaphore semaphore,
+                               const VkAllocationCallbacks* pAllocator) {
         auto device = unbox_VkDevice(boxed_device);
         auto deviceDispatch = dispatch_VkDevice(boxed_device);
 
@@ -3293,7 +3428,8 @@ class VkDecoderGlobalState::Impl {
         }
     }
 
-    void on_vkDestroyFence(android::base::BumpPool* pool, VkDevice boxed_device, VkFence fence,
+    void on_vkDestroyFence(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                           VkDevice boxed_device, VkFence fence,
                            const VkAllocationCallbacks* pAllocator) {
         if (fence == VK_NULL_HANDLE) return;
 
@@ -3304,7 +3440,8 @@ class VkDecoderGlobalState::Impl {
         destroyFenceLocked(device, deviceDispatch, fence, pAllocator, true);
     }
 
-    VkResult on_vkCreateDescriptorSetLayout(android::base::BumpPool* pool, VkDevice boxed_device,
+    VkResult on_vkCreateDescriptorSetLayout(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                                            VkDevice boxed_device,
                                             const VkDescriptorSetLayoutCreateInfo* pCreateInfo,
                                             const VkAllocationCallbacks* pAllocator,
                                             VkDescriptorSetLayout* pSetLayout) {
@@ -3349,7 +3486,8 @@ class VkDecoderGlobalState::Impl {
         mDescriptorSetLayoutInfo.erase(descriptorSetLayoutInfoIt);
     }
 
-    void on_vkDestroyDescriptorSetLayout(android::base::BumpPool* pool, VkDevice boxed_device,
+    void on_vkDestroyDescriptorSetLayout(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                                         VkDevice boxed_device,
                                          VkDescriptorSetLayout descriptorSetLayout,
                                          const VkAllocationCallbacks* pAllocator) {
         auto device = unbox_VkDevice(boxed_device);
@@ -3359,7 +3497,8 @@ class VkDecoderGlobalState::Impl {
         destroyDescriptorSetLayoutLocked(device, deviceDispatch, descriptorSetLayout, pAllocator);
     }
 
-    VkResult on_vkCreateDescriptorPool(android::base::BumpPool* pool, VkDevice boxed_device,
+    VkResult on_vkCreateDescriptorPool(android::base::BumpPool* pool,
+                                       VkSnapshotApiCallInfo* snapshotInfo, VkDevice boxed_device,
                                        const VkDescriptorPoolCreateInfo* pCreateInfo,
                                        const VkAllocationCallbacks* pAllocator,
                                        VkDescriptorPool* pDescriptorPool) {
@@ -3392,9 +3531,9 @@ class VkDecoderGlobalState::Impl {
                     info.poolIds.push_back(
                         (uint64_t)new_boxed_non_dispatchable_VkDescriptorSet(VK_NULL_HANDLE));
                 }
-                if (snapshotsEnabled()) {
-                    snapshot()->createExtraHandlesForNextApi(info.poolIds.data(),
-                                                             info.poolIds.size());
+                if (snapshotsEnabled() && snapshotInfo) {
+                    snapshotInfo->addOrderedBoxedHandlesCreatedByCall(info.poolIds.data(),
+                                                                      info.poolIds.size());
                 }
             }
         }
@@ -3461,8 +3600,8 @@ class VkDecoderGlobalState::Impl {
         mDescriptorPoolInfo.erase(descriptorPoolInfoIt);
     }
 
-    void on_vkDestroyDescriptorPool(android::base::BumpPool* pool, VkDevice boxed_device,
-                                    VkDescriptorPool descriptorPool,
+    void on_vkDestroyDescriptorPool(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                                    VkDevice boxed_device, VkDescriptorPool descriptorPool,
                                     const VkAllocationCallbacks* pAllocator) {
         auto device = unbox_VkDevice(boxed_device);
         auto deviceDispatch = dispatch_VkDevice(boxed_device);
@@ -3480,8 +3619,8 @@ class VkDecoderGlobalState::Impl {
                                                /*isDestroy=*/false);
     }
 
-    VkResult on_vkResetDescriptorPool(android::base::BumpPool* pool, VkDevice boxed_device,
-                                      VkDescriptorPool descriptorPool,
+    VkResult on_vkResetDescriptorPool(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                                      VkDevice boxed_device, VkDescriptorPool descriptorPool,
                                       VkDescriptorPoolResetFlags flags) {
         auto device = unbox_VkDevice(boxed_device);
         auto deviceDispatch = dispatch_VkDevice(boxed_device);
@@ -3530,7 +3669,8 @@ class VkDecoderGlobalState::Impl {
         applyDescriptorSetAllocationLocked(*poolInfo, setInfo.bindings);
     }
 
-    VkResult on_vkAllocateDescriptorSets(android::base::BumpPool* pool, VkDevice boxed_device,
+    VkResult on_vkAllocateDescriptorSets(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                                         VkDevice boxed_device,
                                          const VkDescriptorSetAllocateInfo* pAllocateInfo,
                                          VkDescriptorSet* pDescriptorSets) {
         auto device = unbox_VkDevice(boxed_device);
@@ -3560,8 +3700,9 @@ class VkDecoderGlobalState::Impl {
         return res;
     }
 
-    VkResult on_vkFreeDescriptorSets(android::base::BumpPool* pool, VkDevice boxed_device,
-                                     VkDescriptorPool descriptorPool, uint32_t descriptorSetCount,
+    VkResult on_vkFreeDescriptorSets(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                                     VkDevice boxed_device, VkDescriptorPool descriptorPool,
+                                     uint32_t descriptorSetCount,
                                      const VkDescriptorSet* pDescriptorSets) {
         auto device = unbox_VkDevice(boxed_device);
         auto vk = dispatch_VkDevice(boxed_device);
@@ -3602,7 +3743,8 @@ class VkDecoderGlobalState::Impl {
         return res;
     }
 
-    void on_vkUpdateDescriptorSets(android::base::BumpPool* pool, VkDevice boxed_device,
+    void on_vkUpdateDescriptorSets(android::base::BumpPool* pool,
+                                   VkSnapshotApiCallInfo* snapshotInfo, VkDevice boxed_device,
                                    uint32_t descriptorWriteCount,
                                    const VkWriteDescriptorSet* pDescriptorWrites,
                                    uint32_t descriptorCopyCount,
@@ -3611,12 +3753,13 @@ class VkDecoderGlobalState::Impl {
         auto vk = dispatch_VkDevice(boxed_device);
 
         std::lock_guard<std::recursive_mutex> lock(mLock);
-        on_vkUpdateDescriptorSetsImpl(pool, vk, device, descriptorWriteCount, pDescriptorWrites,
-                                      descriptorCopyCount, pDescriptorCopies);
+        on_vkUpdateDescriptorSetsImpl(pool, snapshotInfo, vk, device, descriptorWriteCount,
+                                      pDescriptorWrites, descriptorCopyCount, pDescriptorCopies);
     }
 
-    void on_vkUpdateDescriptorSetsImpl(android::base::BumpPool* pool, VulkanDispatch* vk,
-                                       VkDevice device, uint32_t descriptorWriteCount,
+    void on_vkUpdateDescriptorSetsImpl(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                                       VulkanDispatch* vk, VkDevice device,
+                                       uint32_t descriptorWriteCount,
                                        const VkWriteDescriptorSet* pDescriptorWrites,
                                        uint32_t descriptorCopyCount,
                                        const VkCopyDescriptorSet* pDescriptorCopies) {
@@ -3847,7 +3990,8 @@ class VkDecoderGlobalState::Impl {
                                    descriptorCopyCount, pDescriptorCopies);
     }
 
-    VkResult on_vkCreateShaderModule(android::base::BumpPool* pool, VkDevice boxed_device,
+    VkResult on_vkCreateShaderModule(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                                     VkDevice boxed_device,
                                      const VkShaderModuleCreateInfo* pCreateInfo,
                                      const VkAllocationCallbacks* pAllocator,
                                      VkShaderModule* pShaderModule) {
@@ -3890,8 +4034,8 @@ class VkDecoderGlobalState::Impl {
         mShaderModuleInfo.erase(shaderModuleInfoIt);
     }
 
-    void on_vkDestroyShaderModule(android::base::BumpPool* pool, VkDevice boxed_device,
-                                  VkShaderModule shaderModule,
+    void on_vkDestroyShaderModule(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                                  VkDevice boxed_device, VkShaderModule shaderModule,
                                   const VkAllocationCallbacks* pAllocator) {
         auto device = unbox_VkDevice(boxed_device);
         auto deviceDispatch = dispatch_VkDevice(boxed_device);
@@ -3900,7 +4044,8 @@ class VkDecoderGlobalState::Impl {
         destroyShaderModuleLocked(device, deviceDispatch, shaderModule, pAllocator);
     }
 
-    VkResult on_vkCreatePipelineCache(android::base::BumpPool* pool, VkDevice boxed_device,
+    VkResult on_vkCreatePipelineCache(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                                      VkDevice boxed_device,
                                       const VkPipelineCacheCreateInfo* pCreateInfo,
                                       const VkAllocationCallbacks* pAllocator,
                                       VkPipelineCache* pPipelineCache) {
@@ -3944,8 +4089,8 @@ class VkDecoderGlobalState::Impl {
         mPipelineCacheInfo.erase(pipelineCache);
     }
 
-    void on_vkDestroyPipelineCache(android::base::BumpPool* pool, VkDevice boxed_device,
-                                   VkPipelineCache pipelineCache,
+    void on_vkDestroyPipelineCache(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                                   VkDevice boxed_device, VkPipelineCache pipelineCache,
                                    const VkAllocationCallbacks* pAllocator) {
         auto device = unbox_VkDevice(boxed_device);
         auto deviceDispatch = dispatch_VkDevice(boxed_device);
@@ -3954,8 +4099,9 @@ class VkDecoderGlobalState::Impl {
         destroyPipelineCacheLocked(device, deviceDispatch, pipelineCache, pAllocator);
     }
 
-    VkResult on_vkCreateGraphicsPipelines(android::base::BumpPool* pool, VkDevice boxed_device,
-                                          VkPipelineCache pipelineCache, uint32_t createInfoCount,
+    VkResult on_vkCreateGraphicsPipelines(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                                          VkDevice boxed_device, VkPipelineCache pipelineCache,
+                                          uint32_t createInfoCount,
                                           const VkGraphicsPipelineCreateInfo* pCreateInfos,
                                           const VkAllocationCallbacks* pAllocator,
                                           VkPipeline* pPipelines) {
@@ -3984,11 +4130,12 @@ class VkDecoderGlobalState::Impl {
         return result;
     }
 
-    VkResult on_vkCreateComputePipelines(android::base::BumpPool* pool, VkDevice boxed_device,
-                                          VkPipelineCache pipelineCache, uint32_t createInfoCount,
-                                          const VkComputePipelineCreateInfo* pCreateInfos,
-                                          const VkAllocationCallbacks* pAllocator,
-                                          VkPipeline* pPipelines) {
+    VkResult on_vkCreateComputePipelines(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                                         VkDevice boxed_device, VkPipelineCache pipelineCache,
+                                         uint32_t createInfoCount,
+                                         const VkComputePipelineCreateInfo* pCreateInfos,
+                                         const VkAllocationCallbacks* pAllocator,
+                                         VkPipeline* pPipelines) {
         auto device = unbox_VkDevice(boxed_device);
         auto deviceDispatch = dispatch_VkDevice(boxed_device);
 
@@ -4032,8 +4179,9 @@ class VkDecoderGlobalState::Impl {
         mPipelineInfo.erase(pipeline);
     }
 
-    void on_vkDestroyPipeline(android::base::BumpPool* pool, VkDevice boxed_device,
-                              VkPipeline pipeline, const VkAllocationCallbacks* pAllocator) {
+    void on_vkDestroyPipeline(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                              VkDevice boxed_device, VkPipeline pipeline,
+                              const VkAllocationCallbacks* pAllocator) {
         auto device = unbox_VkDevice(boxed_device);
         auto deviceDispatch = dispatch_VkDevice(boxed_device);
 
@@ -4041,8 +4189,9 @@ class VkDecoderGlobalState::Impl {
         destroyPipelineLocked(device, deviceDispatch, pipeline, pAllocator);
     }
 
-    void on_vkCmdCopyImage(android::base::BumpPool* pool, VkCommandBuffer boxed_commandBuffer,
-                           VkImage srcImage, VkImageLayout srcImageLayout, VkImage dstImage,
+    void on_vkCmdCopyImage(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                           VkCommandBuffer boxed_commandBuffer, VkImage srcImage,
+                           VkImageLayout srcImageLayout, VkImage dstImage,
                            VkImageLayout dstImageLayout, uint32_t regionCount,
                            const VkImageCopy* pRegions) {
         auto commandBuffer = unbox_VkCommandBuffer(boxed_commandBuffer);
@@ -4080,7 +4229,7 @@ class VkDecoderGlobalState::Impl {
         }
     }
 
-    void on_vkCmdCopyImageToBuffer(android::base::BumpPool* pool,
+    void on_vkCmdCopyImageToBuffer(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
                                    VkCommandBuffer boxed_commandBuffer, VkImage srcImage,
                                    VkImageLayout srcImageLayout, VkBuffer dstBuffer,
                                    uint32_t regionCount, const VkBufferImageCopy* pRegions) {
@@ -4107,9 +4256,9 @@ class VkDecoderGlobalState::Impl {
         }
     }
 
-    void on_vkCmdCopyImage2(android::base::BumpPool* pool,
-                           VkCommandBuffer boxed_commandBuffer,
-                           const VkCopyImageInfo2* pCopyImageInfo) {
+    void on_vkCmdCopyImage2(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                            VkCommandBuffer boxed_commandBuffer,
+                            const VkCopyImageInfo2* pCopyImageInfo) {
         auto commandBuffer = unbox_VkCommandBuffer(boxed_commandBuffer);
         auto vk = dispatch_VkCommandBuffer(boxed_commandBuffer);
 
@@ -4151,9 +4300,9 @@ class VkDecoderGlobalState::Impl {
         }
     }
 
-    void on_vkCmdCopyImageToBuffer2(android::base::BumpPool* pool,
-                                   VkCommandBuffer boxed_commandBuffer,
-                                   const VkCopyImageToBufferInfo2* pCopyImageToBufferInfo) {
+    void on_vkCmdCopyImageToBuffer2(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                                    VkCommandBuffer boxed_commandBuffer,
+                                    const VkCopyImageToBufferInfo2* pCopyImageToBufferInfo) {
         auto commandBuffer = unbox_VkCommandBuffer(boxed_commandBuffer);
         auto vk = dispatch_VkCommandBuffer(boxed_commandBuffer);
 
@@ -4180,9 +4329,9 @@ class VkDecoderGlobalState::Impl {
         }
     }
 
-    void on_vkCmdCopyImage2KHR(android::base::BumpPool* pool,
-                           VkCommandBuffer boxed_commandBuffer,
-                           const VkCopyImageInfo2KHR* pCopyImageInfo) {
+    void on_vkCmdCopyImage2KHR(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                               VkCommandBuffer boxed_commandBuffer,
+                               const VkCopyImageInfo2KHR* pCopyImageInfo) {
         auto commandBuffer = unbox_VkCommandBuffer(boxed_commandBuffer);
         auto vk = dispatch_VkCommandBuffer(boxed_commandBuffer);
 
@@ -4224,9 +4373,9 @@ class VkDecoderGlobalState::Impl {
         }
     }
 
-    void on_vkCmdCopyImageToBuffer2KHR(android::base::BumpPool* pool,
-                                   VkCommandBuffer boxed_commandBuffer,
-                                   const VkCopyImageToBufferInfo2KHR* pCopyImageToBufferInfo) {
+    void on_vkCmdCopyImageToBuffer2KHR(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                                       VkCommandBuffer boxed_commandBuffer,
+                                       const VkCopyImageToBufferInfo2KHR* pCopyImageToBufferInfo) {
         auto commandBuffer = unbox_VkCommandBuffer(boxed_commandBuffer);
         auto vk = dispatch_VkCommandBuffer(boxed_commandBuffer);
 
@@ -4253,8 +4402,9 @@ class VkDecoderGlobalState::Impl {
         }
     }
 
-    void on_vkGetImageMemoryRequirements(android::base::BumpPool* pool, VkDevice boxed_device,
-                                         VkImage image, VkMemoryRequirements* pMemoryRequirements) {
+    void on_vkGetImageMemoryRequirements(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                                         VkDevice boxed_device, VkImage image,
+                                         VkMemoryRequirements* pMemoryRequirements) {
         auto device = unbox_VkDevice(boxed_device);
         auto vk = dispatch_VkDevice(boxed_device);
         vk->vkGetImageMemoryRequirements(device, image, pMemoryRequirements);
@@ -4277,7 +4427,8 @@ class VkDecoderGlobalState::Impl {
         physicalDeviceMemHelper->transformToGuestMemoryRequirements(pMemoryRequirements);
     }
 
-    void on_vkGetImageMemoryRequirements2(android::base::BumpPool* pool, VkDevice boxed_device,
+    void on_vkGetImageMemoryRequirements2(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                                          VkDevice boxed_device,
                                           const VkImageMemoryRequirementsInfo2* pInfo,
                                           VkMemoryRequirements2* pMemoryRequirements) {
         auto device = unbox_VkDevice(boxed_device);
@@ -4319,8 +4470,8 @@ class VkDecoderGlobalState::Impl {
             &pMemoryRequirements->memoryRequirements);
     }
 
-    void on_vkGetBufferMemoryRequirements(android::base::BumpPool* pool, VkDevice boxed_device,
-                                          VkBuffer buffer,
+    void on_vkGetBufferMemoryRequirements(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                                          VkDevice boxed_device, VkBuffer buffer,
                                           VkMemoryRequirements* pMemoryRequirements) {
         auto device = unbox_VkDevice(boxed_device);
         auto vk = dispatch_VkDevice(boxed_device);
@@ -4344,7 +4495,8 @@ class VkDecoderGlobalState::Impl {
         physicalDeviceMemHelper->transformToGuestMemoryRequirements(pMemoryRequirements);
     }
 
-    void on_vkGetBufferMemoryRequirements2(android::base::BumpPool* pool, VkDevice boxed_device,
+    void on_vkGetBufferMemoryRequirements2(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                                           VkDevice boxed_device,
                                            const VkBufferMemoryRequirementsInfo2* pInfo,
                                            VkMemoryRequirements2* pMemoryRequirements) {
         auto device = unbox_VkDevice(boxed_device);
@@ -4384,7 +4536,7 @@ class VkDecoderGlobalState::Impl {
             &pMemoryRequirements->memoryRequirements);
     }
 
-    void on_vkCmdCopyBufferToImage(android::base::BumpPool* pool,
+    void on_vkCmdCopyBufferToImage(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
                                    VkCommandBuffer boxed_commandBuffer, VkBuffer srcBuffer,
                                    VkImage dstImage, VkImageLayout dstImageLayout,
                                    uint32_t regionCount, const VkBufferImageCopy* pRegions,
@@ -4439,7 +4591,7 @@ class VkDecoderGlobalState::Impl {
         }
     }
 
-    void on_vkCmdCopyBufferToImage2(android::base::BumpPool* pool,
+    void on_vkCmdCopyBufferToImage2(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
                                     VkCommandBuffer boxed_commandBuffer,
                                     const VkCopyBufferToImageInfo2* pCopyBufferToImageInfo,
                                     const VkDecoderContext& context) {
@@ -4496,10 +4648,10 @@ class VkDecoderGlobalState::Impl {
         }
     }
 
-    void on_vkCmdCopyBufferToImage2KHR(android::base::BumpPool* pool,
-                                    VkCommandBuffer boxed_commandBuffer,
-                                    const VkCopyBufferToImageInfo2KHR* pCopyBufferToImageInfo,
-                                    const VkDecoderContext& context) {
+    void on_vkCmdCopyBufferToImage2KHR(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                                       VkCommandBuffer boxed_commandBuffer,
+                                       const VkCopyBufferToImageInfo2KHR* pCopyBufferToImageInfo,
+                                       const VkDecoderContext& context) {
         auto commandBuffer = unbox_VkCommandBuffer(boxed_commandBuffer);
         auto vk = dispatch_VkCommandBuffer(boxed_commandBuffer);
 
@@ -4622,15 +4774,13 @@ class VkDecoderGlobalState::Impl {
         }
     }
 
-    void on_vkCmdPipelineBarrier(android::base::BumpPool* pool, VkCommandBuffer boxed_commandBuffer,
-                                 VkPipelineStageFlags srcStageMask,
-                                 VkPipelineStageFlags dstStageMask,
-                                 VkDependencyFlags dependencyFlags, uint32_t memoryBarrierCount,
-                                 const VkMemoryBarrier* pMemoryBarriers,
-                                 uint32_t bufferMemoryBarrierCount,
-                                 const VkBufferMemoryBarrier* pBufferMemoryBarriers,
-                                 uint32_t imageMemoryBarrierCount,
-                                 const VkImageMemoryBarrier* pImageMemoryBarriers) {
+    void on_vkCmdPipelineBarrier(
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo*, VkCommandBuffer boxed_commandBuffer,
+        VkPipelineStageFlags srcStageMask, VkPipelineStageFlags dstStageMask,
+        VkDependencyFlags dependencyFlags, uint32_t memoryBarrierCount,
+        const VkMemoryBarrier* pMemoryBarriers, uint32_t bufferMemoryBarrierCount,
+        const VkBufferMemoryBarrier* pBufferMemoryBarriers, uint32_t imageMemoryBarrierCount,
+        const VkImageMemoryBarrier* pImageMemoryBarriers) {
         auto commandBuffer = unbox_VkCommandBuffer(boxed_commandBuffer);
         auto vk = dispatch_VkCommandBuffer(boxed_commandBuffer);
 
@@ -4712,7 +4862,7 @@ class VkDecoderGlobalState::Impl {
         }
     }
 
-    void on_vkCmdPipelineBarrier2(android::base::BumpPool* pool,
+    void on_vkCmdPipelineBarrier2(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
                                   VkCommandBuffer boxed_commandBuffer,
                                   const VkDependencyInfo* pDependencyInfo) {
         auto commandBuffer = unbox_VkCommandBuffer(boxed_commandBuffer);
@@ -4778,35 +4928,19 @@ class VkDecoderGlobalState::Impl {
         void* hva = info->pageAlignedHva;
         size_t sizeToPage = info->sizeToPage;
 
-        AutoLock occupiedGpasLock(mOccupiedGpasLock);
-
-        auto* existingMemoryInfo = android::base::find(mOccupiedGpas, gpa);
-        if (existingMemoryInfo) {
-            INFO("%s: WARNING: already mapped gpa 0x%llx, replacing", __func__,
-                    (unsigned long long)gpa);
-
-            get_emugl_vm_operations().unmapUserBackedRam(existingMemoryInfo->gpa,
-                                                         existingMemoryInfo->sizeToPage);
-
-            mOccupiedGpas.erase(gpa);
-        }
-
         get_emugl_vm_operations().mapUserBackedRam(gpa, hva, sizeToPage);
 
         if (mVerbosePrints) {
-            INFO("VERBOSE:%s: registering gpa 0x%llx to mOccupiedGpas", __func__,
+            INFO("VERBOSE:%s: registering gpa 0x%llx", __func__,
                     (unsigned long long)gpa);
         }
 
-        mOccupiedGpas[gpa] = {
-            vk, device, memory, gpa, sizeToPage,
-        };
-
         if (!mUseOldMemoryCleanupPath) {
             get_emugl_address_space_device_control_ops().register_deallocation_callback(
-                this, gpa, [](void* thisPtr, uint64_t gpa) {
-                    Impl* implPtr = (Impl*)thisPtr;
-                    implPtr->unmapMemoryAtGpaIfExists(gpa);
+                (void*)(new uint64_t(sizeToPage)), gpa, [](void* thisPtr, uint64_t gpa) {
+                    uint64_t* sizePtr = (uint64_t*)thisPtr;
+                    get_emugl_vm_operations().unmapUserBackedRam(gpa, *sizePtr);
+                    delete sizePtr;
                 });
         }
 
@@ -4816,25 +4950,20 @@ class VkDecoderGlobalState::Impl {
     // Only call this from the address space device deallocation operation's
     // context, or it's possible that the guest/host view of which gpa's are
     // occupied goes out of sync.
-    void unmapMemoryAtGpaIfExists(uint64_t gpa) {
-        AutoLock lock(mOccupiedGpasLock);
-
+    void unmapMemoryAtGpa(uint64_t gpa, uint64_t size) {
+        // DO NOT place any additional locks in here, as it may cause a deadlock due to mismatched
+        // lock ordering, as VM operations will typically have its own mutex already.
         if (mVerbosePrints) {
             INFO("VERBOSE:%s: deallocation callback for gpa 0x%llx", __func__,
                     (unsigned long long)gpa);
         }
 
-        auto* existingMemoryInfo = android::base::find(mOccupiedGpas, gpa);
-        if (!existingMemoryInfo) return;
-
-        get_emugl_vm_operations().unmapUserBackedRam(existingMemoryInfo->gpa,
-                                                     existingMemoryInfo->sizeToPage);
-
-        mOccupiedGpas.erase(gpa);
+        // Just blindly unmap here. Let the VM implementation deal with invalid addresses.
+        get_emugl_vm_operations().unmapUserBackedRam(gpa, size);
     }
 
-    VkResult on_vkAllocateMemory(android::base::BumpPool* pool, VkDevice boxed_device,
-                                 const VkMemoryAllocateInfo* pAllocateInfo,
+    VkResult on_vkAllocateMemory(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                                 VkDevice boxed_device, const VkMemoryAllocateInfo* pAllocateInfo,
                                  const VkAllocationCallbacks* pAllocator, VkDeviceMemory* pMemory) {
         auto device = unbox_VkDevice(boxed_device);
         auto vk = dispatch_VkDevice(boxed_device);
@@ -4907,28 +5036,22 @@ class VkDecoderGlobalState::Impl {
             vk_find_struct<VkCreateBlobGOOGLE>(pAllocateInfo);
 
 #ifdef _WIN32
-        VkImportMemoryWin32HandleInfoKHR importInfo{
+        VkImportMemoryWin32HandleInfoKHR importWin32HandleInfo{
             VK_STRUCTURE_TYPE_IMPORT_MEMORY_WIN32_HANDLE_INFO_KHR,
             0,
-            VK_EXT_MEMORY_HANDLE_TYPE_BIT,
-            VK_EXT_MEMORY_HANDLE_INVALID,
+            VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT,
+            static_cast<HANDLE>(NULL),
             L"",
         };
-#elif defined(__QNX__)
-        VkImportScreenBufferInfoQNX importInfo{
+#else
+
+#if defined(__QNX__)
+        VkImportScreenBufferInfoQNX importScreenBufferInfo{
             VK_STRUCTURE_TYPE_IMPORT_SCREEN_BUFFER_INFO_QNX,
             0,
-            VK_EXT_MEMORY_HANDLE_INVALID,
+            static_cast<screen_buffer_t>(NULL),
         };
-#else
-        VkImportMemoryFdInfoKHR importInfo{
-            VK_STRUCTURE_TYPE_IMPORT_MEMORY_FD_INFO_KHR,
-            0,
-            VK_EXT_MEMORY_HANDLE_TYPE_BIT,
-            VK_EXT_MEMORY_HANDLE_INVALID,
-        };
-
-#if defined(__APPLE__)
+#elif defined(__APPLE__)
         VkImportMemoryMetalHandleInfoEXT importInfoMetalHandle = {
             VK_STRUCTURE_TYPE_IMPORT_MEMORY_METAL_HANDLE_INFO_EXT,
             0,
@@ -4937,10 +5060,19 @@ class VkDecoderGlobalState::Impl {
         };
 #endif
 
+        VkImportMemoryFdInfoKHR importFdInfo{
+            VK_STRUCTURE_TYPE_IMPORT_MEMORY_FD_INFO_KHR,
+            0,
+            VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT,
+            -1,
+        };
 #endif
 
         void* mappedPtr = nullptr;
-        ManagedDescriptor externalMemoryHandle;
+        // If required by the platform, wrap the descriptor received from VkEmulation for
+        // a ColorBuffer or Buffer import as a ManagedDescriptor, so it will be closed
+        // appropriately when it goes out of scope.
+        ManagedDescriptor managedHandle;
         if (importCbInfoPtr) {
             bool colorBufferMemoryUsesDedicatedAlloc = false;
             if (!getColorBufferAllocationInfo(importCbInfoPtr->colorBuffer,
@@ -5004,30 +5136,45 @@ class VkDecoderGlobalState::Impl {
 #endif
 
                 if (opaqueFd && m_emu->deviceInfo.supportsExternalMemoryImport) {
-                    VK_EXT_MEMORY_HANDLE cbExtMemoryHandle =
-                        getColorBufferExtMemoryHandle(importCbInfoPtr->colorBuffer);
-
-                    if (cbExtMemoryHandle == VK_EXT_MEMORY_HANDLE_INVALID) {
-                        fprintf(stderr,
-                                "%s: VK_ERROR_OUT_OF_DEVICE_MEMORY: "
-                                "colorBuffer 0x%x does not have Vulkan external memory backing\n",
-                                __func__, importCbInfoPtr->colorBuffer);
+                    auto dupHandleInfo =
+                        dupColorBufferExtMemoryHandle(importCbInfoPtr->colorBuffer);
+                    if (!dupHandleInfo) {
+                        ERR("Failed to duplicate external memory handle/descriptor for ColorBuffer "
+                            "object, with internal handle: %d",
+                            importCbInfoPtr->colorBuffer);
                         return VK_ERROR_OUT_OF_DEVICE_MEMORY;
                     }
-
-#if defined(__QNX__)
-                    importInfo.buffer = cbExtMemoryHandle;
+#if defined(_WIN32)
+                    // Wrap the dup'd handle in a ManagedDescriptor, and let it close the underlying
+                    // HANDLE when it goes out of scope. From the VkImportMemoryWin32HandleInfoKHR
+                    // spec: Importing memory object payloads from Windows handles does not transfer
+                    // ownership of the handle to the Vulkan implementation. For handle types
+                    // defined as NT handles, the application must release handle ownership using
+                    // the CloseHandle system call when the handle is no longer needed. For handle
+                    // types defined as NT handles, the imported memory object holds a reference to
+                    // its payload
+                    managedHandle = ManagedDescriptor(static_cast<DescriptorType>(
+                        reinterpret_cast<void*>(dupHandleInfo->handle)));
+                    importWin32HandleInfo.handle =
+                        managedHandle.get().value_or(static_cast<HANDLE>(NULL));
+                    vk_append_struct(&structChainIter, &importWin32HandleInfo);
+#elif defined(__QNX__)
+                    if (STREAM_HANDLE_TYPE_PLATFORM_SCREEN_BUFFER_QNX ==
+                        dupHandleInfo->streamHandleType) {
+                        importScreenBufferInfo.buffer = static_cast<screen_buffer_t>(
+                            reinterpret_cast<void*>(dupHandleInfo->handle));
+                        vk_append_struct(&structChainIter, &importScreenBufferInfo);
+                    } else {
+                        // TODO(aruby@blackberry.com): Fall through to the importFdInfo sequence
+                        // below to support non-screenbuffer external object imports on QNX?
+                        ERR("Stream mem handleType: 0x%x not support for ColorBuffer import",
+                            dupHandleInfo->streamHandleType);
+                        return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+                    }
 #else
-                    externalMemoryHandle = ManagedDescriptor(dupExternalMemory(cbExtMemoryHandle));
-
-#ifdef _WIN32
-                    importInfo.handle =
-                        externalMemoryHandle.get().value_or(static_cast<HANDLE>(NULL));
-#else
-                    importInfo.fd = externalMemoryHandle.get().value_or(-1);
+                    importFdInfo.fd = static_cast<int>(dupHandleInfo->handle);
+                    vk_append_struct(&structChainIter, &importFdInfo);
 #endif
-#endif
-                    vk_append_struct(&structChainIter, &importInfo);
                 }
             }
         } else if (importBufferInfoPtr) {
@@ -5066,31 +5213,44 @@ class VkDecoderGlobalState::Impl {
 #endif
 
             if (opaqueFd && m_emu->deviceInfo.supportsExternalMemoryImport) {
-                uint32_t outStreamHandleType;
-                VK_EXT_MEMORY_HANDLE bufferExtMemoryHandle =
-                    getBufferExtMemoryHandle(importBufferInfoPtr->buffer, &outStreamHandleType);
-
-                if (bufferExtMemoryHandle == VK_EXT_MEMORY_HANDLE_INVALID) {
-                    fprintf(stderr,
-                            "%s: VK_ERROR_OUT_OF_DEVICE_MEMORY: "
-                            "buffer 0x%x does not have Vulkan external memory "
-                            "backing\n",
-                            __func__, importBufferInfoPtr->buffer);
+                auto dupHandleInfo = dupBufferExtMemoryHandle(importBufferInfoPtr->buffer);
+                if (!dupHandleInfo) {
+                    ERR("Failed to duplicate external memory handle/descriptor for Buffer object, "
+                        "with internal handle: %d",
+                        importBufferInfoPtr->buffer);
                     return VK_ERROR_OUT_OF_DEVICE_MEMORY;
                 }
 
-#if defined(__QNX__)
-                importInfo.buffer = bufferExtMemoryHandle;
+#if defined(_WIN32)
+                // Wrap the dup'd handle in a ManagedDescriptor, and let it close the underlying
+                // HANDLE when it goes out of scope. From the VkImportMemoryWin32HandleInfoKHR
+                // spec: Importing memory object payloads from Windows handles does not transfer
+                // ownership of the handle to the Vulkan implementation. For handle types defined
+                // as NT handles, the application must release handle ownership using the
+                // CloseHandle system call when the handle is no longer needed. For handle types
+                // defined as NT handles, the imported memory object holds a reference to its
+                // payload
+                managedHandle = ManagedDescriptor(
+                    static_cast<DescriptorType>(reinterpret_cast<void*>(dupHandleInfo->handle)));
+                importWin32HandleInfo.handle =
+                    managedHandle.get().value_or(static_cast<HANDLE>(NULL));
+                vk_append_struct(&structChainIter, &importWin32HandleInfo);
+#elif defined(__QNX__)
+                if (STREAM_HANDLE_TYPE_PLATFORM_SCREEN_BUFFER_QNX == dupHandleInfo->streamHandleType) {
+                    importScreenBufferInfo.buffer = static_cast<screen_buffer_t>(
+                        reinterpret_cast<void*>(dupHandleInfo->handle));
+                    vk_append_struct(&structChainIter, &importScreenBufferInfo);
+                } else {
+                    // TODO(aruby@blackberry.com): Fall through to the importFdInfo sequence below
+                    // to support non-screenbuffer external object imports on QNX?
+                    ERR("Stream mem handleType: 0x%x not support for Buffer object import",
+                        dupHandleInfo->streamHandleType);
+                    return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+                }
 #else
-                bufferExtMemoryHandle = dupExternalMemory(bufferExtMemoryHandle);
-
-#ifdef _WIN32
-                importInfo.handle = bufferExtMemoryHandle;
-#else
-                importInfo.fd = bufferExtMemoryHandle;
+                importFdInfo.fd = static_cast<int>(dupHandleInfo->handle);
+                vk_append_struct(&structChainIter, &importFdInfo);
 #endif
-#endif
-                vk_append_struct(&structChainIter, &importInfo);
             }
         }
 
@@ -5144,7 +5304,7 @@ class VkDecoderGlobalState::Impl {
             auto descriptorInfoOpt = ExternalObjectManager::get()->removeBlobDescriptorInfo(
                 virtioGpuContextId, createBlobInfoPtr->blobId);
             if (descriptorInfoOpt) {
-                auto rawDescriptorOpt = (*descriptorInfoOpt).descriptor.release();
+                auto rawDescriptorOpt = (*descriptorInfoOpt).descriptorInfo.descriptor.release();
                 if (rawDescriptorOpt) {
                     rawDescriptor = *rawDescriptorOpt;
                 } else {
@@ -5155,17 +5315,18 @@ class VkDecoderGlobalState::Impl {
                 ERR("Failed vkAllocateMemory: missing descriptor info.");
                 return VK_ERROR_OUT_OF_DEVICE_MEMORY;
             }
-#if defined(__linux__)
-            importInfo.fd = rawDescriptor;
-#endif
 
-#ifdef __linux__
+#if defined(_WIN32)
+            importWin32HandleInfo.handle = rawDescriptor;
+            vk_append_struct(&structChainIter, &importWin32HandleInfo);
+#else
+            importFdInfo.fd = rawDescriptor;
             if (m_emu->deviceInfo.supportsDmaBuf &&
                 hasDeviceExtension(device, VK_EXT_EXTERNAL_MEMORY_DMA_BUF_EXTENSION_NAME)) {
-                importInfo.handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT;
+                importFdInfo.handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT;
             }
+            vk_append_struct(&structChainIter, &importFdInfo);
 #endif
-            vk_append_struct(&structChainIter, &importInfo);
         }
 
         const bool isImport = importCbInfoPtr || importBufferInfoPtr;
@@ -5306,23 +5467,6 @@ class VkDecoderGlobalState::Impl {
             return result;
         }
 
-#ifdef _WIN32
-        // Let ManagedDescriptor to close the underlying HANDLE when going out of scope. From the
-        // VkImportMemoryWin32HandleInfoKHR spec: Importing memory object payloads from Windows
-        // handles does not transfer ownership of the handle to the Vulkan implementation. For
-        // handle types defined as NT handles, the application must release handle ownership using
-        // the CloseHandle system call when the handle is no longer needed. For handle types defined
-        // as NT handles, the imported memory object holds a reference to its payload.
-#else
-        // Tell ManagedDescriptor not to close the underlying fd, because the ownership has already
-        // been transferred to the Vulkan implementation. From VkImportMemoryFdInfoKHR spec:
-        // Importing memory from a file descriptor transfers ownership of the file descriptor from
-        // the application to the Vulkan implementation. The application must not perform any
-        // operations on the file descriptor after a successful import. The imported memory object
-        // holds a reference to its payload.
-        externalMemoryHandle.release();
-#endif
-
         std::lock_guard<std::recursive_mutex> lock(mLock);
 
         VALIDATE_NEW_HANDLE_INFO_ENTRY(mMemoryInfo, *pMemory);
@@ -5407,7 +5551,7 @@ class VkDecoderGlobalState::Impl {
             // to unmap vs. address space allocate and mapMemory leading to
             // mapping the same gpa twice)
             if (mUseOldMemoryCleanupPath) {
-                unmapMemoryAtGpaIfExists(memoryInfo.guestPhysAddr);
+                unmapMemoryAtGpa(memoryInfo.guestPhysAddr, memoryInfo.sizeToPage);
             }
         }
 
@@ -5429,8 +5573,9 @@ class VkDecoderGlobalState::Impl {
         mMemoryInfo.erase(memoryInfoIt);
     }
 
-    void on_vkFreeMemory(android::base::BumpPool* pool, VkDevice boxed_device,
-                         VkDeviceMemory memory, const VkAllocationCallbacks* pAllocator) {
+    void on_vkFreeMemory(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                         VkDevice boxed_device, VkDeviceMemory memory,
+                         const VkAllocationCallbacks* pAllocator) {
         auto device = unbox_VkDevice(boxed_device);
         auto deviceDispatch = dispatch_VkDevice(boxed_device);
         if (!device || !deviceDispatch) return;
@@ -5439,9 +5584,9 @@ class VkDecoderGlobalState::Impl {
         freeMemoryLocked(device, deviceDispatch, memory, pAllocator);
     }
 
-    VkResult on_vkMapMemory(android::base::BumpPool* pool, VkDevice, VkDeviceMemory memory,
-                            VkDeviceSize offset, VkDeviceSize size, VkMemoryMapFlags flags,
-                            void** ppData) {
+    VkResult on_vkMapMemory(android::base::BumpPool* pool, VkSnapshotApiCallInfo*, VkDevice,
+                            VkDeviceMemory memory, VkDeviceSize offset, VkDeviceSize size,
+                            VkMemoryMapFlags flags, void** ppData) {
         std::lock_guard<std::recursive_mutex> lock(mLock);
         return on_vkMapMemoryLocked(0, memory, offset, size, flags, ppData);
     }
@@ -5454,7 +5599,8 @@ class VkDecoderGlobalState::Impl {
         return VK_SUCCESS;
     }
 
-    void on_vkUnmapMemory(android::base::BumpPool* pool, VkDevice, VkDeviceMemory) {
+    void on_vkUnmapMemory(android::base::BumpPool* pool, VkSnapshotApiCallInfo*, VkDevice,
+                          VkDeviceMemory) {
         // no-op; user-level mapping does not correspond
         // to any operation here.
     }
@@ -5553,25 +5699,25 @@ class VkDecoderGlobalState::Impl {
     }
 
     // VK_ANDROID_native_buffer
-    VkResult on_vkGetSwapchainGrallocUsageANDROID(android::base::BumpPool* pool, VkDevice,
-                                                  VkFormat format, VkImageUsageFlags imageUsage,
-                                                  int* grallocUsage) {
+    VkResult on_vkGetSwapchainGrallocUsageANDROID(android::base::BumpPool* pool,
+                                                  VkSnapshotApiCallInfo*, VkDevice, VkFormat format,
+                                                  VkImageUsageFlags imageUsage, int* grallocUsage) {
         getGralloc0Usage(format, imageUsage, grallocUsage);
         return VK_SUCCESS;
     }
 
     VkResult on_vkGetSwapchainGrallocUsage2ANDROID(
-        android::base::BumpPool* pool, VkDevice, VkFormat format, VkImageUsageFlags imageUsage,
-        VkSwapchainImageUsageFlagsANDROID swapchainImageUsage, uint64_t* grallocConsumerUsage,
-        uint64_t* grallocProducerUsage) {
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo*, VkDevice, VkFormat format,
+        VkImageUsageFlags imageUsage, VkSwapchainImageUsageFlagsANDROID swapchainImageUsage,
+        uint64_t* grallocConsumerUsage, uint64_t* grallocProducerUsage) {
         getGralloc1Usage(format, imageUsage, swapchainImageUsage, grallocConsumerUsage,
                          grallocProducerUsage);
         return VK_SUCCESS;
     }
 
-    VkResult on_vkAcquireImageANDROID(android::base::BumpPool* pool, VkDevice boxed_device,
-                                      VkImage image, int nativeFenceFd, VkSemaphore semaphore,
-                                      VkFence fence) {
+    VkResult on_vkAcquireImageANDROID(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                                      VkDevice boxed_device, VkImage image, int nativeFenceFd,
+                                      VkSemaphore semaphore, VkFence fence) {
         auto device = unbox_VkDevice(boxed_device);
         auto vk = dispatch_VkDevice(boxed_device);
 
@@ -5585,9 +5731,9 @@ class VkDecoderGlobalState::Impl {
 
         VkQueue defaultQueue;
         uint32_t defaultQueueFamilyIndex;
-        Lock* defaultQueueLock;
+        std::mutex* defaultQueueMutex;
         if (!getDefaultQueueForDeviceLocked(device, &defaultQueue, &defaultQueueFamilyIndex,
-                                            &defaultQueueLock)) {
+                                            &defaultQueueMutex)) {
             INFO("%s: can't get the default q", __func__);
             return VK_ERROR_INITIALIZATION_FAILED;
         }
@@ -5602,7 +5748,7 @@ class VkDecoderGlobalState::Impl {
         AndroidNativeBufferInfo* anbInfo = imageInfo->anbInfo.get();
 
         VkResult result = setAndroidNativeImageSemaphoreSignaled(
-            vk, device, defaultQueue, defaultQueueFamilyIndex, defaultQueueLock, semaphore,
+            vk, device, defaultQueue, defaultQueueFamilyIndex, defaultQueueMutex, semaphore,
             usedFence, anbInfo);
         if (result != VK_SUCCESS) {
             return result;
@@ -5628,7 +5774,8 @@ class VkDecoderGlobalState::Impl {
         return VK_SUCCESS;
     }
 
-    VkResult on_vkQueueSignalReleaseImageANDROID(android::base::BumpPool* pool, VkQueue boxed_queue,
+    VkResult on_vkQueueSignalReleaseImageANDROID(android::base::BumpPool* pool,
+                                                 VkSnapshotApiCallInfo*, VkQueue boxed_queue,
                                                  uint32_t waitSemaphoreCount,
                                                  const VkSemaphore* pWaitSemaphores, VkImage image,
                                                  int* pNativeFenceFd) {
@@ -5662,13 +5809,13 @@ class VkDecoderGlobalState::Impl {
         }
 
         return syncImageToColorBuffer(m_emu->callbacks, vk, queueInfo->queueFamilyIndex, queue,
-                                      queueInfo->lock, waitSemaphoreCount, pWaitSemaphores,
+                                      queueInfo->queueMutex.get(), waitSemaphoreCount, pWaitSemaphores,
                                       pNativeFenceFd, anbInfo);
     }
 
     VkResult on_vkMapMemoryIntoAddressSpaceGOOGLE(android::base::BumpPool* pool,
-                                                  VkDevice boxed_device, VkDeviceMemory memory,
-                                                  uint64_t* pAddress) {
+                                                  VkSnapshotApiCallInfo*, VkDevice boxed_device,
+                                                  VkDeviceMemory memory, uint64_t* pAddress) {
         auto device = unbox_VkDevice(boxed_device);
         auto vk = dispatch_VkDevice(boxed_device);
 
@@ -5716,18 +5863,17 @@ class VkDecoderGlobalState::Impl {
         hostBlobId = (info->blobId && !hostBlobId) ? info->blobId : hostBlobId;
 
         if (m_emu->features.SystemBlob.enabled && info->sharedMemory.has_value()) {
-            uint32_t handleType = STREAM_MEM_HANDLE_TYPE_SHM;
             // We transfer ownership of the shared memory handle to the descriptor info.
             // The memory itself is destroyed only when all processes unmap / release their
             // handles.
             ExternalObjectManager::get()->addBlobDescriptorInfo(
-                virtioGpuContextId, hostBlobId, info->sharedMemory->releaseHandle(), handleType,
-                info->caching, std::nullopt);
+                virtioGpuContextId, hostBlobId, info->sharedMemory->releaseHandle(),
+                STREAM_HANDLE_TYPE_MEM_SHM, info->caching, std::nullopt);
         } else if (m_emu->features.ExternalBlob.enabled) {
             VkResult result;
 
             DescriptorType handle;
-            uint32_t handleType;
+            uint32_t streamHandleType;
             struct VulkanInfo vulkanInfo = {
                 .memoryIndex = info->memoryIndex,
             };
@@ -5753,14 +5899,14 @@ class VkDecoderGlobalState::Impl {
                 .handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT,
             };
 
-            handleType = STREAM_MEM_HANDLE_TYPE_OPAQUE_FD;
+            streamHandleType = STREAM_HANDLE_TYPE_MEM_OPAQUE_FD;
 #endif
 
 #ifdef __linux__
             if (m_emu->deviceInfo.supportsDmaBuf &&
                 hasDeviceExtension(device, VK_EXT_EXTERNAL_MEMORY_DMA_BUF_EXTENSION_NAME)) {
                 getFd.handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT;
-                handleType = STREAM_MEM_HANDLE_TYPE_DMABUF;
+                streamHandleType = STREAM_HANDLE_TYPE_MEM_DMABUF;
             }
 #endif
 
@@ -5779,7 +5925,7 @@ class VkDecoderGlobalState::Impl {
                 .handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT,
             };
 
-            handleType = STREAM_MEM_HANDLE_TYPE_OPAQUE_WIN32;
+            streamHandleType = STREAM_HANDLE_TYPE_MEM_OPAQUE_WIN32;
 
             result = m_emu->deviceInfo.getMemoryHandleFunc(device, &getHandle, &handle);
             if (result != VK_SUCCESS) {
@@ -5796,8 +5942,8 @@ class VkDecoderGlobalState::Impl {
 
             ManagedDescriptor managedHandle(handle);
             ExternalObjectManager::get()->addBlobDescriptorInfo(
-                virtioGpuContextId, hostBlobId, std::move(managedHandle), handleType, info->caching,
-                std::optional<VulkanInfo>(vulkanInfo));
+                virtioGpuContextId, hostBlobId, std::move(managedHandle), streamHandleType,
+                info->caching, std::optional<VulkanInfo>(vulkanInfo));
         } else if (!info->needUnmap) {
             auto device = unbox_VkDevice(boxed_device);
             auto vk = dispatch_VkDevice(boxed_device);
@@ -5829,29 +5975,31 @@ class VkDecoderGlobalState::Impl {
         return VK_SUCCESS;
     }
 
-    VkResult on_vkGetBlobGOOGLE(android::base::BumpPool* pool, VkDevice boxed_device,
-                                VkDeviceMemory memory) {
+    VkResult on_vkGetBlobGOOGLE(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                                VkDevice boxed_device, VkDeviceMemory memory) {
         return vkGetBlobInternal(boxed_device, memory, 0);
     }
 
     VkResult on_vkGetMemoryHostAddressInfoGOOGLE(android::base::BumpPool* pool,
-                                                 VkDevice boxed_device, VkDeviceMemory memory,
-                                                 uint64_t* pAddress, uint64_t* pSize,
-                                                 uint64_t* pHostmemId) {
+                                                 VkSnapshotApiCallInfo*, VkDevice boxed_device,
+                                                 VkDeviceMemory memory, uint64_t* pAddress,
+                                                 uint64_t* pSize, uint64_t* pHostmemId) {
         hostBlobId++;
         *pHostmemId = hostBlobId;
         return vkGetBlobInternal(boxed_device, memory, hostBlobId);
     }
 
-    VkResult on_vkFreeMemorySyncGOOGLE(android::base::BumpPool* pool, VkDevice boxed_device,
+    VkResult on_vkFreeMemorySyncGOOGLE(android::base::BumpPool* pool,
+                                       VkSnapshotApiCallInfo* snapshotInfo, VkDevice boxed_device,
                                        VkDeviceMemory memory,
                                        const VkAllocationCallbacks* pAllocator) {
-        on_vkFreeMemory(pool, boxed_device, memory, pAllocator);
+        on_vkFreeMemory(pool, snapshotInfo, boxed_device, memory, pAllocator);
 
         return VK_SUCCESS;
     }
 
-    VkResult on_vkAllocateCommandBuffers(android::base::BumpPool* pool, VkDevice boxed_device,
+    VkResult on_vkAllocateCommandBuffers(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                                         VkDevice boxed_device,
                                          const VkCommandBufferAllocateInfo* pAllocateInfo,
                                          VkCommandBuffer* pCommandBuffers) {
         auto device = unbox_VkDevice(boxed_device);
@@ -5866,7 +6014,12 @@ class VkDecoderGlobalState::Impl {
         std::lock_guard<std::recursive_mutex> lock(mLock);
 
         auto* deviceInfo = android::base::find(mDeviceInfo, device);
-        if (!deviceInfo) return VK_ERROR_UNKNOWN;
+        auto* commandPoolInfo = android::base::find(mCommandPoolInfo, pAllocateInfo->commandPool);
+        if (!deviceInfo || !commandPoolInfo) {
+            ERR("Cannot allocate command buffers, dependency not found! (%p, %p)", deviceInfo,
+                commandPoolInfo);
+            return VK_ERROR_UNKNOWN;
+        }
 
         for (uint32_t i = 0; i < pAllocateInfo->commandBufferCount; i++) {
             VALIDATE_NEW_HANDLE_INFO_ENTRY(mCommandBufferInfo, pCommandBuffers[i]);
@@ -5877,12 +6030,16 @@ class VkDecoderGlobalState::Impl {
             auto boxed = new_boxed_VkCommandBuffer(pCommandBuffers[i], vk,
                                                    false /* does not own dispatch */);
             mCommandBufferInfo[pCommandBuffers[i]].boxed = boxed;
+
+            commandPoolInfo->cmdBuffers.insert(pCommandBuffers[i]);
+
             pCommandBuffers[i] = (VkCommandBuffer)boxed;
         }
         return result;
     }
 
-    VkResult on_vkCreateCommandPool(android::base::BumpPool* pool, VkDevice boxed_device,
+    VkResult on_vkCreateCommandPool(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                                    VkDevice boxed_device,
                                     const VkCommandPoolCreateInfo* pCreateInfo,
                                     const VkAllocationCallbacks* pAllocator,
                                     VkCommandPool* pCommandPool) {
@@ -5911,7 +6068,13 @@ class VkDecoderGlobalState::Impl {
         std::unordered_map<VkCommandBuffer, CommandBufferInfo>& commandBufferInfos,
         const VkAllocationCallbacks* pAllocator) {
         for (const VkCommandBuffer commandBuffer : commandPoolInfo.cmdBuffers) {
-            commandBufferInfos.erase(commandBuffer);
+            auto iterInInfos = commandBufferInfos.find(commandBuffer);
+            if (iterInInfos != commandBufferInfos.end()) {
+                commandBufferInfos.erase(iterInInfos);
+            } else {
+                ERR("Cannot find command buffer reference (%p).",
+                    commandBuffer);
+            }
         }
 
         deviceDispatch->vkDestroyCommandPool(device, commandPool, pAllocator);
@@ -5930,8 +6093,8 @@ class VkDecoderGlobalState::Impl {
         mCommandPoolInfo.erase(commandPoolInfoIt);
     }
 
-    void on_vkDestroyCommandPool(android::base::BumpPool* pool, VkDevice boxed_device,
-                                 VkCommandPool commandPool,
+    void on_vkDestroyCommandPool(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                                 VkDevice boxed_device, VkCommandPool commandPool,
                                  const VkAllocationCallbacks* pAllocator) {
         auto device = unbox_VkDevice(boxed_device);
         auto deviceDispatch = dispatch_VkDevice(boxed_device);
@@ -5940,8 +6103,9 @@ class VkDecoderGlobalState::Impl {
         destroyCommandPoolLocked(device, deviceDispatch, commandPool, pAllocator);
     }
 
-    VkResult on_vkResetCommandPool(android::base::BumpPool* pool, VkDevice boxed_device,
-                                   VkCommandPool commandPool, VkCommandPoolResetFlags flags) {
+    VkResult on_vkResetCommandPool(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                                   VkDevice boxed_device, VkCommandPool commandPool,
+                                   VkCommandPoolResetFlags flags) {
         auto device = unbox_VkDevice(boxed_device);
         auto vk = dispatch_VkDevice(boxed_device);
 
@@ -5952,8 +6116,8 @@ class VkDecoderGlobalState::Impl {
         return result;
     }
 
-    void on_vkCmdExecuteCommands(android::base::BumpPool* pool, VkCommandBuffer boxed_commandBuffer,
-                                 uint32_t commandBufferCount,
+    void on_vkCmdExecuteCommands(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                                 VkCommandBuffer boxed_commandBuffer, uint32_t commandBufferCount,
                                  const VkCommandBuffer* pCommandBuffers) {
         auto commandBuffer = unbox_VkCommandBuffer(boxed_commandBuffer);
         auto vk = dispatch_VkCommandBuffer(boxed_commandBuffer);
@@ -6018,9 +6182,9 @@ class VkDecoderGlobalState::Impl {
     }
 
     template <typename VkSubmitInfoType>
-    VkResult on_vkQueueSubmit(android::base::BumpPool* pool, VkQueue boxed_queue,
-                              uint32_t submitCount, const VkSubmitInfoType* pSubmits,
-                              VkFence fence) {
+    VkResult on_vkQueueSubmit(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                              VkQueue boxed_queue, uint32_t submitCount,
+                              const VkSubmitInfoType* pSubmits, VkFence fence) {
         auto queue = unbox_VkQueue(boxed_queue);
         auto vk = dispatch_VkQueue(boxed_queue);
 
@@ -6071,29 +6235,26 @@ class VkDecoderGlobalState::Impl {
         }
 
         VkDevice device = VK_NULL_HANDLE;
-        Lock* ql;
+        std::mutex* queueMutex = nullptr;
         {
             std::lock_guard<std::recursive_mutex> lock(mLock);
+            auto* queueInfo = android::base::find(mQueueInfo, queue);
+            if (!queueInfo) {
+                ERR("vkQueueSubmit cannot find queue info for %p", queue);
+                return VK_ERROR_INITIALIZATION_FAILED;
+            }
+            device = queueInfo->device;
+            queueMutex = queueInfo->queueMutex.get();
 
-            {
-                auto* queueInfo = android::base::find(mQueueInfo, queue);
-                if (queueInfo) {
-                    device = queueInfo->device;
-                    // Unsafe to release when snapshot enabled.
-                    // Snapshot load might fail to find the shader modules if we release them here.
-                    if (!snapshotsEnabled()) {
-                        sBoxedHandleManager.processDelayedRemovesGlobalStateLocked(device);
-                    }
-                }
+            // Unsafe to release when snapshot enabled.
+            // Snapshot load might fail to find the shader modules if we release them here.
+            if (!snapshotsEnabled()) {
+                sBoxedHandleManager.processDelayedRemovesGlobalStateLocked(device);
             }
 
             for (uint32_t i = 0; i < submitCount; i++) {
                 executePreprocessRecursive(pSubmits[i]);
             }
-
-            auto* queueInfo = android::base::find(mQueueInfo, queue);
-            if (!queueInfo) return VK_SUCCESS;
-            ql = queueInfo->lock;
         }
 
         VkFence usedFence = fence;
@@ -6135,7 +6296,7 @@ class VkDecoderGlobalState::Impl {
             }
         }
 
-        AutoLock qlock(*ql);
+        std::lock_guard<std::mutex> queueLock(*queueMutex);
         auto result = dispatchVkQueueSubmit(vk, queue, submitCount, pSubmits, usedFence);
 
         if (result != VK_SUCCESS) {
@@ -6197,7 +6358,11 @@ class VkDecoderGlobalState::Impl {
             }
         }
         if (!releasedColorBuffers.empty()) {
-            vk->vkWaitForFences(device, 1, &usedFence, VK_TRUE, /* 1 sec */ 1000000000L);
+            result = vk->vkWaitForFences(device, 1, &usedFence, VK_TRUE, /* 1 sec */ 1000000000L);
+            if (result != VK_SUCCESS) {
+                ERR("vkWaitForFences failed: %s [%d]", string_VkResult(result), result);
+                return result;
+            }
 
             for (HandleType cb : releasedColorBuffers) {
                 m_emu->callbacks.flushColorBuffer(cb);
@@ -6207,25 +6372,32 @@ class VkDecoderGlobalState::Impl {
         return result;
     }
 
-    VkResult on_vkQueueWaitIdle(android::base::BumpPool* pool, VkQueue boxed_queue) {
+    VkResult on_vkQueueWaitIdle(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                                VkQueue boxed_queue) {
         auto queue = unbox_VkQueue(boxed_queue);
         auto vk = dispatch_VkQueue(boxed_queue);
 
         if (!queue) return VK_SUCCESS;
 
-        Lock* ql;
+        std::mutex* queueMutex;
         {
             std::lock_guard<std::recursive_mutex> lock(mLock);
             auto* queueInfo = android::base::find(mQueueInfo, queue);
             if (!queueInfo) return VK_SUCCESS;
-            ql = queueInfo->lock;
+            queueMutex = queueInfo->queueMutex.get();
         }
 
-        AutoLock qlock(*ql);
+        if (mEnableVirtualVkQueue) {
+            // TODO(b/379862480): register and track gpu workload to wait only for them here, ie.
+            // not any other fences/work. It should not hold the queue lock/ql while waiting to
+            // allow submissions and other operations on the virtualized queue
+        }
+
+        std::lock_guard<std::mutex> queueLock(*queueMutex);
         return vk->vkQueueWaitIdle(queue);
     }
 
-    VkResult on_vkResetCommandBuffer(android::base::BumpPool* pool,
+    VkResult on_vkResetCommandBuffer(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
                                      VkCommandBuffer boxed_commandBuffer,
                                      VkCommandBufferResetFlags flags) {
         auto commandBuffer = unbox_VkCommandBuffer(boxed_commandBuffer);
@@ -6242,37 +6414,46 @@ class VkDecoderGlobalState::Impl {
         return result;
     }
 
-    void destroyCommandBufferWithExclusiveInfos(
+    void freeCommandBufferWithExclusiveInfos(
         VkDevice device, VulkanDispatch* deviceDispatch, VkCommandBuffer commandBuffer,
         CommandBufferInfo& commandBufferInfo,
-        std::unordered_map<VkCommandPool, CommandPoolInfo> commandPoolInfos) {
+        std::unordered_map<VkCommandPool, CommandPoolInfo>& commandPoolInfos) {
         auto commandPool = commandBufferInfo.cmdPool;
 
         auto commandPoolInfoIt = commandPoolInfos.find(commandPool);
         if (commandPoolInfoIt == commandPoolInfos.end()) return;
         auto& commandPoolInfo = commandPoolInfoIt->second;
 
-        commandPoolInfo.cmdBuffers.erase(commandBuffer);
+        auto iterInPool = commandPoolInfo.cmdBuffers.find(commandBuffer);
+        if (iterInPool != commandPoolInfo.cmdBuffers.end()) {
+            commandPoolInfo.cmdBuffers.erase(iterInPool);
+        } else {
+            ERR("Cannot find command buffer reference (%p) in the pool.", commandBuffer);
+        }
 
         // Note delete_VkCommandBuffer(cmdBufferInfoIt->second.boxed); currently done in decoder.
 
         deviceDispatch->vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
     }
 
-    void destroyCommandBufferLocked(VkDevice device, VulkanDispatch* deviceDispatch,
-                                    VkCommandPool commandPool, VkCommandBuffer commandBuffer) {
+    void freeCommandBufferLocked(VkDevice device, VulkanDispatch* deviceDispatch,
+                                 VkCommandPool commandPool, VkCommandBuffer commandBuffer) {
         auto commandBufferInfoIt = mCommandBufferInfo.find(commandBuffer);
-        if (commandBufferInfoIt == mCommandBufferInfo.end()) return;
+        if (commandBufferInfoIt == mCommandBufferInfo.end()) {
+            WARN("freeCommandBufferLocked cannot find %p", commandBuffer);
+            return;
+        }
         auto& commandBufferInfo = commandBufferInfoIt->second;
 
-        destroyCommandBufferWithExclusiveInfos(device, deviceDispatch, commandBuffer,
-                                               commandBufferInfo, mCommandPoolInfo);
+        freeCommandBufferWithExclusiveInfos(device, deviceDispatch, commandBuffer,
+                                            commandBufferInfo, mCommandPoolInfo);
 
         mCommandBufferInfo.erase(commandBufferInfoIt);
     }
 
-    void on_vkFreeCommandBuffers(android::base::BumpPool* pool, VkDevice boxed_device,
-                                 VkCommandPool commandPool, uint32_t commandBufferCount,
+    void on_vkFreeCommandBuffers(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                                 VkDevice boxed_device, VkCommandPool commandPool,
+                                 uint32_t commandBufferCount,
                                  const VkCommandBuffer* pCommandBuffers) {
         auto device = unbox_VkDevice(boxed_device);
         auto deviceDispatch = dispatch_VkDevice(boxed_device);
@@ -6284,12 +6465,13 @@ class VkDecoderGlobalState::Impl {
 
         std::lock_guard<std::recursive_mutex> lock(mLock);
         for (uint32_t i = 0; i < commandBufferCount; i++) {
-            destroyCommandBufferLocked(device, deviceDispatch, commandPool, pCommandBuffers[i]);
+            freeCommandBufferLocked(device, deviceDispatch, commandPool, pCommandBuffers[i]);
         }
     }
 
     void on_vkGetPhysicalDeviceExternalSemaphoreProperties(
-        android::base::BumpPool* pool, VkPhysicalDevice boxed_physicalDevice,
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+        VkPhysicalDevice boxed_physicalDevice,
         const VkPhysicalDeviceExternalSemaphoreInfo* pExternalSemaphoreInfo,
         VkExternalSemaphoreProperties* pExternalSemaphoreProperties) {
         auto physicalDevice = unbox_VkPhysicalDevice(boxed_physicalDevice);
@@ -6330,7 +6512,7 @@ class VkDecoderGlobalState::Impl {
     }
 
     VkResult on_vkCreateDescriptorUpdateTemplate(
-        android::base::BumpPool* pool, VkDevice boxed_device,
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo*, VkDevice boxed_device,
         const VkDescriptorUpdateTemplateCreateInfo* pCreateInfo,
         const VkAllocationCallbacks* pAllocator,
         VkDescriptorUpdateTemplate* pDescriptorUpdateTemplate) {
@@ -6354,7 +6536,7 @@ class VkDecoderGlobalState::Impl {
     }
 
     VkResult on_vkCreateDescriptorUpdateTemplateKHR(
-        android::base::BumpPool* pool, VkDevice boxed_device,
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo*, VkDevice boxed_device,
         const VkDescriptorUpdateTemplateCreateInfo* pCreateInfo,
         const VkAllocationCallbacks* pAllocator,
         VkDescriptorUpdateTemplate* pDescriptorUpdateTemplate) {
@@ -6377,7 +6559,8 @@ class VkDecoderGlobalState::Impl {
         return res;
     }
 
-    void on_vkDestroyDescriptorUpdateTemplate(android::base::BumpPool* pool, VkDevice boxed_device,
+    void on_vkDestroyDescriptorUpdateTemplate(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                                              VkDevice boxed_device,
                                               VkDescriptorUpdateTemplate descriptorUpdateTemplate,
                                               const VkAllocationCallbacks* pAllocator) {
         auto device = unbox_VkDevice(boxed_device);
@@ -6389,7 +6572,7 @@ class VkDecoderGlobalState::Impl {
     }
 
     void on_vkDestroyDescriptorUpdateTemplateKHR(
-        android::base::BumpPool* pool, VkDevice boxed_device,
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo*, VkDevice boxed_device,
         VkDescriptorUpdateTemplate descriptorUpdateTemplate,
         const VkAllocationCallbacks* pAllocator) {
         auto device = unbox_VkDevice(boxed_device);
@@ -6401,12 +6584,12 @@ class VkDecoderGlobalState::Impl {
     }
 
     void on_vkUpdateDescriptorSetWithTemplateSizedGOOGLE(
-        android::base::BumpPool* pool, VkDevice boxed_device, VkDescriptorSet descriptorSet,
-        VkDescriptorUpdateTemplate descriptorUpdateTemplate, uint32_t imageInfoCount,
-        uint32_t bufferInfoCount, uint32_t bufferViewCount, const uint32_t* pImageInfoEntryIndices,
-        const uint32_t* pBufferInfoEntryIndices, const uint32_t* pBufferViewEntryIndices,
-        const VkDescriptorImageInfo* pImageInfos, const VkDescriptorBufferInfo* pBufferInfos,
-        const VkBufferView* pBufferViews) {
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo*, VkDevice boxed_device,
+        VkDescriptorSet descriptorSet, VkDescriptorUpdateTemplate descriptorUpdateTemplate,
+        uint32_t imageInfoCount, uint32_t bufferInfoCount, uint32_t bufferViewCount,
+        const uint32_t* pImageInfoEntryIndices, const uint32_t* pBufferInfoEntryIndices,
+        const uint32_t* pBufferViewEntryIndices, const VkDescriptorImageInfo* pImageInfos,
+        const VkDescriptorBufferInfo* pBufferInfos, const VkBufferView* pBufferViews) {
         auto device = unbox_VkDevice(boxed_device);
         auto vk = dispatch_VkDevice(boxed_device);
 
@@ -6426,13 +6609,13 @@ class VkDecoderGlobalState::Impl {
     }
 
     void on_vkUpdateDescriptorSetWithTemplateSized2GOOGLE(
-        android::base::BumpPool* pool, VkDevice boxed_device, VkDescriptorSet descriptorSet,
-        VkDescriptorUpdateTemplate descriptorUpdateTemplate, uint32_t imageInfoCount,
-        uint32_t bufferInfoCount, uint32_t bufferViewCount, uint32_t inlineUniformBlockCount,
-        const uint32_t* pImageInfoEntryIndices, const uint32_t* pBufferInfoEntryIndices,
-        const uint32_t* pBufferViewEntryIndices, const VkDescriptorImageInfo* pImageInfos,
-        const VkDescriptorBufferInfo* pBufferInfos, const VkBufferView* pBufferViews,
-        const uint8_t* pInlineUniformBlockData) {
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo*, VkDevice boxed_device,
+        VkDescriptorSet descriptorSet, VkDescriptorUpdateTemplate descriptorUpdateTemplate,
+        uint32_t imageInfoCount, uint32_t bufferInfoCount, uint32_t bufferViewCount,
+        uint32_t inlineUniformBlockCount, const uint32_t* pImageInfoEntryIndices,
+        const uint32_t* pBufferInfoEntryIndices, const uint32_t* pBufferViewEntryIndices,
+        const VkDescriptorImageInfo* pImageInfos, const VkDescriptorBufferInfo* pBufferInfos,
+        const VkBufferView* pBufferViews, const uint8_t* pInlineUniformBlockData) {
         auto device = unbox_VkDevice(boxed_device);
         auto vk = dispatch_VkDevice(boxed_device);
 
@@ -6483,7 +6666,7 @@ class VkDecoderGlobalState::Impl {
         releaseOrderMaintInfo(order);
     }
 
-    void on_vkCommandBufferHostSyncGOOGLE(android::base::BumpPool* pool,
+    void on_vkCommandBufferHostSyncGOOGLE(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
                                           VkCommandBuffer commandBuffer, uint32_t needHostSync,
                                           uint32_t sequenceNumber) {
         this->hostSyncCommandBuffer("hostSync", commandBuffer, needHostSync, sequenceNumber);
@@ -6519,58 +6702,54 @@ class VkDecoderGlobalState::Impl {
         releaseOrderMaintInfo(order);
     }
 
-    void on_vkQueueHostSyncGOOGLE(android::base::BumpPool* pool, VkQueue queue,
-                                  uint32_t needHostSync, uint32_t sequenceNumber) {
+    void on_vkQueueHostSyncGOOGLE(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                                  VkQueue queue, uint32_t needHostSync, uint32_t sequenceNumber) {
         this->hostSyncQueue("hostSyncQueue", queue, needHostSync, sequenceNumber);
     }
 
-    VkResult on_vkCreateImageWithRequirementsGOOGLE(android::base::BumpPool* pool,
-                                                    VkDevice boxed_device,
-                                                    const VkImageCreateInfo* pCreateInfo,
-                                                    const VkAllocationCallbacks* pAllocator,
-                                                    VkImage* pImage,
-                                                    VkMemoryRequirements* pMemoryRequirements) {
+    VkResult on_vkCreateImageWithRequirementsGOOGLE(
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo, VkDevice boxed_device,
+        const VkImageCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator,
+        VkImage* pImage, VkMemoryRequirements* pMemoryRequirements) {
         if (pMemoryRequirements) {
             memset(pMemoryRequirements, 0, sizeof(*pMemoryRequirements));
         }
 
         VkResult imageCreateRes =
-            on_vkCreateImage(pool, boxed_device, pCreateInfo, pAllocator, pImage);
+            on_vkCreateImage(pool, snapshotInfo, boxed_device, pCreateInfo, pAllocator, pImage);
 
         if (imageCreateRes != VK_SUCCESS) {
             return imageCreateRes;
         }
 
-        on_vkGetImageMemoryRequirements(pool, boxed_device, unbox_VkImage(*pImage),
+        on_vkGetImageMemoryRequirements(pool, snapshotInfo, boxed_device, unbox_VkImage(*pImage),
                                         pMemoryRequirements);
 
         return imageCreateRes;
     }
 
-    VkResult on_vkCreateBufferWithRequirementsGOOGLE(android::base::BumpPool* pool,
-                                                     VkDevice boxed_device,
-                                                     const VkBufferCreateInfo* pCreateInfo,
-                                                     const VkAllocationCallbacks* pAllocator,
-                                                     VkBuffer* pBuffer,
-                                                     VkMemoryRequirements* pMemoryRequirements) {
+    VkResult on_vkCreateBufferWithRequirementsGOOGLE(
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo, VkDevice boxed_device,
+        const VkBufferCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator,
+        VkBuffer* pBuffer, VkMemoryRequirements* pMemoryRequirements) {
         if (pMemoryRequirements) {
             memset(pMemoryRequirements, 0, sizeof(*pMemoryRequirements));
         }
 
         VkResult bufferCreateRes =
-            on_vkCreateBuffer(pool, boxed_device, pCreateInfo, pAllocator, pBuffer);
+            on_vkCreateBuffer(pool, snapshotInfo, boxed_device, pCreateInfo, pAllocator, pBuffer);
 
         if (bufferCreateRes != VK_SUCCESS) {
             return bufferCreateRes;
         }
 
-        on_vkGetBufferMemoryRequirements(pool, boxed_device, unbox_VkBuffer(*pBuffer),
+        on_vkGetBufferMemoryRequirements(pool, snapshotInfo, boxed_device, unbox_VkBuffer(*pBuffer),
                                          pMemoryRequirements);
 
         return bufferCreateRes;
     }
 
-    VkResult on_vkBeginCommandBuffer(android::base::BumpPool* pool,
+    VkResult on_vkBeginCommandBuffer(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
                                      VkCommandBuffer boxed_commandBuffer,
                                      const VkCommandBufferBeginInfo* pBeginInfo,
                                      const VkDecoderContext& context) {
@@ -6599,13 +6778,15 @@ class VkDecoderGlobalState::Impl {
     }
 
     VkResult on_vkBeginCommandBufferAsyncGOOGLE(android::base::BumpPool* pool,
+                                                VkSnapshotApiCallInfo* snapshotInfo,
                                                 VkCommandBuffer boxed_commandBuffer,
                                                 const VkCommandBufferBeginInfo* pBeginInfo,
                                                 const VkDecoderContext& context) {
-        return this->on_vkBeginCommandBuffer(pool, boxed_commandBuffer, pBeginInfo, context);
+        return this->on_vkBeginCommandBuffer(pool, snapshotInfo, boxed_commandBuffer, pBeginInfo,
+                                             context);
     }
 
-    VkResult on_vkEndCommandBuffer(android::base::BumpPool* pool,
+    VkResult on_vkEndCommandBuffer(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
                                    VkCommandBuffer boxed_commandBuffer,
                                    const VkDecoderContext& context) {
         auto commandBuffer = unbox_VkCommandBuffer(boxed_commandBuffer);
@@ -6626,18 +6807,21 @@ class VkDecoderGlobalState::Impl {
     }
 
     void on_vkEndCommandBufferAsyncGOOGLE(android::base::BumpPool* pool,
+                                          VkSnapshotApiCallInfo* snapshotInfo,
                                           VkCommandBuffer boxed_commandBuffer,
                                           const VkDecoderContext& context) {
-        on_vkEndCommandBuffer(pool, boxed_commandBuffer, context);
+        on_vkEndCommandBuffer(pool, snapshotInfo, boxed_commandBuffer, context);
     }
 
     void on_vkResetCommandBufferAsyncGOOGLE(android::base::BumpPool* pool,
+                                            VkSnapshotApiCallInfo* snapshotInfo,
                                             VkCommandBuffer boxed_commandBuffer,
                                             VkCommandBufferResetFlags flags) {
-        on_vkResetCommandBuffer(pool, boxed_commandBuffer, flags);
+        on_vkResetCommandBuffer(pool, snapshotInfo, boxed_commandBuffer, flags);
     }
 
-    void on_vkCmdBindPipeline(android::base::BumpPool* pool, VkCommandBuffer boxed_commandBuffer,
+    void on_vkCmdBindPipeline(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                              VkCommandBuffer boxed_commandBuffer,
                               VkPipelineBindPoint pipelineBindPoint, VkPipeline pipeline) {
         auto commandBuffer = unbox_VkCommandBuffer(boxed_commandBuffer);
         auto vk = dispatch_VkCommandBuffer(boxed_commandBuffer);
@@ -6651,7 +6835,7 @@ class VkDecoderGlobalState::Impl {
         }
     }
 
-    void on_vkCmdBindDescriptorSets(android::base::BumpPool* pool,
+    void on_vkCmdBindDescriptorSets(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
                                     VkCommandBuffer boxed_commandBuffer,
                                     VkPipelineBindPoint pipelineBindPoint, VkPipelineLayout layout,
                                     uint32_t firstSet, uint32_t descriptorSetCount,
@@ -6679,8 +6863,8 @@ class VkDecoderGlobalState::Impl {
         }
     }
 
-    VkResult on_vkCreateRenderPass(android::base::BumpPool* pool, VkDevice boxed_device,
-                                   const VkRenderPassCreateInfo* pCreateInfo,
+    VkResult on_vkCreateRenderPass(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                                   VkDevice boxed_device, const VkRenderPassCreateInfo* pCreateInfo,
                                    const VkAllocationCallbacks* pAllocator,
                                    VkRenderPass* pRenderPass) {
         auto device = unbox_VkDevice(boxed_device);
@@ -6724,7 +6908,8 @@ class VkDecoderGlobalState::Impl {
         return res;
     }
 
-    VkResult on_vkCreateRenderPass2(android::base::BumpPool* pool, VkDevice boxed_device,
+    VkResult on_vkCreateRenderPass2(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                                    VkDevice boxed_device,
                                     const VkRenderPassCreateInfo2* pCreateInfo,
                                     const VkAllocationCallbacks* pAllocator,
                                     VkRenderPass* pRenderPass) {
@@ -6764,8 +6949,9 @@ class VkDecoderGlobalState::Impl {
         mRenderPassInfo.erase(renderPass);
     }
 
-    void on_vkDestroyRenderPass(android::base::BumpPool* pool, VkDevice boxed_device,
-                                VkRenderPass renderPass, const VkAllocationCallbacks* pAllocator) {
+    void on_vkDestroyRenderPass(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                                VkDevice boxed_device, VkRenderPass renderPass,
+                                const VkAllocationCallbacks* pAllocator) {
         auto device = unbox_VkDevice(boxed_device);
         auto deviceDispatch = dispatch_VkDevice(boxed_device);
 
@@ -6773,42 +6959,65 @@ class VkDecoderGlobalState::Impl {
         destroyRenderPassLocked(device, deviceDispatch, renderPass, pAllocator);
     }
 
-    void registerRenderPassBeginInfo(VkCommandBuffer commandBuffer,
+    bool registerRenderPassBeginInfo(VkCommandBuffer commandBuffer,
                                      const VkRenderPassBeginInfo* pRenderPassBegin) {
+        if (!pRenderPassBegin) {
+            ERR("pRenderPassBegin is null");
+            return false;
+        }
+
+        std::lock_guard<std::recursive_mutex> lock(mLock);
         CommandBufferInfo* cmdBufferInfo = android::base::find(mCommandBufferInfo, commandBuffer);
+        if (!cmdBufferInfo) {
+            ERR("VkCommandBuffer=%p not found in mCommandBufferInfo", commandBuffer);
+            return false;
+        }
+
         FramebufferInfo* fbInfo =
             android::base::find(mFramebufferInfo, pRenderPassBegin->framebuffer);
+        if (!fbInfo) {
+            ERR("pRenderPassBegin->framebuffer=%p not found in mFbInfo",
+                pRenderPassBegin->framebuffer);
+            return false;
+        }
+
         cmdBufferInfo->releasedColorBuffers.insert(fbInfo->attachedColorBuffers.begin(),
                                                    fbInfo->attachedColorBuffers.end());
+        return true;
     }
 
-    void on_vkCmdBeginRenderPass(android::base::BumpPool* pool, VkCommandBuffer boxed_commandBuffer,
+    void on_vkCmdBeginRenderPass(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                                 VkCommandBuffer boxed_commandBuffer,
                                  const VkRenderPassBeginInfo* pRenderPassBegin,
                                  VkSubpassContents contents) {
         auto commandBuffer = unbox_VkCommandBuffer(boxed_commandBuffer);
         auto vk = dispatch_VkCommandBuffer(boxed_commandBuffer);
-        registerRenderPassBeginInfo(commandBuffer, pRenderPassBegin);
-        vk->vkCmdBeginRenderPass(commandBuffer, pRenderPassBegin, contents);
+        if (registerRenderPassBeginInfo(commandBuffer, pRenderPassBegin)) {
+            vk->vkCmdBeginRenderPass(commandBuffer, pRenderPassBegin, contents);
+        }
     }
 
-    void on_vkCmdBeginRenderPass2(android::base::BumpPool* pool,
+    void on_vkCmdBeginRenderPass2(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
                                   VkCommandBuffer boxed_commandBuffer,
                                   const VkRenderPassBeginInfo* pRenderPassBegin,
                                   const VkSubpassBeginInfo* pSubpassBeginInfo) {
         auto commandBuffer = unbox_VkCommandBuffer(boxed_commandBuffer);
         auto vk = dispatch_VkCommandBuffer(boxed_commandBuffer);
-        registerRenderPassBeginInfo(commandBuffer, pRenderPassBegin);
-        vk->vkCmdBeginRenderPass2(commandBuffer, pRenderPassBegin, pSubpassBeginInfo);
+        if (registerRenderPassBeginInfo(commandBuffer, pRenderPassBegin)) {
+            vk->vkCmdBeginRenderPass2(commandBuffer, pRenderPassBegin, pSubpassBeginInfo);
+        }
     }
 
     void on_vkCmdBeginRenderPass2KHR(android::base::BumpPool* pool,
+                                     VkSnapshotApiCallInfo* snapshotInfo,
                                      VkCommandBuffer boxed_commandBuffer,
                                      const VkRenderPassBeginInfo* pRenderPassBegin,
                                      const VkSubpassBeginInfo* pSubpassBeginInfo) {
-        on_vkCmdBeginRenderPass2(pool, boxed_commandBuffer, pRenderPassBegin, pSubpassBeginInfo);
+        on_vkCmdBeginRenderPass2(pool, snapshotInfo, boxed_commandBuffer, pRenderPassBegin,
+                                 pSubpassBeginInfo);
     }
 
-    void on_vkCmdCopyQueryPoolResults(android::base::BumpPool* pool,
+    void on_vkCmdCopyQueryPoolResults(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
                                       VkCommandBuffer boxed_commandBuffer, VkQueryPool queryPool,
                                       uint32_t firstQuery, uint32_t queryCount, VkBuffer dstBuffer,
                                       VkDeviceSize dstOffset, VkDeviceSize stride,
@@ -6825,7 +7034,8 @@ class VkDecoderGlobalState::Impl {
                                       dstOffset, stride, flags);
     }
 
-    VkResult on_vkCreateFramebuffer(android::base::BumpPool* pool, VkDevice boxed_device,
+    VkResult on_vkCreateFramebuffer(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                                    VkDevice boxed_device,
                                     const VkFramebufferCreateInfo* pCreateInfo,
                                     const VkAllocationCallbacks* pAllocator,
                                     VkFramebuffer* pFramebuffer) {
@@ -6883,8 +7093,8 @@ class VkDecoderGlobalState::Impl {
         mFramebufferInfo.erase(framebuffer);
     }
 
-    void on_vkDestroyFramebuffer(android::base::BumpPool* pool, VkDevice boxed_device,
-                                 VkFramebuffer framebuffer,
+    void on_vkDestroyFramebuffer(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                                 VkDevice boxed_device, VkFramebuffer framebuffer,
                                  const VkAllocationCallbacks* pAllocator) {
         auto device = unbox_VkDevice(boxed_device);
         auto deviceDispatch = dispatch_VkDevice(boxed_device);
@@ -6893,9 +7103,9 @@ class VkDecoderGlobalState::Impl {
         destroyFramebufferLocked(device, deviceDispatch, framebuffer, pAllocator);
     }
 
-    VkResult on_vkQueueBindSparse(android::base::BumpPool* pool, VkQueue boxed_queue,
-                                  uint32_t bindInfoCount, const VkBindSparseInfo* pBindInfo,
-                                  VkFence fence) {
+    VkResult on_vkQueueBindSparse(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                                  VkQueue boxed_queue, uint32_t bindInfoCount,
+                                  const VkBindSparseInfo* pBindInfo, VkFence fence) {
         // If pBindInfo contains VkTimelineSemaphoreSubmitInfo, then it's
         // possible the host driver isn't equipped to deal with them yet.  To
         // work around this, send empty vkQueueSubmits before and after the
@@ -7004,8 +7214,8 @@ class VkDecoderGlobalState::Impl {
         }
     }
 
-    VkResult on_vkQueuePresentKHR(android::base::BumpPool* pool, VkQueue boxed_queue,
-                                  const VkPresentInfoKHR* pPresentInfo) {
+    VkResult on_vkQueuePresentKHR(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                                  VkQueue boxed_queue, const VkPresentInfoKHR* pPresentInfo) {
         // Note that on Android guests, this call will actually be handled
         // with vkQueueSignalReleaseImageANDROID
         auto queue = unbox_VkQueue(boxed_queue);
@@ -7014,7 +7224,8 @@ class VkDecoderGlobalState::Impl {
         return vk->vkQueuePresentKHR(queue, pPresentInfo);
     }
 
-    void on_vkGetLinearImageLayoutGOOGLE(android::base::BumpPool* pool, VkDevice boxed_device,
+    void on_vkGetLinearImageLayoutGOOGLE(android::base::BumpPool* pool,
+                                         VkSnapshotApiCallInfo* snapshotInfo, VkDevice boxed_device,
                                          VkFormat format, VkDeviceSize* pOffset,
                                          VkDeviceSize* pRowPitchAlignment) {
         if (mPerFormatLinearImageProperties.find(format) == mPerFormatLinearImageProperties.end()) {
@@ -7037,8 +7248,9 @@ class VkDecoderGlobalState::Impl {
                 VkDeviceSize currRowPitchAlignment = UINT_MAX;
 
                 VkImageCreateInfo defaultVkImageCreateInfo = linearImageCreateInfo.toDefaultVk();
-                on_vkGetLinearImageLayout2GOOGLE(pool, boxed_device, &defaultVkImageCreateInfo,
-                                                 &currOffset, &currRowPitchAlignment);
+                on_vkGetLinearImageLayout2GOOGLE(pool, snapshotInfo, boxed_device,
+                                                 &defaultVkImageCreateInfo, &currOffset,
+                                                 &currRowPitchAlignment);
 
                 offset = currOffset;
                 rowPitchAlignment = std::min(currRowPitchAlignment, rowPitchAlignment);
@@ -7057,7 +7269,8 @@ class VkDecoderGlobalState::Impl {
         }
     }
 
-    void on_vkGetLinearImageLayout2GOOGLE(android::base::BumpPool* pool, VkDevice boxed_device,
+    void on_vkGetLinearImageLayout2GOOGLE(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                                          VkDevice boxed_device,
                                           const VkImageCreateInfo* pCreateInfo,
                                           VkDeviceSize* pOffset, VkDeviceSize* pRowPitchAlignment) {
         LinearImageCreateInfo linearImageCreateInfo = {
@@ -7109,9 +7322,10 @@ class VkDecoderGlobalState::Impl {
 
 #include "VkSubDecoder.cpp"
 
-    void on_vkQueueFlushCommandsGOOGLE(android::base::BumpPool* pool, VkQueue queue,
-                                       VkCommandBuffer boxed_commandBuffer, VkDeviceSize dataSize,
-                                       const void* pData, const VkDecoderContext& context) {
+    void on_vkQueueFlushCommandsGOOGLE(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                                       VkQueue queue, VkCommandBuffer boxed_commandBuffer,
+                                       VkDeviceSize dataSize, const void* pData,
+                                       const VkDecoderContext& context) {
         (void)queue;
 
         VkCommandBuffer commandBuffer = unbox_VkCommandBuffer(boxed_commandBuffer);
@@ -7120,7 +7334,8 @@ class VkDecoderGlobalState::Impl {
         subDecode(readStream, vk, boxed_commandBuffer, commandBuffer, dataSize, pData, context);
     }
 
-    void on_vkQueueFlushCommandsFromAuxMemoryGOOGLE(android::base::BumpPool* pool, VkQueue queue,
+    void on_vkQueueFlushCommandsFromAuxMemoryGOOGLE(android::base::BumpPool* pool,
+                                                    VkSnapshotApiCallInfo*, VkQueue queue,
                                                     VkCommandBuffer commandBuffer,
                                                     VkDeviceMemory deviceMemory,
                                                     VkDeviceSize dataOffset, VkDeviceSize dataSize,
@@ -7178,10 +7393,11 @@ class VkDecoderGlobalState::Impl {
     }
 
     void on_vkQueueCommitDescriptorSetUpdatesGOOGLE(
-        android::base::BumpPool* pool, VkQueue boxed_queue, uint32_t descriptorPoolCount,
-        const VkDescriptorPool* pDescriptorPools, uint32_t descriptorSetCount,
-        const VkDescriptorSetLayout* pDescriptorSetLayouts, const uint64_t* pDescriptorSetPoolIds,
-        const uint32_t* pDescriptorSetWhichPool, const uint32_t* pDescriptorSetPendingAllocation,
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo, VkQueue boxed_queue,
+        uint32_t descriptorPoolCount, const VkDescriptorPool* pDescriptorPools,
+        uint32_t descriptorSetCount, const VkDescriptorSetLayout* pDescriptorSetLayouts,
+        const uint64_t* pDescriptorSetPoolIds, const uint32_t* pDescriptorSetWhichPool,
+        const uint32_t* pDescriptorSetPendingAllocation,
         const uint32_t* pDescriptorWriteStartingIndices, uint32_t pendingDescriptorWriteCount,
         const VkWriteDescriptorSet* pPendingDescriptorWrites) {
         std::lock_guard<std::recursive_mutex> lock(mLock);
@@ -7199,15 +7415,15 @@ class VkDecoderGlobalState::Impl {
                 << "queue " << queue << "(boxed: " << boxed_queue << ") with no device registered";
         }
         on_vkQueueCommitDescriptorSetUpdatesGOOGLE(
-            pool, vk, device, descriptorPoolCount, pDescriptorPools, descriptorSetCount,
-            pDescriptorSetLayouts, pDescriptorSetPoolIds, pDescriptorSetWhichPool,
-            pDescriptorSetPendingAllocation, pDescriptorWriteStartingIndices,
-            pendingDescriptorWriteCount, pPendingDescriptorWrites);
+            pool, snapshotInfo, vk, device, descriptorPoolCount, pDescriptorPools,
+            descriptorSetCount, pDescriptorSetLayouts, pDescriptorSetPoolIds,
+            pDescriptorSetWhichPool, pDescriptorSetPendingAllocation,
+            pDescriptorWriteStartingIndices, pendingDescriptorWriteCount, pPendingDescriptorWrites);
     }
 
     void on_vkQueueCommitDescriptorSetUpdatesGOOGLE(
-        android::base::BumpPool* pool, VulkanDispatch* vk, VkDevice device,
-        uint32_t descriptorPoolCount, const VkDescriptorPool* pDescriptorPools,
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo, VulkanDispatch* vk,
+        VkDevice device, uint32_t descriptorPoolCount, const VkDescriptorPool* pDescriptorPools,
         uint32_t descriptorSetCount, const VkDescriptorSetLayout* pDescriptorSetLayouts,
         const uint64_t* pDescriptorSetPoolIds, const uint32_t* pDescriptorSetWhichPool,
         const uint32_t* pDescriptorSetPendingAllocation,
@@ -7248,16 +7464,17 @@ class VkDecoderGlobalState::Impl {
                 }
             }
             this->on_vkUpdateDescriptorSetsImpl(
-                pool, vk, device, (uint32_t)writeDescriptorSetsForHostDriver.size(),
+                pool, snapshotInfo, vk, device, (uint32_t)writeDescriptorSetsForHostDriver.size(),
                 writeDescriptorSetsForHostDriver.data(), 0, nullptr);
         } else {
-            this->on_vkUpdateDescriptorSetsImpl(pool, vk, device, pendingDescriptorWriteCount,
+            this->on_vkUpdateDescriptorSetsImpl(pool, snapshotInfo, vk, device,
+                                                pendingDescriptorWriteCount,
                                                 pPendingDescriptorWrites, 0, nullptr);
         }
     }
 
-    void on_vkCollectDescriptorPoolIdsGOOGLE(android::base::BumpPool* pool, VkDevice device,
-                                             VkDescriptorPool descriptorPool,
+    void on_vkCollectDescriptorPoolIdsGOOGLE(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                                             VkDevice device, VkDescriptorPool descriptorPool,
                                              uint32_t* pPoolIdCount, uint64_t* pPoolIds) {
         std::lock_guard<std::recursive_mutex> lock(mLock);
         auto& info = mDescriptorPoolInfo[descriptorPool];
@@ -7271,7 +7488,7 @@ class VkDecoderGlobalState::Impl {
     }
 
     VkResult on_vkCreateSamplerYcbcrConversion(
-        android::base::BumpPool*, VkDevice boxed_device,
+        android::base::BumpPool*, VkSnapshotApiCallInfo* info, VkDevice boxed_device,
         const VkSamplerYcbcrConversionCreateInfo* pCreateInfo,
         const VkAllocationCallbacks* pAllocator, VkSamplerYcbcrConversion* pYcbcrConversion) {
         if (m_emu->enableYcbcrEmulation && !m_emu->deviceInfo.supportsSamplerYcbcrConversion) {
@@ -7290,7 +7507,8 @@ class VkDecoderGlobalState::Impl {
         return VK_SUCCESS;
     }
 
-    void on_vkDestroySamplerYcbcrConversion(android::base::BumpPool* pool, VkDevice boxed_device,
+    void on_vkDestroySamplerYcbcrConversion(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                                            VkDevice boxed_device,
                                             VkSamplerYcbcrConversion ycbcrConversion,
                                             const VkAllocationCallbacks* pAllocator) {
         if (m_emu->enableYcbcrEmulation && !m_emu->deviceInfo.supportsSamplerYcbcrConversion) {
@@ -7303,7 +7521,7 @@ class VkDecoderGlobalState::Impl {
     }
 
     VkResult on_vkEnumeratePhysicalDeviceGroups(
-        android::base::BumpPool* pool, VkInstance boxed_instance,
+        android::base::BumpPool* pool, VkSnapshotApiCallInfo*, VkInstance boxed_instance,
         uint32_t* pPhysicalDeviceGroupCount,
         VkPhysicalDeviceGroupProperties* pPhysicalDeviceGroupProperties) {
         auto instance = unbox_VkInstance(boxed_instance);
@@ -7746,22 +7964,6 @@ class VkDecoderGlobalState::Impl {
         }                                                                                         \
         sBoxedHandleManager.remove((uint64_t)boxed);                                              \
     }                                                                                             \
-    type unbox_##type(type boxed) {                                                               \
-        auto elt = sBoxedHandleManager.get((uint64_t)(uintptr_t)boxed);                           \
-        if (!elt){                                                                                \
-            ERR("%s: Failed to unbox %p", __func__, boxed);                                       \
-            return VK_NULL_HANDLE;                                                                \
-        }                                                                                         \
-        return (type)elt->underlying;                                                             \
-    }                                                                                             \
-    type try_unbox_##type(type boxed) {                                                           \
-        auto elt = sBoxedHandleManager.get((uint64_t)(uintptr_t)boxed);                           \
-        if (!elt){                                                                                \
-            WARN("%s: Failed to unbox %p", __func__, boxed);                                      \
-            return VK_NULL_HANDLE;                                                                \
-        }                                                                                         \
-        return (type)elt->underlying;                                                             \
-    }                                                                                             \
     OrderMaintenanceInfo* ordmaint_##type(type boxed) {                                           \
         auto elt = sBoxedHandleManager.get((uint64_t)(uintptr_t)boxed);                           \
         if (!elt) return 0;                                                                       \
@@ -7779,10 +7981,6 @@ class VkDecoderGlobalState::Impl {
             elt->readStream = stream;                                                             \
         }                                                                                         \
         return stream;                                                                            \
-    }                                                                                             \
-    type unboxed_to_boxed_##type(type unboxed) {                                                  \
-        AutoLock lock(sBoxedHandleManager.lock);                                                  \
-        return (type)sBoxedHandleManager.getBoxedFromUnboxedLocked((uint64_t)(uintptr_t)unboxed); \
     }                                                                                             \
     VulkanDispatch* dispatch_##type(type boxed) {                                                 \
         auto elt = sBoxedHandleManager.get((uint64_t)(uintptr_t)boxed);                           \
@@ -7837,6 +8035,60 @@ class VkDecoderGlobalState::Impl {
 
     GOLDFISH_VK_LIST_DISPATCHABLE_HANDLE_TYPES(DEFINE_BOXED_DISPATCHABLE_HANDLE_API_IMPL)
     GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES(DEFINE_BOXED_NON_DISPATCHABLE_HANDLE_API_IMPL)
+
+#define DEFINE_BOXED_DISPATCHABLE_HANDLE_API_REGULAR_UNBOX_IMPL(type)                             \
+    type unbox_##type(type boxed) {                                                               \
+        auto elt = sBoxedHandleManager.get((uint64_t)(uintptr_t)boxed);                           \
+        if (!elt){                                                                                \
+            ERR("%s: Failed to unbox %p", __func__, boxed);                                       \
+            return VK_NULL_HANDLE;                                                                \
+        }                                                                                         \
+        return (type)elt->underlying;                                                             \
+    }                                                                                             \
+    type try_unbox_##type(type boxed) {                                                           \
+        auto elt = sBoxedHandleManager.get((uint64_t)(uintptr_t)boxed);                           \
+        if (!elt){                                                                                \
+            WARN("%s: Failed to unbox %p", __func__, boxed);                                      \
+            return VK_NULL_HANDLE;                                                                \
+        }                                                                                         \
+        return (type)elt->underlying;                                                             \
+    }                                                                                             \
+    type unboxed_to_boxed_##type(type unboxed) {                                                  \
+        AutoLock lock(sBoxedHandleManager.lock);                                                  \
+        return (type)sBoxedHandleManager.getBoxedFromUnboxedLocked((uint64_t)(uintptr_t)unboxed); \
+    }
+
+    GOLDFISH_VK_LIST_DISPATCHABLE_REGULAR_UNBOX_HANDLE_TYPES(DEFINE_BOXED_DISPATCHABLE_HANDLE_API_REGULAR_UNBOX_IMPL)
+
+    // Custom unbox_* functions or GOLDFISH_VK_LIST_DISPATCHABLE_CUSTOM_UNBOX_HANDLE_TYPES
+    // VkQueue objects can be virtual, meaning that multiple boxed queues can map into a single
+    // physical queue on the host GPU. Some conversion is needed for unboxing to physical.
+    VkQueue unbox_VkQueueImp(VkQueue boxed) {
+        auto elt = sBoxedHandleManager.get((uint64_t)(uintptr_t)boxed);
+        if (!elt) {
+            return VK_NULL_HANDLE;
+        }
+        const uint64_t unboxedQueue64 = elt->underlying;
+        if (mEnableVirtualVkQueue) {
+            // Clear virtual bit and unbox into the actual physical queue handle
+            return (VkQueue)(unboxedQueue64 & ~QueueInfo::kVirtualQueueBit);
+        }
+        return (VkQueue)(unboxedQueue64);
+    }
+    VkQueue unbox_VkQueue(VkQueue boxed) {
+        VkQueue unboxed = unbox_VkQueueImp(boxed);
+        if (unboxed == VK_NULL_HANDLE) {
+            ERR("%s: Failed to unbox %p", __func__, boxed);
+        }
+        return unboxed;
+    }
+    VkQueue try_unbox_VkQueue(VkQueue boxed) {
+        VkQueue unboxed = unbox_VkQueueImp(boxed);
+        if (unboxed == VK_NULL_HANDLE) {
+            WARN("%s: Failed to unbox %p", __func__, boxed);
+        }
+        return unboxed;
+    }
 
     VkDecoderSnapshot* snapshot() { return &mSnapshot; }
     SnapshotState getSnapshotState() { return mSnapshotState; }
@@ -8025,7 +8277,7 @@ class VkDecoderGlobalState::Impl {
     }
 
     bool getDefaultQueueForDeviceLocked(VkDevice device, VkQueue* queue, uint32_t* queueFamilyIndex,
-                                        Lock** queueLock) {
+                                        std::mutex** queueMutex) {
         auto* deviceInfo = android::base::find(mDeviceInfo, device);
         if (!deviceInfo) return false;
 
@@ -8038,7 +8290,7 @@ class VkDecoderGlobalState::Impl {
                 for (auto& deviceQueue : it.second) {
                     *queue = deviceQueue;
                     *queueFamilyIndex = index;
-                    *queueLock = mQueueInfo.at(deviceQueue).lock;
+                    *queueMutex = mQueueInfo.at(deviceQueue).queueMutex.get();
                     return true;
                 }
             }
@@ -8048,7 +8300,7 @@ class VkDecoderGlobalState::Impl {
             // Use queue family index 0.
             *queue = zeroIt->second[0];
             *queueFamilyIndex = 0;
-            *queueLock = mQueueInfo.at(zeroIt->second[0]).lock;
+            *queueMutex = mQueueInfo.at(zeroIt->second[0]).queueMutex.get();
             return true;
         }
 
@@ -8324,6 +8576,25 @@ class VkDecoderGlobalState::Impl {
         }
     }
 
+    void extractDeviceAndDependenciesLocked(VkDevice device, InstanceObjects::DeviceObjects& deviceObjects) {
+        extractInfosWithDeviceInto(device, mBufferInfo, deviceObjects.buffers);
+        extractInfosWithDeviceInto(device, mCommandBufferInfo, deviceObjects.commandBuffers);
+        extractInfosWithDeviceInto(device, mCommandPoolInfo, deviceObjects.commandPools);
+        extractInfosWithDeviceInto(device, mDescriptorPoolInfo, deviceObjects.descriptorPools);
+        extractInfosWithDeviceInto(device, mDescriptorSetLayoutInfo, deviceObjects.descriptorSetLayouts);
+        extractInfosWithDeviceInto(device, mFenceInfo, deviceObjects.fences);
+        extractInfosWithDeviceInto(device, mFramebufferInfo, deviceObjects.framebuffers);
+        extractInfosWithDeviceInto(device, mImageInfo, deviceObjects.images);
+        extractInfosWithDeviceInto(device, mImageViewInfo, deviceObjects.imageViews);
+        extractInfosWithDeviceInto(device, mMemoryInfo, deviceObjects.memories);
+        extractInfosWithDeviceInto(device, mPipelineCacheInfo, deviceObjects.pipelineCaches);
+        extractInfosWithDeviceInto(device, mQueueInfo, deviceObjects.queues);
+        extractInfosWithDeviceInto(device, mPipelineInfo, deviceObjects.pipelines);
+        extractInfosWithDeviceInto(device, mRenderPassInfo, deviceObjects.renderPasses);
+        extractInfosWithDeviceInto(device, mSemaphoreInfo, deviceObjects.semaphores);
+        extractInfosWithDeviceInto(device, mShaderModuleInfo, deviceObjects.shaderModules);
+    }
+
     void extractInstanceAndDependenciesLocked(VkInstance instance, InstanceObjects& objects) {
         auto instanceInfoIt = mInstanceInfo.find(instance);
         if (instanceInfoIt == mInstanceInfo.end()) return;
@@ -8346,24 +8617,7 @@ class VkDecoderGlobalState::Impl {
 
             InstanceObjects::DeviceObjects& deviceObjects = objects.devices.emplace_back();
             deviceObjects.device = mDeviceInfo.extract(deviceInfoIt);
-
-            extractInfosWithDeviceInto(device, mBufferInfo, deviceObjects.buffers);
-            extractInfosWithDeviceInto(device, mCommandBufferInfo, deviceObjects.commandBuffers);
-            extractInfosWithDeviceInto(device, mCommandPoolInfo, deviceObjects.commandPools);
-            extractInfosWithDeviceInto(device, mDescriptorPoolInfo, deviceObjects.descriptorPools);
-            extractInfosWithDeviceInto(device, mDescriptorSetLayoutInfo,
-                                       deviceObjects.descriptorSetLayouts);
-            extractInfosWithDeviceInto(device, mFenceInfo, deviceObjects.fences);
-            extractInfosWithDeviceInto(device, mFramebufferInfo, deviceObjects.framebuffers);
-            extractInfosWithDeviceInto(device, mImageInfo, deviceObjects.images);
-            extractInfosWithDeviceInto(device, mImageViewInfo, deviceObjects.imageViews);
-            extractInfosWithDeviceInto(device, mMemoryInfo, deviceObjects.memories);
-            extractInfosWithDeviceInto(device, mPipelineCacheInfo, deviceObjects.pipelineCaches);
-            extractInfosWithDeviceInto(device, mQueueInfo, deviceObjects.queues);
-            extractInfosWithDeviceInto(device, mPipelineInfo, deviceObjects.pipelines);
-            extractInfosWithDeviceInto(device, mRenderPassInfo, deviceObjects.renderPasses);
-            extractInfosWithDeviceInto(device, mSemaphoreInfo, deviceObjects.semaphores);
-            extractInfosWithDeviceInto(device, mShaderModuleInfo, deviceObjects.shaderModules);
+            extractDeviceAndDependenciesLocked(device, deviceObjects);
         }
 
         for (InstanceObjects::DeviceObjects& deviceObjects : objects.devices) {
@@ -8380,90 +8634,108 @@ class VkDecoderGlobalState::Impl {
         }
     }
 
-    void destroyInstanceObjects(InstanceObjects& objects) {
-        VkInstance instance = objects.instance.key();
-        InstanceInfo& instanceInfo = objects.instance.mapped();
-
-        for (InstanceObjects::DeviceObjects& deviceObjects : objects.devices) {
+    void destroyDeviceObjects(InstanceObjects::DeviceObjects& deviceObjects) {
             VkDevice device = deviceObjects.device.key();
             DeviceInfo& deviceInfo = deviceObjects.device.mapped();
             VulkanDispatch* deviceDispatch = dispatch_VkDevice(deviceInfo.boxed);
 
             // https://bugs.chromium.org/p/chromium/issues/detail?id=1074600
             // it's important to idle the device before destroying it!
-            deviceDispatch->vkDeviceWaitIdle(device);
+            VkResult res = deviceDispatch->vkDeviceWaitIdle(device);
+            if (res != VK_SUCCESS) {
+                // Something went wrong.. Skip destroying the vulkan objects of the device
+                // to avoid further issues.
+                ERR("Cannot destroy Vulkan device and objects. "
+                    "vkDeviceWaitIdle failed with %s [%d].", string_VkResult(res), res);
+                return;
+            }
 
+            LOG_CALLS_VERBOSE("destroyDeviceObjects: %zu semaphores.", deviceObjects.semaphores.size());
             for (auto& [semaphore, semaphoreInfo] : deviceObjects.semaphores) {
                 destroySemaphoreWithExclusiveInfo(device, deviceDispatch, semaphore, semaphoreInfo,
                                                   nullptr);
             }
 
+            LOG_CALLS_VERBOSE("destroyDeviceObjects: %zu samplers.", deviceObjects.samplers.size());
             for (auto& [sampler, samplerInfo] : deviceObjects.samplers) {
                 destroySamplerWithExclusiveInfo(device, deviceDispatch, sampler, samplerInfo,
                                                 nullptr);
             }
 
+            LOG_CALLS_VERBOSE("destroyDeviceObjects: %zu buffers.", deviceObjects.buffers.size());
             for (auto& [buffer, bufferInfo] : deviceObjects.buffers) {
                 destroyBufferWithExclusiveInfo(device, deviceDispatch, buffer, bufferInfo, nullptr);
             }
 
+            LOG_CALLS_VERBOSE("destroyDeviceObjects: %zu imageViews.", deviceObjects.imageViews.size());
             for (auto& [imageView, imageViewInfo] : deviceObjects.imageViews) {
                 destroyImageViewWithExclusiveInfo(device, deviceDispatch, imageView, imageViewInfo,
                                                   nullptr);
             }
 
+            LOG_CALLS_VERBOSE("destroyDeviceObjects: %zu images.", deviceObjects.images.size());
             for (auto& [image, imageInfo] : deviceObjects.images) {
                 destroyImageWithExclusiveInfo(device, deviceDispatch, image, imageInfo, nullptr);
             }
 
+            LOG_CALLS_VERBOSE("destroyDeviceObjects: %zu memories.", deviceObjects.memories.size());
             for (auto& [memory, memoryInfo] : deviceObjects.memories) {
                 destroyMemoryWithExclusiveInfo(device, deviceDispatch, memory, memoryInfo, nullptr);
             }
 
+            LOG_CALLS_VERBOSE("destroyDeviceObjects: %zu commandBuffers.", deviceObjects.commandBuffers.size());
             for (auto& [commandBuffer, commandBufferInfo] : deviceObjects.commandBuffers) {
-                destroyCommandBufferWithExclusiveInfos(device, deviceDispatch, commandBuffer,
+                freeCommandBufferWithExclusiveInfos(device, deviceDispatch, commandBuffer,
                                                        commandBufferInfo,
                                                        deviceObjects.commandPools);
             }
 
+            LOG_CALLS_VERBOSE("destroyDeviceObjects: %zu commandPools.", deviceObjects.commandPools.size());
             for (auto& [commandPool, commandPoolInfo] : deviceObjects.commandPools) {
                 destroyCommandPoolWithExclusiveInfo(device, deviceDispatch, commandPool,
                                                     commandPoolInfo, deviceObjects.commandBuffers,
                                                     nullptr);
             }
 
+            LOG_CALLS_VERBOSE("destroyDeviceObjects: %zu descriptorPools.", deviceObjects.descriptorPools.size());
             for (auto& [descriptorPool, descriptorPoolInfo] : deviceObjects.descriptorPools) {
                 destroyDescriptorPoolWithExclusiveInfo(device, deviceDispatch, descriptorPool,
                                                        descriptorPoolInfo,
                                                        deviceObjects.descriptorSets, nullptr);
             }
 
+            LOG_CALLS_VERBOSE("destroyDeviceObjects: %zu descriptorSetLayouts.", deviceObjects.descriptorSetLayouts.size());
             for (auto& [descriptorSetLayout, descriptorSetLayoutInfo] :
                  deviceObjects.descriptorSetLayouts) {
                 destroyDescriptorSetLayoutWithExclusiveInfo(
                     device, deviceDispatch, descriptorSetLayout, descriptorSetLayoutInfo, nullptr);
             }
 
+            LOG_CALLS_VERBOSE("destroyDeviceObjects: %zu shaderModules.", deviceObjects.shaderModules.size());
             for (auto& [shaderModule, shaderModuleInfo] : deviceObjects.shaderModules) {
                 destroyShaderModuleWithExclusiveInfo(device, deviceDispatch, shaderModule,
                                                      shaderModuleInfo, nullptr);
             }
 
+            LOG_CALLS_VERBOSE("destroyDeviceObjects: %zu pipelines.", deviceObjects.pipelines.size());
             for (auto& [pipeline, pipelineInfo] : deviceObjects.pipelines) {
                 destroyPipelineWithExclusiveInfo(device, deviceDispatch, pipeline, pipelineInfo,
                                                  nullptr);
             }
 
+            LOG_CALLS_VERBOSE("destroyDeviceObjects: %zu pipelineCaches.", deviceObjects.pipelineCaches.size());
             for (auto& [pipelineCache, pipelineCacheInfo] : deviceObjects.pipelineCaches) {
                 destroyPipelineCacheWithExclusiveInfo(device, deviceDispatch, pipelineCache,
                                                       pipelineCacheInfo, nullptr);
             }
 
+            LOG_CALLS_VERBOSE("destroyDeviceObjects: %zu framebuffers.", deviceObjects.framebuffers.size());
             for (auto& [framebuffer, framebufferInfo] : deviceObjects.framebuffers) {
                 destroyFramebufferWithExclusiveInfo(device, deviceDispatch, framebuffer,
                                                     framebufferInfo, nullptr);
             }
 
+            LOG_CALLS_VERBOSE("destroyDeviceObjects: %zu renderPasses.", deviceObjects.renderPasses.size());
             for (auto& [renderPass, renderPassInfo] : deviceObjects.renderPasses) {
                 destroyRenderPassWithExclusiveInfo(device, deviceDispatch, renderPass,
                                                    renderPassInfo, nullptr);
@@ -8471,10 +8743,23 @@ class VkDecoderGlobalState::Impl {
 
             destroyDeviceWithExclusiveInfo(device, deviceObjects.device.mapped(),
                                            deviceObjects.fences, deviceObjects.queues, nullptr);
+    }
+
+    void destroyInstanceObjects(InstanceObjects& objects) {
+        VkInstance instance = objects.instance.key();
+        InstanceInfo& instanceInfo = objects.instance.mapped();
+        LOG_CALLS_VERBOSE(
+            "destroyInstanceObjects called for instance (app:%s, engine:%s) with %d devices.",
+            instanceInfo.applicationName.c_str(), instanceInfo.engineName.c_str(),
+            objects.devices.size());
+
+        for (InstanceObjects::DeviceObjects& deviceObjects : objects.devices) {
+            destroyDeviceObjects(deviceObjects);
         }
 
         m_vk->vkDestroyInstance(instance, nullptr);
         delete_VkInstance(instanceInfo.boxed);
+        LOG_CALLS_VERBOSE("destroyInstanceObjects: finished.");
     }
 
     bool isDescriptorTypeImageInfo(VkDescriptorType descType) {
@@ -8657,6 +8942,7 @@ class VkDecoderGlobalState::Impl {
     bool mLogging = false;
     bool mVerbosePrints = false;
     bool mUseOldMemoryCleanupPath = false;
+    bool mEnableVirtualVkQueue = false;
 
     std::recursive_mutex mLock;
 
@@ -8808,18 +9094,6 @@ class VkDecoderGlobalState::Impl {
     // RenderThreadInfoVk::ctx_id is not available.
     std::optional<std::unordered_map<VkDevice, uint32_t>> mSnapshotLoadVkDeviceToVirtioCpuContextId;
 
-    Lock mOccupiedGpasLock;
-    // Back-reference to the VkDeviceMemory that is occupying a particular
-    // guest physical address
-    struct OccupiedGpaInfo {
-        VulkanDispatch* vk;
-        VkDevice device;
-        VkDeviceMemory memory;
-        uint64_t gpa;
-        size_t sizeToPage;
-    };
-    std::unordered_map<uint64_t, OccupiedGpaInfo> mOccupiedGpas;
-
     struct LinearImageCreateInfo {
         VkExtent3D extent;
         VkFormat format;
@@ -8935,563 +9209,655 @@ void VkDecoderGlobalState::clearCreatedHandlesForSnapshotLoad() {
 }
 
 VkResult VkDecoderGlobalState::on_vkEnumerateInstanceVersion(android::base::BumpPool* pool,
+                                                             VkSnapshotApiCallInfo* snapshotInfo,
                                                              uint32_t* pApiVersion) {
-    return mImpl->on_vkEnumerateInstanceVersion(pool, pApiVersion);
+    return mImpl->on_vkEnumerateInstanceVersion(pool, snapshotInfo, pApiVersion);
 }
 
 VkResult VkDecoderGlobalState::on_vkCreateInstance(android::base::BumpPool* pool,
+                                                   VkSnapshotApiCallInfo* snapshotInfo,
                                                    const VkInstanceCreateInfo* pCreateInfo,
                                                    const VkAllocationCallbacks* pAllocator,
                                                    VkInstance* pInstance) {
-    return mImpl->on_vkCreateInstance(pool, pCreateInfo, pAllocator, pInstance);
+    return mImpl->on_vkCreateInstance(pool, snapshotInfo, pCreateInfo, pAllocator, pInstance);
 }
 
-void VkDecoderGlobalState::on_vkDestroyInstance(android::base::BumpPool* pool, VkInstance instance,
+void VkDecoderGlobalState::on_vkDestroyInstance(android::base::BumpPool* pool,
+                                                VkSnapshotApiCallInfo* snapshotInfo,
+                                                VkInstance instance,
                                                 const VkAllocationCallbacks* pAllocator) {
-    mImpl->on_vkDestroyInstance(pool, instance, pAllocator);
+    mImpl->on_vkDestroyInstance(pool, snapshotInfo, instance, pAllocator);
 }
 
 VkResult VkDecoderGlobalState::on_vkEnumeratePhysicalDevices(android::base::BumpPool* pool,
+                                                             VkSnapshotApiCallInfo* snapshotInfo,
                                                              VkInstance instance,
                                                              uint32_t* physicalDeviceCount,
                                                              VkPhysicalDevice* physicalDevices) {
-    return mImpl->on_vkEnumeratePhysicalDevices(pool, instance, physicalDeviceCount,
+    return mImpl->on_vkEnumeratePhysicalDevices(pool, snapshotInfo, instance, physicalDeviceCount,
                                                 physicalDevices);
 }
 
 void VkDecoderGlobalState::on_vkGetPhysicalDeviceFeatures(android::base::BumpPool* pool,
+                                                          VkSnapshotApiCallInfo* snapshotInfo,
                                                           VkPhysicalDevice physicalDevice,
                                                           VkPhysicalDeviceFeatures* pFeatures) {
-    mImpl->on_vkGetPhysicalDeviceFeatures(pool, physicalDevice, pFeatures);
+    mImpl->on_vkGetPhysicalDeviceFeatures(pool, snapshotInfo, physicalDevice, pFeatures);
 }
 
 void VkDecoderGlobalState::on_vkGetPhysicalDeviceFeatures2(android::base::BumpPool* pool,
+                                                           VkSnapshotApiCallInfo* snapshotInfo,
                                                            VkPhysicalDevice physicalDevice,
                                                            VkPhysicalDeviceFeatures2* pFeatures) {
-    mImpl->on_vkGetPhysicalDeviceFeatures2(pool, physicalDevice, pFeatures);
+    mImpl->on_vkGetPhysicalDeviceFeatures2(pool, snapshotInfo, physicalDevice, pFeatures);
 }
 
 void VkDecoderGlobalState::on_vkGetPhysicalDeviceFeatures2KHR(
-    android::base::BumpPool* pool, VkPhysicalDevice physicalDevice,
-    VkPhysicalDeviceFeatures2KHR* pFeatures) {
-    mImpl->on_vkGetPhysicalDeviceFeatures2(pool, physicalDevice, pFeatures);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo,
+    VkPhysicalDevice physicalDevice, VkPhysicalDeviceFeatures2KHR* pFeatures) {
+    mImpl->on_vkGetPhysicalDeviceFeatures2(pool, snapshotInfo, physicalDevice, pFeatures);
 }
 
 VkResult VkDecoderGlobalState::on_vkGetPhysicalDeviceImageFormatProperties(
-    android::base::BumpPool* pool, VkPhysicalDevice physicalDevice, VkFormat format,
-    VkImageType type, VkImageTiling tiling, VkImageUsageFlags usage, VkImageCreateFlags flags,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo,
+    VkPhysicalDevice physicalDevice, VkFormat format, VkImageType type, VkImageTiling tiling,
+    VkImageUsageFlags usage, VkImageCreateFlags flags,
     VkImageFormatProperties* pImageFormatProperties) {
-    return mImpl->on_vkGetPhysicalDeviceImageFormatProperties(
-        pool, physicalDevice, format, type, tiling, usage, flags, pImageFormatProperties);
+    return mImpl->on_vkGetPhysicalDeviceImageFormatProperties(pool, snapshotInfo, physicalDevice,
+                                                              format, type, tiling, usage, flags,
+                                                              pImageFormatProperties);
 }
 VkResult VkDecoderGlobalState::on_vkGetPhysicalDeviceImageFormatProperties2(
-    android::base::BumpPool* pool, VkPhysicalDevice physicalDevice,
-    const VkPhysicalDeviceImageFormatInfo2* pImageFormatInfo,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo,
+    VkPhysicalDevice physicalDevice, const VkPhysicalDeviceImageFormatInfo2* pImageFormatInfo,
     VkImageFormatProperties2* pImageFormatProperties) {
     return mImpl->on_vkGetPhysicalDeviceImageFormatProperties2(
-        pool, physicalDevice, pImageFormatInfo, pImageFormatProperties);
+        pool, snapshotInfo, physicalDevice, pImageFormatInfo, pImageFormatProperties);
 }
 VkResult VkDecoderGlobalState::on_vkGetPhysicalDeviceImageFormatProperties2KHR(
-    android::base::BumpPool* pool, VkPhysicalDevice physicalDevice,
-    const VkPhysicalDeviceImageFormatInfo2* pImageFormatInfo,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo,
+    VkPhysicalDevice physicalDevice, const VkPhysicalDeviceImageFormatInfo2* pImageFormatInfo,
     VkImageFormatProperties2* pImageFormatProperties) {
     return mImpl->on_vkGetPhysicalDeviceImageFormatProperties2(
-        pool, physicalDevice, pImageFormatInfo, pImageFormatProperties);
+        pool, snapshotInfo, physicalDevice, pImageFormatInfo, pImageFormatProperties);
 }
 
 void VkDecoderGlobalState::on_vkGetPhysicalDeviceFormatProperties(
-    android::base::BumpPool* pool, VkPhysicalDevice physicalDevice, VkFormat format,
-    VkFormatProperties* pFormatProperties) {
-    mImpl->on_vkGetPhysicalDeviceFormatProperties(pool, physicalDevice, format, pFormatProperties);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo,
+    VkPhysicalDevice physicalDevice, VkFormat format, VkFormatProperties* pFormatProperties) {
+    mImpl->on_vkGetPhysicalDeviceFormatProperties(pool, snapshotInfo, physicalDevice, format,
+                                                  pFormatProperties);
 }
 
 void VkDecoderGlobalState::on_vkGetPhysicalDeviceFormatProperties2(
-    android::base::BumpPool* pool, VkPhysicalDevice physicalDevice, VkFormat format,
-    VkFormatProperties2* pFormatProperties) {
-    mImpl->on_vkGetPhysicalDeviceFormatProperties2(pool, physicalDevice, format, pFormatProperties);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo,
+    VkPhysicalDevice physicalDevice, VkFormat format, VkFormatProperties2* pFormatProperties) {
+    mImpl->on_vkGetPhysicalDeviceFormatProperties2(pool, snapshotInfo, physicalDevice, format,
+                                                   pFormatProperties);
 }
 
 void VkDecoderGlobalState::on_vkGetPhysicalDeviceFormatProperties2KHR(
-    android::base::BumpPool* pool, VkPhysicalDevice physicalDevice, VkFormat format,
-    VkFormatProperties2* pFormatProperties) {
-    mImpl->on_vkGetPhysicalDeviceFormatProperties2(pool, physicalDevice, format, pFormatProperties);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo,
+    VkPhysicalDevice physicalDevice, VkFormat format, VkFormatProperties2* pFormatProperties) {
+    mImpl->on_vkGetPhysicalDeviceFormatProperties2(pool, snapshotInfo, physicalDevice, format,
+                                                   pFormatProperties);
 }
 
 void VkDecoderGlobalState::on_vkGetPhysicalDeviceProperties(
-    android::base::BumpPool* pool, VkPhysicalDevice physicalDevice,
-    VkPhysicalDeviceProperties* pProperties) {
-    mImpl->on_vkGetPhysicalDeviceProperties(pool, physicalDevice, pProperties);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo,
+    VkPhysicalDevice physicalDevice, VkPhysicalDeviceProperties* pProperties) {
+    mImpl->on_vkGetPhysicalDeviceProperties(pool, snapshotInfo, physicalDevice, pProperties);
 }
 
 void VkDecoderGlobalState::on_vkGetPhysicalDeviceProperties2(
-    android::base::BumpPool* pool, VkPhysicalDevice physicalDevice,
-    VkPhysicalDeviceProperties2* pProperties) {
-    mImpl->on_vkGetPhysicalDeviceProperties2(pool, physicalDevice, pProperties);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo,
+    VkPhysicalDevice physicalDevice, VkPhysicalDeviceProperties2* pProperties) {
+    mImpl->on_vkGetPhysicalDeviceProperties2(pool, snapshotInfo, physicalDevice, pProperties);
 }
 
 void VkDecoderGlobalState::on_vkGetPhysicalDeviceQueueFamilyProperties(
-    android::base::BumpPool* pool, VkPhysicalDevice physicalDevice,
-    uint32_t* pQueueFamilyPropertyCount, VkQueueFamilyProperties* pQueueFamilyProperties) {
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo,
+    VkPhysicalDevice physicalDevice, uint32_t* pQueueFamilyPropertyCount,
+    VkQueueFamilyProperties* pQueueFamilyProperties) {
     mImpl->on_vkGetPhysicalDeviceQueueFamilyProperties(
-        pool, physicalDevice, pQueueFamilyPropertyCount, pQueueFamilyProperties);
+        pool, snapshotInfo, physicalDevice, pQueueFamilyPropertyCount, pQueueFamilyProperties);
 }
 
 void VkDecoderGlobalState::on_vkGetPhysicalDeviceQueueFamilyProperties2(
-    android::base::BumpPool* pool, VkPhysicalDevice physicalDevice,
-    uint32_t* pQueueFamilyPropertyCount, VkQueueFamilyProperties2* pQueueFamilyProperties) {
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo,
+    VkPhysicalDevice physicalDevice, uint32_t* pQueueFamilyPropertyCount,
+    VkQueueFamilyProperties2* pQueueFamilyProperties) {
     mImpl->on_vkGetPhysicalDeviceQueueFamilyProperties2(
-        pool, physicalDevice, pQueueFamilyPropertyCount, pQueueFamilyProperties);
+        pool, snapshotInfo, physicalDevice, pQueueFamilyPropertyCount, pQueueFamilyProperties);
 }
 
-VkResult VkDecoderGlobalState::on_vkQueuePresentKHR(android::base::BumpPool* pool, VkQueue queue,
-                                                 const VkPresentInfoKHR* pPresentInfo) {
-    return mImpl->on_vkQueuePresentKHR(pool, queue, pPresentInfo);
+VkResult VkDecoderGlobalState::on_vkQueuePresentKHR(android::base::BumpPool* pool,
+                                                    VkSnapshotApiCallInfo* snapshotInfo,
+                                                    VkQueue queue,
+                                                    const VkPresentInfoKHR* pPresentInfo) {
+    return mImpl->on_vkQueuePresentKHR(pool, snapshotInfo, queue, pPresentInfo);
 }
 
 void VkDecoderGlobalState::on_vkGetPhysicalDeviceProperties2KHR(
-    android::base::BumpPool* pool, VkPhysicalDevice physicalDevice,
-    VkPhysicalDeviceProperties2* pProperties) {
-    mImpl->on_vkGetPhysicalDeviceProperties2(pool, physicalDevice, pProperties);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo,
+    VkPhysicalDevice physicalDevice, VkPhysicalDeviceProperties2* pProperties) {
+    mImpl->on_vkGetPhysicalDeviceProperties2(pool, snapshotInfo, physicalDevice, pProperties);
 }
 
 void VkDecoderGlobalState::on_vkGetPhysicalDeviceMemoryProperties(
-    android::base::BumpPool* pool, VkPhysicalDevice physicalDevice,
-    VkPhysicalDeviceMemoryProperties* pMemoryProperties) {
-    mImpl->on_vkGetPhysicalDeviceMemoryProperties(pool, physicalDevice, pMemoryProperties);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo,
+    VkPhysicalDevice physicalDevice, VkPhysicalDeviceMemoryProperties* pMemoryProperties) {
+    mImpl->on_vkGetPhysicalDeviceMemoryProperties(pool, snapshotInfo, physicalDevice,
+                                                  pMemoryProperties);
 }
 
 void VkDecoderGlobalState::on_vkGetPhysicalDeviceMemoryProperties2(
-    android::base::BumpPool* pool, VkPhysicalDevice physicalDevice,
-    VkPhysicalDeviceMemoryProperties2* pMemoryProperties) {
-    mImpl->on_vkGetPhysicalDeviceMemoryProperties2(pool, physicalDevice, pMemoryProperties);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo,
+    VkPhysicalDevice physicalDevice, VkPhysicalDeviceMemoryProperties2* pMemoryProperties) {
+    mImpl->on_vkGetPhysicalDeviceMemoryProperties2(pool, snapshotInfo, physicalDevice,
+                                                   pMemoryProperties);
 }
 
 void VkDecoderGlobalState::on_vkGetPhysicalDeviceMemoryProperties2KHR(
-    android::base::BumpPool* pool, VkPhysicalDevice physicalDevice,
-    VkPhysicalDeviceMemoryProperties2* pMemoryProperties) {
-    mImpl->on_vkGetPhysicalDeviceMemoryProperties2(pool, physicalDevice, pMemoryProperties);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo,
+    VkPhysicalDevice physicalDevice, VkPhysicalDeviceMemoryProperties2* pMemoryProperties) {
+    mImpl->on_vkGetPhysicalDeviceMemoryProperties2(pool, snapshotInfo, physicalDevice,
+                                                   pMemoryProperties);
 }
 
 VkResult VkDecoderGlobalState::on_vkEnumerateDeviceExtensionProperties(
-    android::base::BumpPool* pool, VkPhysicalDevice physicalDevice, const char* pLayerName,
-    uint32_t* pPropertyCount, VkExtensionProperties* pProperties) {
-    return mImpl->on_vkEnumerateDeviceExtensionProperties(pool, physicalDevice, pLayerName,
-                                                          pPropertyCount, pProperties);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo,
+    VkPhysicalDevice physicalDevice, const char* pLayerName, uint32_t* pPropertyCount,
+    VkExtensionProperties* pProperties) {
+    return mImpl->on_vkEnumerateDeviceExtensionProperties(pool, snapshotInfo, physicalDevice,
+                                                          pLayerName, pPropertyCount, pProperties);
 }
 
 VkResult VkDecoderGlobalState::on_vkCreateDevice(android::base::BumpPool* pool,
+                                                 VkSnapshotApiCallInfo* snapshotInfo,
                                                  VkPhysicalDevice physicalDevice,
                                                  const VkDeviceCreateInfo* pCreateInfo,
                                                  const VkAllocationCallbacks* pAllocator,
                                                  VkDevice* pDevice) {
-    return mImpl->on_vkCreateDevice(pool, physicalDevice, pCreateInfo, pAllocator, pDevice);
+    return mImpl->on_vkCreateDevice(pool, snapshotInfo, physicalDevice, pCreateInfo, pAllocator,
+                                    pDevice);
 }
 
-void VkDecoderGlobalState::on_vkGetDeviceQueue(android::base::BumpPool* pool, VkDevice device,
+void VkDecoderGlobalState::on_vkGetDeviceQueue(android::base::BumpPool* pool,
+                                               VkSnapshotApiCallInfo* snapshotInfo, VkDevice device,
                                                uint32_t queueFamilyIndex, uint32_t queueIndex,
                                                VkQueue* pQueue) {
-    mImpl->on_vkGetDeviceQueue(pool, device, queueFamilyIndex, queueIndex, pQueue);
+    mImpl->on_vkGetDeviceQueue(pool, snapshotInfo, device, queueFamilyIndex, queueIndex, pQueue);
 }
 
-void VkDecoderGlobalState::on_vkGetDeviceQueue2(android::base::BumpPool* pool, VkDevice device,
+void VkDecoderGlobalState::on_vkGetDeviceQueue2(android::base::BumpPool* pool,
+                                                VkSnapshotApiCallInfo* snapshotInfo,
+                                                VkDevice device,
                                                 const VkDeviceQueueInfo2* pQueueInfo,
                                                 VkQueue* pQueue) {
-    mImpl->on_vkGetDeviceQueue2(pool, device, pQueueInfo, pQueue);
+    mImpl->on_vkGetDeviceQueue2(pool, snapshotInfo, device, pQueueInfo, pQueue);
 }
 
-void VkDecoderGlobalState::on_vkDestroyDevice(android::base::BumpPool* pool, VkDevice device,
+void VkDecoderGlobalState::on_vkDestroyDevice(android::base::BumpPool* pool,
+                                              VkSnapshotApiCallInfo* snapshotInfo, VkDevice device,
                                               const VkAllocationCallbacks* pAllocator) {
-    mImpl->on_vkDestroyDevice(pool, device, pAllocator);
+    mImpl->on_vkDestroyDevice(pool, snapshotInfo, device, pAllocator);
 }
 
-VkResult VkDecoderGlobalState::on_vkCreateBuffer(android::base::BumpPool* pool, VkDevice device,
+VkResult VkDecoderGlobalState::on_vkCreateBuffer(android::base::BumpPool* pool,
+                                                 VkSnapshotApiCallInfo* snapshotInfo,
+                                                 VkDevice device,
                                                  const VkBufferCreateInfo* pCreateInfo,
                                                  const VkAllocationCallbacks* pAllocator,
                                                  VkBuffer* pBuffer) {
-    return mImpl->on_vkCreateBuffer(pool, device, pCreateInfo, pAllocator, pBuffer);
+    return mImpl->on_vkCreateBuffer(pool, snapshotInfo, device, pCreateInfo, pAllocator, pBuffer);
 }
 
-void VkDecoderGlobalState::on_vkDestroyBuffer(android::base::BumpPool* pool, VkDevice device,
+void VkDecoderGlobalState::on_vkDestroyBuffer(android::base::BumpPool* pool,
+                                              VkSnapshotApiCallInfo* snapshotInfo, VkDevice device,
                                               VkBuffer buffer,
                                               const VkAllocationCallbacks* pAllocator) {
-    mImpl->on_vkDestroyBuffer(pool, device, buffer, pAllocator);
+    mImpl->on_vkDestroyBuffer(pool, snapshotInfo, device, buffer, pAllocator);
 }
 
-VkResult VkDecoderGlobalState::on_vkBindBufferMemory(android::base::BumpPool* pool, VkDevice device,
-                                                     VkBuffer buffer, VkDeviceMemory memory,
+VkResult VkDecoderGlobalState::on_vkBindBufferMemory(android::base::BumpPool* pool,
+                                                     VkSnapshotApiCallInfo* snapshotInfo,
+                                                     VkDevice device, VkBuffer buffer,
+                                                     VkDeviceMemory memory,
                                                      VkDeviceSize memoryOffset) {
-    return mImpl->on_vkBindBufferMemory(pool, device, buffer, memory, memoryOffset);
+    return mImpl->on_vkBindBufferMemory(pool, snapshotInfo, device, buffer, memory, memoryOffset);
 }
 
 VkResult VkDecoderGlobalState::on_vkBindBufferMemory2(android::base::BumpPool* pool,
+                                                      VkSnapshotApiCallInfo* snapshotInfo,
                                                       VkDevice device, uint32_t bindInfoCount,
                                                       const VkBindBufferMemoryInfo* pBindInfos) {
-    return mImpl->on_vkBindBufferMemory2(pool, device, bindInfoCount, pBindInfos);
+    return mImpl->on_vkBindBufferMemory2(pool, snapshotInfo, device, bindInfoCount, pBindInfos);
 }
 
 VkResult VkDecoderGlobalState::on_vkBindBufferMemory2KHR(android::base::BumpPool* pool,
+                                                         VkSnapshotApiCallInfo* snapshotInfo,
                                                          VkDevice device, uint32_t bindInfoCount,
                                                          const VkBindBufferMemoryInfo* pBindInfos) {
-    return mImpl->on_vkBindBufferMemory2KHR(pool, device, bindInfoCount, pBindInfos);
+    return mImpl->on_vkBindBufferMemory2KHR(pool, snapshotInfo, device, bindInfoCount, pBindInfos);
 }
 
-VkResult VkDecoderGlobalState::on_vkCreateImage(android::base::BumpPool* pool, VkDevice device,
+VkResult VkDecoderGlobalState::on_vkCreateImage(android::base::BumpPool* pool,
+                                                VkSnapshotApiCallInfo* snapshotInfo,
+                                                VkDevice device,
                                                 const VkImageCreateInfo* pCreateInfo,
                                                 const VkAllocationCallbacks* pAllocator,
                                                 VkImage* pImage) {
-    return mImpl->on_vkCreateImage(pool, device, pCreateInfo, pAllocator, pImage);
+    return mImpl->on_vkCreateImage(pool, snapshotInfo, device, pCreateInfo, pAllocator, pImage);
 }
 
-void VkDecoderGlobalState::on_vkDestroyImage(android::base::BumpPool* pool, VkDevice device,
+void VkDecoderGlobalState::on_vkDestroyImage(android::base::BumpPool* pool,
+                                             VkSnapshotApiCallInfo* snapshotInfo, VkDevice device,
                                              VkImage image,
                                              const VkAllocationCallbacks* pAllocator) {
-    mImpl->on_vkDestroyImage(pool, device, image, pAllocator);
+    mImpl->on_vkDestroyImage(pool, snapshotInfo, device, image, pAllocator);
 }
 
-VkResult VkDecoderGlobalState::on_vkBindImageMemory(android::base::BumpPool* pool, VkDevice device,
-                                                    VkImage image, VkDeviceMemory memory,
+VkResult VkDecoderGlobalState::on_vkBindImageMemory(android::base::BumpPool* pool,
+                                                    VkSnapshotApiCallInfo* snapshotInfo,
+                                                    VkDevice device, VkImage image,
+                                                    VkDeviceMemory memory,
                                                     VkDeviceSize memoryOffset) {
-    return mImpl->on_vkBindImageMemory(pool, device, image, memory, memoryOffset);
+    return mImpl->on_vkBindImageMemory(pool, snapshotInfo, device, image, memory, memoryOffset);
 }
 
-VkResult VkDecoderGlobalState::on_vkBindImageMemory2(android::base::BumpPool* pool, VkDevice device,
-                                                     uint32_t bindInfoCount,
+VkResult VkDecoderGlobalState::on_vkBindImageMemory2(android::base::BumpPool* pool,
+                                                     VkSnapshotApiCallInfo* snapshotInfo,
+                                                     VkDevice device, uint32_t bindInfoCount,
                                                      const VkBindImageMemoryInfo* pBindInfos) {
-    return mImpl->on_vkBindImageMemory2(pool, device, bindInfoCount, pBindInfos);
+    return mImpl->on_vkBindImageMemory2(pool, snapshotInfo, device, bindInfoCount, pBindInfos);
 }
 
 VkResult VkDecoderGlobalState::on_vkBindImageMemory2KHR(android::base::BumpPool* pool,
+                                                        VkSnapshotApiCallInfo* snapshotInfo,
                                                         VkDevice device, uint32_t bindInfoCount,
                                                         const VkBindImageMemoryInfo* pBindInfos) {
-    return mImpl->on_vkBindImageMemory2(pool, device, bindInfoCount, pBindInfos);
+    return mImpl->on_vkBindImageMemory2(pool, snapshotInfo, device, bindInfoCount, pBindInfos);
 }
 
-VkResult VkDecoderGlobalState::on_vkCreateImageView(android::base::BumpPool* pool, VkDevice device,
+VkResult VkDecoderGlobalState::on_vkCreateImageView(android::base::BumpPool* pool,
+                                                    VkSnapshotApiCallInfo* snapshotInfo,
+                                                    VkDevice device,
                                                     const VkImageViewCreateInfo* pCreateInfo,
                                                     const VkAllocationCallbacks* pAllocator,
                                                     VkImageView* pView) {
-    return mImpl->on_vkCreateImageView(pool, device, pCreateInfo, pAllocator, pView);
+    return mImpl->on_vkCreateImageView(pool, snapshotInfo, device, pCreateInfo, pAllocator, pView);
 }
 
-void VkDecoderGlobalState::on_vkDestroyImageView(android::base::BumpPool* pool, VkDevice device,
-                                                 VkImageView imageView,
+void VkDecoderGlobalState::on_vkDestroyImageView(android::base::BumpPool* pool,
+                                                 VkSnapshotApiCallInfo* snapshotInfo,
+                                                 VkDevice device, VkImageView imageView,
                                                  const VkAllocationCallbacks* pAllocator) {
-    mImpl->on_vkDestroyImageView(pool, device, imageView, pAllocator);
+    mImpl->on_vkDestroyImageView(pool, snapshotInfo, device, imageView, pAllocator);
 }
 
-VkResult VkDecoderGlobalState::on_vkCreateSampler(android::base::BumpPool* pool, VkDevice device,
+VkResult VkDecoderGlobalState::on_vkCreateSampler(android::base::BumpPool* pool,
+                                                  VkSnapshotApiCallInfo* snapshotInfo,
+                                                  VkDevice device,
                                                   const VkSamplerCreateInfo* pCreateInfo,
                                                   const VkAllocationCallbacks* pAllocator,
                                                   VkSampler* pSampler) {
-    return mImpl->on_vkCreateSampler(pool, device, pCreateInfo, pAllocator, pSampler);
+    return mImpl->on_vkCreateSampler(pool, snapshotInfo, device, pCreateInfo, pAllocator, pSampler);
 }
 
-void VkDecoderGlobalState::on_vkDestroySampler(android::base::BumpPool* pool, VkDevice device,
+void VkDecoderGlobalState::on_vkDestroySampler(android::base::BumpPool* pool,
+                                               VkSnapshotApiCallInfo* snapshotInfo, VkDevice device,
                                                VkSampler sampler,
                                                const VkAllocationCallbacks* pAllocator) {
-    mImpl->on_vkDestroySampler(pool, device, sampler, pAllocator);
+    mImpl->on_vkDestroySampler(pool, snapshotInfo, device, sampler, pAllocator);
 }
 
-VkResult VkDecoderGlobalState::on_vkCreateSemaphore(android::base::BumpPool* pool, VkDevice device,
+VkResult VkDecoderGlobalState::on_vkCreateSemaphore(android::base::BumpPool* pool,
+                                                    VkSnapshotApiCallInfo* snapshotInfo,
+                                                    VkDevice device,
                                                     const VkSemaphoreCreateInfo* pCreateInfo,
                                                     const VkAllocationCallbacks* pAllocator,
                                                     VkSemaphore* pSemaphore) {
-    return mImpl->on_vkCreateSemaphore(pool, device, pCreateInfo, pAllocator, pSemaphore);
+    return mImpl->on_vkCreateSemaphore(pool, snapshotInfo, device, pCreateInfo, pAllocator,
+                                       pSemaphore);
 }
 
 VkResult VkDecoderGlobalState::on_vkImportSemaphoreFdKHR(
-    android::base::BumpPool* pool, VkDevice device,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo, VkDevice device,
     const VkImportSemaphoreFdInfoKHR* pImportSemaphoreFdInfo) {
-    return mImpl->on_vkImportSemaphoreFdKHR(pool, device, pImportSemaphoreFdInfo);
+    return mImpl->on_vkImportSemaphoreFdKHR(pool, snapshotInfo, device, pImportSemaphoreFdInfo);
 }
 
 VkResult VkDecoderGlobalState::on_vkGetSemaphoreFdKHR(android::base::BumpPool* pool,
+                                                      VkSnapshotApiCallInfo* snapshotInfo,
                                                       VkDevice device,
                                                       const VkSemaphoreGetFdInfoKHR* pGetFdInfo,
                                                       int* pFd) {
-    return mImpl->on_vkGetSemaphoreFdKHR(pool, device, pGetFdInfo, pFd);
+    return mImpl->on_vkGetSemaphoreFdKHR(pool, snapshotInfo, device, pGetFdInfo, pFd);
 }
 
 VkResult VkDecoderGlobalState::on_vkGetSemaphoreGOOGLE(android::base::BumpPool* pool,
+                                                       VkSnapshotApiCallInfo* snapshotInfo,
                                                        VkDevice device, VkSemaphore semaphore,
                                                        uint64_t syncId) {
-    return mImpl->on_vkGetSemaphoreGOOGLE(pool, device, semaphore, syncId);
+    return mImpl->on_vkGetSemaphoreGOOGLE(pool, snapshotInfo, device, semaphore, syncId);
 }
 
-void VkDecoderGlobalState::on_vkDestroySemaphore(android::base::BumpPool* pool, VkDevice device,
-                                                 VkSemaphore semaphore,
+void VkDecoderGlobalState::on_vkDestroySemaphore(android::base::BumpPool* pool,
+                                                 VkSnapshotApiCallInfo* snapshotInfo,
+                                                 VkDevice device, VkSemaphore semaphore,
                                                  const VkAllocationCallbacks* pAllocator) {
-    mImpl->on_vkDestroySemaphore(pool, device, semaphore, pAllocator);
+    mImpl->on_vkDestroySemaphore(pool, snapshotInfo, device, semaphore, pAllocator);
 }
 
-VkResult VkDecoderGlobalState::on_vkCreateFence(android::base::BumpPool* pool, VkDevice device,
+VkResult VkDecoderGlobalState::on_vkCreateFence(android::base::BumpPool* pool,
+                                                VkSnapshotApiCallInfo* snapshotInfo,
+                                                VkDevice device,
                                                 const VkFenceCreateInfo* pCreateInfo,
                                                 const VkAllocationCallbacks* pAllocator,
                                                 VkFence* pFence) {
-    return mImpl->on_vkCreateFence(pool, device, pCreateInfo, pAllocator, pFence);
+    return mImpl->on_vkCreateFence(pool, snapshotInfo, device, pCreateInfo, pAllocator, pFence);
 }
 
-VkResult VkDecoderGlobalState::on_vkResetFences(android::base::BumpPool* pool, VkDevice device,
-                                                uint32_t fenceCount, const VkFence* pFences) {
-    return mImpl->on_vkResetFences(pool, device, fenceCount, pFences);
+VkResult VkDecoderGlobalState::on_vkResetFences(android::base::BumpPool* pool,
+                                                VkSnapshotApiCallInfo* snapshotInfo,
+                                                VkDevice device, uint32_t fenceCount,
+                                                const VkFence* pFences) {
+    return mImpl->on_vkResetFences(pool, snapshotInfo, device, fenceCount, pFences);
 }
 
-void VkDecoderGlobalState::on_vkDestroyFence(android::base::BumpPool* pool, VkDevice device,
+void VkDecoderGlobalState::on_vkDestroyFence(android::base::BumpPool* pool,
+                                             VkSnapshotApiCallInfo* snapshotInfo, VkDevice device,
                                              VkFence fence,
                                              const VkAllocationCallbacks* pAllocator) {
-    return mImpl->on_vkDestroyFence(pool, device, fence, pAllocator);
+    return mImpl->on_vkDestroyFence(pool, snapshotInfo, device, fence, pAllocator);
 }
 
 VkResult VkDecoderGlobalState::on_vkCreateDescriptorSetLayout(
-    android::base::BumpPool* pool, VkDevice device,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo, VkDevice device,
     const VkDescriptorSetLayoutCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator,
     VkDescriptorSetLayout* pSetLayout) {
-    return mImpl->on_vkCreateDescriptorSetLayout(pool, device, pCreateInfo, pAllocator, pSetLayout);
+    return mImpl->on_vkCreateDescriptorSetLayout(pool, snapshotInfo, device, pCreateInfo,
+                                                 pAllocator, pSetLayout);
 }
 
 void VkDecoderGlobalState::on_vkDestroyDescriptorSetLayout(
-    android::base::BumpPool* pool, VkDevice device, VkDescriptorSetLayout descriptorSetLayout,
-    const VkAllocationCallbacks* pAllocator) {
-    mImpl->on_vkDestroyDescriptorSetLayout(pool, device, descriptorSetLayout, pAllocator);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo, VkDevice device,
+    VkDescriptorSetLayout descriptorSetLayout, const VkAllocationCallbacks* pAllocator) {
+    mImpl->on_vkDestroyDescriptorSetLayout(pool, snapshotInfo, device, descriptorSetLayout,
+                                           pAllocator);
 }
 
 VkResult VkDecoderGlobalState::on_vkCreateDescriptorPool(
-    android::base::BumpPool* pool, VkDevice device, const VkDescriptorPoolCreateInfo* pCreateInfo,
-    const VkAllocationCallbacks* pAllocator, VkDescriptorPool* pDescriptorPool) {
-    return mImpl->on_vkCreateDescriptorPool(pool, device, pCreateInfo, pAllocator, pDescriptorPool);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo, VkDevice device,
+    const VkDescriptorPoolCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator,
+    VkDescriptorPool* pDescriptorPool) {
+    return mImpl->on_vkCreateDescriptorPool(pool, snapshotInfo, device, pCreateInfo, pAllocator,
+                                            pDescriptorPool);
 }
 
 void VkDecoderGlobalState::on_vkDestroyDescriptorPool(android::base::BumpPool* pool,
+                                                      VkSnapshotApiCallInfo* snapshotInfo,
                                                       VkDevice device,
                                                       VkDescriptorPool descriptorPool,
                                                       const VkAllocationCallbacks* pAllocator) {
-    mImpl->on_vkDestroyDescriptorPool(pool, device, descriptorPool, pAllocator);
+    mImpl->on_vkDestroyDescriptorPool(pool, snapshotInfo, device, descriptorPool, pAllocator);
 }
 
 VkResult VkDecoderGlobalState::on_vkResetDescriptorPool(android::base::BumpPool* pool,
+                                                        VkSnapshotApiCallInfo* snapshotInfo,
                                                         VkDevice device,
                                                         VkDescriptorPool descriptorPool,
                                                         VkDescriptorPoolResetFlags flags) {
-    return mImpl->on_vkResetDescriptorPool(pool, device, descriptorPool, flags);
+    return mImpl->on_vkResetDescriptorPool(pool, snapshotInfo, device, descriptorPool, flags);
 }
 
 VkResult VkDecoderGlobalState::on_vkAllocateDescriptorSets(
-    android::base::BumpPool* pool, VkDevice device,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo, VkDevice device,
     const VkDescriptorSetAllocateInfo* pAllocateInfo, VkDescriptorSet* pDescriptorSets) {
-    return mImpl->on_vkAllocateDescriptorSets(pool, device, pAllocateInfo, pDescriptorSets);
+    return mImpl->on_vkAllocateDescriptorSets(pool, snapshotInfo, device, pAllocateInfo,
+                                              pDescriptorSets);
 }
 
 VkResult VkDecoderGlobalState::on_vkFreeDescriptorSets(android::base::BumpPool* pool,
+                                                       VkSnapshotApiCallInfo* snapshotInfo,
                                                        VkDevice device,
                                                        VkDescriptorPool descriptorPool,
                                                        uint32_t descriptorSetCount,
                                                        const VkDescriptorSet* pDescriptorSets) {
-    return mImpl->on_vkFreeDescriptorSets(pool, device, descriptorPool, descriptorSetCount,
-                                          pDescriptorSets);
+    return mImpl->on_vkFreeDescriptorSets(pool, snapshotInfo, device, descriptorPool,
+                                          descriptorSetCount, pDescriptorSets);
 }
 
-void VkDecoderGlobalState::on_vkUpdateDescriptorSets(android::base::BumpPool* pool, VkDevice device,
-                                                     uint32_t descriptorWriteCount,
+void VkDecoderGlobalState::on_vkUpdateDescriptorSets(android::base::BumpPool* pool,
+                                                     VkSnapshotApiCallInfo* snapshotInfo,
+                                                     VkDevice device, uint32_t descriptorWriteCount,
                                                      const VkWriteDescriptorSet* pDescriptorWrites,
                                                      uint32_t descriptorCopyCount,
                                                      const VkCopyDescriptorSet* pDescriptorCopies) {
-    mImpl->on_vkUpdateDescriptorSets(pool, device, descriptorWriteCount, pDescriptorWrites,
-                                     descriptorCopyCount, pDescriptorCopies);
+    mImpl->on_vkUpdateDescriptorSets(pool, snapshotInfo, device, descriptorWriteCount,
+                                     pDescriptorWrites, descriptorCopyCount, pDescriptorCopies);
 }
 
 VkResult VkDecoderGlobalState::on_vkCreateShaderModule(android::base::BumpPool* pool,
+                                                       VkSnapshotApiCallInfo* snapshotInfo,
                                                        VkDevice boxed_device,
                                                        const VkShaderModuleCreateInfo* pCreateInfo,
                                                        const VkAllocationCallbacks* pAllocator,
                                                        VkShaderModule* pShaderModule) {
-    return mImpl->on_vkCreateShaderModule(pool, boxed_device, pCreateInfo, pAllocator,
+    return mImpl->on_vkCreateShaderModule(pool, snapshotInfo, boxed_device, pCreateInfo, pAllocator,
                                           pShaderModule);
 }
 
 void VkDecoderGlobalState::on_vkDestroyShaderModule(android::base::BumpPool* pool,
+                                                    VkSnapshotApiCallInfo* snapshotInfo,
                                                     VkDevice boxed_device,
                                                     VkShaderModule shaderModule,
                                                     const VkAllocationCallbacks* pAllocator) {
-    mImpl->on_vkDestroyShaderModule(pool, boxed_device, shaderModule, pAllocator);
+    mImpl->on_vkDestroyShaderModule(pool, snapshotInfo, boxed_device, shaderModule, pAllocator);
 }
 
 VkResult VkDecoderGlobalState::on_vkCreatePipelineCache(
-    android::base::BumpPool* pool, VkDevice boxed_device,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo, VkDevice boxed_device,
     const VkPipelineCacheCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator,
     VkPipelineCache* pPipelineCache) {
-    return mImpl->on_vkCreatePipelineCache(pool, boxed_device, pCreateInfo, pAllocator,
-                                           pPipelineCache);
+    return mImpl->on_vkCreatePipelineCache(pool, snapshotInfo, boxed_device, pCreateInfo,
+                                           pAllocator, pPipelineCache);
 }
 
 void VkDecoderGlobalState::on_vkDestroyPipelineCache(android::base::BumpPool* pool,
+                                                     VkSnapshotApiCallInfo* snapshotInfo,
                                                      VkDevice boxed_device,
                                                      VkPipelineCache pipelineCache,
                                                      const VkAllocationCallbacks* pAllocator) {
-    mImpl->on_vkDestroyPipelineCache(pool, boxed_device, pipelineCache, pAllocator);
+    mImpl->on_vkDestroyPipelineCache(pool, snapshotInfo, boxed_device, pipelineCache, pAllocator);
 }
 
 VkResult VkDecoderGlobalState::on_vkCreateGraphicsPipelines(
-    android::base::BumpPool* pool, VkDevice boxed_device, VkPipelineCache pipelineCache,
-    uint32_t createInfoCount, const VkGraphicsPipelineCreateInfo* pCreateInfos,
-    const VkAllocationCallbacks* pAllocator, VkPipeline* pPipelines) {
-    return mImpl->on_vkCreateGraphicsPipelines(pool, boxed_device, pipelineCache, createInfoCount,
-                                               pCreateInfos, pAllocator, pPipelines);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo, VkDevice boxed_device,
+    VkPipelineCache pipelineCache, uint32_t createInfoCount,
+    const VkGraphicsPipelineCreateInfo* pCreateInfos, const VkAllocationCallbacks* pAllocator,
+    VkPipeline* pPipelines) {
+    return mImpl->on_vkCreateGraphicsPipelines(pool, snapshotInfo, boxed_device, pipelineCache,
+                                               createInfoCount, pCreateInfos, pAllocator,
+                                               pPipelines);
 }
 
 VkResult VkDecoderGlobalState::on_vkCreateComputePipelines(
-    android::base::BumpPool* pool, VkDevice boxed_device, VkPipelineCache pipelineCache,
-    uint32_t createInfoCount, const VkComputePipelineCreateInfo* pCreateInfos,
-    const VkAllocationCallbacks* pAllocator, VkPipeline* pPipelines) {
-    return mImpl->on_vkCreateComputePipelines(pool, boxed_device, pipelineCache, createInfoCount,
-                                               pCreateInfos, pAllocator, pPipelines);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo, VkDevice boxed_device,
+    VkPipelineCache pipelineCache, uint32_t createInfoCount,
+    const VkComputePipelineCreateInfo* pCreateInfos, const VkAllocationCallbacks* pAllocator,
+    VkPipeline* pPipelines) {
+    return mImpl->on_vkCreateComputePipelines(pool, snapshotInfo, boxed_device, pipelineCache,
+                                              createInfoCount, pCreateInfos, pAllocator,
+                                              pPipelines);
 }
 
 void VkDecoderGlobalState::on_vkDestroyPipeline(android::base::BumpPool* pool,
+                                                VkSnapshotApiCallInfo* snapshotInfo,
                                                 VkDevice boxed_device, VkPipeline pipeline,
                                                 const VkAllocationCallbacks* pAllocator) {
-    mImpl->on_vkDestroyPipeline(pool, boxed_device, pipeline, pAllocator);
+    mImpl->on_vkDestroyPipeline(pool, snapshotInfo, boxed_device, pipeline, pAllocator);
 }
 
 void VkDecoderGlobalState::on_vkCmdCopyBufferToImage(
-    android::base::BumpPool* pool, VkCommandBuffer commandBuffer, VkBuffer srcBuffer,
-    VkImage dstImage, VkImageLayout dstImageLayout, uint32_t regionCount,
-    const VkBufferImageCopy* pRegions, const VkDecoderContext& context) {
-    mImpl->on_vkCmdCopyBufferToImage(pool, commandBuffer, srcBuffer, dstImage, dstImageLayout,
-                                     regionCount, pRegions, context);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo,
+    VkCommandBuffer commandBuffer, VkBuffer srcBuffer, VkImage dstImage,
+    VkImageLayout dstImageLayout, uint32_t regionCount, const VkBufferImageCopy* pRegions,
+    const VkDecoderContext& context) {
+    mImpl->on_vkCmdCopyBufferToImage(pool, snapshotInfo, commandBuffer, srcBuffer, dstImage,
+                                     dstImageLayout, regionCount, pRegions, context);
 }
 
 void VkDecoderGlobalState::on_vkCmdCopyImage(android::base::BumpPool* pool,
+                                             VkSnapshotApiCallInfo* snapshotInfo,
                                              VkCommandBuffer commandBuffer, VkImage srcImage,
                                              VkImageLayout srcImageLayout, VkImage dstImage,
                                              VkImageLayout dstImageLayout, uint32_t regionCount,
                                              const VkImageCopy* pRegions) {
-    mImpl->on_vkCmdCopyImage(pool, commandBuffer, srcImage, srcImageLayout, dstImage,
+    mImpl->on_vkCmdCopyImage(pool, snapshotInfo, commandBuffer, srcImage, srcImageLayout, dstImage,
                              dstImageLayout, regionCount, pRegions);
 }
 void VkDecoderGlobalState::on_vkCmdCopyImageToBuffer(android::base::BumpPool* pool,
+                                                     VkSnapshotApiCallInfo* snapshotInfo,
                                                      VkCommandBuffer commandBuffer,
                                                      VkImage srcImage, VkImageLayout srcImageLayout,
                                                      VkBuffer dstBuffer, uint32_t regionCount,
                                                      const VkBufferImageCopy* pRegions) {
-    mImpl->on_vkCmdCopyImageToBuffer(pool, commandBuffer, srcImage, srcImageLayout, dstBuffer,
-                                     regionCount, pRegions);
+    mImpl->on_vkCmdCopyImageToBuffer(pool, snapshotInfo, commandBuffer, srcImage, srcImageLayout,
+                                     dstBuffer, regionCount, pRegions);
 }
 
-void VkDecoderGlobalState::on_vkCmdCopyBufferToImage2(android::base::BumpPool* pool,
-                                VkCommandBuffer commandBuffer,
-                                const VkCopyBufferToImageInfo2* pCopyBufferToImageInfo,
-                                const VkDecoderContext& context) {
-    mImpl->on_vkCmdCopyBufferToImage2(pool, commandBuffer, pCopyBufferToImageInfo, context);
+void VkDecoderGlobalState::on_vkCmdCopyBufferToImage2(
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo,
+    VkCommandBuffer commandBuffer, const VkCopyBufferToImageInfo2* pCopyBufferToImageInfo,
+    const VkDecoderContext& context) {
+    mImpl->on_vkCmdCopyBufferToImage2(pool, snapshotInfo, commandBuffer, pCopyBufferToImageInfo,
+                                      context);
 }
 
 void VkDecoderGlobalState::on_vkCmdCopyImage2(android::base::BumpPool* pool,
-    VkCommandBuffer commandBuffer,
-    const VkCopyImageInfo2* pCopyImageInfo) {
-    mImpl->on_vkCmdCopyImage2(pool, commandBuffer, pCopyImageInfo);
+                                              VkSnapshotApiCallInfo* snapshotInfo,
+                                              VkCommandBuffer commandBuffer,
+                                              const VkCopyImageInfo2* pCopyImageInfo) {
+    mImpl->on_vkCmdCopyImage2(pool, snapshotInfo, commandBuffer, pCopyImageInfo);
 }
 
-void VkDecoderGlobalState::on_vkCmdCopyImageToBuffer2(android::base::BumpPool* pool,
-                                VkCommandBuffer commandBuffer,
-                                const VkCopyImageToBufferInfo2* pCopyImageToBufferInfo) {
-    mImpl->on_vkCmdCopyImageToBuffer2(pool, commandBuffer, pCopyImageToBufferInfo);
+void VkDecoderGlobalState::on_vkCmdCopyImageToBuffer2(
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo,
+    VkCommandBuffer commandBuffer, const VkCopyImageToBufferInfo2* pCopyImageToBufferInfo) {
+    mImpl->on_vkCmdCopyImageToBuffer2(pool, snapshotInfo, commandBuffer, pCopyImageToBufferInfo);
 }
 
-void VkDecoderGlobalState::on_vkCmdCopyBufferToImage2KHR(android::base::BumpPool* pool,
-                                VkCommandBuffer commandBuffer,
-                                const VkCopyBufferToImageInfo2KHR* pCopyBufferToImageInfo,
-                                const VkDecoderContext& context) {
-    mImpl->on_vkCmdCopyBufferToImage2KHR(pool, commandBuffer, pCopyBufferToImageInfo, context);
+void VkDecoderGlobalState::on_vkCmdCopyBufferToImage2KHR(
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo,
+    VkCommandBuffer commandBuffer, const VkCopyBufferToImageInfo2KHR* pCopyBufferToImageInfo,
+    const VkDecoderContext& context) {
+    mImpl->on_vkCmdCopyBufferToImage2KHR(pool, snapshotInfo, commandBuffer, pCopyBufferToImageInfo,
+                                         context);
 }
 
 void VkDecoderGlobalState::on_vkCmdCopyImage2KHR(android::base::BumpPool* pool,
-    VkCommandBuffer commandBuffer,
-    const VkCopyImageInfo2KHR* pCopyImageInfo) {
-    mImpl->on_vkCmdCopyImage2KHR(pool, commandBuffer, pCopyImageInfo);
+                                                 VkSnapshotApiCallInfo* snapshotInfo,
+                                                 VkCommandBuffer commandBuffer,
+                                                 const VkCopyImageInfo2KHR* pCopyImageInfo) {
+    mImpl->on_vkCmdCopyImage2KHR(pool, snapshotInfo, commandBuffer, pCopyImageInfo);
 }
 
-void VkDecoderGlobalState::on_vkCmdCopyImageToBuffer2KHR(android::base::BumpPool* pool,
-                                VkCommandBuffer commandBuffer,
-                                const VkCopyImageToBufferInfo2KHR* pCopyImageToBufferInfo) {
-    mImpl->on_vkCmdCopyImageToBuffer2KHR(pool, commandBuffer, pCopyImageToBufferInfo);
+void VkDecoderGlobalState::on_vkCmdCopyImageToBuffer2KHR(
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo,
+    VkCommandBuffer commandBuffer, const VkCopyImageToBufferInfo2KHR* pCopyImageToBufferInfo) {
+    mImpl->on_vkCmdCopyImageToBuffer2KHR(pool, snapshotInfo, commandBuffer, pCopyImageToBufferInfo);
 }
 
 void VkDecoderGlobalState::on_vkGetImageMemoryRequirements(
-    android::base::BumpPool* pool, VkDevice device, VkImage image,
-    VkMemoryRequirements* pMemoryRequirements) {
-    mImpl->on_vkGetImageMemoryRequirements(pool, device, image, pMemoryRequirements);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo, VkDevice device,
+    VkImage image, VkMemoryRequirements* pMemoryRequirements) {
+    mImpl->on_vkGetImageMemoryRequirements(pool, snapshotInfo, device, image, pMemoryRequirements);
 }
 
 void VkDecoderGlobalState::on_vkGetImageMemoryRequirements2(
-    android::base::BumpPool* pool, VkDevice device, const VkImageMemoryRequirementsInfo2* pInfo,
-    VkMemoryRequirements2* pMemoryRequirements) {
-    mImpl->on_vkGetImageMemoryRequirements2(pool, device, pInfo, pMemoryRequirements);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo, VkDevice device,
+    const VkImageMemoryRequirementsInfo2* pInfo, VkMemoryRequirements2* pMemoryRequirements) {
+    mImpl->on_vkGetImageMemoryRequirements2(pool, snapshotInfo, device, pInfo, pMemoryRequirements);
 }
 
 void VkDecoderGlobalState::on_vkGetImageMemoryRequirements2KHR(
-    android::base::BumpPool* pool, VkDevice device, const VkImageMemoryRequirementsInfo2* pInfo,
-    VkMemoryRequirements2* pMemoryRequirements) {
-    mImpl->on_vkGetImageMemoryRequirements2(pool, device, pInfo, pMemoryRequirements);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo, VkDevice device,
+    const VkImageMemoryRequirementsInfo2* pInfo, VkMemoryRequirements2* pMemoryRequirements) {
+    mImpl->on_vkGetImageMemoryRequirements2(pool, snapshotInfo, device, pInfo, pMemoryRequirements);
 }
 
 void VkDecoderGlobalState::on_vkGetBufferMemoryRequirements(
-    android::base::BumpPool* pool, VkDevice device, VkBuffer buffer,
-    VkMemoryRequirements* pMemoryRequirements) {
-    mImpl->on_vkGetBufferMemoryRequirements(pool, device, buffer, pMemoryRequirements);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo, VkDevice device,
+    VkBuffer buffer, VkMemoryRequirements* pMemoryRequirements) {
+    mImpl->on_vkGetBufferMemoryRequirements(pool, snapshotInfo, device, buffer,
+                                            pMemoryRequirements);
 }
 
 void VkDecoderGlobalState::on_vkGetBufferMemoryRequirements2(
-    android::base::BumpPool* pool, VkDevice device, const VkBufferMemoryRequirementsInfo2* pInfo,
-    VkMemoryRequirements2* pMemoryRequirements) {
-    mImpl->on_vkGetBufferMemoryRequirements2(pool, device, pInfo, pMemoryRequirements);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo, VkDevice device,
+    const VkBufferMemoryRequirementsInfo2* pInfo, VkMemoryRequirements2* pMemoryRequirements) {
+    mImpl->on_vkGetBufferMemoryRequirements2(pool, snapshotInfo, device, pInfo,
+                                             pMemoryRequirements);
 }
 
 void VkDecoderGlobalState::on_vkGetBufferMemoryRequirements2KHR(
-    android::base::BumpPool* pool, VkDevice device, const VkBufferMemoryRequirementsInfo2* pInfo,
-    VkMemoryRequirements2* pMemoryRequirements) {
-    mImpl->on_vkGetBufferMemoryRequirements2(pool, device, pInfo, pMemoryRequirements);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo, VkDevice device,
+    const VkBufferMemoryRequirementsInfo2* pInfo, VkMemoryRequirements2* pMemoryRequirements) {
+    mImpl->on_vkGetBufferMemoryRequirements2(pool, snapshotInfo, device, pInfo,
+                                             pMemoryRequirements);
 }
 
 void VkDecoderGlobalState::on_vkCmdPipelineBarrier(
-    android::base::BumpPool* pool, VkCommandBuffer commandBuffer, VkPipelineStageFlags srcStageMask,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo,
+    VkCommandBuffer commandBuffer, VkPipelineStageFlags srcStageMask,
     VkPipelineStageFlags dstStageMask, VkDependencyFlags dependencyFlags,
     uint32_t memoryBarrierCount, const VkMemoryBarrier* pMemoryBarriers,
     uint32_t bufferMemoryBarrierCount, const VkBufferMemoryBarrier* pBufferMemoryBarriers,
     uint32_t imageMemoryBarrierCount, const VkImageMemoryBarrier* pImageMemoryBarriers) {
-    mImpl->on_vkCmdPipelineBarrier(pool, commandBuffer, srcStageMask, dstStageMask, dependencyFlags,
-                                   memoryBarrierCount, pMemoryBarriers, bufferMemoryBarrierCount,
-                                   pBufferMemoryBarriers, imageMemoryBarrierCount,
-                                   pImageMemoryBarriers);
+    mImpl->on_vkCmdPipelineBarrier(pool, snapshotInfo, commandBuffer, srcStageMask, dstStageMask,
+                                   dependencyFlags, memoryBarrierCount, pMemoryBarriers,
+                                   bufferMemoryBarrierCount, pBufferMemoryBarriers,
+                                   imageMemoryBarrierCount, pImageMemoryBarriers);
 }
 
 void VkDecoderGlobalState::on_vkCmdPipelineBarrier2(android::base::BumpPool* pool,
+                                                    VkSnapshotApiCallInfo* snapshotInfo,
                                                     VkCommandBuffer commandBuffer,
                                                     const VkDependencyInfo* pDependencyInfo) {
-    mImpl->on_vkCmdPipelineBarrier2(pool, commandBuffer, pDependencyInfo);
+    mImpl->on_vkCmdPipelineBarrier2(pool, snapshotInfo, commandBuffer, pDependencyInfo);
 }
 
-VkResult VkDecoderGlobalState::on_vkAllocateMemory(android::base::BumpPool* pool, VkDevice device,
+VkResult VkDecoderGlobalState::on_vkAllocateMemory(android::base::BumpPool* pool,
+                                                   VkSnapshotApiCallInfo* snapshotInfo,
+                                                   VkDevice device,
                                                    const VkMemoryAllocateInfo* pAllocateInfo,
                                                    const VkAllocationCallbacks* pAllocator,
                                                    VkDeviceMemory* pMemory) {
-    return mImpl->on_vkAllocateMemory(pool, device, pAllocateInfo, pAllocator, pMemory);
+    return mImpl->on_vkAllocateMemory(pool, snapshotInfo, device, pAllocateInfo, pAllocator,
+                                      pMemory);
 }
 
-void VkDecoderGlobalState::on_vkFreeMemory(android::base::BumpPool* pool, VkDevice device,
+void VkDecoderGlobalState::on_vkFreeMemory(android::base::BumpPool* pool,
+                                           VkSnapshotApiCallInfo* snapshotInfo, VkDevice device,
                                            VkDeviceMemory memory,
                                            const VkAllocationCallbacks* pAllocator) {
-    mImpl->on_vkFreeMemory(pool, device, memory, pAllocator);
+    mImpl->on_vkFreeMemory(pool, snapshotInfo, device, memory, pAllocator);
 }
 
-VkResult VkDecoderGlobalState::on_vkMapMemory(android::base::BumpPool* pool, VkDevice device,
+VkResult VkDecoderGlobalState::on_vkMapMemory(android::base::BumpPool* pool,
+                                              VkSnapshotApiCallInfo* snapshotInfo, VkDevice device,
                                               VkDeviceMemory memory, VkDeviceSize offset,
                                               VkDeviceSize size, VkMemoryMapFlags flags,
                                               void** ppData) {
-    return mImpl->on_vkMapMemory(pool, device, memory, offset, size, flags, ppData);
+    return mImpl->on_vkMapMemory(pool, snapshotInfo, device, memory, offset, size, flags, ppData);
 }
 
-void VkDecoderGlobalState::on_vkUnmapMemory(android::base::BumpPool* pool, VkDevice device,
+void VkDecoderGlobalState::on_vkUnmapMemory(android::base::BumpPool* pool,
+                                            VkSnapshotApiCallInfo* snapshotInfo, VkDevice device,
                                             VkDeviceMemory memory) {
-    mImpl->on_vkUnmapMemory(pool, device, memory);
+    mImpl->on_vkUnmapMemory(pool, snapshotInfo, device, memory);
 }
 
 uint8_t* VkDecoderGlobalState::getMappedHostPointer(VkDeviceMemory memory) {
@@ -9509,236 +9875,261 @@ VkDecoderGlobalState::HostFeatureSupport VkDecoderGlobalState::getHostFeatureSup
 }
 
 // VK_ANDROID_native_buffer
-VkResult VkDecoderGlobalState::on_vkGetSwapchainGrallocUsageANDROID(android::base::BumpPool* pool,
-                                                                    VkDevice device,
-                                                                    VkFormat format,
-                                                                    VkImageUsageFlags imageUsage,
-                                                                    int* grallocUsage) {
-    return mImpl->on_vkGetSwapchainGrallocUsageANDROID(pool, device, format, imageUsage,
-                                                       grallocUsage);
+VkResult VkDecoderGlobalState::on_vkGetSwapchainGrallocUsageANDROID(
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo, VkDevice device,
+    VkFormat format, VkImageUsageFlags imageUsage, int* grallocUsage) {
+    return mImpl->on_vkGetSwapchainGrallocUsageANDROID(pool, snapshotInfo, device, format,
+                                                       imageUsage, grallocUsage);
 }
 
 VkResult VkDecoderGlobalState::on_vkGetSwapchainGrallocUsage2ANDROID(
-    android::base::BumpPool* pool, VkDevice device, VkFormat format, VkImageUsageFlags imageUsage,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo, VkDevice device,
+    VkFormat format, VkImageUsageFlags imageUsage,
     VkSwapchainImageUsageFlagsANDROID swapchainImageUsage, uint64_t* grallocConsumerUsage,
     uint64_t* grallocProducerUsage) {
-    return mImpl->on_vkGetSwapchainGrallocUsage2ANDROID(pool, device, format, imageUsage,
-                                                        swapchainImageUsage, grallocConsumerUsage,
-                                                        grallocProducerUsage);
+    return mImpl->on_vkGetSwapchainGrallocUsage2ANDROID(pool, snapshotInfo, device, format,
+                                                        imageUsage, swapchainImageUsage,
+                                                        grallocConsumerUsage, grallocProducerUsage);
 }
 
 VkResult VkDecoderGlobalState::on_vkAcquireImageANDROID(android::base::BumpPool* pool,
+                                                        VkSnapshotApiCallInfo* snapshotInfo,
                                                         VkDevice device, VkImage image,
                                                         int nativeFenceFd, VkSemaphore semaphore,
                                                         VkFence fence) {
-    return mImpl->on_vkAcquireImageANDROID(pool, device, image, nativeFenceFd, semaphore, fence);
+    return mImpl->on_vkAcquireImageANDROID(pool, snapshotInfo, device, image, nativeFenceFd,
+                                           semaphore, fence);
 }
 
 VkResult VkDecoderGlobalState::on_vkQueueSignalReleaseImageANDROID(
-    android::base::BumpPool* pool, VkQueue queue, uint32_t waitSemaphoreCount,
-    const VkSemaphore* pWaitSemaphores, VkImage image, int* pNativeFenceFd) {
-    return mImpl->on_vkQueueSignalReleaseImageANDROID(pool, queue, waitSemaphoreCount,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo, VkQueue queue,
+    uint32_t waitSemaphoreCount, const VkSemaphore* pWaitSemaphores, VkImage image,
+    int* pNativeFenceFd) {
+    return mImpl->on_vkQueueSignalReleaseImageANDROID(pool, snapshotInfo, queue, waitSemaphoreCount,
                                                       pWaitSemaphores, image, pNativeFenceFd);
 }
 
 // VK_GOOGLE_gfxstream
-VkResult VkDecoderGlobalState::on_vkMapMemoryIntoAddressSpaceGOOGLE(android::base::BumpPool* pool,
-                                                                    VkDevice device,
-                                                                    VkDeviceMemory memory,
-                                                                    uint64_t* pAddress) {
-    return mImpl->on_vkMapMemoryIntoAddressSpaceGOOGLE(pool, device, memory, pAddress);
+VkResult VkDecoderGlobalState::on_vkMapMemoryIntoAddressSpaceGOOGLE(
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo, VkDevice device,
+    VkDeviceMemory memory, uint64_t* pAddress) {
+    return mImpl->on_vkMapMemoryIntoAddressSpaceGOOGLE(pool, snapshotInfo, device, memory,
+                                                       pAddress);
 }
 
 VkResult VkDecoderGlobalState::on_vkGetMemoryHostAddressInfoGOOGLE(
-    android::base::BumpPool* pool, VkDevice device, VkDeviceMemory memory, uint64_t* pAddress,
-    uint64_t* pSize, uint64_t* pHostmemId) {
-    return mImpl->on_vkGetMemoryHostAddressInfoGOOGLE(pool, device, memory, pAddress, pSize,
-                                                      pHostmemId);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo, VkDevice device,
+    VkDeviceMemory memory, uint64_t* pAddress, uint64_t* pSize, uint64_t* pHostmemId) {
+    return mImpl->on_vkGetMemoryHostAddressInfoGOOGLE(pool, snapshotInfo, device, memory, pAddress,
+                                                      pSize, pHostmemId);
 }
 
-VkResult VkDecoderGlobalState::on_vkGetBlobGOOGLE(android::base::BumpPool* pool, VkDevice device,
-                                                  VkDeviceMemory memory) {
-    return mImpl->on_vkGetBlobGOOGLE(pool, device, memory);
+VkResult VkDecoderGlobalState::on_vkGetBlobGOOGLE(android::base::BumpPool* pool,
+                                                  VkSnapshotApiCallInfo* snapshotInfo,
+                                                  VkDevice device, VkDeviceMemory memory) {
+    return mImpl->on_vkGetBlobGOOGLE(pool, snapshotInfo, device, memory);
 }
 
 VkResult VkDecoderGlobalState::on_vkFreeMemorySyncGOOGLE(android::base::BumpPool* pool,
+                                                         VkSnapshotApiCallInfo* snapshotInfo,
                                                          VkDevice device, VkDeviceMemory memory,
                                                          const VkAllocationCallbacks* pAllocator) {
-    return mImpl->on_vkFreeMemorySyncGOOGLE(pool, device, memory, pAllocator);
+    return mImpl->on_vkFreeMemorySyncGOOGLE(pool, snapshotInfo, device, memory, pAllocator);
 }
 
 VkResult VkDecoderGlobalState::on_vkAllocateCommandBuffers(
-    android::base::BumpPool* pool, VkDevice device,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo, VkDevice device,
     const VkCommandBufferAllocateInfo* pAllocateInfo, VkCommandBuffer* pCommandBuffers) {
-    return mImpl->on_vkAllocateCommandBuffers(pool, device, pAllocateInfo, pCommandBuffers);
+    return mImpl->on_vkAllocateCommandBuffers(pool, snapshotInfo, device, pAllocateInfo,
+                                              pCommandBuffers);
 }
 
 VkResult VkDecoderGlobalState::on_vkCreateCommandPool(android::base::BumpPool* pool,
+                                                      VkSnapshotApiCallInfo* snapshotInfo,
                                                       VkDevice device,
                                                       const VkCommandPoolCreateInfo* pCreateInfo,
                                                       const VkAllocationCallbacks* pAllocator,
                                                       VkCommandPool* pCommandPool) {
-    return mImpl->on_vkCreateCommandPool(pool, device, pCreateInfo, pAllocator, pCommandPool);
+    return mImpl->on_vkCreateCommandPool(pool, snapshotInfo, device, pCreateInfo, pAllocator,
+                                         pCommandPool);
 }
 
-void VkDecoderGlobalState::on_vkDestroyCommandPool(android::base::BumpPool* pool, VkDevice device,
-                                                   VkCommandPool commandPool,
+void VkDecoderGlobalState::on_vkDestroyCommandPool(android::base::BumpPool* pool,
+                                                   VkSnapshotApiCallInfo* snapshotInfo,
+                                                   VkDevice device, VkCommandPool commandPool,
                                                    const VkAllocationCallbacks* pAllocator) {
-    mImpl->on_vkDestroyCommandPool(pool, device, commandPool, pAllocator);
+    mImpl->on_vkDestroyCommandPool(pool, snapshotInfo, device, commandPool, pAllocator);
 }
 
-VkResult VkDecoderGlobalState::on_vkResetCommandPool(android::base::BumpPool* pool, VkDevice device,
-                                                     VkCommandPool commandPool,
+VkResult VkDecoderGlobalState::on_vkResetCommandPool(android::base::BumpPool* pool,
+                                                     VkSnapshotApiCallInfo* snapshotInfo,
+                                                     VkDevice device, VkCommandPool commandPool,
                                                      VkCommandPoolResetFlags flags) {
-    return mImpl->on_vkResetCommandPool(pool, device, commandPool, flags);
+    return mImpl->on_vkResetCommandPool(pool, snapshotInfo, device, commandPool, flags);
 }
 
 void VkDecoderGlobalState::on_vkCmdExecuteCommands(android::base::BumpPool* pool,
+                                                   VkSnapshotApiCallInfo* snapshotInfo,
                                                    VkCommandBuffer commandBuffer,
                                                    uint32_t commandBufferCount,
                                                    const VkCommandBuffer* pCommandBuffers) {
-    return mImpl->on_vkCmdExecuteCommands(pool, commandBuffer, commandBufferCount, pCommandBuffers);
-}
-
-VkResult VkDecoderGlobalState::on_vkQueueSubmit(android::base::BumpPool* pool, VkQueue queue,
-                                                uint32_t submitCount, const VkSubmitInfo* pSubmits,
-                                                VkFence fence) {
-    return mImpl->on_vkQueueSubmit(pool, queue, submitCount, pSubmits, fence);
-}
-
-VkResult VkDecoderGlobalState::on_vkQueueSubmit2(android::base::BumpPool* pool, VkQueue queue,
-                                                 uint32_t submitCount,
-                                                 const VkSubmitInfo2* pSubmits, VkFence fence) {
-    return mImpl->on_vkQueueSubmit(pool, queue, submitCount, pSubmits, fence);
-}
-
-VkResult VkDecoderGlobalState::on_vkQueueWaitIdle(android::base::BumpPool* pool, VkQueue queue) {
-    return mImpl->on_vkQueueWaitIdle(pool, queue);
-}
-
-VkResult VkDecoderGlobalState::on_vkResetCommandBuffer(android::base::BumpPool* pool,
-                                                       VkCommandBuffer commandBuffer,
-                                                       VkCommandBufferResetFlags flags) {
-    return mImpl->on_vkResetCommandBuffer(pool, commandBuffer, flags);
-}
-
-void VkDecoderGlobalState::on_vkFreeCommandBuffers(android::base::BumpPool* pool, VkDevice device,
-                                                   VkCommandPool commandPool,
-                                                   uint32_t commandBufferCount,
-                                                   const VkCommandBuffer* pCommandBuffers) {
-    return mImpl->on_vkFreeCommandBuffers(pool, device, commandPool, commandBufferCount,
+    return mImpl->on_vkCmdExecuteCommands(pool, snapshotInfo, commandBuffer, commandBufferCount,
                                           pCommandBuffers);
 }
 
+VkResult VkDecoderGlobalState::on_vkQueueSubmit(android::base::BumpPool* pool,
+                                                VkSnapshotApiCallInfo* snapshotInfo, VkQueue queue,
+                                                uint32_t submitCount, const VkSubmitInfo* pSubmits,
+                                                VkFence fence) {
+    return mImpl->on_vkQueueSubmit(pool, snapshotInfo, queue, submitCount, pSubmits, fence);
+}
+
+VkResult VkDecoderGlobalState::on_vkQueueSubmit2(android::base::BumpPool* pool,
+                                                 VkSnapshotApiCallInfo* snapshotInfo, VkQueue queue,
+                                                 uint32_t submitCount,
+                                                 const VkSubmitInfo2* pSubmits, VkFence fence) {
+    return mImpl->on_vkQueueSubmit(pool, snapshotInfo, queue, submitCount, pSubmits, fence);
+}
+
+VkResult VkDecoderGlobalState::on_vkQueueWaitIdle(android::base::BumpPool* pool,
+                                                  VkSnapshotApiCallInfo* snapshotInfo,
+                                                  VkQueue queue) {
+    return mImpl->on_vkQueueWaitIdle(pool, snapshotInfo, queue);
+}
+
+VkResult VkDecoderGlobalState::on_vkResetCommandBuffer(android::base::BumpPool* pool,
+                                                       VkSnapshotApiCallInfo* snapshotInfo,
+                                                       VkCommandBuffer commandBuffer,
+                                                       VkCommandBufferResetFlags flags) {
+    return mImpl->on_vkResetCommandBuffer(pool, snapshotInfo, commandBuffer, flags);
+}
+
+void VkDecoderGlobalState::on_vkFreeCommandBuffers(android::base::BumpPool* pool,
+                                                   VkSnapshotApiCallInfo* snapshotInfo,
+                                                   VkDevice device, VkCommandPool commandPool,
+                                                   uint32_t commandBufferCount,
+                                                   const VkCommandBuffer* pCommandBuffers) {
+    return mImpl->on_vkFreeCommandBuffers(pool, snapshotInfo, device, commandPool,
+                                          commandBufferCount, pCommandBuffers);
+}
+
 void VkDecoderGlobalState::on_vkGetPhysicalDeviceExternalSemaphoreProperties(
-    android::base::BumpPool* pool, VkPhysicalDevice physicalDevice,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo,
+    VkPhysicalDevice physicalDevice,
     const VkPhysicalDeviceExternalSemaphoreInfo* pExternalSemaphoreInfo,
     VkExternalSemaphoreProperties* pExternalSemaphoreProperties) {
     return mImpl->on_vkGetPhysicalDeviceExternalSemaphoreProperties(
-        pool, physicalDevice, pExternalSemaphoreInfo, pExternalSemaphoreProperties);
+        pool, snapshotInfo, physicalDevice, pExternalSemaphoreInfo, pExternalSemaphoreProperties);
 }
 
 void VkDecoderGlobalState::on_vkGetPhysicalDeviceExternalSemaphorePropertiesKHR(
-    android::base::BumpPool* pool, VkPhysicalDevice physicalDevice,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo,
+    VkPhysicalDevice physicalDevice,
     const VkPhysicalDeviceExternalSemaphoreInfo* pExternalSemaphoreInfo,
     VkExternalSemaphoreProperties* pExternalSemaphoreProperties) {
     return mImpl->on_vkGetPhysicalDeviceExternalSemaphoreProperties(
-        pool, physicalDevice, pExternalSemaphoreInfo, pExternalSemaphoreProperties);
+        pool, snapshotInfo, physicalDevice, pExternalSemaphoreInfo, pExternalSemaphoreProperties);
 }
 
 // Descriptor update templates
 VkResult VkDecoderGlobalState::on_vkCreateDescriptorUpdateTemplate(
-    android::base::BumpPool* pool, VkDevice boxed_device,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo, VkDevice boxed_device,
     const VkDescriptorUpdateTemplateCreateInfo* pCreateInfo,
     const VkAllocationCallbacks* pAllocator,
     VkDescriptorUpdateTemplate* pDescriptorUpdateTemplate) {
-    return mImpl->on_vkCreateDescriptorUpdateTemplate(pool, boxed_device, pCreateInfo, pAllocator,
-                                                      pDescriptorUpdateTemplate);
+    return mImpl->on_vkCreateDescriptorUpdateTemplate(pool, snapshotInfo, boxed_device, pCreateInfo,
+                                                      pAllocator, pDescriptorUpdateTemplate);
 }
 
 VkResult VkDecoderGlobalState::on_vkCreateDescriptorUpdateTemplateKHR(
-    android::base::BumpPool* pool, VkDevice boxed_device,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo, VkDevice boxed_device,
     const VkDescriptorUpdateTemplateCreateInfo* pCreateInfo,
     const VkAllocationCallbacks* pAllocator,
     VkDescriptorUpdateTemplate* pDescriptorUpdateTemplate) {
-    return mImpl->on_vkCreateDescriptorUpdateTemplateKHR(pool, boxed_device, pCreateInfo,
-                                                         pAllocator, pDescriptorUpdateTemplate);
+    return mImpl->on_vkCreateDescriptorUpdateTemplateKHR(
+        pool, snapshotInfo, boxed_device, pCreateInfo, pAllocator, pDescriptorUpdateTemplate);
 }
 
 void VkDecoderGlobalState::on_vkDestroyDescriptorUpdateTemplate(
-    android::base::BumpPool* pool, VkDevice boxed_device,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo, VkDevice boxed_device,
     VkDescriptorUpdateTemplate descriptorUpdateTemplate, const VkAllocationCallbacks* pAllocator) {
-    mImpl->on_vkDestroyDescriptorUpdateTemplate(pool, boxed_device, descriptorUpdateTemplate,
-                                                pAllocator);
+    mImpl->on_vkDestroyDescriptorUpdateTemplate(pool, snapshotInfo, boxed_device,
+                                                descriptorUpdateTemplate, pAllocator);
 }
 
 void VkDecoderGlobalState::on_vkDestroyDescriptorUpdateTemplateKHR(
-    android::base::BumpPool* pool, VkDevice boxed_device,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo, VkDevice boxed_device,
     VkDescriptorUpdateTemplate descriptorUpdateTemplate, const VkAllocationCallbacks* pAllocator) {
-    mImpl->on_vkDestroyDescriptorUpdateTemplateKHR(pool, boxed_device, descriptorUpdateTemplate,
-                                                   pAllocator);
+    mImpl->on_vkDestroyDescriptorUpdateTemplateKHR(pool, snapshotInfo, boxed_device,
+                                                   descriptorUpdateTemplate, pAllocator);
 }
 
 void VkDecoderGlobalState::on_vkUpdateDescriptorSetWithTemplateSizedGOOGLE(
-    android::base::BumpPool* pool, VkDevice boxed_device, VkDescriptorSet descriptorSet,
-    VkDescriptorUpdateTemplate descriptorUpdateTemplate, uint32_t imageInfoCount,
-    uint32_t bufferInfoCount, uint32_t bufferViewCount, const uint32_t* pImageInfoEntryIndices,
-    const uint32_t* pBufferInfoEntryIndices, const uint32_t* pBufferViewEntryIndices,
-    const VkDescriptorImageInfo* pImageInfos, const VkDescriptorBufferInfo* pBufferInfos,
-    const VkBufferView* pBufferViews) {
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo, VkDevice boxed_device,
+    VkDescriptorSet descriptorSet, VkDescriptorUpdateTemplate descriptorUpdateTemplate,
+    uint32_t imageInfoCount, uint32_t bufferInfoCount, uint32_t bufferViewCount,
+    const uint32_t* pImageInfoEntryIndices, const uint32_t* pBufferInfoEntryIndices,
+    const uint32_t* pBufferViewEntryIndices, const VkDescriptorImageInfo* pImageInfos,
+    const VkDescriptorBufferInfo* pBufferInfos, const VkBufferView* pBufferViews) {
     mImpl->on_vkUpdateDescriptorSetWithTemplateSizedGOOGLE(
-        pool, boxed_device, descriptorSet, descriptorUpdateTemplate, imageInfoCount,
+        pool, snapshotInfo, boxed_device, descriptorSet, descriptorUpdateTemplate, imageInfoCount,
         bufferInfoCount, bufferViewCount, pImageInfoEntryIndices, pBufferInfoEntryIndices,
         pBufferViewEntryIndices, pImageInfos, pBufferInfos, pBufferViews);
 }
 
 void VkDecoderGlobalState::on_vkUpdateDescriptorSetWithTemplateSized2GOOGLE(
-    android::base::BumpPool* pool, VkDevice boxed_device, VkDescriptorSet descriptorSet,
-    VkDescriptorUpdateTemplate descriptorUpdateTemplate, uint32_t imageInfoCount,
-    uint32_t bufferInfoCount, uint32_t bufferViewCount, uint32_t inlineUniformBlockCount,
-    const uint32_t* pImageInfoEntryIndices, const uint32_t* pBufferInfoEntryIndices,
-    const uint32_t* pBufferViewEntryIndices, const VkDescriptorImageInfo* pImageInfos,
-    const VkDescriptorBufferInfo* pBufferInfos, const VkBufferView* pBufferViews,
-    const uint8_t* pInlineUniformBlockData) {
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo, VkDevice boxed_device,
+    VkDescriptorSet descriptorSet, VkDescriptorUpdateTemplate descriptorUpdateTemplate,
+    uint32_t imageInfoCount, uint32_t bufferInfoCount, uint32_t bufferViewCount,
+    uint32_t inlineUniformBlockCount, const uint32_t* pImageInfoEntryIndices,
+    const uint32_t* pBufferInfoEntryIndices, const uint32_t* pBufferViewEntryIndices,
+    const VkDescriptorImageInfo* pImageInfos, const VkDescriptorBufferInfo* pBufferInfos,
+    const VkBufferView* pBufferViews, const uint8_t* pInlineUniformBlockData) {
     mImpl->on_vkUpdateDescriptorSetWithTemplateSized2GOOGLE(
-        pool, boxed_device, descriptorSet, descriptorUpdateTemplate, imageInfoCount,
+        pool, snapshotInfo, boxed_device, descriptorSet, descriptorUpdateTemplate, imageInfoCount,
         bufferInfoCount, bufferViewCount, inlineUniformBlockCount, pImageInfoEntryIndices,
         pBufferInfoEntryIndices, pBufferViewEntryIndices, pImageInfos, pBufferInfos, pBufferViews,
         pInlineUniformBlockData);
 }
 
 VkResult VkDecoderGlobalState::on_vkBeginCommandBuffer(android::base::BumpPool* pool,
+                                                       VkSnapshotApiCallInfo* snapshotInfo,
                                                        VkCommandBuffer commandBuffer,
                                                        const VkCommandBufferBeginInfo* pBeginInfo,
                                                        const VkDecoderContext& context) {
-    return mImpl->on_vkBeginCommandBuffer(pool, commandBuffer, pBeginInfo, context);
+    return mImpl->on_vkBeginCommandBuffer(pool, snapshotInfo, commandBuffer, pBeginInfo, context);
 }
 
 void VkDecoderGlobalState::on_vkBeginCommandBufferAsyncGOOGLE(
-    android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-    const VkCommandBufferBeginInfo* pBeginInfo, const VkDecoderContext& context) {
-    mImpl->on_vkBeginCommandBuffer(pool, commandBuffer, pBeginInfo, context);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo,
+    VkCommandBuffer commandBuffer, const VkCommandBufferBeginInfo* pBeginInfo,
+    const VkDecoderContext& context) {
+    mImpl->on_vkBeginCommandBuffer(pool, snapshotInfo, commandBuffer, pBeginInfo, context);
 }
 
 VkResult VkDecoderGlobalState::on_vkEndCommandBuffer(android::base::BumpPool* pool,
+                                                     VkSnapshotApiCallInfo* snapshotInfo,
                                                      VkCommandBuffer commandBuffer,
                                                      const VkDecoderContext& context) {
-    return mImpl->on_vkEndCommandBuffer(pool, commandBuffer, context);
+    return mImpl->on_vkEndCommandBuffer(pool, snapshotInfo, commandBuffer, context);
 }
 
 void VkDecoderGlobalState::on_vkEndCommandBufferAsyncGOOGLE(android::base::BumpPool* pool,
+                                                            VkSnapshotApiCallInfo* snapshotInfo,
                                                             VkCommandBuffer commandBuffer,
                                                             const VkDecoderContext& context) {
-    mImpl->on_vkEndCommandBufferAsyncGOOGLE(pool, commandBuffer, context);
+    mImpl->on_vkEndCommandBufferAsyncGOOGLE(pool, snapshotInfo, commandBuffer, context);
 }
 
 void VkDecoderGlobalState::on_vkResetCommandBufferAsyncGOOGLE(android::base::BumpPool* pool,
+                                                              VkSnapshotApiCallInfo* snapshotInfo,
                                                               VkCommandBuffer commandBuffer,
                                                               VkCommandBufferResetFlags flags) {
-    mImpl->on_vkResetCommandBufferAsyncGOOGLE(pool, commandBuffer, flags);
+    mImpl->on_vkResetCommandBufferAsyncGOOGLE(pool, snapshotInfo, commandBuffer, flags);
 }
 
 void VkDecoderGlobalState::on_vkCommandBufferHostSyncGOOGLE(android::base::BumpPool* pool,
+                                                            VkSnapshotApiCallInfo* snapshotInfo,
                                                             VkCommandBuffer commandBuffer,
                                                             uint32_t needHostSync,
                                                             uint32_t sequenceNumber) {
@@ -9746,143 +10137,161 @@ void VkDecoderGlobalState::on_vkCommandBufferHostSyncGOOGLE(android::base::BumpP
 }
 
 VkResult VkDecoderGlobalState::on_vkCreateImageWithRequirementsGOOGLE(
-    android::base::BumpPool* pool, VkDevice device, const VkImageCreateInfo* pCreateInfo,
-    const VkAllocationCallbacks* pAllocator, VkImage* pImage,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo, VkDevice device,
+    const VkImageCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkImage* pImage,
     VkMemoryRequirements* pMemoryRequirements) {
-    return mImpl->on_vkCreateImageWithRequirementsGOOGLE(pool, device, pCreateInfo, pAllocator,
-                                                         pImage, pMemoryRequirements);
+    return mImpl->on_vkCreateImageWithRequirementsGOOGLE(pool, snapshotInfo, device, pCreateInfo,
+                                                         pAllocator, pImage, pMemoryRequirements);
 }
 
 VkResult VkDecoderGlobalState::on_vkCreateBufferWithRequirementsGOOGLE(
-    android::base::BumpPool* pool, VkDevice device, const VkBufferCreateInfo* pCreateInfo,
-    const VkAllocationCallbacks* pAllocator, VkBuffer* pBuffer,
-    VkMemoryRequirements* pMemoryRequirements) {
-    return mImpl->on_vkCreateBufferWithRequirementsGOOGLE(pool, device, pCreateInfo, pAllocator,
-                                                          pBuffer, pMemoryRequirements);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo, VkDevice device,
+    const VkBufferCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator,
+    VkBuffer* pBuffer, VkMemoryRequirements* pMemoryRequirements) {
+    return mImpl->on_vkCreateBufferWithRequirementsGOOGLE(pool, snapshotInfo, device, pCreateInfo,
+                                                          pAllocator, pBuffer, pMemoryRequirements);
 }
 
 void VkDecoderGlobalState::on_vkCmdBindPipeline(android::base::BumpPool* pool,
+                                                VkSnapshotApiCallInfo* snapshotInfo,
                                                 VkCommandBuffer commandBuffer,
                                                 VkPipelineBindPoint pipelineBindPoint,
                                                 VkPipeline pipeline) {
-    mImpl->on_vkCmdBindPipeline(pool, commandBuffer, pipelineBindPoint, pipeline);
+    mImpl->on_vkCmdBindPipeline(pool, snapshotInfo, commandBuffer, pipelineBindPoint, pipeline);
 }
 
 void VkDecoderGlobalState::on_vkCmdBindDescriptorSets(
-    android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-    VkPipelineBindPoint pipelineBindPoint, VkPipelineLayout layout, uint32_t firstSet,
-    uint32_t descriptorSetCount, const VkDescriptorSet* pDescriptorSets,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo,
+    VkCommandBuffer commandBuffer, VkPipelineBindPoint pipelineBindPoint, VkPipelineLayout layout,
+    uint32_t firstSet, uint32_t descriptorSetCount, const VkDescriptorSet* pDescriptorSets,
     uint32_t dynamicOffsetCount, const uint32_t* pDynamicOffsets) {
-    mImpl->on_vkCmdBindDescriptorSets(pool, commandBuffer, pipelineBindPoint, layout, firstSet,
-                                      descriptorSetCount, pDescriptorSets, dynamicOffsetCount,
-                                      pDynamicOffsets);
+    mImpl->on_vkCmdBindDescriptorSets(pool, snapshotInfo, commandBuffer, pipelineBindPoint, layout,
+                                      firstSet, descriptorSetCount, pDescriptorSets,
+                                      dynamicOffsetCount, pDynamicOffsets);
 }
 
 VkResult VkDecoderGlobalState::on_vkCreateRenderPass(android::base::BumpPool* pool,
+                                                     VkSnapshotApiCallInfo* snapshotInfo,
                                                      VkDevice boxed_device,
                                                      const VkRenderPassCreateInfo* pCreateInfo,
                                                      const VkAllocationCallbacks* pAllocator,
                                                      VkRenderPass* pRenderPass) {
-    return mImpl->on_vkCreateRenderPass(pool, boxed_device, pCreateInfo, pAllocator, pRenderPass);
+    return mImpl->on_vkCreateRenderPass(pool, snapshotInfo, boxed_device, pCreateInfo, pAllocator,
+                                        pRenderPass);
 }
 
 VkResult VkDecoderGlobalState::on_vkCreateRenderPass2(android::base::BumpPool* pool,
+                                                      VkSnapshotApiCallInfo* snapshotInfo,
                                                       VkDevice boxed_device,
                                                       const VkRenderPassCreateInfo2* pCreateInfo,
                                                       const VkAllocationCallbacks* pAllocator,
                                                       VkRenderPass* pRenderPass) {
-    return mImpl->on_vkCreateRenderPass2(pool, boxed_device, pCreateInfo, pAllocator, pRenderPass);
+    return mImpl->on_vkCreateRenderPass2(pool, snapshotInfo, boxed_device, pCreateInfo, pAllocator,
+                                         pRenderPass);
 }
 
 VkResult VkDecoderGlobalState::on_vkCreateRenderPass2KHR(
-    android::base::BumpPool* pool, VkDevice boxed_device,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo, VkDevice boxed_device,
     const VkRenderPassCreateInfo2KHR* pCreateInfo, const VkAllocationCallbacks* pAllocator,
     VkRenderPass* pRenderPass) {
-    return mImpl->on_vkCreateRenderPass2(pool, boxed_device, pCreateInfo, pAllocator, pRenderPass);
+    return mImpl->on_vkCreateRenderPass2(pool, snapshotInfo, boxed_device, pCreateInfo, pAllocator,
+                                         pRenderPass);
 }
 
 void VkDecoderGlobalState::on_vkDestroyRenderPass(android::base::BumpPool* pool,
+                                                  VkSnapshotApiCallInfo* snapshotInfo,
                                                   VkDevice boxed_device, VkRenderPass renderPass,
                                                   const VkAllocationCallbacks* pAllocator) {
-    mImpl->on_vkDestroyRenderPass(pool, boxed_device, renderPass, pAllocator);
+    mImpl->on_vkDestroyRenderPass(pool, snapshotInfo, boxed_device, renderPass, pAllocator);
 }
 
 void VkDecoderGlobalState::on_vkCmdBeginRenderPass(android::base::BumpPool* pool,
+                                                   VkSnapshotApiCallInfo* snapshotInfo,
                                                    VkCommandBuffer commandBuffer,
                                                    const VkRenderPassBeginInfo* pRenderPassBegin,
                                                    VkSubpassContents contents) {
-    return mImpl->on_vkCmdBeginRenderPass(pool, commandBuffer, pRenderPassBegin, contents);
+    return mImpl->on_vkCmdBeginRenderPass(pool, snapshotInfo, commandBuffer, pRenderPassBegin,
+                                          contents);
 }
 
 void VkDecoderGlobalState::on_vkCmdBeginRenderPass2(android::base::BumpPool* pool,
+                                                    VkSnapshotApiCallInfo* snapshotInfo,
                                                     VkCommandBuffer commandBuffer,
                                                     const VkRenderPassBeginInfo* pRenderPassBegin,
                                                     const VkSubpassBeginInfo* pSubpassBeginInfo) {
-    return mImpl->on_vkCmdBeginRenderPass2(pool, commandBuffer, pRenderPassBegin,
+    return mImpl->on_vkCmdBeginRenderPass2(pool, snapshotInfo, commandBuffer, pRenderPassBegin,
                                            pSubpassBeginInfo);
 }
 
 void VkDecoderGlobalState::on_vkCmdBeginRenderPass2KHR(
-    android::base::BumpPool* pool, VkCommandBuffer commandBuffer,
-    const VkRenderPassBeginInfo* pRenderPassBegin, const VkSubpassBeginInfo* pSubpassBeginInfo) {
-    return mImpl->on_vkCmdBeginRenderPass2(pool, commandBuffer, pRenderPassBegin,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo,
+    VkCommandBuffer commandBuffer, const VkRenderPassBeginInfo* pRenderPassBegin,
+    const VkSubpassBeginInfo* pSubpassBeginInfo) {
+    return mImpl->on_vkCmdBeginRenderPass2(pool, snapshotInfo, commandBuffer, pRenderPassBegin,
                                            pSubpassBeginInfo);
 }
 
 VkResult VkDecoderGlobalState::on_vkCreateFramebuffer(android::base::BumpPool* pool,
+                                                      VkSnapshotApiCallInfo* snapshotInfo,
                                                       VkDevice boxed_device,
                                                       const VkFramebufferCreateInfo* pCreateInfo,
                                                       const VkAllocationCallbacks* pAllocator,
                                                       VkFramebuffer* pFramebuffer) {
-    return mImpl->on_vkCreateFramebuffer(pool, boxed_device, pCreateInfo, pAllocator, pFramebuffer);
+    return mImpl->on_vkCreateFramebuffer(pool, snapshotInfo, boxed_device, pCreateInfo, pAllocator,
+                                         pFramebuffer);
 }
 
 void VkDecoderGlobalState::on_vkDestroyFramebuffer(android::base::BumpPool* pool,
+                                                   VkSnapshotApiCallInfo* snapshotInfo,
                                                    VkDevice boxed_device, VkFramebuffer framebuffer,
                                                    const VkAllocationCallbacks* pAllocator) {
-    mImpl->on_vkDestroyFramebuffer(pool, boxed_device, framebuffer, pAllocator);
+    mImpl->on_vkDestroyFramebuffer(pool, snapshotInfo, boxed_device, framebuffer, pAllocator);
 }
 
-void VkDecoderGlobalState::on_vkQueueHostSyncGOOGLE(android::base::BumpPool* pool, VkQueue queue,
-                                                    uint32_t needHostSync,
+void VkDecoderGlobalState::on_vkQueueHostSyncGOOGLE(android::base::BumpPool* pool,
+                                                    VkSnapshotApiCallInfo* snapshotInfo,
+                                                    VkQueue queue, uint32_t needHostSync,
                                                     uint32_t sequenceNumber) {
     mImpl->hostSyncQueue("hostSyncQueue", queue, needHostSync, sequenceNumber);
 }
 
-void VkDecoderGlobalState::on_vkCmdCopyQueryPoolResults(android::base::BumpPool* pool,
-                                                        VkCommandBuffer commandBuffer,
-                                                        VkQueryPool queryPool, uint32_t firstQuery,
-                                                        uint32_t queryCount, VkBuffer dstBuffer,
-                                                        VkDeviceSize dstOffset, VkDeviceSize stride,
-                                                        VkQueryResultFlags flags) {
-    mImpl->on_vkCmdCopyQueryPoolResults(pool, commandBuffer, queryPool, firstQuery, queryCount,
-                                        dstBuffer, dstOffset, stride, flags);
+void VkDecoderGlobalState::on_vkCmdCopyQueryPoolResults(
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo,
+    VkCommandBuffer commandBuffer, VkQueryPool queryPool, uint32_t firstQuery, uint32_t queryCount,
+    VkBuffer dstBuffer, VkDeviceSize dstOffset, VkDeviceSize stride, VkQueryResultFlags flags) {
+    mImpl->on_vkCmdCopyQueryPoolResults(pool, snapshotInfo, commandBuffer, queryPool, firstQuery,
+                                        queryCount, dstBuffer, dstOffset, stride, flags);
 }
 
-void VkDecoderGlobalState::on_vkQueueSubmitAsyncGOOGLE(android::base::BumpPool* pool, VkQueue queue,
-                                                       uint32_t submitCount,
+void VkDecoderGlobalState::on_vkQueueSubmitAsyncGOOGLE(android::base::BumpPool* pool,
+                                                       VkSnapshotApiCallInfo* snapshotInfo,
+                                                       VkQueue queue, uint32_t submitCount,
                                                        const VkSubmitInfo* pSubmits,
                                                        VkFence fence) {
-    mImpl->on_vkQueueSubmit(pool, queue, submitCount, pSubmits, fence);
+    mImpl->on_vkQueueSubmit(pool, snapshotInfo, queue, submitCount, pSubmits, fence);
 }
 
 void VkDecoderGlobalState::on_vkQueueSubmitAsync2GOOGLE(android::base::BumpPool* pool,
+                                                        VkSnapshotApiCallInfo* snapshotInfo,
                                                         VkQueue queue, uint32_t submitCount,
                                                         const VkSubmitInfo2* pSubmits,
                                                         VkFence fence) {
-    mImpl->on_vkQueueSubmit(pool, queue, submitCount, pSubmits, fence);
+    mImpl->on_vkQueueSubmit(pool, snapshotInfo, queue, submitCount, pSubmits, fence);
 }
 
 void VkDecoderGlobalState::on_vkQueueWaitIdleAsyncGOOGLE(android::base::BumpPool* pool,
+                                                         VkSnapshotApiCallInfo* snapshotInfo,
                                                          VkQueue queue) {
-    mImpl->on_vkQueueWaitIdle(pool, queue);
+    mImpl->on_vkQueueWaitIdle(pool, snapshotInfo, queue);
 }
 
 void VkDecoderGlobalState::on_vkQueueBindSparseAsyncGOOGLE(android::base::BumpPool* pool,
+                                                           VkSnapshotApiCallInfo* snapshotInfo,
                                                            VkQueue queue, uint32_t bindInfoCount,
                                                            const VkBindSparseInfo* pBindInfo,
                                                            VkFence fence) {
-    VkResult res = mImpl->on_vkQueueBindSparse(pool, queue, bindInfoCount, pBindInfo, fence);
+    VkResult res =
+        mImpl->on_vkQueueBindSparse(pool, snapshotInfo, queue, bindInfoCount, pBindInfo, fence);
     if (res != VK_SUCCESS) {
         // Report an error here as we don't use the result after this call
         ERR("vkQueueBindSparse failed with: %s [%d], bindInfoCount=%d, fence=%p",
@@ -9891,114 +10300,121 @@ void VkDecoderGlobalState::on_vkQueueBindSparseAsyncGOOGLE(android::base::BumpPo
 }
 
 void VkDecoderGlobalState::on_vkGetLinearImageLayoutGOOGLE(android::base::BumpPool* pool,
+                                                           VkSnapshotApiCallInfo* snapshotInfo,
                                                            VkDevice device, VkFormat format,
                                                            VkDeviceSize* pOffset,
                                                            VkDeviceSize* pRowPitchAlignment) {
-    mImpl->on_vkGetLinearImageLayoutGOOGLE(pool, device, format, pOffset, pRowPitchAlignment);
+    mImpl->on_vkGetLinearImageLayoutGOOGLE(pool, snapshotInfo, device, format, pOffset,
+                                           pRowPitchAlignment);
 }
 
-void VkDecoderGlobalState::on_vkGetLinearImageLayout2GOOGLE(android::base::BumpPool* pool,
-                                                            VkDevice device,
-                                                            const VkImageCreateInfo* pCreateInfo,
-                                                            VkDeviceSize* pOffset,
-                                                            VkDeviceSize* pRowPitchAlignment) {
-    mImpl->on_vkGetLinearImageLayout2GOOGLE(pool, device, pCreateInfo, pOffset, pRowPitchAlignment);
+void VkDecoderGlobalState::on_vkGetLinearImageLayout2GOOGLE(
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo, VkDevice device,
+    const VkImageCreateInfo* pCreateInfo, VkDeviceSize* pOffset, VkDeviceSize* pRowPitchAlignment) {
+    mImpl->on_vkGetLinearImageLayout2GOOGLE(pool, snapshotInfo, device, pCreateInfo, pOffset,
+                                            pRowPitchAlignment);
 }
 
 void VkDecoderGlobalState::on_vkQueueFlushCommandsGOOGLE(android::base::BumpPool* pool,
+                                                         VkSnapshotApiCallInfo* snapshotInfo,
                                                          VkQueue queue,
                                                          VkCommandBuffer commandBuffer,
                                                          VkDeviceSize dataSize, const void* pData,
                                                          const VkDecoderContext& context) {
-    mImpl->on_vkQueueFlushCommandsGOOGLE(pool, queue, commandBuffer, dataSize, pData, context);
+    mImpl->on_vkQueueFlushCommandsGOOGLE(pool, snapshotInfo, queue, commandBuffer, dataSize, pData,
+                                         context);
 }
 
 void VkDecoderGlobalState::on_vkQueueFlushCommandsFromAuxMemoryGOOGLE(
-    android::base::BumpPool* pool, VkQueue queue, VkCommandBuffer commandBuffer,
-    VkDeviceMemory deviceMemory, VkDeviceSize dataOffset, VkDeviceSize dataSize,
-    const VkDecoderContext& context) {
-    mImpl->on_vkQueueFlushCommandsFromAuxMemoryGOOGLE(pool, queue, commandBuffer, deviceMemory,
-                                                      dataOffset, dataSize, context);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo, VkQueue queue,
+    VkCommandBuffer commandBuffer, VkDeviceMemory deviceMemory, VkDeviceSize dataOffset,
+    VkDeviceSize dataSize, const VkDecoderContext& context) {
+    mImpl->on_vkQueueFlushCommandsFromAuxMemoryGOOGLE(pool, snapshotInfo, queue, commandBuffer,
+                                                      deviceMemory, dataOffset, dataSize, context);
 }
 
 void VkDecoderGlobalState::on_vkQueueCommitDescriptorSetUpdatesGOOGLE(
-    android::base::BumpPool* pool, VkQueue queue, uint32_t descriptorPoolCount,
-    const VkDescriptorPool* pDescriptorPools, uint32_t descriptorSetCount,
-    const VkDescriptorSetLayout* pDescriptorSetLayouts, const uint64_t* pDescriptorSetPoolIds,
-    const uint32_t* pDescriptorSetWhichPool, const uint32_t* pDescriptorSetPendingAllocation,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo, VkQueue queue,
+    uint32_t descriptorPoolCount, const VkDescriptorPool* pDescriptorPools,
+    uint32_t descriptorSetCount, const VkDescriptorSetLayout* pDescriptorSetLayouts,
+    const uint64_t* pDescriptorSetPoolIds, const uint32_t* pDescriptorSetWhichPool,
+    const uint32_t* pDescriptorSetPendingAllocation,
     const uint32_t* pDescriptorWriteStartingIndices, uint32_t pendingDescriptorWriteCount,
     const VkWriteDescriptorSet* pPendingDescriptorWrites) {
     mImpl->on_vkQueueCommitDescriptorSetUpdatesGOOGLE(
-        pool, queue, descriptorPoolCount, pDescriptorPools, descriptorSetCount,
+        pool, snapshotInfo, queue, descriptorPoolCount, pDescriptorPools, descriptorSetCount,
         pDescriptorSetLayouts, pDescriptorSetPoolIds, pDescriptorSetWhichPool,
         pDescriptorSetPendingAllocation, pDescriptorWriteStartingIndices,
         pendingDescriptorWriteCount, pPendingDescriptorWrites);
 }
 
-void VkDecoderGlobalState::on_vkCollectDescriptorPoolIdsGOOGLE(android::base::BumpPool* pool,
-                                                               VkDevice device,
-                                                               VkDescriptorPool descriptorPool,
-                                                               uint32_t* pPoolIdCount,
-                                                               uint64_t* pPoolIds) {
-    mImpl->on_vkCollectDescriptorPoolIdsGOOGLE(pool, device, descriptorPool, pPoolIdCount,
-                                               pPoolIds);
+void VkDecoderGlobalState::on_vkCollectDescriptorPoolIdsGOOGLE(
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo, VkDevice device,
+    VkDescriptorPool descriptorPool, uint32_t* pPoolIdCount, uint64_t* pPoolIds) {
+    mImpl->on_vkCollectDescriptorPoolIdsGOOGLE(pool, snapshotInfo, device, descriptorPool,
+                                               pPoolIdCount, pPoolIds);
 }
 
-VkResult VkDecoderGlobalState::on_vkQueueBindSparse(android::base::BumpPool* pool, VkQueue queue,
-                                                    uint32_t bindInfoCount,
+VkResult VkDecoderGlobalState::on_vkQueueBindSparse(android::base::BumpPool* pool,
+                                                    VkSnapshotApiCallInfo* snapshotInfo,
+                                                    VkQueue queue, uint32_t bindInfoCount,
                                                     const VkBindSparseInfo* pBindInfo,
                                                     VkFence fence) {
-    return mImpl->on_vkQueueBindSparse(pool, queue, bindInfoCount, pBindInfo, fence);
+    return mImpl->on_vkQueueBindSparse(pool, snapshotInfo, queue, bindInfoCount, pBindInfo, fence);
 }
 
 void VkDecoderGlobalState::on_vkQueueSignalReleaseImageANDROIDAsyncGOOGLE(
-    android::base::BumpPool* pool, VkQueue queue, uint32_t waitSemaphoreCount,
-    const VkSemaphore* pWaitSemaphores, VkImage image) {
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo, VkQueue queue,
+    uint32_t waitSemaphoreCount, const VkSemaphore* pWaitSemaphores, VkImage image) {
     int fenceFd;
-    mImpl->on_vkQueueSignalReleaseImageANDROID(pool, queue, waitSemaphoreCount, pWaitSemaphores,
-                                               image, &fenceFd);
+    mImpl->on_vkQueueSignalReleaseImageANDROID(pool, snapshotInfo, queue, waitSemaphoreCount,
+                                               pWaitSemaphores, image, &fenceFd);
 }
 
 VkResult VkDecoderGlobalState::on_vkCreateSamplerYcbcrConversion(
-    android::base::BumpPool* pool, VkDevice device,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo, VkDevice device,
     const VkSamplerYcbcrConversionCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator,
     VkSamplerYcbcrConversion* pYcbcrConversion) {
-    return mImpl->on_vkCreateSamplerYcbcrConversion(pool, device, pCreateInfo, pAllocator,
-                                                    pYcbcrConversion);
+    return mImpl->on_vkCreateSamplerYcbcrConversion(pool, snapshotInfo, device, pCreateInfo,
+                                                    pAllocator, pYcbcrConversion);
 }
 
 VkResult VkDecoderGlobalState::on_vkCreateSamplerYcbcrConversionKHR(
-    android::base::BumpPool* pool, VkDevice device,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo, VkDevice device,
     const VkSamplerYcbcrConversionCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator,
     VkSamplerYcbcrConversion* pYcbcrConversion) {
-    return mImpl->on_vkCreateSamplerYcbcrConversion(pool, device, pCreateInfo, pAllocator,
-                                                    pYcbcrConversion);
+    return mImpl->on_vkCreateSamplerYcbcrConversion(pool, snapshotInfo, device, pCreateInfo,
+                                                    pAllocator, pYcbcrConversion);
 }
 
 void VkDecoderGlobalState::on_vkDestroySamplerYcbcrConversion(
-    android::base::BumpPool* pool, VkDevice device, VkSamplerYcbcrConversion ycbcrConversion,
-    const VkAllocationCallbacks* pAllocator) {
-    mImpl->on_vkDestroySamplerYcbcrConversion(pool, device, ycbcrConversion, pAllocator);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo, VkDevice device,
+    VkSamplerYcbcrConversion ycbcrConversion, const VkAllocationCallbacks* pAllocator) {
+    mImpl->on_vkDestroySamplerYcbcrConversion(pool, snapshotInfo, device, ycbcrConversion,
+                                              pAllocator);
 }
 
 void VkDecoderGlobalState::on_vkDestroySamplerYcbcrConversionKHR(
-    android::base::BumpPool* pool, VkDevice device, VkSamplerYcbcrConversion ycbcrConversion,
-    const VkAllocationCallbacks* pAllocator) {
-    mImpl->on_vkDestroySamplerYcbcrConversion(pool, device, ycbcrConversion, pAllocator);
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo, VkDevice device,
+    VkSamplerYcbcrConversion ycbcrConversion, const VkAllocationCallbacks* pAllocator) {
+    mImpl->on_vkDestroySamplerYcbcrConversion(pool, snapshotInfo, device, ycbcrConversion,
+                                              pAllocator);
 }
 
 VkResult VkDecoderGlobalState::on_vkEnumeratePhysicalDeviceGroups(
-    android::base::BumpPool* pool, VkInstance instance, uint32_t* pPhysicalDeviceGroupCount,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo, VkInstance instance,
+    uint32_t* pPhysicalDeviceGroupCount,
     VkPhysicalDeviceGroupProperties* pPhysicalDeviceGroupProperties) {
-    return mImpl->on_vkEnumeratePhysicalDeviceGroups(pool, instance, pPhysicalDeviceGroupCount,
-                                                     pPhysicalDeviceGroupProperties);
+    return mImpl->on_vkEnumeratePhysicalDeviceGroups(
+        pool, snapshotInfo, instance, pPhysicalDeviceGroupCount, pPhysicalDeviceGroupProperties);
 }
 
 VkResult VkDecoderGlobalState::on_vkEnumeratePhysicalDeviceGroupsKHR(
-    android::base::BumpPool* pool, VkInstance instance, uint32_t* pPhysicalDeviceGroupCount,
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo, VkInstance instance,
+    uint32_t* pPhysicalDeviceGroupCount,
     VkPhysicalDeviceGroupProperties* pPhysicalDeviceGroupProperties) {
-    return mImpl->on_vkEnumeratePhysicalDeviceGroups(pool, instance, pPhysicalDeviceGroupCount,
-                                                     pPhysicalDeviceGroupProperties);
+    return mImpl->on_vkEnumeratePhysicalDeviceGroups(
+        pool, snapshotInfo, instance, pPhysicalDeviceGroupCount, pPhysicalDeviceGroupProperties);
 }
 
 void VkDecoderGlobalState::on_DeviceLost() { mImpl->on_DeviceLost(); }
@@ -10080,11 +10496,13 @@ LIST_TRANSFORMED_TYPES(DEFINE_TRANSFORMED_TYPE_IMPL)
     type VkDecoderGlobalState::try_unbox_##type(type boxed) {                                  \
         return mImpl->try_unbox_##type(boxed);                                                 \
     }                                                                                          \
-    type VkDecoderGlobalState::unboxed_to_boxed_##type(type unboxed) {                         \
-        return mImpl->unboxed_to_boxed_##type(unboxed);                                        \
-    }                                                                                          \
     VulkanDispatch* VkDecoderGlobalState::dispatch_##type(type boxed) {                        \
         return mImpl->dispatch_##type(boxed);                                                  \
+    }
+
+#define DEFINE_UNBOXED_TO_BOXED_DISPATCHABLE_HANDLE_API_DEF(type)                              \
+    type VkDecoderGlobalState::unboxed_to_boxed_##type(type unboxed) {                         \
+        return mImpl->unboxed_to_boxed_##type(unboxed);                                        \
     }
 
 #define DEFINE_BOXED_NON_DISPATCHABLE_HANDLE_API_DEF(type)                                     \
@@ -10095,13 +10513,15 @@ LIST_TRANSFORMED_TYPES(DEFINE_TRANSFORMED_TYPE_IMPL)
     type VkDecoderGlobalState::unbox_##type(type boxed) { return mImpl->unbox_##type(boxed); } \
     type VkDecoderGlobalState::try_unbox_##type(type boxed) {                                  \
         return mImpl->try_unbox_##type(boxed);                                                 \
-    }                                                                                          \
-    type VkDecoderGlobalState::unboxed_to_boxed_non_dispatchable_##type(type unboxed) {        \
-        return mImpl->unboxed_to_boxed_non_dispatchable_##type(unboxed);                       \
     }
 
 GOLDFISH_VK_LIST_DISPATCHABLE_HANDLE_TYPES(DEFINE_BOXED_DISPATCHABLE_HANDLE_API_DEF)
 GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES(DEFINE_BOXED_NON_DISPATCHABLE_HANDLE_API_DEF)
+
+// Custom unbox and non dispatchable handles should not use unboxed_to_boxed as there is no 1-1
+// mapping
+GOLDFISH_VK_LIST_DISPATCHABLE_REGULAR_UNBOX_HANDLE_TYPES(
+    DEFINE_UNBOXED_TO_BOXED_DISPATCHABLE_HANDLE_API_DEF)
 
 #define DEFINE_BOXED_DISPATCHABLE_HANDLE_GLOBAL_API_DEF(type)                                     \
     type unbox_##type(type boxed) {                                                               \

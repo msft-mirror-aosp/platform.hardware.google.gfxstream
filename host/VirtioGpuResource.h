@@ -61,12 +61,19 @@ class VirtioGpuResource {
         uint32_t num_iovs);
 
     static std::optional<VirtioGpuResource> Create(
+        uint32_t res_handle, const struct stream_renderer_handle* import_handle,
+        const struct stream_renderer_import_data* import_data);
+
+    static std::optional<VirtioGpuResource> Create(
         const gfxstream::host::FeatureSet& features, uint32_t pageSize, uint32_t contextId,
         uint32_t resourceId, const struct stream_renderer_resource_create_args* createArgs,
         const struct stream_renderer_create_blob* createBlobArgs,
         const struct stream_renderer_handle* handle);
 
     int Destroy();
+
+    int ImportHandle(const stream_renderer_handle* handle,
+                     const stream_renderer_import_data* import_data);
 
     VirtioGpuResourceId GetId() const { return mId; }
 
@@ -170,11 +177,10 @@ class VirtioGpuResource {
     //   * For non ring blobs, the memory from the backend as either an external
     //     memory handle (`BlobDescriptorInfo`) or a raw mapping.
     using RingBlobMemory = std::shared_ptr<RingBlob>;
-    using ExternalMemoryDescriptor = std::shared_ptr<BlobDescriptorInfo>;
+    using ExternalMemoryInfo = std::shared_ptr<BlobDescriptorInfo>;
     using ExternalMemoryMapping = HostMemInfo;
 
-    using BlobMemory =
-        std::variant<RingBlobMemory, ExternalMemoryDescriptor, ExternalMemoryMapping>;
+    using BlobMemory = std::variant<RingBlobMemory, ExternalMemoryInfo, ExternalMemoryMapping>;
     std::optional<BlobMemory> mBlobMemory;
     // LINT.ThenChange(VirtioGpuResourceSnapshot.proto:virtio_gpu_resource)
 };

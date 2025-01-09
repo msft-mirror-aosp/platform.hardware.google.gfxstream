@@ -161,8 +161,14 @@ if (APPLE)
         LINK_FLAGS  "-undefined dynamic_lookup -flat_namespace")
 endif()
 
+if (LINUX)
+    # Make sure we embed an build-id that can be used by crashpad.
+    target_link_options(gfxstream_backend PRIVATE "LINKER:--build-id=sha1")
+endif()
+
+
 if(CONFIG_AEMU)
-    android_install_shared(gfxstream_backend)
+    android_install_shared_library(TARGET gfxstream_backend)
 else()
     install(
       TARGETS gfxstream_backend RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX} LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX})
@@ -308,7 +314,7 @@ endfunction()
         tests/CompositorVk_unittest.cpp
         tests/SwapChainStateVk_unittest.cpp
         tests/DisplayVk_unittest.cpp
-        tests/VirtioGpuTimelines_unittest.cpp
+        VirtioGpuTimelinesTests.cpp
         vulkan/vk_util_unittest.cpp
         vulkan/VkFormatUtils_unittest.cpp
         vulkan/VkQsriTimeline_unittest.cpp

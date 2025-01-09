@@ -101,6 +101,7 @@ ScopedGLState::~ScopedGLState() {
         switch (name) {
             case GL_DRAW_FRAMEBUFFER_BINDING:
                 gl.glBindFramebuffer(GL_DRAW_FRAMEBUFFER, v.intData[0]);
+                break;
             case GL_READ_FRAMEBUFFER_BINDING:
                 gl.glBindFramebuffer(GL_READ_FRAMEBUFFER, v.intData[0]);
                 break;

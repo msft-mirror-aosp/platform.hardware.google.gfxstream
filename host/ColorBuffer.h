@@ -92,7 +92,6 @@ class ColorBuffer : public android::snapshot::LazySnapshotObj<ColorBuffer> {
     bool flushFromVkBytes(const void* bytes, size_t bytesSize);
     bool invalidateForGl();
     bool invalidateForVk();
-    bool importNativeResource(void* nativeResource, uint32_t type, bool preserveContent);
 
     int waitSync();
     std::optional<BlobDescriptorInfo> exportBlob();
@@ -105,7 +104,6 @@ class ColorBuffer : public android::snapshot::LazySnapshotObj<ColorBuffer> {
     bool glOpBindToRenderbuffer();
     void glOpReadback(unsigned char* img, bool readbackBgra);
     void glOpReadbackAsync(GLuint buffer, bool readbackBgra);
-    bool glOpImportEglImage(void* image, bool preserveContent);
     bool glOpImportEglNativePixmap(void* pixmap, bool preserveContent);
     void glOpSwapYuvTexturesAndUpdate(GLenum format, GLenum type, FrameworkFormat frameworkFormat,
                                       GLuint* textures);
