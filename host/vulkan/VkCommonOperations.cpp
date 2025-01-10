@@ -2335,7 +2335,9 @@ static bool updateExternalMemoryInfo(std::optional<ExternalHandleInfo> extMemHan
         return false;
     }
     if (!((1 << pInfo->typeIndex) & screenBufferProps.memoryTypeBits)) {
-        ERR("QNX Screen buffer can not be imported to memory (typeIndex=%d): %d", pInfo->typeIndex);
+        ERR("QNX Screen buffer can not be imported to memory with typeIndex=%d, "
+            "screenBufferProps.memoryTypeBits=0x%x",
+            pInfo->typeIndex, screenBufferProps.memoryTypeBits);
         return false;
     }
     if (screenBufferProps.allocationSize < pMemReqs->size) {
@@ -2539,8 +2541,8 @@ static bool createVkColorBufferLocked(uint32_t width, uint32_t height, GLenum in
         }
         if (!importExternalMemory(vk, sVkEmulation->device, &infoPtr->memory, dedicatedInfoPtr,
                                   &infoPtr->memory.memory)) {
-            ERR("Failed to import external memory for colorBuffer: %d %s\n",
-                dedicatedInfoPtr ? "(dedicated)" : "");
+            ERR("Failed to import external memory%s for colorBuffer: %d\n",
+                dedicatedInfoPtr ? " (dedicated)" : "", colorBufferHandle);
             return false;
         }
 
