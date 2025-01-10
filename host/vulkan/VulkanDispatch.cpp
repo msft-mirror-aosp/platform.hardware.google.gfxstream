@@ -45,7 +45,7 @@ static std::string icdJsonNameToProgramAndLauncherPaths(const std::string& icdFi
 static void setIcdPaths(const std::string& icdFilename) {
     const std::string paths = icdJsonNameToProgramAndLauncherPaths(icdFilename);
     INFO("Setting ICD filenames for the loader = %s", paths.c_str());
-    android::base::setEnvironmentVariable("VK_DRIVER_FILES", paths);
+    android::base::setEnvironmentVariable("VK_ICD_FILENAMES", paths);
 }
 
 static const char* getTestIcdFilename() {
@@ -63,7 +63,7 @@ static const char* getTestIcdFilename() {
 static void initIcdPaths(bool forTesting) {
     auto androidIcd = android::base::getEnvironmentVariable("ANDROID_EMU_VK_ICD");
     if (androidIcd == "") {
-        // Rely on user to set VK_DRIVER_FILES
+        // Rely on user to set VK_ICD_FILENAMES
         return;
     }
 
