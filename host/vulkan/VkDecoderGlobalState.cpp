@@ -1120,6 +1120,8 @@ class VkDecoderGlobalState::Impl {
             get_emugl_vm_operations().setSkipSnapshotSave(true);
             get_emugl_vm_operations().setSkipSnapshotSaveReason(SNAPSHOT_SKIP_UNSUPPORTED_VK_APP);
         }
+#else
+        get_emugl_vm_operations().setSkipSnapshotSave(true);
 #endif
         // Box it up
         VkInstance boxed = new_boxed_VkInstance(*pInstance, nullptr, true /* own dispatch */);
