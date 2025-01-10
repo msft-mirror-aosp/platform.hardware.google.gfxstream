@@ -4928,35 +4928,19 @@ class VkDecoderGlobalState::Impl {
         void* hva = info->pageAlignedHva;
         size_t sizeToPage = info->sizeToPage;
 
-        AutoLock occupiedGpasLock(mOccupiedGpasLock);
-
-        auto* existingMemoryInfo = android::base::find(mOccupiedGpas, gpa);
-        if (existingMemoryInfo) {
-            INFO("%s: WARNING: already mapped gpa 0x%llx, replacing", __func__,
-                    (unsigned long long)gpa);
-
-            get_emugl_vm_operations().unmapUserBackedRam(existingMemoryInfo->gpa,
-                                                         existingMemoryInfo->sizeToPage);
-
-            mOccupiedGpas.erase(gpa);
-        }
-
         get_emugl_vm_operations().mapUserBackedRam(gpa, hva, sizeToPage);
 
         if (mVerbosePrints) {
-            INFO("VERBOSE:%s: registering gpa 0x%llx to mOccupiedGpas", __func__,
+            INFO("VERBOSE:%s: registering gpa 0x%llx", __func__,
                     (unsigned long long)gpa);
         }
 
-        mOccupiedGpas[gpa] = {
-            vk, device, memory, gpa, sizeToPage,
-        };
-
         if (!mUseOldMemoryCleanupPath) {
             get_emugl_address_space_device_control_ops().register_deallocation_callback(
-                this, gpa, [](void* thisPtr, uint64_t gpa) {
-                    Impl* implPtr = (Impl*)thisPtr;
-                    implPtr->unmapMemoryAtGpaIfExists(gpa);
+                (void*)(new uint64_t(sizeToPage)), gpa, [](void* thisPtr, uint64_t gpa) {
+                    uint64_t* sizePtr = (uint64_t*)thisPtr;
+                    get_emugl_vm_operations().unmapUserBackedRam(gpa, *sizePtr);
+                    delete sizePtr;
                 });
         }
 
@@ -4966,21 +4950,16 @@ class VkDecoderGlobalState::Impl {
     // Only call this from the address space device deallocation operation's
     // context, or it's possible that the guest/host view of which gpa's are
     // occupied goes out of sync.
-    void unmapMemoryAtGpaIfExists(uint64_t gpa) {
-        AutoLock lock(mOccupiedGpasLock);
-
+    void unmapMemoryAtGpa(uint64_t gpa, uint64_t size) {
+        // DO NOT place any additional locks in here, as it may cause a deadlock due to mismatched
+        // lock ordering, as VM operations will typically have its own mutex already.
         if (mVerbosePrints) {
             INFO("VERBOSE:%s: deallocation callback for gpa 0x%llx", __func__,
                     (unsigned long long)gpa);
         }
 
-        auto* existingMemoryInfo = android::base::find(mOccupiedGpas, gpa);
-        if (!existingMemoryInfo) return;
-
-        get_emugl_vm_operations().unmapUserBackedRam(existingMemoryInfo->gpa,
-                                                     existingMemoryInfo->sizeToPage);
-
-        mOccupiedGpas.erase(gpa);
+        // Just blindly unmap here. Let the VM implementation deal with invalid addresses.
+        get_emugl_vm_operations().unmapUserBackedRam(gpa, size);
     }
 
     VkResult on_vkAllocateMemory(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
@@ -5180,7 +5159,7 @@ class VkDecoderGlobalState::Impl {
                         managedHandle.get().value_or(static_cast<HANDLE>(NULL));
                     vk_append_struct(&structChainIter, &importWin32HandleInfo);
 #elif defined(__QNX__)
-                    if (STREAM_MEM_HANDLE_TYPE_SCREEN_BUFFER_QNX ==
+                    if (STREAM_HANDLE_TYPE_PLATFORM_SCREEN_BUFFER_QNX ==
                         dupHandleInfo->streamHandleType) {
                         importScreenBufferInfo.buffer = static_cast<screen_buffer_t>(
                             reinterpret_cast<void*>(dupHandleInfo->handle));
@@ -5257,7 +5236,7 @@ class VkDecoderGlobalState::Impl {
                     managedHandle.get().value_or(static_cast<HANDLE>(NULL));
                 vk_append_struct(&structChainIter, &importWin32HandleInfo);
 #elif defined(__QNX__)
-                if (STREAM_MEM_HANDLE_TYPE_SCREEN_BUFFER_QNX == dupHandleInfo->streamHandleType) {
+                if (STREAM_HANDLE_TYPE_PLATFORM_SCREEN_BUFFER_QNX == dupHandleInfo->streamHandleType) {
                     importScreenBufferInfo.buffer = static_cast<screen_buffer_t>(
                         reinterpret_cast<void*>(dupHandleInfo->handle));
                     vk_append_struct(&structChainIter, &importScreenBufferInfo);
@@ -5572,7 +5551,7 @@ class VkDecoderGlobalState::Impl {
             // to unmap vs. address space allocate and mapMemory leading to
             // mapping the same gpa twice)
             if (mUseOldMemoryCleanupPath) {
-                unmapMemoryAtGpaIfExists(memoryInfo.guestPhysAddr);
+                unmapMemoryAtGpa(memoryInfo.guestPhysAddr, memoryInfo.sizeToPage);
             }
         }
 
@@ -5889,7 +5868,7 @@ class VkDecoderGlobalState::Impl {
             // handles.
             ExternalObjectManager::get()->addBlobDescriptorInfo(
                 virtioGpuContextId, hostBlobId, info->sharedMemory->releaseHandle(),
-                STREAM_MEM_HANDLE_TYPE_SHM, info->caching, std::nullopt);
+                STREAM_HANDLE_TYPE_MEM_SHM, info->caching, std::nullopt);
         } else if (m_emu->features.ExternalBlob.enabled) {
             VkResult result;
 
@@ -5920,14 +5899,14 @@ class VkDecoderGlobalState::Impl {
                 .handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT,
             };
 
-            streamHandleType = STREAM_MEM_HANDLE_TYPE_OPAQUE_FD;
+            streamHandleType = STREAM_HANDLE_TYPE_MEM_OPAQUE_FD;
 #endif
 
 #ifdef __linux__
             if (m_emu->deviceInfo.supportsDmaBuf &&
                 hasDeviceExtension(device, VK_EXT_EXTERNAL_MEMORY_DMA_BUF_EXTENSION_NAME)) {
                 getFd.handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT;
-                streamHandleType = STREAM_MEM_HANDLE_TYPE_DMABUF;
+                streamHandleType = STREAM_HANDLE_TYPE_MEM_DMABUF;
             }
 #endif
 
@@ -5946,7 +5925,7 @@ class VkDecoderGlobalState::Impl {
                 .handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT,
             };
 
-            streamHandleType = STREAM_MEM_HANDLE_TYPE_OPAQUE_WIN32;
+            streamHandleType = STREAM_HANDLE_TYPE_MEM_OPAQUE_WIN32;
 
             result = m_emu->deviceInfo.getMemoryHandleFunc(device, &getHandle, &handle);
             if (result != VK_SUCCESS) {
@@ -9114,18 +9093,6 @@ class VkDecoderGlobalState::Impl {
     // replayed on the "same" RenderThread which originally made the API call so
     // RenderThreadInfoVk::ctx_id is not available.
     std::optional<std::unordered_map<VkDevice, uint32_t>> mSnapshotLoadVkDeviceToVirtioCpuContextId;
-
-    Lock mOccupiedGpasLock;
-    // Back-reference to the VkDeviceMemory that is occupying a particular
-    // guest physical address
-    struct OccupiedGpaInfo {
-        VulkanDispatch* vk;
-        VkDevice device;
-        VkDeviceMemory memory;
-        uint64_t gpa;
-        size_t sizeToPage;
-    };
-    std::unordered_map<uint64_t, OccupiedGpaInfo> mOccupiedGpas;
 
     struct LinearImageCreateInfo {
         VkExtent3D extent;

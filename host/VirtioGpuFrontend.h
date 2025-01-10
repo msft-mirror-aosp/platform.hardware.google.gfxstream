@@ -67,6 +67,8 @@ class VirtioGpuFrontend {
 
     int createResource(struct stream_renderer_resource_create_args* args, struct iovec* iov,
                        uint32_t num_iovs);
+    int importResource(uint32_t res_handle, const struct stream_renderer_handle* import_handle,
+                       const struct stream_renderer_import_data* import_data);
     void unrefResource(uint32_t toUnrefId);
 
     int attachIov(int resId, iovec* iov, int num_iovs);
@@ -97,8 +99,6 @@ class VirtioGpuFrontend {
 
     int resourceMap(uint32_t resourceId, void** hvaOut, uint64_t* sizeOut);
     int resourceUnmap(uint32_t res_handle);
-
-    int platformImportResource(int res_handle, int res_info, void* resource);
 
     void* platformCreateSharedEglContext();
 

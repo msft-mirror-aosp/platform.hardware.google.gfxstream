@@ -180,6 +180,15 @@ VG_EXPORT int stream_renderer_resource_create(struct stream_renderer_resource_cr
     return sFrontend()->createResource(args, iov, num_iovs);
 }
 
+VG_EXPORT int stream_renderer_import_resource(
+    uint32_t res_handle, const struct stream_renderer_handle* import_handle,
+    const struct stream_renderer_import_data* import_data) {
+    GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY,
+                          "stream_renderer_import_resource()");
+
+    return sFrontend()->importResource(res_handle, import_handle, import_data);
+}
+
 VG_EXPORT void stream_renderer_resource_unref(uint32_t res_handle) {
     GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY,
                           "stream_renderer_resource_unref()");
@@ -351,14 +360,6 @@ VG_EXPORT int stream_renderer_export_fence(uint64_t fence_id,
                           "stream_renderer_export_fence()");
 
     return sFrontend()->exportFence(fence_id, handle);
-}
-
-VG_EXPORT int stream_renderer_platform_import_resource(int res_handle, int res_info,
-                                                       void* resource) {
-    GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY,
-                          "stream_renderer_platform_import_resource()");
-
-    return sFrontend()->platformImportResource(res_handle, res_info, resource);
 }
 
 VG_EXPORT void* stream_renderer_platform_create_shared_egl_context() {

@@ -87,15 +87,6 @@
 #include "utils/RenderDoc.h"
 #include "vulkan/vk_util.h"
 
-//// Import info types for FrameBuffer::platformImportResource
-// Platform resources and contexts support
-#define RESOURCE_TYPE_MASK 0x0F
-// types
-#define RESOURCE_TYPE_EGL_NATIVE_PIXMAP 0x01
-#define RESOURCE_TYPE_VK_EXT_MEMORY_HANDLE 0x03
-// uses
-#define RESOURCE_USE_PRESERVE 0x10
-
 namespace gfxstream {
 namespace vk {
 class DisplayVk;
@@ -216,9 +207,9 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
     // Variant of createColorBuffer except with a particular
     // handle already assigned. This is for use with
     // virtio-gpu's RESOURCE_CREATE ioctl.
-    void createColorBufferWithHandle(int p_width, int p_height, GLenum p_internalFormat,
-                                     FrameworkFormat p_frameworkFormat, HandleType handle,
-                                     bool linear = false);
+    void createColorBufferWithResourceHandle(int p_width, int p_height, GLenum p_internalFormat,
+                                             FrameworkFormat p_frameworkFormat, HandleType handle,
+                                             bool linear = false);
 
     // Create a new data Buffer instance from this display instance.
     // The buffer will be backed by a VkBuffer and VkDeviceMemory (if Vulkan
@@ -231,7 +222,7 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
     // Variant of createBuffer except with a particular handle already
     // assigned and using device local memory. This is for use with
     // virtio-gpu's RESOURCE_CREATE ioctl for BLOB resources.
-    void createBufferWithHandle(uint64_t size, HandleType handle);
+    void createBufferWithResourceHandle(uint64_t size, HandleType handle);
 
     // Increment the reference count associated with a given ColorBuffer
     // instance. |p_colorbuffer| is its handle value as returned by
@@ -486,8 +477,6 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
     void asyncWaitForGpuVulkanWithCb(uint64_t deviceHandle, uint64_t fenceHandle, FenceCompletionCallback cb);
     void asyncWaitForGpuVulkanQsriWithCb(uint64_t image, FenceCompletionCallback cb);
 
-    bool platformImportResource(uint32_t handle, uint32_t info, void* resource);
-
     void setGuestManagedColorBufferLifetime(bool guestManaged);
 
     std::unique_ptr<BorrowedImageInfo> borrowColorBufferForComposition(uint32_t colorBufferHandle,
@@ -725,10 +714,12 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
         m_guestPostedAFrame = true;
         fireEvent({FrameBufferChange::FrameReady, mFrameNumber++});
     }
-    HandleType createColorBufferWithHandleLocked(int p_width, int p_height, GLenum p_internalFormat,
-                                                 FrameworkFormat p_frameworkFormat,
-                                                 HandleType handle, bool linear = false);
-    HandleType createBufferWithHandleLocked(int p_size, HandleType handle, uint32_t memoryProperty);
+    HandleType createColorBufferWithResourceHandleLocked(int p_width, int p_height,
+                                                         GLenum p_internalFormat,
+                                                         FrameworkFormat p_frameworkFormat,
+                                                         HandleType handle, bool linear = false);
+    HandleType createBufferWithResourceHandleLocked(int p_size, HandleType handle,
+                                                    uint32_t memoryProperty);
 
     void recomputeLayout();
     void setDisplayPoseInSkinUI(int totalHeight);
