@@ -5159,7 +5159,7 @@ class VkDecoderGlobalState::Impl {
                         managedHandle.get().value_or(static_cast<HANDLE>(NULL));
                     vk_append_struct(&structChainIter, &importWin32HandleInfo);
 #elif defined(__QNX__)
-                    if (STREAM_MEM_HANDLE_TYPE_SCREEN_BUFFER_QNX ==
+                    if (STREAM_HANDLE_TYPE_PLATFORM_SCREEN_BUFFER_QNX ==
                         dupHandleInfo->streamHandleType) {
                         importScreenBufferInfo.buffer = static_cast<screen_buffer_t>(
                             reinterpret_cast<void*>(dupHandleInfo->handle));
@@ -5236,7 +5236,7 @@ class VkDecoderGlobalState::Impl {
                     managedHandle.get().value_or(static_cast<HANDLE>(NULL));
                 vk_append_struct(&structChainIter, &importWin32HandleInfo);
 #elif defined(__QNX__)
-                if (STREAM_MEM_HANDLE_TYPE_SCREEN_BUFFER_QNX == dupHandleInfo->streamHandleType) {
+                if (STREAM_HANDLE_TYPE_PLATFORM_SCREEN_BUFFER_QNX == dupHandleInfo->streamHandleType) {
                     importScreenBufferInfo.buffer = static_cast<screen_buffer_t>(
                         reinterpret_cast<void*>(dupHandleInfo->handle));
                     vk_append_struct(&structChainIter, &importScreenBufferInfo);
@@ -5868,7 +5868,7 @@ class VkDecoderGlobalState::Impl {
             // handles.
             ExternalObjectManager::get()->addBlobDescriptorInfo(
                 virtioGpuContextId, hostBlobId, info->sharedMemory->releaseHandle(),
-                STREAM_MEM_HANDLE_TYPE_SHM, info->caching, std::nullopt);
+                STREAM_HANDLE_TYPE_MEM_SHM, info->caching, std::nullopt);
         } else if (m_emu->features.ExternalBlob.enabled) {
             VkResult result;
 
@@ -5899,14 +5899,14 @@ class VkDecoderGlobalState::Impl {
                 .handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT,
             };
 
-            streamHandleType = STREAM_MEM_HANDLE_TYPE_OPAQUE_FD;
+            streamHandleType = STREAM_HANDLE_TYPE_MEM_OPAQUE_FD;
 #endif
 
 #ifdef __linux__
             if (m_emu->deviceInfo.supportsDmaBuf &&
                 hasDeviceExtension(device, VK_EXT_EXTERNAL_MEMORY_DMA_BUF_EXTENSION_NAME)) {
                 getFd.handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT;
-                streamHandleType = STREAM_MEM_HANDLE_TYPE_DMABUF;
+                streamHandleType = STREAM_HANDLE_TYPE_MEM_DMABUF;
             }
 #endif
 
@@ -5925,7 +5925,7 @@ class VkDecoderGlobalState::Impl {
                 .handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT,
             };
 
-            streamHandleType = STREAM_MEM_HANDLE_TYPE_OPAQUE_WIN32;
+            streamHandleType = STREAM_HANDLE_TYPE_MEM_OPAQUE_WIN32;
 
             result = m_emu->deviceInfo.getMemoryHandleFunc(device, &getHandle, &handle);
             if (result != VK_SUCCESS) {

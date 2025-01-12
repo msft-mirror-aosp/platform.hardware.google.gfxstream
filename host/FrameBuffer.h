@@ -87,14 +87,6 @@
 #include "utils/RenderDoc.h"
 #include "vulkan/vk_util.h"
 
-//// Import info types for FrameBuffer::platformImportResource
-// Platform resources and contexts support
-#define RESOURCE_TYPE_MASK 0x0F
-// types
-#define RESOURCE_TYPE_EGL_NATIVE_PIXMAP 0x01
-// uses
-#define RESOURCE_USE_PRESERVE 0x10
-
 namespace gfxstream {
 namespace vk {
 class DisplayVk;
@@ -484,8 +476,6 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
     HandleType getLastPostedColorBuffer() { return m_lastPostedColorBuffer; }
     void asyncWaitForGpuVulkanWithCb(uint64_t deviceHandle, uint64_t fenceHandle, FenceCompletionCallback cb);
     void asyncWaitForGpuVulkanQsriWithCb(uint64_t image, FenceCompletionCallback cb);
-
-    bool platformImportResource(uint32_t handle, uint32_t info, void* resource);
 
     void setGuestManagedColorBufferLifetime(bool guestManaged);
 

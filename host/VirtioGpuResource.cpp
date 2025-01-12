@@ -363,7 +363,7 @@ int VirtioGpuResource::ImportHandle(const struct stream_renderer_handle* handle,
     bool importSuccess = false;
     switch (handle->handle_type) {
 #if GFXSTREAM_ENABLE_HOST_GLES
-        case STREAM_PLATFORM_HANDLE_TYPE_EGL_NATIVE_PIXMAP:
+        case STREAM_HANDLE_TYPE_PLATFORM_EGL_NATIVE_PIXMAP:
             importSuccess = colorBufferPtr->glOpImportEglNativePixmap(
                 reinterpret_cast<void*>(handle->os_handle), preserveContent);
             break;
@@ -913,7 +913,7 @@ int VirtioGpuResource::ExportBlob(struct stream_renderer_handle* outHandle) {
 #else
         outHandle->os_handle = static_cast<int64_t>(memory->releaseHandle());
 #endif
-        outHandle->handle_type = STREAM_MEM_HANDLE_TYPE_SHM;
+        outHandle->handle_type = STREAM_HANDLE_TYPE_MEM_SHM;
         return 0;
     } else if (std::holds_alternative<ExternalMemoryInfo>(*mBlobMemory)) {
         auto& memory = std::get<ExternalMemoryInfo>(*mBlobMemory);
