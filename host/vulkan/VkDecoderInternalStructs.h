@@ -400,6 +400,10 @@ struct PipelineCacheInfo {
     VkDevice device;
 };
 
+struct PipelineLayoutInfo {
+    VkDevice device;
+};
+
 struct PipelineInfo {
     VkDevice device;
 };
@@ -477,6 +481,7 @@ struct InstanceObjects {
         std::unordered_map<VkImageView, ImageViewInfo> imageViews;
         std::unordered_map<VkPipeline, PipelineInfo> pipelines;
         std::unordered_map<VkPipelineCache, PipelineCacheInfo> pipelineCaches;
+        std::unordered_map<VkPipelineLayout, PipelineLayoutInfo> pipelineLayouts;
         std::unordered_map<VkQueue, QueueInfo> queues;
         std::unordered_map<VkRenderPass, RenderPassInfo> renderPasses;
         std::unordered_map<VkSampler, SamplerInfo> samplers;
