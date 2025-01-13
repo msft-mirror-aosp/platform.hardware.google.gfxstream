@@ -1961,6 +1961,15 @@ class VkDecoderGlobalState::Impl {
             }
         }
 
+        VkDeviceQueueCreateInfo filteredQueueCreateInfo = {};
+        if (mEnableVirtualVkQueue && createInfoFiltered.queueCreateInfoCount == 1) {
+            // In virtual secondary queue mode, we should filter the queue count
+            // value inside the device create info before calling the underlying driver.
+            filteredQueueCreateInfo = createInfoFiltered.pQueueCreateInfos[0];
+            filteredQueueCreateInfo.queueCount = 1;
+            createInfoFiltered.pQueueCreateInfos = &filteredQueueCreateInfo;
+        }
+
 #ifdef __APPLE__
 #ifndef VK_ENABLE_BETA_EXTENSIONS
         // TODO(b/349066492): Update Vulkan headers, stringhelpers and compilation parameters
