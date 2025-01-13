@@ -82,7 +82,8 @@ static android::base::Lock sThreadRunLimiter;
 RenderThread::RenderThread(RenderChannelImpl* channel,
                            android::base::Stream* loadStream,
                            uint32_t virtioGpuContextId)
-    : android::base::Thread(android::base::ThreadFlags::MaskSignals, 2 * 1024 * 1024),
+    : android::base::Thread(android::base::ThreadFlags::MaskSignals, 2 * 1024 * 1024,
+                            "RenderThread"),
       mChannel(channel),
       mRunInLimitedMode(android::base::getCpuCoreCount() < kMinThreadsToRunUnlimited),
       mContextId(virtioGpuContextId)
