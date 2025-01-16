@@ -1120,6 +1120,8 @@ class VkDecoderGlobalState::Impl {
             get_emugl_vm_operations().setSkipSnapshotSave(true);
             get_emugl_vm_operations().setSkipSnapshotSaveReason(SNAPSHOT_SKIP_UNSUPPORTED_VK_APP);
         }
+#else
+        get_emugl_vm_operations().setSkipSnapshotSave(true);
 #endif
         // Box it up
         VkInstance boxed = new_boxed_VkInstance(*pInstance, nullptr, true /* own dispatch */);
@@ -1959,6 +1961,15 @@ class VkDecoderGlobalState::Impl {
             if (!supportsSwapchainMaintenance1(physicalDevice, vk)) {
                 swapchainMaintenance1Features->swapchainMaintenance1 = VK_FALSE;
             }
+        }
+
+        VkDeviceQueueCreateInfo filteredQueueCreateInfo = {};
+        if (mEnableVirtualVkQueue && createInfoFiltered.queueCreateInfoCount == 1) {
+            // In virtual secondary queue mode, we should filter the queue count
+            // value inside the device create info before calling the underlying driver.
+            filteredQueueCreateInfo = createInfoFiltered.pQueueCreateInfos[0];
+            filteredQueueCreateInfo.queueCount = 1;
+            createInfoFiltered.pQueueCreateInfos = &filteredQueueCreateInfo;
         }
 
 #ifdef __APPLE__
