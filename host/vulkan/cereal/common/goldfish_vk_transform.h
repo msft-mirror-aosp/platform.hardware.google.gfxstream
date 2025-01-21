@@ -2390,6 +2390,28 @@ DEFINE_ALIAS_FUNCTION(transform_fromhost_VkPhysicalDeviceShaderSubgroupExtendedT
                       transform_fromhost_VkPhysicalDeviceShaderSubgroupExtendedTypesFeaturesKHR)
 
 #endif
+#ifdef VK_KHR_global_priority
+void transform_tohost_VkDeviceQueueGlobalPriorityCreateInfoKHR(
+    VkDecoderGlobalState* resourceTracker, VkDeviceQueueGlobalPriorityCreateInfoKHR* toTransform);
+
+void transform_fromhost_VkDeviceQueueGlobalPriorityCreateInfoKHR(
+    VkDecoderGlobalState* resourceTracker, VkDeviceQueueGlobalPriorityCreateInfoKHR* toTransform);
+
+void transform_tohost_VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR* toTransform);
+
+void transform_fromhost_VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR* toTransform);
+
+void transform_tohost_VkQueueFamilyGlobalPriorityPropertiesKHR(
+    VkDecoderGlobalState* resourceTracker, VkQueueFamilyGlobalPriorityPropertiesKHR* toTransform);
+
+void transform_fromhost_VkQueueFamilyGlobalPriorityPropertiesKHR(
+    VkDecoderGlobalState* resourceTracker, VkQueueFamilyGlobalPriorityPropertiesKHR* toTransform);
+
+#endif
 #ifdef VK_KHR_vulkan_memory_model
 DEFINE_ALIAS_FUNCTION(transform_tohost_VkPhysicalDeviceVulkanMemoryModelFeatures,
                       transform_tohost_VkPhysicalDeviceVulkanMemoryModelFeaturesKHR)
