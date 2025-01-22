@@ -6967,6 +6967,79 @@ void deepcopy_VkFenceGetFdInfoKHR(Allocator* alloc, VkStructureType rootType,
 }
 
 #endif
+#ifdef VK_KHR_global_priority
+void deepcopy_VkDeviceQueueGlobalPriorityCreateInfoKHR(
+    Allocator* alloc, VkStructureType rootType,
+    const VkDeviceQueueGlobalPriorityCreateInfoKHR* from,
+    VkDeviceQueueGlobalPriorityCreateInfoKHR* to) {
+    (void)alloc;
+    (void)rootType;
+    *to = *from;
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = from->sType;
+    }
+    const void* from_pNext = from;
+    size_t pNext_size = 0u;
+    while (!pNext_size && from_pNext) {
+        from_pNext = static_cast<const VkBaseOutStructure*>(from_pNext)->pNext;
+        pNext_size = goldfish_vk_extension_struct_size(rootType, from_pNext);
+    }
+    to->pNext = nullptr;
+    if (pNext_size) {
+        to->pNext = (void*)alloc->alloc(pNext_size);
+        deepcopy_extension_struct(alloc, rootType, from_pNext, (void*)(to->pNext));
+    }
+}
+
+void deepcopy_VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR(
+    Allocator* alloc, VkStructureType rootType,
+    const VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR* from,
+    VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR* to) {
+    (void)alloc;
+    (void)rootType;
+    *to = *from;
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = from->sType;
+    }
+    const void* from_pNext = from;
+    size_t pNext_size = 0u;
+    while (!pNext_size && from_pNext) {
+        from_pNext = static_cast<const VkBaseOutStructure*>(from_pNext)->pNext;
+        pNext_size = goldfish_vk_extension_struct_size(rootType, from_pNext);
+    }
+    to->pNext = nullptr;
+    if (pNext_size) {
+        to->pNext = (void*)alloc->alloc(pNext_size);
+        deepcopy_extension_struct(alloc, rootType, from_pNext, (void*)(to->pNext));
+    }
+}
+
+void deepcopy_VkQueueFamilyGlobalPriorityPropertiesKHR(
+    Allocator* alloc, VkStructureType rootType,
+    const VkQueueFamilyGlobalPriorityPropertiesKHR* from,
+    VkQueueFamilyGlobalPriorityPropertiesKHR* to) {
+    (void)alloc;
+    (void)rootType;
+    *to = *from;
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = from->sType;
+    }
+    const void* from_pNext = from;
+    size_t pNext_size = 0u;
+    while (!pNext_size && from_pNext) {
+        from_pNext = static_cast<const VkBaseOutStructure*>(from_pNext)->pNext;
+        pNext_size = goldfish_vk_extension_struct_size(rootType, from_pNext);
+    }
+    to->pNext = nullptr;
+    if (pNext_size) {
+        to->pNext = (void*)alloc->alloc(pNext_size);
+        deepcopy_extension_struct(alloc, rootType, from_pNext, (void*)(to->pNext));
+    }
+    memcpy(to->priorities, from->priorities,
+           VK_MAX_GLOBAL_PRIORITY_SIZE_KHR * sizeof(VkQueueGlobalPriorityKHR));
+}
+
+#endif
 #ifdef VK_KHR_pipeline_executable_properties
 void deepcopy_VkPhysicalDevicePipelineExecutablePropertiesFeaturesKHR(
     Allocator* alloc, VkStructureType rootType,
@@ -10601,6 +10674,31 @@ void deepcopy_extension_struct(Allocator* alloc, VkStructureType rootType,
             deepcopy_VkPresentRegionsKHR(
                 alloc, rootType, reinterpret_cast<const VkPresentRegionsKHR*>(structExtension),
                 reinterpret_cast<VkPresentRegionsKHR*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_KHR_global_priority
+        case VK_STRUCTURE_TYPE_DEVICE_QUEUE_GLOBAL_PRIORITY_CREATE_INFO_KHR: {
+            deepcopy_VkDeviceQueueGlobalPriorityCreateInfoKHR(
+                alloc, rootType,
+                reinterpret_cast<const VkDeviceQueueGlobalPriorityCreateInfoKHR*>(structExtension),
+                reinterpret_cast<VkDeviceQueueGlobalPriorityCreateInfoKHR*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GLOBAL_PRIORITY_QUERY_FEATURES_KHR: {
+            deepcopy_VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR(
+                alloc, rootType,
+                reinterpret_cast<const VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR*>(
+                    structExtension),
+                reinterpret_cast<VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR*>(
+                    structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_QUEUE_FAMILY_GLOBAL_PRIORITY_PROPERTIES_KHR: {
+            deepcopy_VkQueueFamilyGlobalPriorityPropertiesKHR(
+                alloc, rootType,
+                reinterpret_cast<const VkQueueFamilyGlobalPriorityPropertiesKHR*>(structExtension),
+                reinterpret_cast<VkQueueFamilyGlobalPriorityPropertiesKHR*>(structExtension_out));
             break;
         }
 #endif
