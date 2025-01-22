@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "host-common/opengl/NativeGpuInfo.h"
+#include "host-common/opengl/emugl_config.h"
 
 #include "aemu/base/StringFormat.h"
 #include "aemu/base/containers/SmallVector.h"
@@ -380,7 +381,8 @@ bool badVulkanDllVersion() {
     // crashhandler_append_message_format(
     //     "checking for bad vulkan-1.dll version...\n");
 
-    if (!android::base::queryFileVersionInfo("vulkan-1.dll", &major, &minor, &build_1, &build_2)) {
+    const char* vulkanDllPath = emuglConfig_get_vulkan_runtime_full_path();
+    if (!android::base::queryFileVersionInfo(vulkanDllPath, &major, &minor, &build_1, &build_2)) {
         // crashhandler_append_message_format(
         //     "info on vulkan-1.dll cannot be found, continue.\n");
         // Information about vulkan-1.dll not available; not blacklisted
