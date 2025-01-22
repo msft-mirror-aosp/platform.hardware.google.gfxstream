@@ -29,6 +29,7 @@
 #include "aemu/base/synchronization/MessageChannel.h"
 #include "aemu/base/system/System.h"
 #include "apigen-codec-common/ChecksumCalculatorThreadInfo.h"
+#include "host-common/GfxstreamFatalError.h"
 #include "host-common/logging.h"
 #include "vulkan/VkCommonOperations.h"
 
@@ -53,6 +54,8 @@ namespace gfxstream {
 using android::base::AutoLock;
 using android::base::EventHangMetadata;
 using android::base::MessageChannel;
+using emugl::ABORT_REASON_OTHER;
+using emugl::FatalError;
 using emugl::GfxApiLogger;
 using vk::VkDecoderContext;
 
@@ -135,11 +138,11 @@ void RenderThread::pausePreSnapshot() {
     mState = SnapshotState::StartSaving;
     if (mRingStream) {
         mRingStream->pausePreSnapshot();
-        // mCondVar.broadcastAndUnlock(&lock);
+        // mSnapshotSignal.broadcastAndUnlock(&lock);
     }
     if (mChannel) {
         mChannel->pausePreSnapshot();
-        mCondVar.broadcastAndUnlock(&lock);
+        mSnapshotSignal.broadcastAndUnlock(&lock);
     }
 }
 
@@ -159,7 +162,7 @@ void RenderThread::resume(bool waitForSave) {
     mState = SnapshotState::Empty;
     if (mChannel) mChannel->resume();
     if (mRingStream) mRingStream->resume();
-    mCondVar.broadcastAndUnlock(&lock);
+    mSnapshotSignal.broadcastAndUnlock(&lock);
 }
 
 void RenderThread::save(android::base::Stream* stream) {
@@ -185,7 +188,7 @@ void RenderThread::save(android::base::Stream* stream) {
 void RenderThread::waitForSnapshotCompletion(AutoLock* lock) {
     while (mState != SnapshotState::Finished &&
            !mFinished.load(std::memory_order_relaxed)) {
-        mCondVar.wait(lock);
+        mSnapshotSignal.wait(lock);
     }
 }
 
@@ -199,18 +202,18 @@ bool RenderThread::doSnapshotOp(const SnapshotObjects& objects, SnapshotState ex
         return false;
     }
     mState = SnapshotState::InProgress;
-    mCondVar.broadcastAndUnlock(&lock);
+    mSnapshotSignal.broadcastAndUnlock(&lock);
 
     op();
 
     lock.lock();
 
     mState = SnapshotState::Finished;
-    mCondVar.broadcast();
+    mSnapshotSignal.broadcast();
 
     // Only return after we're allowed to proceed.
     while (isPausedForSnapshotLocked()) {
-        mCondVar.wait(&lock);
+        mSnapshotSignal.wait(&lock);
     }
 
     return true;
@@ -236,13 +239,44 @@ bool RenderThread::saveSnapshot(const SnapshotObjects& objects) {
     });
 }
 
+void RenderThread::waitForFinished() {
+    AutoLock lock(mLock);
+    while (!mFinished.load(std::memory_order_relaxed)) {
+        mFinishedSignal.wait(&lock);
+    }
+}
+
+void RenderThread::sendExitSignal() {
+    AutoLock lock(mLock);
+    if (!mFinished.load(std::memory_order_relaxed)) {
+        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
+            << "RenderThread exit signal sent before finished";
+    }
+    mCanExit.store(true, std::memory_order_relaxed);
+    mExitSignal.broadcastAndUnlock(&lock);
+}
+
 void RenderThread::setFinished() {
     // Make sure it never happens that we wait forever for the thread to
     // save to snapshot while it was not even going to.
+    {
+        AutoLock lock(mLock);
+        mFinished.store(true, std::memory_order_relaxed);
+        if (mState != SnapshotState::Empty) {
+            mSnapshotSignal.broadcastAndUnlock(&lock);
+        }
+    }
+    {
+        AutoLock lock(mLock);
+        mFinishedSignal.broadcastAndUnlock(&lock);
+    }
+}
+
+void RenderThread::waitForExitSignal() {
     AutoLock lock(mLock);
-    mFinished.store(true, std::memory_order_relaxed);
-    if (mState != SnapshotState::Empty) {
-        mCondVar.broadcastAndUnlock(&lock);
+    GL_LOG("Waiting for exit signal RenderThread @%p", this);
+    while (!mCanExit.load(std::memory_order_relaxed)) {
+        mExitSignal.wait(&lock);
     }
 }
 
@@ -252,7 +286,7 @@ intptr_t RenderThread::main() {
         return 0;
     }
 
-    RenderThreadInfo tInfo;
+    std::unique_ptr<RenderThreadInfo> tInfo = std::make_unique<RenderThreadInfo>();
     ChecksumCalculatorThreadInfo tChecksumInfo;
     ChecksumCalculator& checksumCalc = tChecksumInfo.get();
     bool needRestoreFromSnapshot = false;
@@ -261,10 +295,10 @@ intptr_t RenderThread::main() {
     // initialize decoders
 #if GFXSTREAM_ENABLE_HOST_GLES
     if (!FrameBuffer::getFB()->getFeatures().GuestVulkanOnly.enabled) {
-        tInfo.initGl();
+        tInfo->initGl();
     }
 
-    initRenderControlContext(&tInfo.m_rcDec);
+    initRenderControlContext(&(tInfo->m_rcDec));
 #endif
 
     if (!mChannel && !mRingStream) {
@@ -283,18 +317,18 @@ intptr_t RenderThread::main() {
     }
 
     const SnapshotObjects snapshotObjects = {
-        &tInfo, &checksumCalc, &stream, mRingStream.get(), &readBuf,
+        tInfo.get(), &checksumCalc, &stream, mRingStream.get(), &readBuf,
     };
 
     // Framebuffer initialization is asynchronous, so we need to make sure
     // it's completely initialized before running any GL commands.
     FrameBuffer::waitUntilInitialized();
     if (vk::getGlobalVkEmulation()) {
-        tInfo.m_vkInfo.emplace();
+        tInfo->m_vkInfo.emplace();
     }
 
 #if GFXSTREAM_ENABLE_HOST_MAGMA
-    tInfo.m_magmaInfo.emplace(mContextId);
+    tInfo->m_magmaInfo.emplace(mContextId);
 #endif
 
     // This is the only place where we try loading from snapshot.
@@ -311,6 +345,8 @@ intptr_t RenderThread::main() {
             // Stream read may fail because of a pending snapshot.
             if (!saveSnapshot(snapshotObjects)) {
                 setFinished();
+                tInfo.reset();
+                waitForExitSignal();
                 GL_LOG("Exited a RenderThread @%p early", this);
                 return 0;
             }
@@ -383,7 +419,7 @@ intptr_t RenderThread::main() {
                 // If we're using RingStream that might load before FrameBuffer
                 // restores the contexts from the handles, so check again here.
 
-                tInfo.postLoadRefreshCurrentContextSurfacePtrs();
+                tInfo->postLoadRefreshCurrentContextSurfacePtrs();
                 needRestoreFromSnapshot = false;
             }
             if (mNeedReloadProcessResources) {
@@ -452,12 +488,12 @@ intptr_t RenderThread::main() {
                                 .setAnnotations(std::move(renderThreadData))
                                 .build();
 
-            if (!tInfo.m_puid) {
-                tInfo.m_puid = mContextId;
+            if (!tInfo->m_puid) {
+                tInfo->m_puid = mContextId;
             }
 
-            if (!processResources && tInfo.m_puid && tInfo.m_puid != INVALID_CONTEXT_ID) {
-                processResources = FrameBuffer::getFB()->getProcessResources(tInfo.m_puid);
+            if (!processResources && tInfo->m_puid && tInfo->m_puid != INVALID_CONTEXT_ID) {
+                processResources = FrameBuffer::getFB()->getProcessResources(tInfo->m_puid);
             }
 
             progress = false;
@@ -469,15 +505,15 @@ intptr_t RenderThread::main() {
             //
             // Note: It's risky to limit Vulkan decoding to one thread,
             // so we do it outside the limiter
-            if (tInfo.m_vkInfo) {
-                tInfo.m_vkInfo->ctx_id = mContextId;
+            if (tInfo->m_vkInfo) {
+                tInfo->m_vkInfo->ctx_id = mContextId;
                 VkDecoderContext context = {
                     .processName = contextName,
                     .gfxApiLogger = &gfxLogger,
                     .healthMonitor = FrameBuffer::getFB()->getHealthMonitor(),
                     .metricsLogger = &metricsLogger,
                 };
-                last = tInfo.m_vkInfo->m_vkDec.decode(readBuf.buf(), readBuf.validData(), ioStream,
+                last = tInfo->m_vkInfo->m_vkDec.decode(readBuf.buf(), readBuf.validData(), ioStream,
                                                       processResources, context);
                 if (last > 0) {
                     if (!processResources) {
@@ -513,9 +549,9 @@ intptr_t RenderThread::main() {
             }
 
 #if GFXSTREAM_ENABLE_HOST_GLES
-            if (tInfo.m_glInfo) {
+            if (tInfo->m_glInfo) {
                 {
-                    last = tInfo.m_glInfo->m_glDec.decode(
+                    last = tInfo->m_glInfo->m_glDec.decode(
                             readBuf.buf(), readBuf.validData(), ioStream, &checksumCalc);
                     if (last > 0) {
                         progress = true;
@@ -528,7 +564,7 @@ intptr_t RenderThread::main() {
                 // decoder
                 //
                 {
-                    last = tInfo.m_glInfo->m_gl2Dec.decode(readBuf.buf(), readBuf.validData(),
+                    last = tInfo->m_glInfo->m_gl2Dec.decode(readBuf.buf(), readBuf.validData(),
                                                            ioStream, &checksumCalc);
 
                     if (last > 0) {
@@ -546,7 +582,7 @@ intptr_t RenderThread::main() {
             //
 #if GFXSTREAM_ENABLE_HOST_GLES
             {
-                last = tInfo.m_rcDec.decode(readBuf.buf(), readBuf.validData(),
+                last = tInfo->m_rcDec.decode(readBuf.buf(), readBuf.validData(),
                                             ioStream, &checksumCalc);
                 if (last > 0) {
                     readBuf.consume(last);
@@ -560,9 +596,9 @@ intptr_t RenderThread::main() {
             // decoder
             //
 #if GFXSTREAM_ENABLE_HOST_MAGMA
-            if (tInfo.m_magmaInfo && tInfo.m_magmaInfo->mMagmaDec)
+            if (tInfo->m_magmaInfo && tInfo->m_magmaInfo->mMagmaDec)
             {
-                last = tInfo.m_magmaInfo->mMagmaDec->decode(readBuf.buf(), readBuf.validData(),
+                last = tInfo->m_magmaInfo->mMagmaDec->decode(readBuf.buf(), readBuf.validData(),
                                                             ioStream, &checksumCalc);
                 if (last > 0) {
                     readBuf.consume(last);
@@ -578,12 +614,17 @@ intptr_t RenderThread::main() {
     }
 
 #if GFXSTREAM_ENABLE_HOST_GLES
-    if (tInfo.m_glInfo) {
+    if (tInfo->m_glInfo) {
         FrameBuffer::getFB()->drainGlRenderThreadResources();
     }
 #endif
 
     setFinished();
+    // Since we now control when the thread exits, we must make sure the RenderThreadInfo is
+    // destroyed after the RenderThread is finished, as the RenderThreadInfo cleanup thread is
+    // waiting on the object to be destroyed.
+    tInfo.reset();
+    waitForExitSignal();
 
     GL_LOG("Exited a RenderThread @%p", this);
     return 0;
