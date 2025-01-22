@@ -53,7 +53,8 @@ set(stream-server-core-sources
     RenderWindow.cpp
     RenderLibImpl.cpp
     RendererImpl.cpp
-    FrameBuffer.cpp)
+    FrameBuffer.cpp
+    GraphicsDriverLock.cpp)
 if (APPLE)
     set(stream-server-core-platform-sources NativeSubWindow_cocoa.mm)
 elseif (WIN32)
