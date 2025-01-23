@@ -140,6 +140,7 @@ cc_defaults {
         "RendererImpl.cpp",
         "FrameBuffer.cpp",
         "GfxStreamAgents.cpp",
+        "GraphicsDriverLock.cpp",
         "virtio-gpu-gfxstream-renderer.cpp",
         "virtio-gpu-gfxstream-renderer-goldfish.cpp",
         "VirtioGpuContext.cpp",

@@ -20,6 +20,7 @@
 #include <variant>
 
 #include "FrameBuffer.h"
+#include "GraphicsDriverLock.h"
 #include "RenderChannelImpl.h"
 #include "RenderThread.h"
 #include "aemu/base/system/System.h"
@@ -182,17 +183,23 @@ void RendererImpl::stop(bool wait) {
                             std::make_move_iterator(channels.begin()),
                             std::make_move_iterator(channels.end()));
 
-    if (!wait) {
-        return;
-    }
-
     // Each render channel is referenced in the corresponing pipe object, so
     // even if we clear the |channels| vector they could still be alive
     // for a while. This means we need to make sure to wait for render thread
     // exit explicitly.
     for (const auto& c : mStoppedChannels) {
-        c->renderThread()->wait();
+        c->renderThread()->waitForFinished();
+        {
+            android::base::AutoLock lock(*graphicsDriverLock());
+            c->renderThread()->sendExitSignal();
+            c->renderThread()->wait();
+        }
     }
+
+    if (!wait) {
+        return;
+    }
+
     mCleanupThread->waitForCleanup();
     mStoppedChannels.clear();
 }
@@ -222,7 +229,12 @@ void RendererImpl::cleanupRenderThreads() {
         c->stop();
     }
     for (const auto& c : channels) {
-        c->renderThread()->wait();
+        c->renderThread()->waitForFinished();
+        {
+            android::base::AutoLock lock(*graphicsDriverLock());
+            c->renderThread()->sendExitSignal();
+            c->renderThread()->wait();
+        }
     }
 }
 
@@ -294,7 +306,13 @@ void RendererImpl::addressSpaceGraphicsConsumerDestroy(void* consumer) {
         android::base::AutoLock lock(mAddressSpaceRenderThreadLock);
         mAddressSpaceRenderThreads.erase(thread);
     }
-    thread->wait();
+
+    thread->waitForFinished();
+    {
+        android::base::AutoLock lock(*graphicsDriverLock());
+        thread->sendExitSignal();
+        thread->wait();
+    }
     delete thread;
 }
 
