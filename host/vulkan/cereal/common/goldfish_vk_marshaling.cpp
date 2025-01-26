@@ -14369,6 +14369,122 @@ void unmarshal_VkFenceGetFdInfoKHR(VulkanStream* vkStream, VkStructureType rootT
 }
 
 #endif
+#ifdef VK_KHR_global_priority
+void marshal_VkDeviceQueueGlobalPriorityCreateInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkDeviceQueueGlobalPriorityCreateInfoKHR* forMarshaling) {
+    (void)rootType;
+    vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    marshal_extension_struct(vkStream, rootType, forMarshaling->pNext);
+    vkStream->write((VkQueueGlobalPriorityKHR*)&forMarshaling->globalPriority,
+                    sizeof(VkQueueGlobalPriorityKHR));
+}
+
+void unmarshal_VkDeviceQueueGlobalPriorityCreateInfoKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkDeviceQueueGlobalPriorityCreateInfoKHR* forUnmarshaling) {
+    (void)rootType;
+    vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    size_t pNext_size;
+    pNext_size = vkStream->getBe32();
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        vkStream->read((void*)forUnmarshaling->pNext, sizeof(VkStructureType));
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        unmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext));
+    }
+    vkStream->read((VkQueueGlobalPriorityKHR*)&forUnmarshaling->globalPriority,
+                   sizeof(VkQueueGlobalPriorityKHR));
+}
+
+void marshal_VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR* forMarshaling) {
+    (void)rootType;
+    vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    marshal_extension_struct(vkStream, rootType, forMarshaling->pNext);
+    vkStream->write((VkBool32*)&forMarshaling->globalPriorityQuery, sizeof(VkBool32));
+}
+
+void unmarshal_VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR* forUnmarshaling) {
+    (void)rootType;
+    vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    size_t pNext_size;
+    pNext_size = vkStream->getBe32();
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        vkStream->read((void*)forUnmarshaling->pNext, sizeof(VkStructureType));
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        unmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext));
+    }
+    vkStream->read((VkBool32*)&forUnmarshaling->globalPriorityQuery, sizeof(VkBool32));
+}
+
+void marshal_VkQueueFamilyGlobalPriorityPropertiesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    const VkQueueFamilyGlobalPriorityPropertiesKHR* forMarshaling) {
+    (void)rootType;
+    vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forMarshaling->sType;
+    }
+    marshal_extension_struct(vkStream, rootType, forMarshaling->pNext);
+    vkStream->write((uint32_t*)&forMarshaling->priorityCount, sizeof(uint32_t));
+    vkStream->write((VkQueueGlobalPriorityKHR*)forMarshaling->priorities,
+                    VK_MAX_GLOBAL_PRIORITY_SIZE_KHR * sizeof(VkQueueGlobalPriorityKHR));
+}
+
+void unmarshal_VkQueueFamilyGlobalPriorityPropertiesKHR(
+    VulkanStream* vkStream, VkStructureType rootType,
+    VkQueueFamilyGlobalPriorityPropertiesKHR* forUnmarshaling) {
+    (void)rootType;
+    vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM) {
+        rootType = forUnmarshaling->sType;
+    }
+    size_t pNext_size;
+    pNext_size = vkStream->getBe32();
+    forUnmarshaling->pNext = nullptr;
+    if (pNext_size) {
+        vkStream->alloc((void**)&forUnmarshaling->pNext, sizeof(VkStructureType));
+        vkStream->read((void*)forUnmarshaling->pNext, sizeof(VkStructureType));
+        VkStructureType extType = *(VkStructureType*)(forUnmarshaling->pNext);
+        vkStream->alloc((void**)&forUnmarshaling->pNext,
+                        goldfish_vk_extension_struct_size_with_stream_features(
+                            vkStream->getFeatureBits(), rootType, forUnmarshaling->pNext));
+        *(VkStructureType*)forUnmarshaling->pNext = extType;
+        unmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext));
+    }
+    vkStream->read((uint32_t*)&forUnmarshaling->priorityCount, sizeof(uint32_t));
+    vkStream->read((VkQueueGlobalPriorityKHR*)forUnmarshaling->priorities,
+                   VK_MAX_GLOBAL_PRIORITY_SIZE_KHR * sizeof(VkQueueGlobalPriorityKHR));
+}
+
+#endif
 #ifdef VK_KHR_pipeline_executable_properties
 void marshal_VkPhysicalDevicePipelineExecutablePropertiesFeaturesKHR(
     VulkanStream* vkStream, VkStructureType rootType,
@@ -19948,6 +20064,27 @@ void marshal_extension_struct(VulkanStream* vkStream, VkStructureType rootType,
             break;
         }
 #endif
+#ifdef VK_KHR_global_priority
+        case VK_STRUCTURE_TYPE_DEVICE_QUEUE_GLOBAL_PRIORITY_CREATE_INFO_KHR: {
+            marshal_VkDeviceQueueGlobalPriorityCreateInfoKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkDeviceQueueGlobalPriorityCreateInfoKHR*>(structExtension));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GLOBAL_PRIORITY_QUERY_FEATURES_KHR: {
+            marshal_VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR*>(
+                    structExtension));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_QUEUE_FAMILY_GLOBAL_PRIORITY_PROPERTIES_KHR: {
+            marshal_VkQueueFamilyGlobalPriorityPropertiesKHR(
+                vkStream, rootType,
+                reinterpret_cast<const VkQueueFamilyGlobalPriorityPropertiesKHR*>(structExtension));
+            break;
+        }
+#endif
 #ifdef VK_KHR_pipeline_executable_properties
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_EXECUTABLE_PROPERTIES_FEATURES_KHR: {
             marshal_VkPhysicalDevicePipelineExecutablePropertiesFeaturesKHR(
@@ -21327,6 +21464,27 @@ void unmarshal_extension_struct(VulkanStream* vkStream, VkStructureType rootType
         case VK_STRUCTURE_TYPE_PRESENT_REGIONS_KHR: {
             unmarshal_VkPresentRegionsKHR(
                 vkStream, rootType, reinterpret_cast<VkPresentRegionsKHR*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_KHR_global_priority
+        case VK_STRUCTURE_TYPE_DEVICE_QUEUE_GLOBAL_PRIORITY_CREATE_INFO_KHR: {
+            unmarshal_VkDeviceQueueGlobalPriorityCreateInfoKHR(
+                vkStream, rootType,
+                reinterpret_cast<VkDeviceQueueGlobalPriorityCreateInfoKHR*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GLOBAL_PRIORITY_QUERY_FEATURES_KHR: {
+            unmarshal_VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR(
+                vkStream, rootType,
+                reinterpret_cast<VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR*>(
+                    structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_QUEUE_FAMILY_GLOBAL_PRIORITY_PROPERTIES_KHR: {
+            unmarshal_VkQueueFamilyGlobalPriorityPropertiesKHR(
+                vkStream, rootType,
+                reinterpret_cast<VkQueueFamilyGlobalPriorityPropertiesKHR*>(structExtension_out));
             break;
         }
 #endif

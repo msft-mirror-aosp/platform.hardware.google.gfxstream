@@ -385,6 +385,7 @@ struct DescriptorSetInfo {
         std::optional<HandleType> boundColorBuffer;
     };
 
+    VkDevice device;
     VkDescriptorPool pool;
     VkDescriptorSetLayout unboxedLayout = 0;
     std::vector<std::vector<DescriptorWrite>> allWrites;

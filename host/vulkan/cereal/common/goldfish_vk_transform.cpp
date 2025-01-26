@@ -6525,6 +6525,64 @@ void transform_fromhost_VkFenceGetFdInfoKHR(VkDecoderGlobalState* resourceTracke
 }
 
 #endif
+#ifdef VK_KHR_global_priority
+void transform_tohost_VkDeviceQueueGlobalPriorityCreateInfoKHR(
+    VkDecoderGlobalState* resourceTracker, VkDeviceQueueGlobalPriorityCreateInfoKHR* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkDeviceQueueGlobalPriorityCreateInfoKHR(
+    VkDecoderGlobalState* resourceTracker, VkDeviceQueueGlobalPriorityCreateInfoKHR* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR(
+    VkDecoderGlobalState* resourceTracker,
+    VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkQueueFamilyGlobalPriorityPropertiesKHR(
+    VkDecoderGlobalState* resourceTracker, VkQueueFamilyGlobalPriorityPropertiesKHR* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkQueueFamilyGlobalPriorityPropertiesKHR(
+    VkDecoderGlobalState* resourceTracker, VkQueueFamilyGlobalPriorityPropertiesKHR* toTransform) {
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext) {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
 #ifdef VK_KHR_pipeline_executable_properties
 void transform_tohost_VkPhysicalDevicePipelineExecutablePropertiesFeaturesKHR(
     VkDecoderGlobalState* resourceTracker,
@@ -9617,6 +9675,26 @@ void transform_tohost_extension_struct(VkDecoderGlobalState* resourceTracker,
             break;
         }
 #endif
+#ifdef VK_KHR_global_priority
+        case VK_STRUCTURE_TYPE_DEVICE_QUEUE_GLOBAL_PRIORITY_CREATE_INFO_KHR: {
+            transform_tohost_VkDeviceQueueGlobalPriorityCreateInfoKHR(
+                resourceTracker,
+                reinterpret_cast<VkDeviceQueueGlobalPriorityCreateInfoKHR*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GLOBAL_PRIORITY_QUERY_FEATURES_KHR: {
+            transform_tohost_VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR(
+                resourceTracker, reinterpret_cast<VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR*>(
+                                     structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_QUEUE_FAMILY_GLOBAL_PRIORITY_PROPERTIES_KHR: {
+            transform_tohost_VkQueueFamilyGlobalPriorityPropertiesKHR(
+                resourceTracker,
+                reinterpret_cast<VkQueueFamilyGlobalPriorityPropertiesKHR*>(structExtension_out));
+            break;
+        }
+#endif
 #ifdef VK_KHR_pipeline_executable_properties
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_EXECUTABLE_PROPERTIES_FEATURES_KHR: {
             transform_tohost_VkPhysicalDevicePipelineExecutablePropertiesFeaturesKHR(
@@ -10864,6 +10942,26 @@ void transform_fromhost_extension_struct(VkDecoderGlobalState* resourceTracker,
         case VK_STRUCTURE_TYPE_PRESENT_REGIONS_KHR: {
             transform_fromhost_VkPresentRegionsKHR(
                 resourceTracker, reinterpret_cast<VkPresentRegionsKHR*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_KHR_global_priority
+        case VK_STRUCTURE_TYPE_DEVICE_QUEUE_GLOBAL_PRIORITY_CREATE_INFO_KHR: {
+            transform_fromhost_VkDeviceQueueGlobalPriorityCreateInfoKHR(
+                resourceTracker,
+                reinterpret_cast<VkDeviceQueueGlobalPriorityCreateInfoKHR*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GLOBAL_PRIORITY_QUERY_FEATURES_KHR: {
+            transform_fromhost_VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR(
+                resourceTracker, reinterpret_cast<VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR*>(
+                                     structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_QUEUE_FAMILY_GLOBAL_PRIORITY_PROPERTIES_KHR: {
+            transform_fromhost_VkQueueFamilyGlobalPriorityPropertiesKHR(
+                resourceTracker,
+                reinterpret_cast<VkQueueFamilyGlobalPriorityPropertiesKHR*>(structExtension_out));
             break;
         }
 #endif

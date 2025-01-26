@@ -112,6 +112,10 @@ SelectedRenderer emuglConfig_get_current_renderer();
 // the hw.gpu.mode hardware property.
 const char* emuglConfig_get_user_gpu_option();
 
+// Returns the full path for vulkan runtime library to be used
+const char* emuglConfig_get_vulkan_runtime_full_path();
+
+// Returns the properties of the hardware gpu to be used for emulation
 void emuglConfig_get_vulkan_hardware_gpu(char** vendor, int* major, int* minor, int* patch,
                                          uint64_t* deviceMemBytes, uint32_t* driverVersion);
 
