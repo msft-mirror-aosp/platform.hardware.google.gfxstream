@@ -119,7 +119,7 @@ static std::optional<ExternalHandleInfo> dupExternalMemory(std::optional<Externa
         .streamHandleType = handleInfo->streamHandleType,
     };
 #elif defined(__QNX__)
-    if (STREAM_MEM_HANDLE_TYPE_SCREEN_BUFFER_QNX == handleInfo->streamHandleType) {
+    if (STREAM_HANDLE_TYPE_PLATFORM_SCREEN_BUFFER_QNX == handleInfo->streamHandleType) {
         // No dup required for the screen_buffer handle
         return ExternalHandleInfo{
             .handle = handleInfo->handle,
@@ -1889,7 +1889,7 @@ bool allocExternalMemory(VulkanDispatch* vk, VkEmulation::ExternalMemoryInfo* in
     validHandle = (VK_SUCCESS == exportRes) && (NULL != exportHandle);
     info->handleInfo = ExternalHandleInfo{
         .handle = reinterpret_cast<ExternalHandleType>(exportHandle),
-        .streamHandleType = STREAM_MEM_HANDLE_TYPE_OPAQUE_WIN32,
+        .streamHandleType = STREAM_HANDLE_TYPE_MEM_OPAQUE_WIN32,
     };
 #else
 
@@ -1909,12 +1909,12 @@ bool allocExternalMemory(VulkanDispatch* vk, VkEmulation::ExternalMemoryInfo* in
 #endif
 
     if (opaqueFd) {
-        uint32_t streamHandleType = STREAM_MEM_HANDLE_TYPE_OPAQUE_FD;
+        uint32_t streamHandleType = STREAM_HANDLE_TYPE_MEM_OPAQUE_FD;
         VkExternalMemoryHandleTypeFlagBits vkHandleType =
             VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT;
         if (sVkEmulation->deviceInfo.supportsDmaBuf) {
             vkHandleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT;
-            streamHandleType = STREAM_MEM_HANDLE_TYPE_DMABUF;
+            streamHandleType = STREAM_HANDLE_TYPE_MEM_DMABUF;
         }
 
         VkMemoryGetFdInfoKHR getFdInfo = {
@@ -1970,11 +1970,11 @@ void freeExternalMemoryLocked(VulkanDispatch* vk, VkEmulation::ExternalMemoryInf
         CloseHandle(static_cast<HANDLE>(reinterpret_cast<void*>(info->handleInfo->handle)));
 #else
         switch (info->handleInfo->streamHandleType) {
-            case STREAM_MEM_HANDLE_TYPE_OPAQUE_FD:
-            case STREAM_MEM_HANDLE_TYPE_DMABUF:
+            case STREAM_HANDLE_TYPE_MEM_OPAQUE_FD:
+            case STREAM_HANDLE_TYPE_MEM_DMABUF:
                 close(info->handleInfo->handle);
                 break;
-            case STREAM_MEM_HANDLE_TYPE_SCREEN_BUFFER_QNX:
+            case STREAM_HANDLE_TYPE_PLATFORM_SCREEN_BUFFER_QNX:
             default:
                 break;
         }
@@ -2335,7 +2335,9 @@ static bool updateExternalMemoryInfo(std::optional<ExternalHandleInfo> extMemHan
         return false;
     }
     if (!((1 << pInfo->typeIndex) & screenBufferProps.memoryTypeBits)) {
-        ERR("QNX Screen buffer can not be imported to memory (typeIndex=%d): %d", pInfo->typeIndex);
+        ERR("QNX Screen buffer can not be imported to memory with typeIndex=%d, "
+            "screenBufferProps.memoryTypeBits=0x%x",
+            pInfo->typeIndex, screenBufferProps.memoryTypeBits);
         return false;
     }
     if (screenBufferProps.allocationSize < pMemReqs->size) {
@@ -2539,8 +2541,8 @@ static bool createVkColorBufferLocked(uint32_t width, uint32_t height, GLenum in
         }
         if (!importExternalMemory(vk, sVkEmulation->device, &infoPtr->memory, dedicatedInfoPtr,
                                   &infoPtr->memory.memory)) {
-            ERR("Failed to import external memory for colorBuffer: %d %s\n",
-                dedicatedInfoPtr ? "(dedicated)" : "");
+            ERR("Failed to import external memory%s for colorBuffer: %d\n",
+                dedicatedInfoPtr ? " (dedicated)" : "", colorBufferHandle);
             return false;
         }
 

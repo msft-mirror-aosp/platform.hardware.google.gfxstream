@@ -21,6 +21,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include "FrameBuffer.h"
+#include "GraphicsDriverLock.h"
 #include "RenderThreadInfoVk.h"
 #include "VkAndroidNativeBuffer.h"
 #include "VkCommonOperations.h"
@@ -1120,6 +1122,8 @@ class VkDecoderGlobalState::Impl {
             get_emugl_vm_operations().setSkipSnapshotSave(true);
             get_emugl_vm_operations().setSkipSnapshotSaveReason(SNAPSHOT_SKIP_UNSUPPORTED_VK_APP);
         }
+#else
+        get_emugl_vm_operations().setSkipSnapshotSave(true);
 #endif
         // Box it up
         VkInstance boxed = new_boxed_VkInstance(*pInstance, nullptr, true /* own dispatch */);
@@ -1961,6 +1965,15 @@ class VkDecoderGlobalState::Impl {
             }
         }
 
+        VkDeviceQueueCreateInfo filteredQueueCreateInfo = {};
+        if (mEnableVirtualVkQueue && createInfoFiltered.queueCreateInfoCount == 1) {
+            // In virtual secondary queue mode, we should filter the queue count
+            // value inside the device create info before calling the underlying driver.
+            filteredQueueCreateInfo = createInfoFiltered.pQueueCreateInfos[0];
+            filteredQueueCreateInfo.queueCount = 1;
+            createInfoFiltered.pQueueCreateInfos = &filteredQueueCreateInfo;
+        }
+
 #ifdef __APPLE__
 #ifndef VK_ENABLE_BETA_EXTENSIONS
         // TODO(b/349066492): Update Vulkan headers, stringhelpers and compilation parameters
@@ -2305,7 +2318,10 @@ class VkDecoderGlobalState::Impl {
         }
 
         // Run the underlying API call.
-        m_vk->vkDestroyDevice(device, pAllocator);
+        {
+            AutoLock lock(*graphicsDriverLock());
+            m_vk->vkDestroyDevice(device, pAllocator);
+        }
 
         delete_VkDevice(deviceInfo.boxed);
     }
@@ -3634,7 +3650,7 @@ class VkDecoderGlobalState::Impl {
         return VK_SUCCESS;
     }
 
-    void initDescriptorSetInfoLocked(VkDescriptorPool pool, VkDescriptorSetLayout setLayout,
+    void initDescriptorSetInfoLocked(VkDevice device, VkDescriptorPool pool, VkDescriptorSetLayout setLayout,
                                      uint64_t boxedDescriptorSet, VkDescriptorSet descriptorSet) {
         auto* poolInfo = android::base::find(mDescriptorPoolInfo, pool);
         if (!poolInfo) {
@@ -3649,6 +3665,7 @@ class VkDecoderGlobalState::Impl {
         VALIDATE_NEW_HANDLE_INFO_ENTRY(mDescriptorSetInfo, descriptorSet);
         auto& setInfo = mDescriptorSetInfo[descriptorSet];
 
+        setInfo.device = device;
         setInfo.pool = pool;
         setInfo.unboxedLayout = setLayout;
         setInfo.bindings = setLayoutInfo->bindings;
@@ -3691,7 +3708,7 @@ class VkDecoderGlobalState::Impl {
             for (uint32_t i = 0; i < pAllocateInfo->descriptorSetCount; ++i) {
                 auto unboxed = pDescriptorSets[i];
                 pDescriptorSets[i] = new_boxed_non_dispatchable_VkDescriptorSet(pDescriptorSets[i]);
-                initDescriptorSetInfoLocked(pAllocateInfo->descriptorPool,
+                initDescriptorSetInfoLocked(device, pAllocateInfo->descriptorPool,
                                             pAllocateInfo->pSetLayouts[i],
                                             (uint64_t)(pDescriptorSets[i]), unboxed);
             }
@@ -5159,7 +5176,7 @@ class VkDecoderGlobalState::Impl {
                         managedHandle.get().value_or(static_cast<HANDLE>(NULL));
                     vk_append_struct(&structChainIter, &importWin32HandleInfo);
 #elif defined(__QNX__)
-                    if (STREAM_MEM_HANDLE_TYPE_SCREEN_BUFFER_QNX ==
+                    if (STREAM_HANDLE_TYPE_PLATFORM_SCREEN_BUFFER_QNX ==
                         dupHandleInfo->streamHandleType) {
                         importScreenBufferInfo.buffer = static_cast<screen_buffer_t>(
                             reinterpret_cast<void*>(dupHandleInfo->handle));
@@ -5236,7 +5253,7 @@ class VkDecoderGlobalState::Impl {
                     managedHandle.get().value_or(static_cast<HANDLE>(NULL));
                 vk_append_struct(&structChainIter, &importWin32HandleInfo);
 #elif defined(__QNX__)
-                if (STREAM_MEM_HANDLE_TYPE_SCREEN_BUFFER_QNX == dupHandleInfo->streamHandleType) {
+                if (STREAM_HANDLE_TYPE_PLATFORM_SCREEN_BUFFER_QNX == dupHandleInfo->streamHandleType) {
                     importScreenBufferInfo.buffer = static_cast<screen_buffer_t>(
                         reinterpret_cast<void*>(dupHandleInfo->handle));
                     vk_append_struct(&structChainIter, &importScreenBufferInfo);
@@ -5868,7 +5885,7 @@ class VkDecoderGlobalState::Impl {
             // handles.
             ExternalObjectManager::get()->addBlobDescriptorInfo(
                 virtioGpuContextId, hostBlobId, info->sharedMemory->releaseHandle(),
-                STREAM_MEM_HANDLE_TYPE_SHM, info->caching, std::nullopt);
+                STREAM_HANDLE_TYPE_MEM_SHM, info->caching, std::nullopt);
         } else if (m_emu->features.ExternalBlob.enabled) {
             VkResult result;
 
@@ -5899,14 +5916,14 @@ class VkDecoderGlobalState::Impl {
                 .handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT,
             };
 
-            streamHandleType = STREAM_MEM_HANDLE_TYPE_OPAQUE_FD;
+            streamHandleType = STREAM_HANDLE_TYPE_MEM_OPAQUE_FD;
 #endif
 
 #ifdef __linux__
             if (m_emu->deviceInfo.supportsDmaBuf &&
                 hasDeviceExtension(device, VK_EXT_EXTERNAL_MEMORY_DMA_BUF_EXTENSION_NAME)) {
                 getFd.handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT;
-                streamHandleType = STREAM_MEM_HANDLE_TYPE_DMABUF;
+                streamHandleType = STREAM_HANDLE_TYPE_MEM_DMABUF;
             }
 #endif
 
@@ -5925,7 +5942,7 @@ class VkDecoderGlobalState::Impl {
                 .handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT,
             };
 
-            streamHandleType = STREAM_MEM_HANDLE_TYPE_OPAQUE_WIN32;
+            streamHandleType = STREAM_HANDLE_TYPE_MEM_OPAQUE_WIN32;
 
             result = m_emu->deviceInfo.getMemoryHandleFunc(device, &getHandle, &handle);
             if (result != VK_SUCCESS) {
@@ -7365,7 +7382,7 @@ class VkDecoderGlobalState::Impl {
                 };
                 vk->vkAllocateDescriptorSets(device, &dsAi, &allocedSet);
                 setHandleInfo->underlying = (uint64_t)allocedSet;
-                initDescriptorSetInfoLocked(pool, setLayout, poolId, allocedSet);
+                initDescriptorSetInfoLocked(device, pool, setLayout, poolId, allocedSet);
                 *didAlloc = true;
                 return allocedSet;
             } else {
@@ -7380,7 +7397,7 @@ class VkDecoderGlobalState::Impl {
                 };
                 vk->vkAllocateDescriptorSets(device, &dsAi, &allocedSet);
                 setHandleInfo->underlying = (uint64_t)allocedSet;
-                initDescriptorSetInfoLocked(pool, setLayout, poolId, allocedSet);
+                initDescriptorSetInfoLocked(device, pool, setLayout, poolId, allocedSet);
                 *didAlloc = true;
                 return allocedSet;
             } else {
@@ -8576,21 +8593,25 @@ class VkDecoderGlobalState::Impl {
         }
     }
 
-    void extractDeviceAndDependenciesLocked(VkDevice device, InstanceObjects::DeviceObjects& deviceObjects) {
+    void extractDeviceAndDependenciesLocked(VkDevice device,
+                                            InstanceObjects::DeviceObjects& deviceObjects) {
         extractInfosWithDeviceInto(device, mBufferInfo, deviceObjects.buffers);
         extractInfosWithDeviceInto(device, mCommandBufferInfo, deviceObjects.commandBuffers);
         extractInfosWithDeviceInto(device, mCommandPoolInfo, deviceObjects.commandPools);
         extractInfosWithDeviceInto(device, mDescriptorPoolInfo, deviceObjects.descriptorPools);
-        extractInfosWithDeviceInto(device, mDescriptorSetLayoutInfo, deviceObjects.descriptorSetLayouts);
+        extractInfosWithDeviceInto(device, mDescriptorSetInfo, deviceObjects.descriptorSets);
+        extractInfosWithDeviceInto(device, mDescriptorSetLayoutInfo,
+                                   deviceObjects.descriptorSetLayouts);
+        extractInfosWithDeviceInto(device, mMemoryInfo, deviceObjects.memories);
         extractInfosWithDeviceInto(device, mFenceInfo, deviceObjects.fences);
         extractInfosWithDeviceInto(device, mFramebufferInfo, deviceObjects.framebuffers);
         extractInfosWithDeviceInto(device, mImageInfo, deviceObjects.images);
         extractInfosWithDeviceInto(device, mImageViewInfo, deviceObjects.imageViews);
-        extractInfosWithDeviceInto(device, mMemoryInfo, deviceObjects.memories);
         extractInfosWithDeviceInto(device, mPipelineCacheInfo, deviceObjects.pipelineCaches);
-        extractInfosWithDeviceInto(device, mQueueInfo, deviceObjects.queues);
         extractInfosWithDeviceInto(device, mPipelineInfo, deviceObjects.pipelines);
+        extractInfosWithDeviceInto(device, mQueueInfo, deviceObjects.queues);
         extractInfosWithDeviceInto(device, mRenderPassInfo, deviceObjects.renderPasses);
+        extractInfosWithDeviceInto(device, mSamplerInfo, deviceObjects.samplers);
         extractInfosWithDeviceInto(device, mSemaphoreInfo, deviceObjects.semaphores);
         extractInfosWithDeviceInto(device, mShaderModuleInfo, deviceObjects.shaderModules);
     }
@@ -9040,33 +9061,35 @@ class VkDecoderGlobalState::Impl {
         }
     }
 
+    // Info tracking for vulkan objects
     std::unordered_map<VkInstance, InstanceInfo> mInstanceInfo;
     std::unordered_map<VkPhysicalDevice, PhysicalDeviceInfo> mPhysdevInfo;
     std::unordered_map<VkDevice, DeviceInfo> mDeviceInfo;
-    std::unordered_map<VkImage, ImageInfo> mImageInfo;
-    std::unordered_map<VkImageView, ImageViewInfo> mImageViewInfo;
-    std::unordered_map<VkSampler, SamplerInfo> mSamplerInfo;
-    std::unordered_map<VkCommandBuffer, CommandBufferInfo> mCommandBufferInfo;
-    std::unordered_map<VkCommandPool, CommandPoolInfo> mCommandPoolInfo;
-    // TODO: release CommandBufferInfo when a command pool is reset/released
-    std::unordered_map<VkQueue, QueueInfo> mQueueInfo;
-    std::unordered_map<VkBuffer, BufferInfo> mBufferInfo;
-    std::unordered_map<VkDeviceMemory, MemoryInfo> mMemoryInfo;
-    std::unordered_map<VkShaderModule, ShaderModuleInfo> mShaderModuleInfo;
-    std::unordered_map<VkPipelineCache, PipelineCacheInfo> mPipelineCacheInfo;
-    std::unordered_map<VkPipeline, PipelineInfo> mPipelineInfo;
-    std::unordered_map<VkRenderPass, RenderPassInfo> mRenderPassInfo;
-    std::unordered_map<VkFramebuffer, FramebufferInfo> mFramebufferInfo;
-    std::unordered_map<VkSemaphore, SemaphoreInfo> mSemaphoreInfo;
-    std::unordered_map<VkFence, FenceInfo> mFenceInfo;
-    std::unordered_map<VkDescriptorSetLayout, DescriptorSetLayoutInfo> mDescriptorSetLayoutInfo;
-    std::unordered_map<VkDescriptorPool, DescriptorPoolInfo> mDescriptorPoolInfo;
-    std::unordered_map<VkDescriptorSet, DescriptorSetInfo> mDescriptorSetInfo;
 
     // Back-reference to the physical device associated with a particular
     // VkDevice, and the VkDevice corresponding to a VkQueue.
     std::unordered_map<VkDevice, VkPhysicalDevice> mDeviceToPhysicalDevice;
     std::unordered_map<VkPhysicalDevice, VkInstance> mPhysicalDeviceToInstance;
+
+    // Device objects
+    std::unordered_map<VkBuffer, BufferInfo> mBufferInfo;
+    std::unordered_map<VkCommandBuffer, CommandBufferInfo> mCommandBufferInfo;
+    std::unordered_map<VkCommandPool, CommandPoolInfo> mCommandPoolInfo;
+    std::unordered_map<VkDescriptorPool, DescriptorPoolInfo> mDescriptorPoolInfo;
+    std::unordered_map<VkDescriptorSet, DescriptorSetInfo> mDescriptorSetInfo;
+    std::unordered_map<VkDescriptorSetLayout, DescriptorSetLayoutInfo> mDescriptorSetLayoutInfo;
+    std::unordered_map<VkDeviceMemory, MemoryInfo> mMemoryInfo;
+    std::unordered_map<VkFence, FenceInfo> mFenceInfo;
+    std::unordered_map<VkFramebuffer, FramebufferInfo> mFramebufferInfo;
+    std::unordered_map<VkImage, ImageInfo> mImageInfo;
+    std::unordered_map<VkImageView, ImageViewInfo> mImageViewInfo;
+    std::unordered_map<VkPipeline, PipelineInfo> mPipelineInfo;
+    std::unordered_map<VkPipelineCache, PipelineCacheInfo> mPipelineCacheInfo;
+    std::unordered_map<VkQueue, QueueInfo> mQueueInfo;
+    std::unordered_map<VkRenderPass, RenderPassInfo> mRenderPassInfo;
+    std::unordered_map<VkSampler, SamplerInfo> mSamplerInfo;
+    std::unordered_map<VkSemaphore, SemaphoreInfo> mSemaphoreInfo;
+    std::unordered_map<VkShaderModule, ShaderModuleInfo> mShaderModuleInfo;
 
 #ifdef _WIN32
     int mSemaphoreId = 1;
