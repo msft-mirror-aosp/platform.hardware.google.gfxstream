@@ -26,6 +26,7 @@ add_library(gfxstream-vulkan-server
             VkDecoderSnapshot.cpp
             VkDecoderSnapshotUtils.cpp
             VkEmulatedPhysicalDeviceMemory.cpp
+            VkEmulatedPhysicalDeviceQueue.cpp
             VkFormatUtils.cpp
             VkReconstruction.cpp
             VulkanDispatch.cpp
