@@ -361,6 +361,17 @@ class VkDecoderGlobalState {
                                    VkPipelineCache pipelineCache,
                                    const VkAllocationCallbacks* pAllocator);
 
+    VkResult on_vkCreatePipelineLayout(android::base::BumpPool* pool,
+                                      VkSnapshotApiCallInfo* snapshotInfo, VkDevice device,
+                                      const VkPipelineLayoutCreateInfo* pCreateInfo,
+                                      const VkAllocationCallbacks* pAllocator,
+                                      VkPipelineLayout* pPipelineLayout);
+
+    void on_vkDestroyPipelineLayout(android::base::BumpPool* pool,
+                                   VkSnapshotApiCallInfo* snapshotInfo, VkDevice device,
+                                   VkPipelineLayout pipelineLayout,
+                                   const VkAllocationCallbacks* pAllocator);
+
     VkResult on_vkCreateGraphicsPipelines(android::base::BumpPool* pool,
                                           VkSnapshotApiCallInfo* snapshotInfo, VkDevice device,
                                           VkPipelineCache pipelineCache, uint32_t createInfoCount,
