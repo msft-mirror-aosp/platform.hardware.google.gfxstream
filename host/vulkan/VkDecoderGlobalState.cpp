@@ -2809,17 +2809,20 @@ class VkDecoderGlobalState::Impl {
             return result;
         }
 
-        if (deviceInfo->debugUtilsHelper.isEnabled()) {
-            std::lock_guard<std::recursive_mutex> lock(mLock);
-            for (uint32_t i = 0; i < bindInfoCount; i++) {
-                auto* memoryInfo = android::base::find(mMemoryInfo, pBindInfos[i].memory);
-                if (!memoryInfo) return VK_ERROR_OUT_OF_HOST_MEMORY;
+        std::lock_guard<std::recursive_mutex> lock(mLock);
+        for (uint32_t i = 0; i < bindInfoCount; i++) {
+            auto* memoryInfo = android::base::find(mMemoryInfo, pBindInfos[i].memory);
+            if (!memoryInfo) return VK_ERROR_OUT_OF_HOST_MEMORY;
 
-                if (memoryInfo->boundColorBuffer) {
-                    deviceInfo->debugUtilsHelper.addDebugLabel(
-                        pBindInfos[i].image, "ColorBuffer:%d", *memoryInfo->boundColorBuffer);
-                }
+            auto* imageInfo = android::base::find(mImageInfo, pBindInfos[i].image);
+            if (!imageInfo) return VK_ERROR_OUT_OF_HOST_MEMORY;
+
+            imageInfo->boundColorBuffer = memoryInfo->boundColorBuffer;
+            if (memoryInfo->boundColorBuffer && deviceInfo->debugUtilsHelper.isEnabled()) {
+                deviceInfo->debugUtilsHelper.addDebugLabel(
+                    pBindInfos[i].image, "ColorBuffer:%d", *memoryInfo->boundColorBuffer);
             }
+            imageInfo->memory = pBindInfos[i].memory;
         }
 
         return result;
