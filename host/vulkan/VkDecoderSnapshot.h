@@ -57,9 +57,11 @@ class VkDecoderSnapshot {
     VkDecoderSnapshot();
     ~VkDecoderSnapshot();
 
-    void save(android::base::Stream* stream);
-    void load(android::base::Stream* stream, emugl::GfxApiLogger& gfx_logger,
-              emugl::HealthMonitor<>* healthMonitor);
+    void clear();
+
+    void saveDecoderReplayBuffer(android::base::Stream* stream);
+    static void loadDecoderReplayBuffer(android::base::Stream* stream,
+                                        std::vector<uint8_t>* outBuffer);
 
     VkSnapshotApiCallInfo* createApiCallInfo();
     void destroyApiCallInfoIfUnused(VkSnapshotApiCallInfo* info);

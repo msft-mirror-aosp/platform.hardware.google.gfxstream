@@ -24,6 +24,7 @@
 #include "FrameBuffer.h"
 #include "GraphicsDriverLock.h"
 #include "RenderThreadInfoVk.h"
+#include "TrivialStream.h"
 #include "VkAndroidNativeBuffer.h"
 #include "VkCommonOperations.h"
 #include "VkDecoderContext.h"
@@ -430,6 +431,8 @@ class VkDecoderGlobalState::Impl {
         mCreatedHandlesForSnapshotLoadIndex = 0;
 
         sBoxedHandleManager.clear();
+
+        mSnapshot.clear();
     }
 
     bool snapshotsEnabled() const { return mSnapshotsEnabled; }
@@ -515,7 +518,7 @@ class VkDecoderGlobalState::Impl {
             }
         }
 
-        snapshot()->save(stream);
+        snapshot()->saveDecoderReplayBuffer(stream);
 
         // Save mapped memory
         uint32_t memoryCount = 0;
@@ -750,6 +753,7 @@ class VkDecoderGlobalState::Impl {
 
         // destroy all current internal data structures
         clear();
+
         mSnapshotState = SnapshotState::Loading;
 
         // This needs to happen before the replay in the decoder so that virtio gpu context ids
@@ -765,9 +769,29 @@ class VkDecoderGlobalState::Impl {
             }
         }
 
-        android::base::BumpPool bumpPool;
-        // this part will replay in the decoder
-        snapshot()->load(stream, gfxLogger, healthMonitor);
+        // Replay command stream:
+        {
+            std::vector<uint8_t> decoderReplayBuffer;
+            VkDecoderSnapshot::loadDecoderReplayBuffer(stream, &decoderReplayBuffer);
+
+            VkDecoder decoderForLoading;
+            // A decoder that is set for snapshot load will load up the created handles first,
+            // if any, allowing us to 'catch' the results as they are decoded.
+            decoderForLoading.setForSnapshotLoad(true);
+            TrivialStream trivialStream;
+
+            // TODO: This needs to be the puid seqno ptr
+            auto resources = ProcessResources::create();
+            VkDecoderContext context = {
+                .processName = nullptr,
+                .gfxApiLogger = &gfxLogger,
+                .healthMonitor = healthMonitor,
+            };
+            decoderForLoading.decode(decoderReplayBuffer.data(), decoderReplayBuffer.size(),
+                                     &trivialStream, resources.get(), context);
+        }
+
+
         // load mapped memory
         uint32_t memoryCount = stream->getBe32();
         for (uint32_t i = 0; i < memoryCount; i++) {
@@ -837,6 +861,7 @@ class VkDecoderGlobalState::Impl {
         }
 
         // snapshot descriptors
+        android::base::BumpPool bumpPool;
         std::vector<VkDescriptorPool> sortedBoxedDescriptorPools;
         for (const auto& descriptorPoolIte : mDescriptorPoolInfo) {
             auto boxed =
