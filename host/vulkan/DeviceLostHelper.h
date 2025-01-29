@@ -18,9 +18,11 @@
 
 #include <memory>
 #include <mutex>
-#include <vector>
+#include <unordered_map>
 #include <unordered_set>
+#include <vector>
 
+#include "aemu/base/ThreadAnnotations.h"
 #include "vulkan/cereal/common/goldfish_vk_dispatch.h"
 
 namespace gfxstream {
@@ -41,18 +43,25 @@ class DeviceLostHelper {
 
     void addNeededDeviceExtensions(std::vector<const char*>* deviceExtensions);
 
+    struct QueueWithMutex {
+        VkQueue queue = VK_NULL_HANDLE;
+        std::shared_ptr<std::mutex> queueMutex;
+    };
+    struct DeviceWithQueues {
+        VkDevice device = VK_NULL_HANDLE;
+        const VulkanDispatch* deviceDispatch = nullptr;
+        std::vector<QueueWithMutex> queues;
+    };
+    void onDeviceCreated(DeviceWithQueues deviceInfo);
+    void onDeviceDestroyed(VkDevice device);
+
     void onBeginCommandBuffer(const VkCommandBuffer& commandBuffer, const VulkanDispatch* vk);
     void onEndCommandBuffer(const VkCommandBuffer& commandBuffer, const VulkanDispatch* vk);
 
     void onResetCommandBuffer(const VkCommandBuffer& commandBuffer);
     void onFreeCommandBuffer(const VkCommandBuffer& commandBuffer);
 
-    struct DeviceWithQueues {
-        VkDevice device;
-        const VulkanDispatch* deviceDispatch;
-        std::vector<VkQueue> queues;
-    };
-    void onDeviceLost(const std::vector<DeviceWithQueues>& devicesWithQueues);
+    void onDeviceLost();
 
    private:
     enum class MarkerType { kBegin, kEnd };
@@ -82,7 +91,11 @@ class DeviceLostHelper {
     bool mEnabled = false;
 
     std::mutex mMarkersMutex;
-    std::unordered_set<CheckpointMarker, CheckpointMarkerHash, CheckpointMarkerEq> mMarkers;
+    std::unordered_set<CheckpointMarker, CheckpointMarkerHash, CheckpointMarkerEq> mMarkers
+        GUARDED_BY(mMarkersMutex);
+
+    std::mutex mDevicesMutex;
+    std::unordered_map<VkDevice, DeviceWithQueues> mDevices GUARDED_BY(mDevicesMutex);
 };
 
 }  // namespace vk
