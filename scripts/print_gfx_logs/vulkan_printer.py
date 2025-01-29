@@ -236,6 +236,14 @@ def OP_vkCreatePipelineCache(printer, indent: int):
     pPipelineCache = printer.write_int("pPipelineCache", 8, indent, optional=False, count=None, big_endian=False)
     return
 
+def OP_vkCreatePipelineLayout(printer, indent: int):
+    printer.write_int("seqno: ", 4, indent)
+    device = printer.write_int("device", 8, indent, signed=False, big_endian=False)
+    printer.write_struct("pCreateInfo", struct_VkPipelineLayoutCreateInfo, False, None, indent)
+    printer.write_struct("pAllocator", struct_VkAllocationCallbacks, True, None, indent)
+    pPipelineLayout = printer.write_int("pPipelineLayout", 8, indent, optional=False, count=None, big_endian=False)
+    return
+
 def OP_vkCreateRenderPass(printer, indent: int):
     printer.write_int("seqno: ", 4, indent)
     device = printer.write_int("device", 8, indent, signed=False, big_endian=False)
@@ -983,6 +991,14 @@ def struct_VkPipelineInputAssemblyStateCreateInfo(printer, indent: int):
     printer.write_enum("topology", VkPrimitiveTopology, indent)
     primitiveRestartEnable = printer.write_int("primitiveRestartEnable", 4, indent, signed=False, big_endian=False)
 
+def struct_VkPipelineLayoutCreateInfo(printer, indent: int):
+    printer.write_stype_and_pnext("VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO", indent)
+    flags = printer.write_int("flags", 4, indent, signed=False, big_endian=False)
+    setLayoutCount = printer.write_int("setLayoutCount", 4, indent, signed=False, big_endian=False)
+    pSetLayouts = printer.write_int("pSetLayouts", 8, indent, optional=False, count=setLayoutCount, big_endian=False)
+    pushConstantRangeCount = printer.write_int("pushConstantRangeCount", 4, indent, signed=False, big_endian=False)
+    printer.write_struct("pPushConstantRanges", struct_VkPushConstantRange, False, pushConstantRangeCount, indent)
+
 def struct_VkPipelineMultisampleStateCreateInfo(printer, indent: int):
     printer.write_stype_and_pnext("VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO", indent)
     flags = printer.write_int("flags", 4, indent, signed=False, big_endian=False)
@@ -1035,6 +1051,11 @@ def struct_VkPipelineViewportStateCreateInfo(printer, indent: int):
     printer.write_struct("pViewports", struct_VkViewport, True, viewportCount, indent)
     scissorCount = printer.write_int("scissorCount", 4, indent, signed=False, big_endian=False)
     printer.write_struct("pScissors", struct_VkRect2D, True, scissorCount, indent)
+
+def struct_VkPushConstantRange(printer, indent: int):
+    stageFlags = printer.write_int("stageFlags", 4, indent, signed=False, big_endian=False)
+    offset = printer.write_int("offset", 4, indent, signed=False, big_endian=False)
+    size = printer.write_int("size", 4, indent, signed=False, big_endian=False)
 
 def struct_VkRect2D(printer, indent: int):
     printer.write_struct("offset", struct_VkOffset2D, False, None, indent)

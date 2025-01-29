@@ -24,6 +24,7 @@
 #include "FrameBuffer.h"
 #include "GraphicsDriverLock.h"
 #include "RenderThreadInfoVk.h"
+#include "TrivialStream.h"
 #include "VkAndroidNativeBuffer.h"
 #include "VkCommonOperations.h"
 #include "VkDecoderContext.h"
@@ -415,6 +416,7 @@ class VkDecoderGlobalState::Impl {
         mMemoryInfo.clear();
         mShaderModuleInfo.clear();
         mPipelineCacheInfo.clear();
+        mPipelineLayoutInfo.clear();
         mPipelineInfo.clear();
         mRenderPassInfo.clear();
         mFramebufferInfo.clear();
@@ -430,6 +432,8 @@ class VkDecoderGlobalState::Impl {
         mCreatedHandlesForSnapshotLoadIndex = 0;
 
         sBoxedHandleManager.clear();
+
+        mSnapshot.clear();
     }
 
     bool snapshotsEnabled() const { return mSnapshotsEnabled; }
@@ -515,7 +519,7 @@ class VkDecoderGlobalState::Impl {
             }
         }
 
-        snapshot()->save(stream);
+        snapshot()->saveDecoderReplayBuffer(stream);
 
         // Save mapped memory
         uint32_t memoryCount = 0;
@@ -750,6 +754,7 @@ class VkDecoderGlobalState::Impl {
 
         // destroy all current internal data structures
         clear();
+
         mSnapshotState = SnapshotState::Loading;
 
         // This needs to happen before the replay in the decoder so that virtio gpu context ids
@@ -765,9 +770,29 @@ class VkDecoderGlobalState::Impl {
             }
         }
 
-        android::base::BumpPool bumpPool;
-        // this part will replay in the decoder
-        snapshot()->load(stream, gfxLogger, healthMonitor);
+        // Replay command stream:
+        {
+            std::vector<uint8_t> decoderReplayBuffer;
+            VkDecoderSnapshot::loadDecoderReplayBuffer(stream, &decoderReplayBuffer);
+
+            VkDecoder decoderForLoading;
+            // A decoder that is set for snapshot load will load up the created handles first,
+            // if any, allowing us to 'catch' the results as they are decoded.
+            decoderForLoading.setForSnapshotLoad(true);
+            TrivialStream trivialStream;
+
+            // TODO: This needs to be the puid seqno ptr
+            auto resources = ProcessResources::create();
+            VkDecoderContext context = {
+                .processName = nullptr,
+                .gfxApiLogger = &gfxLogger,
+                .healthMonitor = healthMonitor,
+            };
+            decoderForLoading.decode(decoderReplayBuffer.data(), decoderReplayBuffer.size(),
+                                     &trivialStream, resources.get(), context);
+        }
+
+
         // load mapped memory
         uint32_t memoryCount = stream->getBe32();
         for (uint32_t i = 0; i < memoryCount; i++) {
@@ -837,6 +862,7 @@ class VkDecoderGlobalState::Impl {
         }
 
         // snapshot descriptors
+        android::base::BumpPool bumpPool;
         std::vector<VkDescriptorPool> sortedBoxedDescriptorPools;
         for (const auto& descriptorPoolIte : mDescriptorPoolInfo) {
             auto boxed =
@@ -2809,17 +2835,20 @@ class VkDecoderGlobalState::Impl {
             return result;
         }
 
-        if (deviceInfo->debugUtilsHelper.isEnabled()) {
-            std::lock_guard<std::recursive_mutex> lock(mLock);
-            for (uint32_t i = 0; i < bindInfoCount; i++) {
-                auto* memoryInfo = android::base::find(mMemoryInfo, pBindInfos[i].memory);
-                if (!memoryInfo) return VK_ERROR_OUT_OF_HOST_MEMORY;
+        std::lock_guard<std::recursive_mutex> lock(mLock);
+        for (uint32_t i = 0; i < bindInfoCount; i++) {
+            auto* memoryInfo = android::base::find(mMemoryInfo, pBindInfos[i].memory);
+            if (!memoryInfo) return VK_ERROR_OUT_OF_HOST_MEMORY;
 
-                if (memoryInfo->boundColorBuffer) {
-                    deviceInfo->debugUtilsHelper.addDebugLabel(
-                        pBindInfos[i].image, "ColorBuffer:%d", *memoryInfo->boundColorBuffer);
-                }
+            auto* imageInfo = android::base::find(mImageInfo, pBindInfos[i].image);
+            if (!imageInfo) return VK_ERROR_OUT_OF_HOST_MEMORY;
+
+            imageInfo->boundColorBuffer = memoryInfo->boundColorBuffer;
+            if (memoryInfo->boundColorBuffer && deviceInfo->debugUtilsHelper.isEnabled()) {
+                deviceInfo->debugUtilsHelper.addDebugLabel(
+                    pBindInfos[i].image, "ColorBuffer:%d", *memoryInfo->boundColorBuffer);
             }
+            imageInfo->memory = pBindInfos[i].memory;
         }
 
         return result;
@@ -4114,6 +4143,63 @@ class VkDecoderGlobalState::Impl {
 
         std::lock_guard<std::recursive_mutex> lock(mLock);
         destroyPipelineCacheLocked(device, deviceDispatch, pipelineCache, pAllocator);
+    }
+
+    VkResult on_vkCreatePipelineLayout(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                                      VkDevice boxed_device,
+                                      const VkPipelineLayoutCreateInfo* pCreateInfo,
+                                      const VkAllocationCallbacks* pAllocator,
+                                      VkPipelineLayout* pPipelineLayout) {
+        auto device = unbox_VkDevice(boxed_device);
+        auto deviceDispatch = dispatch_VkDevice(boxed_device);
+
+        VkResult result =
+            deviceDispatch->vkCreatePipelineLayout(device, pCreateInfo, pAllocator, pPipelineLayout);
+        if (result != VK_SUCCESS) {
+            return result;
+        }
+
+        std::lock_guard<std::recursive_mutex> lock(mLock);
+
+        VALIDATE_NEW_HANDLE_INFO_ENTRY(mPipelineLayoutInfo, *pPipelineLayout);
+        auto& pipelineLayoutInfo = mPipelineLayoutInfo[*pPipelineLayout];
+        pipelineLayoutInfo.device = device;
+
+        *pPipelineLayout = new_boxed_non_dispatchable_VkPipelineLayout(*pPipelineLayout);
+
+        return result;
+    }
+
+    void destroyPipelineLayoutWithExclusiveInfo(VkDevice device, VulkanDispatch* deviceDispatch,
+                                                VkPipelineLayout pipelineLayout,
+                                                PipelineLayoutInfo& pipelineLayoutInfo,
+                                                const VkAllocationCallbacks* pAllocator) {
+        deviceDispatch->vkDestroyPipelineLayout(device, pipelineLayout, pAllocator);
+    }
+
+    void destroyPipelineLayoutLocked(VkDevice device, VulkanDispatch* deviceDispatch,
+                                     VkPipelineLayout pipelineLayout,
+                                     const VkAllocationCallbacks* pAllocator) {
+        auto pipelineLayoutInfoIt = mPipelineLayoutInfo.find(pipelineLayout);
+        if (pipelineLayoutInfoIt == mPipelineLayoutInfo.end()) return;
+        auto& pipelineLayoutInfo = pipelineLayoutInfoIt->second;
+
+        destroyPipelineLayoutWithExclusiveInfo(device, deviceDispatch, pipelineLayout,
+                                               pipelineLayoutInfo, pAllocator);
+
+        mPipelineLayoutInfo.erase(pipelineLayout);
+    }
+
+    // This call will be delayed as VulkanQueueSubmitWithCommands feature can change order
+    // of the commands and pipeline layouts need to stay valid during recording.
+    void on_vkDestroyPipelineLayout(android::base::BumpPool*, VkSnapshotApiCallInfo*,
+                                    VkDevice boxed_device, VkPipelineLayout pipelineLayout,
+                                    const VkAllocationCallbacks* pAllocator) {
+        auto device = unbox_VkDevice(boxed_device);
+        auto deviceDispatch = dispatch_VkDevice(boxed_device);
+
+        std::lock_guard<std::recursive_mutex> lock(mLock);
+        destroyPipelineLayoutLocked(device, deviceDispatch, pipelineLayout, pAllocator);
     }
 
     VkResult on_vkCreateGraphicsPipelines(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
@@ -8608,6 +8694,7 @@ class VkDecoderGlobalState::Impl {
         extractInfosWithDeviceInto(device, mImageInfo, deviceObjects.images);
         extractInfosWithDeviceInto(device, mImageViewInfo, deviceObjects.imageViews);
         extractInfosWithDeviceInto(device, mPipelineCacheInfo, deviceObjects.pipelineCaches);
+        extractInfosWithDeviceInto(device, mPipelineLayoutInfo, deviceObjects.pipelineLayouts);
         extractInfosWithDeviceInto(device, mPipelineInfo, deviceObjects.pipelines);
         extractInfosWithDeviceInto(device, mQueueInfo, deviceObjects.queues);
         extractInfosWithDeviceInto(device, mRenderPassInfo, deviceObjects.renderPasses);
@@ -8748,6 +8835,12 @@ class VkDecoderGlobalState::Impl {
             for (auto& [pipelineCache, pipelineCacheInfo] : deviceObjects.pipelineCaches) {
                 destroyPipelineCacheWithExclusiveInfo(device, deviceDispatch, pipelineCache,
                                                       pipelineCacheInfo, nullptr);
+            }
+
+            LOG_CALLS_VERBOSE("destroyDeviceObjects: %zu pipelineLayouts.", deviceObjects.pipelineLayouts.size());
+            for (auto& [pipelineLayout, pipelineLayoutInfo] : deviceObjects.pipelineLayouts) {
+                destroyPipelineLayoutWithExclusiveInfo(device, deviceDispatch, pipelineLayout,
+                                                      pipelineLayoutInfo, nullptr);
             }
 
             LOG_CALLS_VERBOSE("destroyDeviceObjects: %zu framebuffers.", deviceObjects.framebuffers.size());
@@ -9085,6 +9178,7 @@ class VkDecoderGlobalState::Impl {
     std::unordered_map<VkImageView, ImageViewInfo> mImageViewInfo;
     std::unordered_map<VkPipeline, PipelineInfo> mPipelineInfo;
     std::unordered_map<VkPipelineCache, PipelineCacheInfo> mPipelineCacheInfo;
+    std::unordered_map<VkPipelineLayout, PipelineLayoutInfo> mPipelineLayoutInfo;
     std::unordered_map<VkQueue, QueueInfo> mQueueInfo;
     std::unordered_map<VkRenderPass, RenderPassInfo> mRenderPassInfo;
     std::unordered_map<VkSampler, SamplerInfo> mSamplerInfo;
@@ -9694,6 +9788,22 @@ void VkDecoderGlobalState::on_vkDestroyPipelineCache(android::base::BumpPool* po
                                                      VkPipelineCache pipelineCache,
                                                      const VkAllocationCallbacks* pAllocator) {
     mImpl->on_vkDestroyPipelineCache(pool, snapshotInfo, boxed_device, pipelineCache, pAllocator);
+}
+
+VkResult VkDecoderGlobalState::on_vkCreatePipelineLayout(
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo, VkDevice boxed_device,
+    const VkPipelineLayoutCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator,
+    VkPipelineLayout* pPipelineLayout) {
+    return mImpl->on_vkCreatePipelineLayout(pool, snapshotInfo, boxed_device, pCreateInfo,
+                                           pAllocator, pPipelineLayout);
+}
+
+void VkDecoderGlobalState::on_vkDestroyPipelineLayout(android::base::BumpPool* pool,
+                                                     VkSnapshotApiCallInfo* snapshotInfo,
+                                                     VkDevice boxed_device,
+                                                     VkPipelineLayout pipelineLayout,
+                                                     const VkAllocationCallbacks* pAllocator) {
+    mImpl->on_vkDestroyPipelineLayout(pool, snapshotInfo, boxed_device, pipelineLayout, pAllocator);
 }
 
 VkResult VkDecoderGlobalState::on_vkCreateGraphicsPipelines(

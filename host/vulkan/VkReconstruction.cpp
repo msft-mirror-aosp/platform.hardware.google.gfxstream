@@ -18,7 +18,6 @@
 #include <unordered_map>
 
 #include "FrameBuffer.h"
-#include "render-utils/IOStream.h"
 #include "VkDecoder.h"
 #include "aemu/base/containers/EntityManager.h"
 
@@ -67,7 +66,12 @@ std::vector<VkReconstruction::HandleWithState> typeTagSortedHandles(
     return res;
 }
 
-void VkReconstruction::save(android::base::Stream* stream) {
+void VkReconstruction::clear() {
+    mApiCallManager.clear();
+    mHandleReconstructions.clear();
+}
+
+void VkReconstruction::saveDecoderReplayBuffer(android::base::Stream* stream) {
     DEBUG_RECON("start")
 
 #if DEBUG_RECONSTRUCTION
@@ -177,54 +181,10 @@ void VkReconstruction::save(android::base::Stream* stream) {
     android::base::saveBufferRaw(stream, (char*)(apiTraceBuffer.data()), apiTraceBuffer.size());
 }
 
-class TrivialStream : public IOStream {
-   public:
-    TrivialStream() : IOStream(4) {}
-    virtual ~TrivialStream() = default;
-
-    void* allocBuffer(size_t minSize) {
-        size_t allocSize = (m_bufsize < minSize ? minSize : m_bufsize);
-        if (!m_buf) {
-            m_buf = (unsigned char*)malloc(allocSize);
-        } else if (m_bufsize < allocSize) {
-            unsigned char* p = (unsigned char*)realloc(m_buf, allocSize);
-            if (p != NULL) {
-                m_buf = p;
-                m_bufsize = allocSize;
-            } else {
-                ERR("realloc (%zu) failed", allocSize);
-                free(m_buf);
-                m_buf = NULL;
-                m_bufsize = 0;
-            }
-        }
-
-        return m_buf;
-    }
-
-    int commitBuffer(size_t size) {
-        if (size == 0) return 0;
-        return writeFully(m_buf, size);
-    }
-
-    int writeFully(const void* buf, size_t len) { return 0; }
-
-    const unsigned char* readFully(void* buf, size_t len) { return NULL; }
-
-    virtual void* getDmaForReading(uint64_t guest_paddr) { return nullptr; }
-    virtual void unlockDma(uint64_t guest_paddr) {}
-
-   protected:
-    virtual const unsigned char* readRaw(void* buf, size_t* inout_len) { return nullptr; }
-    virtual void onSave(android::base::Stream* stream) {}
-    virtual unsigned char* onLoad(android::base::Stream* stream) { return nullptr; }
-};
-
-void VkReconstruction::load(android::base::Stream* stream, emugl::GfxApiLogger& gfxLogger,
-                            emugl::HealthMonitor<>* healthMonitor) {
-    DEBUG_RECON("start. assuming VkDecoderGlobalState has been cleared for loading already");
-    mApiCallManager.clear();
-    mHandleReconstructions.clear();
+/*static*/
+void VkReconstruction::loadDecoderReplayBuffer(android::base::Stream* stream,
+                                               std::vector<uint8_t>* outBuffer) {
+    DEBUG_RECON("starting to unpack decoder replay buffer");
 
     std::vector<uint8_t> createdHandleBuffer;
     std::vector<uint8_t> apiTraceBuffer;
@@ -235,36 +195,21 @@ void VkReconstruction::load(android::base::Stream* stream, emugl::GfxApiLogger& 
     DEBUG_RECON("created handle buffer size: %zu trace: %zu", createdHandleBuffer.size(),
                 apiTraceBuffer.size());
 
-    uint32_t createdHandleBufferSize = createdHandleBuffer.size();
+    outBuffer->resize(4 + createdHandleBuffer.size() + apiTraceBuffer.size());
 
-    mLoadedTrace.resize(4 + createdHandleBufferSize + apiTraceBuffer.size());
+    uint8_t* outBufferData = outBuffer->data();
 
-    unsigned char* finalTraceData = (unsigned char*)(mLoadedTrace.data());
+    const uint32_t createdHandleBufferSize = createdHandleBuffer.size();
+    memcpy(outBufferData, &createdHandleBufferSize, sizeof(uint32_t));
+    outBufferData += sizeof(uint32_t);
 
-    memcpy(finalTraceData, &createdHandleBufferSize, sizeof(uint32_t));
-    memcpy(finalTraceData + 4, createdHandleBuffer.data(), createdHandleBufferSize);
-    memcpy(finalTraceData + 4 + createdHandleBufferSize, apiTraceBuffer.data(),
-           apiTraceBuffer.size());
+    memcpy(outBufferData, createdHandleBuffer.data(), createdHandleBufferSize);
+    outBufferData += createdHandleBufferSize;
 
-    VkDecoder decoderForLoading;
-    // A decoder that is set for snapshot load will load up the created handles first,
-    // if any, allowing us to 'catch' the results as they are decoded.
-    decoderForLoading.setForSnapshotLoad(true);
-    TrivialStream trivialStream;
+    memcpy(outBufferData, apiTraceBuffer.data(), apiTraceBuffer.size());
+    outBufferData += apiTraceBuffer.size();
 
-    DEBUG_RECON("start decoding trace");
-
-    // TODO: This needs to be the puid seqno ptr
-    auto resources = ProcessResources::create();
-    VkDecoderContext context = {
-        .processName = nullptr,
-        .gfxApiLogger = &gfxLogger,
-        .healthMonitor = healthMonitor,
-    };
-    decoderForLoading.decode(mLoadedTrace.data(), mLoadedTrace.size(), &trivialStream, resources.get(),
-                             context);
-
-    DEBUG_RECON("finished decoding trace");
+    DEBUG_RECON("finished unpacking decoder replay buffer");
 }
 
 VkSnapshotApiCallInfo* VkReconstruction::createApiCallInfo() {
