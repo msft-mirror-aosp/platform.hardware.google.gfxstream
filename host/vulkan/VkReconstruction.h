@@ -30,9 +30,11 @@ class VkReconstruction {
    public:
     VkReconstruction();
 
-    void save(android::base::Stream* stream);
-    void load(android::base::Stream* stream, emugl::GfxApiLogger& gfxLogger,
-              emugl::HealthMonitor<>* healthMonitor);
+    void clear();
+
+    void saveDecoderReplayBuffer(android::base::Stream* stream);
+    static void loadDecoderReplayBuffer(android::base::Stream* stream,
+                                        std::vector<uint8_t>* outBuffer);
 
     enum HandleState { BEGIN = 0, CREATED = 0, BOUND_MEMORY = 1, HANDLE_STATE_COUNT };
 
