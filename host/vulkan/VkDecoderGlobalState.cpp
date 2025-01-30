@@ -6216,7 +6216,7 @@ class VkDecoderGlobalState::Impl {
 
     void destroyCommandPoolLocked(VkDevice device, VulkanDispatch* deviceDispatch,
                                   VkCommandPool commandPool,
-                                  const VkAllocationCallbacks* pAllocator) {
+                                  const VkAllocationCallbacks* pAllocator) REQUIRES(mMutex) {
         auto commandPoolInfoIt = mCommandPoolInfo.find(commandPool);
         if (commandPoolInfoIt == mCommandPoolInfo.end()) return;
         auto& commandPoolInfo = commandPoolInfoIt->second;
@@ -6569,7 +6569,8 @@ class VkDecoderGlobalState::Impl {
     }
 
     void freeCommandBufferLocked(VkDevice device, VulkanDispatch* deviceDispatch,
-                                 VkCommandPool commandPool, VkCommandBuffer commandBuffer) {
+                                 VkCommandPool commandPool, VkCommandBuffer commandBuffer)
+        REQUIRES(mMutex) {
         auto commandBufferInfoIt = mCommandBufferInfo.find(commandBuffer);
         if (commandBufferInfoIt == mCommandBufferInfo.end()) {
             WARN("freeCommandBufferLocked cannot find %p", commandBuffer);
@@ -9171,8 +9172,8 @@ class VkDecoderGlobalState::Impl {
 
     // Device objects
     std::unordered_map<VkBuffer, BufferInfo> mBufferInfo GUARDED_BY(mMutex);
-    std::unordered_map<VkCommandBuffer, CommandBufferInfo> mCommandBufferInfo;
-    std::unordered_map<VkCommandPool, CommandPoolInfo> mCommandPoolInfo;
+    std::unordered_map<VkCommandBuffer, CommandBufferInfo> mCommandBufferInfo GUARDED_BY(mMutex);
+    std::unordered_map<VkCommandPool, CommandPoolInfo> mCommandPoolInfo GUARDED_BY(mMutex);
     std::unordered_map<VkDescriptorPool, DescriptorPoolInfo> mDescriptorPoolInfo;
     std::unordered_map<VkDescriptorSet, DescriptorSetInfo> mDescriptorSetInfo;
     std::unordered_map<VkDescriptorSetLayout, DescriptorSetLayoutInfo> mDescriptorSetLayoutInfo;
