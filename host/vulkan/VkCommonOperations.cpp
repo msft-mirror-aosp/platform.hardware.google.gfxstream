@@ -2487,6 +2487,7 @@ static bool createVkColorBufferLocked(uint32_t width, uint32_t height, GLenum in
     infoPtr->imageCreateInfoShallow = vk_make_orphan_copy(*imageCi);
     infoPtr->currentQueueFamilyIndex = sVkEmulation->queueFamilyIndex;
 
+    VkMemoryRequirements memReqs;
     if (!useDedicated && vk->vkGetImageMemoryRequirements2KHR) {
         VkMemoryDedicatedRequirements dedicated_reqs{
             VK_STRUCTURE_TYPE_MEMORY_DEDICATED_REQUIREMENTS, nullptr};
@@ -2496,9 +2497,9 @@ static bool createVkColorBufferLocked(uint32_t width, uint32_t height, GLenum in
                                             nullptr, infoPtr->image};
         vk->vkGetImageMemoryRequirements2KHR(sVkEmulation->device, &info, &reqs);
         useDedicated = dedicated_reqs.requiresDedicatedAllocation;
-        infoPtr->memReqs = reqs.memoryRequirements;
+        memReqs = reqs.memoryRequirements;
     } else {
-        vk->vkGetImageMemoryRequirements(sVkEmulation->device, infoPtr->image, &infoPtr->memReqs);
+        vk->vkGetImageMemoryRequirements(sVkEmulation->device, infoPtr->image, &memReqs);
     }
 
     // Currently we only care about two memory properties: DEVICE_LOCAL
@@ -2507,11 +2508,11 @@ static bool createVkColorBufferLocked(uint32_t width, uint32_t height, GLenum in
     infoPtr->memoryProperty = infoPtr->memoryProperty & (VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT |
                                                          VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
 
-    infoPtr->memory.size = infoPtr->memReqs.size;
+    infoPtr->memory.size = memReqs.size;
 
     // Determine memory type.
     infoPtr->memory.typeIndex =
-        getValidMemoryTypeIndex(infoPtr->memReqs.memoryTypeBits, infoPtr->memoryProperty);
+        getValidMemoryTypeIndex(memReqs.memoryTypeBits, infoPtr->memoryProperty);
 
     const VkFormat imageVkFormat = infoPtr->imageCreateInfoShallow.format;
     VERBOSE(
@@ -2527,7 +2528,7 @@ static bool createVkColorBufferLocked(uint32_t width, uint32_t height, GLenum in
 
     Optional<VkImage> dedicatedImage = useDedicated ? Optional<VkImage>(infoPtr->image) : kNullopt;
     if (extMemHandleInfo) {
-        if (!updateExternalMemoryInfo(extMemHandleInfo, &infoPtr->memReqs, &infoPtr->memory)) {
+        if (!updateExternalMemoryInfo(extMemHandleInfo, &memReqs, &infoPtr->memory)) {
             ERR("Failed to update external memory info for ColorBuffer: %d\n", colorBufferHandle);
             return false;
         }
@@ -2553,7 +2554,7 @@ static bool createVkColorBufferLocked(uint32_t width, uint32_t height, GLenum in
     } else {
         bool isHostVisible = infoPtr->memoryProperty & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
         Optional<uint64_t> deviceAlignment =
-            isHostVisible ? Optional<uint64_t>(infoPtr->memReqs.alignment) : kNullopt;
+            isHostVisible ? Optional<uint64_t>(memReqs.alignment) : kNullopt;
         bool allocRes = allocExternalMemory(vk, &infoPtr->memory, true /*actuallyExternal*/,
                                             deviceAlignment, kNullopt, dedicatedImage);
         if (!allocRes) {
@@ -3495,6 +3496,7 @@ bool setupVkBuffer(uint64_t size, uint32_t bufferHandle, bool vulkanOnly, uint32
         return false;
     }
     bool useDedicated = false;
+    VkMemoryRequirements memReqs;
     if (vk->vkGetBufferMemoryRequirements2KHR) {
         VkMemoryDedicatedRequirements dedicated_reqs{
             VK_STRUCTURE_TYPE_MEMORY_DEDICATED_REQUIREMENTS, nullptr};
@@ -3504,9 +3506,9 @@ bool setupVkBuffer(uint64_t size, uint32_t bufferHandle, bool vulkanOnly, uint32
                                              nullptr, res.buffer};
         vk->vkGetBufferMemoryRequirements2KHR(sVkEmulation->device, &info, &reqs);
         useDedicated = dedicated_reqs.requiresDedicatedAllocation;
-        res.memReqs = reqs.memoryRequirements;
+        memReqs = reqs.memoryRequirements;
     } else {
-        vk->vkGetBufferMemoryRequirements(sVkEmulation->device, res.buffer, &res.memReqs);
+        vk->vkGetBufferMemoryRequirements(sVkEmulation->device, res.buffer, &memReqs);
     }
 
     // Currently we only care about two memory properties: DEVICE_LOCAL
@@ -3515,10 +3517,10 @@ bool setupVkBuffer(uint64_t size, uint32_t bufferHandle, bool vulkanOnly, uint32
     memoryProperty = memoryProperty &
                      (VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
 
-    res.memory.size = res.memReqs.size;
+    res.memory.size = memReqs.size;
 
     // Determine memory type.
-    res.memory.typeIndex = getValidMemoryTypeIndex(res.memReqs.memoryTypeBits, memoryProperty);
+    res.memory.typeIndex = getValidMemoryTypeIndex(memReqs.memoryTypeBits, memoryProperty);
 
     VERBOSE(
         "Buffer %d "
@@ -3531,7 +3533,7 @@ bool setupVkBuffer(uint64_t size, uint32_t bufferHandle, bool vulkanOnly, uint32
 
     bool isHostVisible = memoryProperty & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
     Optional<uint64_t> deviceAlignment =
-        isHostVisible ? Optional<uint64_t>(res.memReqs.alignment) : kNullopt;
+        isHostVisible ? Optional<uint64_t>(memReqs.alignment) : kNullopt;
     Optional<VkBuffer> dedicated_buffer = useDedicated ? Optional<VkBuffer>(res.buffer) : kNullopt;
     bool allocRes = allocExternalMemory(vk, &res.memory, true /* actuallyExternal */,
                                         deviceAlignment, dedicated_buffer);
