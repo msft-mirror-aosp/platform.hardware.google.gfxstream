@@ -14,6 +14,10 @@
 
 #include "DeviceLostHelper.h"
 
+#include <algorithm>
+#include <iterator>
+#include <set>
+
 #include "host-common/logging.h"
 
 namespace gfxstream {
@@ -49,6 +53,24 @@ void DeviceLostHelper::addNeededDeviceExtensions(std::vector<const char*>* devic
     if (mEnabled) {
         deviceExtensions->push_back(VK_NV_DEVICE_DIAGNOSTIC_CHECKPOINTS_EXTENSION_NAME);
     }
+}
+
+void DeviceLostHelper::onDeviceCreated(DeviceWithQueues deviceInfo) {
+    if (!mEnabled) {
+        return;
+    }
+
+    std::lock_guard<std::mutex> lock(mDevicesMutex);
+    mDevices[deviceInfo.device] = deviceInfo;
+}
+
+void DeviceLostHelper::onDeviceDestroyed(VkDevice device) {
+    if (!mEnabled) {
+        return;
+    }
+
+    std::lock_guard<std::mutex> lock(mDevicesMutex);
+    mDevices.erase(device);
 }
 
 void DeviceLostHelper::onBeginCommandBuffer(const VkCommandBuffer& commandBuffer,
@@ -87,15 +109,16 @@ void DeviceLostHelper::onFreeCommandBuffer(const VkCommandBuffer& commandBuffer)
     removeMarkersForCommandBuffer(commandBuffer);
 }
 
-void DeviceLostHelper::onDeviceLost(const std::vector<DeviceWithQueues>& devicesWithQueues) {
+void DeviceLostHelper::onDeviceLost() {
     if (!mEnabled) {
         return;
     }
 
     ERR("DeviceLostHelper starting lost device checks...");
 
-    for (const DeviceWithQueues& deviceWithQueues : devicesWithQueues) {
-        const auto& device = deviceWithQueues.device;
+    std::lock_guard<std::mutex> deviceLock(mDevicesMutex);
+
+    for (const auto& [device, deviceWithQueues] : mDevices) {
         const auto* deviceDispatch = deviceWithQueues.deviceDispatch;
         if (deviceDispatch->vkDeviceWaitIdle(device) != VK_ERROR_DEVICE_LOST) {
             continue;
@@ -108,31 +131,46 @@ void DeviceLostHelper::onDeviceLost(const std::vector<DeviceWithQueues>& devices
         };
         std::vector<CommandBufferOnQueue> unfinishedCommandBuffers;
 
-        for (const VkQueue& queue : deviceWithQueues.queues) {
+        for (const QueueWithMutex& queueInfo : deviceWithQueues.queues) {
+            VkQueue queue = queueInfo.queue;
+
             std::vector<VkCheckpointDataNV> checkpointDatas;
+            {
+                std::lock_guard<std::mutex> queueLock(*queueInfo.queueMutex);
 
-            uint32_t checkpointDataCount = 0;
-            deviceDispatch->vkGetQueueCheckpointDataNV(queue, &checkpointDataCount, nullptr);
-            if (checkpointDataCount == 0) continue;
+                uint32_t checkpointDataCount = 0;
+                deviceDispatch->vkGetQueueCheckpointDataNV(queue, &checkpointDataCount, nullptr);
+                if (checkpointDataCount == 0) continue;
 
-            checkpointDatas.resize(
-                static_cast<size_t>(checkpointDataCount),
-                VkCheckpointDataNV{
-                    .sType = VK_STRUCTURE_TYPE_CHECKPOINT_DATA_NV,
-                });
-            deviceDispatch->vkGetQueueCheckpointDataNV(queue, &checkpointDataCount,
-                                                       checkpointDatas.data());
+                checkpointDatas.resize(static_cast<size_t>(checkpointDataCount),
+                                       VkCheckpointDataNV{
+                                           .sType = VK_STRUCTURE_TYPE_CHECKPOINT_DATA_NV,
+                                       });
+                deviceDispatch->vkGetQueueCheckpointDataNV(queue, &checkpointDataCount,
+                                                           checkpointDatas.data());
+            }
 
-            std::unordered_set<VkCommandBuffer> unfinishedCommandBuffersForQueue;
+            std::set<VkCommandBuffer> startedCommandBuffers;
+            std::set<VkCommandBuffer> finishedCommandBuffers;
+
             for (const VkCheckpointDataNV& checkpointData : checkpointDatas) {
                 const auto& marker =
                     *reinterpret_cast<const CheckpointMarker*>(checkpointData.pCheckpointMarker);
                 if (marker.type == MarkerType::kBegin) {
-                    unfinishedCommandBuffersForQueue.insert(marker.commandBuffer);
+                    startedCommandBuffers.insert(marker.commandBuffer);
                 } else {
-                    unfinishedCommandBuffersForQueue.erase(marker.commandBuffer);
+                    finishedCommandBuffers.erase(marker.commandBuffer);
                 }
             }
+
+            std::set<VkCommandBuffer> unfinishedCommandBuffersForQueue;
+
+            std::set_difference(startedCommandBuffers.begin(),                   //
+                                startedCommandBuffers.end(),                     //
+                                finishedCommandBuffers.begin(),                  //
+                                finishedCommandBuffers.end(),                    //
+                                std::inserter(unfinishedCommandBuffersForQueue,  //
+                                              unfinishedCommandBuffersForQueue.end()));
 
             for (const VkCommandBuffer commandBuffer : unfinishedCommandBuffersForQueue) {
                 unfinishedCommandBuffers.push_back(CommandBufferOnQueue{
