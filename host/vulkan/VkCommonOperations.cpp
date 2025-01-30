@@ -2319,45 +2319,34 @@ std::unique_ptr<VkImageCreateInfo> generateColorBufferVkImageCreateInfo(VkFormat
     return generateColorBufferVkImageCreateInfo_locked(format, width, height, tiling);
 }
 
-static bool updateExternalMemoryInfo(std::optional<ExternalHandleInfo> extMemHandleInfo,
-                                     const VkMemoryRequirements* pMemReqs,
-                                     VkEmulation::ExternalMemoryInfo* pInfo) {
-    pInfo->handleInfo = extMemHandleInfo;
-    pInfo->dedicatedAllocation = true;
-
+static bool updateMemReqsForExtMem(std::optional<ExternalHandleInfo> extMemHandleInfo,
+                                   VkMemoryRequirements* pMemReqs) {
 #if defined(__QNX__)
-    VkScreenBufferPropertiesQNX screenBufferProps = {
-        VK_STRUCTURE_TYPE_SCREEN_BUFFER_PROPERTIES_QNX,
-        0,
-    };
-    auto vk = sVkEmulation->dvk;
-    VkResult queryRes = vk->vkGetScreenBufferPropertiesQNX(
-        sVkEmulation->device, (screen_buffer_t)extMemHandleInfo->handle, &screenBufferProps);
-    if (VK_SUCCESS != queryRes) {
-        ERR("Failed to get QNX Screen Buffer properties, VK error: %s", string_VkResult(queryRes));
-        return false;
-    }
-    if (!((1 << pInfo->typeIndex) & screenBufferProps.memoryTypeBits)) {
-        ERR("QNX Screen buffer can not be imported to memory with typeIndex=%d, "
-            "screenBufferProps.memoryTypeBits=0x%x",
-            pInfo->typeIndex, screenBufferProps.memoryTypeBits);
-        return false;
-    }
-    if (screenBufferProps.allocationSize < pMemReqs->size) {
-        ERR("QNX Screen buffer allocationSize (0x%lx) is not large enough for ColorBuffer image "
-            "size requirements (0x%lx)",
-            screenBufferProps.allocationSize, pMemReqs->size);
-        return false;
-    }
-    // Use the actual allocationSize for VkDeviceMemory object creation
-    pInfo->size = screenBufferProps.allocationSize;
-#endif
-
-#ifdef __APPLE__
-    // importExtMemoryHandleToVkColorBuffer is not supported with MoltenVK
-    if (sVkEmulation->instanceSupportsMoltenVK) {
-        WARN("Unexpected call to updateExternalMemoryInfo!");
-        pInfo->externalMetalHandle = nullptr;
+    if (STREAM_HANDLE_TYPE_PLATFORM_SCREEN_BUFFER_QNX == extMemHandleInfo->streamHandleType) {
+        VkScreenBufferPropertiesQNX screenBufferProps = {
+            VK_STRUCTURE_TYPE_SCREEN_BUFFER_PROPERTIES_QNX,
+            0,
+        };
+        auto vk = sVkEmulation->dvk;
+        VkResult queryRes = vk->vkGetScreenBufferPropertiesQNX(
+            sVkEmulation->device, (screen_buffer_t)extMemHandleInfo->handle, &screenBufferProps);
+        if (VK_SUCCESS != queryRes) {
+            ERR("Failed to get QNX Screen Buffer properties, VK error: %s",
+                string_VkResult(queryRes));
+            return false;
+        }
+        if (screenBufferProps.allocationSize < pMemReqs->size) {
+            ERR("QNX Screen buffer allocationSize (0x%lx) is not large enough for ColorBuffer "
+                "image "
+                "size requirements (0x%lx)",
+                screenBufferProps.allocationSize, pMemReqs->size);
+            return false;
+        }
+        // Change memory requirements to the actual allocationSize; this may be larger
+        // than the original memory requirements
+        pMemReqs->size = screenBufferProps.allocationSize;
+        // Mask the memoryTypeBits with the ones available for screen_buffer import
+        pMemReqs->memoryTypeBits = screenBufferProps.memoryTypeBits;
     }
 #endif
 
@@ -2502,6 +2491,25 @@ static bool createVkColorBufferLocked(uint32_t width, uint32_t height, GLenum in
         vk->vkGetImageMemoryRequirements(sVkEmulation->device, infoPtr->image, &memReqs);
     }
 
+    if (extMemHandleInfo) {
+        infoPtr->memory.handleInfo = extMemHandleInfo;
+        infoPtr->memory.dedicatedAllocation = true;
+        // External memory might change the memReqs for allocation
+        if (!updateMemReqsForExtMem(extMemHandleInfo, &memReqs)) {
+            ERR("Failed to update memReqs for ColorBuffer memory allocation with external memory: "
+                "%d\n",
+                colorBufferHandle);
+            return false;
+        }
+#if defined(__APPLE_)
+        // importExtMemoryHandleToVkColorBuffer is not supported with MoltenVK
+        if (sVkEmulation->instanceSupportsMoltenVK) {
+            WARN("extMemhandleInfo import in ColorBuffer creation is unexpected.");
+            infoPtr->memory.externalMetalHandle = nullptr;
+        }
+#endif
+    }
+
     // Currently we only care about two memory properties: DEVICE_LOCAL
     // and HOST_VISIBLE; other memory properties specified in
     // rcSetColorBufferVulkanMode2() call will be ignored for now.
@@ -2528,10 +2536,6 @@ static bool createVkColorBufferLocked(uint32_t width, uint32_t height, GLenum in
 
     Optional<VkImage> dedicatedImage = useDedicated ? Optional<VkImage>(infoPtr->image) : kNullopt;
     if (extMemHandleInfo) {
-        if (!updateExternalMemoryInfo(extMemHandleInfo, &memReqs, &infoPtr->memory)) {
-            ERR("Failed to update external memory info for ColorBuffer: %d\n", colorBufferHandle);
-            return false;
-        }
         VkMemoryDedicatedAllocateInfo dedicatedInfo = {
             VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO,
             nullptr,
