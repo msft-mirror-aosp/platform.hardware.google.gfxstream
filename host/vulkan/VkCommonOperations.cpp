@@ -1136,10 +1136,13 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk,
             deviceInfos[i].driverVersion = driverVersion;
         }
 
+// TODO(aruby@qnx.com): Remove once dmabuf extension support has been flushed out on QNX
+#if !defined(__QNX__)
         bool dmaBufBlockList = deviceInfos[i].driverVendor == "NVIDIA (Vendor 0x10de)";
         deviceInfos[i].supportsDmaBuf =
             extensionsSupported(deviceExts, {VK_EXT_EXTERNAL_MEMORY_DMA_BUF_EXTENSION_NAME}) &&
             !dmaBufBlockList;
+#endif
 
         deviceInfos[i].hasSamplerYcbcrConversionExtension =
             extensionsSupported(deviceExts, {VK_KHR_SAMPLER_YCBCR_CONVERSION_EXTENSION_NAME});
@@ -3812,7 +3815,8 @@ VkExternalMemoryHandleTypeFlags transformExternalMemoryHandleTypeFlags_tohost(
     VkExternalMemoryHandleTypeFlags bits) {
     VkExternalMemoryHandleTypeFlags res = bits;
 
-    // Transform Android/Fuchsia/Linux bits to host bits.
+    // Drop OPAQUE_FD_BIT if it was set. Host's default external memory bits
+    // may set them again below
     if (bits & VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT) {
         res &= ~VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT;
     }
@@ -3822,25 +3826,25 @@ VkExternalMemoryHandleTypeFlags transformExternalMemoryHandleTypeFlags_tohost(
     res &= ~VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_KMT_BIT;
 #endif
 
+    // Replace guest AHardwareBuffer bits with host's default external memory bits
     if (bits & VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID) {
         res &= ~VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID;
-
-        VkExternalMemoryHandleTypeFlagBits handleTypeNeeded = getDefaultExternalMemoryHandleType();
-        res |= handleTypeNeeded;
+        res |= getDefaultExternalMemoryHandleType();
     }
 
+    // Replace guest Zircon VMO bits with host's default external memory bits
     if (bits & VK_EXTERNAL_MEMORY_HANDLE_TYPE_ZIRCON_VMO_BIT_FUCHSIA) {
         res &= ~VK_EXTERNAL_MEMORY_HANDLE_TYPE_ZIRCON_VMO_BIT_FUCHSIA;
         res |= getDefaultExternalMemoryHandleType();
     }
 
-#if defined(__QNX__)
-    // QNX only: Replace DMA_BUF_BIT_EXT with SCREEN_BUFFER_BIT_QNX for host calls
-    if (bits & VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT) {
+    // If the host does not support dmabuf, replace guest Linux DMA_BUF bits with
+    // the host's default external memory bits,
+    if (!sVkEmulation->deviceInfo.supportsDmaBuf &&
+        (bits & VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT)) {
         res &= ~VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT;
         res |= getDefaultExternalMemoryHandleType();
     }
-#endif
 
     return res;
 }
