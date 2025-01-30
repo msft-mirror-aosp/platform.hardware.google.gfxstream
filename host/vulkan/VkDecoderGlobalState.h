@@ -98,10 +98,6 @@ class VkDecoderGlobalState {
     void load(android::base::Stream* stream, emugl::GfxApiLogger& gfxLogger,
               emugl::HealthMonitor<>* healthMonitor);
 
-    // Lock/unlock of global state to serve as a global lock
-    void lock();
-    void unlock();
-
     // Sets the current created handles for snapshot load
     // which will override the effect of any new_boxed_*** calls.
     // They are consumed in sequence.
