@@ -6359,10 +6359,6 @@ class VkDecoderGlobalState::Impl {
             if (!snapshotsEnabled()) {
                 sBoxedHandleManager.processDelayedRemovesGlobalStateLocked(device);
             }
-
-            for (uint32_t i = 0; i < submitCount; i++) {
-                executePreprocessRecursive(pSubmits[i]);
-            }
         }
 
         VkFence usedFence = fence;
@@ -8628,30 +8624,6 @@ class VkDecoderGlobalState::Impl {
             return;
         }
         getPhysicalDeviceFormatPropertiesFunc(physicalDevice, format, pFormatProperties);
-    }
-
-    void executePreprocessRecursive(int level, VkCommandBuffer cmdBuffer) {
-        auto* cmdBufferInfo = android::base::find(mCommandBufferInfo, cmdBuffer);
-        if (!cmdBufferInfo) return;
-        for (const auto& func : cmdBufferInfo->preprocessFuncs) {
-            func();
-        }
-        // TODO: fix
-        // for (const auto& subCmd : cmdBufferInfo->subCmds) {
-        // executePreprocessRecursive(level + 1, subCmd);
-        // }
-    }
-
-    void executePreprocessRecursive(const VkSubmitInfo& submit) {
-        for (uint32_t c = 0; c < submit.commandBufferCount; c++) {
-            executePreprocessRecursive(0, submit.pCommandBuffers[c]);
-        }
-    }
-
-    void executePreprocessRecursive(const VkSubmitInfo2& submit) {
-        for (uint32_t c = 0; c < submit.commandBufferInfoCount; c++) {
-            executePreprocessRecursive(0, submit.pCommandBufferInfos[c].commandBuffer);
-        }
     }
 
     template <typename VkHandleToInfoMap,
