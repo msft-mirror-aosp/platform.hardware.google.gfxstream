@@ -549,8 +549,7 @@ static std::vector<VkEmulation::ImageSupportInfo> getBasicImageSupportList() {
         {VK_FORMAT_ETC2_R8G8B8A8_UNORM_BLOCK},
         {VK_FORMAT_ASTC_4x4_UNORM_BLOCK},
 
-        // TODO: YUV formats used in Android
-        // Fails on Mac
+        // YUV formats used in Android
         {VK_FORMAT_G8_B8R8_2PLANE_420_UNORM},
         {VK_FORMAT_G8_B8R8_2PLANE_422_UNORM},
         {VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM},
@@ -3316,7 +3315,7 @@ MTLResource_id getColorBufferMetalMemoryHandle(uint32_t colorBuffer) {
     return infoPtr->memory.externalMetalHandle;
 }
 
-// TODO0(b/351765838): Temporary function for MoltenVK
+// TODO(b/351765838): Temporary function for MoltenVK
 VkImage getColorBufferVkImage(uint32_t colorBufferHandle) {
     if (!sVkEmulation || !sVkEmulation->live) return nullptr;
 

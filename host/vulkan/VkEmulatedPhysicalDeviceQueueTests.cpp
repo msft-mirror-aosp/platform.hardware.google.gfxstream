@@ -41,7 +41,6 @@ MATCHER_P(EqsVkExtent3D, expected, "") {
 }
 
 MATCHER_P(EqsVkQueueFamilyProperties, expected, "") {
-    //TODO00: run these tests!
     return ExplainMatchResult(
         AllOf(Field("queueFlags", &VkQueueFamilyProperties::queueFlags, Eq(expected.queueFlags)),
               Field("queueCount", &VkQueueFamilyProperties::queueCount, Eq(expected.queueCount)),
