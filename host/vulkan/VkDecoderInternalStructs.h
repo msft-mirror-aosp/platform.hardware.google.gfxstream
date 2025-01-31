@@ -438,7 +438,6 @@ struct CommandBufferInfo {
     std::unordered_set<HandleType> imageBarrierColorBuffers;
 
     void reset() {
-        preprocessFuncs.clear();
         subCmds.clear();
         computePipeline = VK_NULL_HANDLE;
         firstSet = 0;
