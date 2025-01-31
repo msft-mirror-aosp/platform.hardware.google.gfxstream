@@ -987,10 +987,6 @@ class VkDecoderGlobalState::Impl {
         mSnapshotState = SnapshotState::Normal;
     }
 
-    void lock() { mLock.lock(); }
-
-    void unlock() { mLock.unlock(); }
-
     size_t setCreatedHandlesForSnapshotLoad(const unsigned char* buffer) {
         size_t consumed = 0;
 
@@ -9311,10 +9307,6 @@ void VkDecoderGlobalState::load(android::base::Stream* stream, GfxApiLogger& gfx
                                 HealthMonitor<>* healthMonitor) {
     mImpl->load(stream, gfxLogger, healthMonitor);
 }
-
-void VkDecoderGlobalState::lock() { mImpl->lock(); }
-
-void VkDecoderGlobalState::unlock() { mImpl->unlock(); }
 
 size_t VkDecoderGlobalState::setCreatedHandlesForSnapshotLoad(const unsigned char* buffer) {
     return mImpl->setCreatedHandlesForSnapshotLoad(buffer);
