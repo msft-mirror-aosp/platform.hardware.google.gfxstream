@@ -25,6 +25,7 @@ files_lib_vulkan_server = files(
   'VkCommonOperations.cpp',
   'VkDecoder.cpp',
   'VkEmulatedPhysicalDeviceMemory.cpp',
+  'VkEmulatedPhysicalDeviceQueue.cpp',
   'VkDecoderGlobalState.cpp',
   'VkDecoderSnapshot.cpp',
   'VkDecoderSnapshotUtils.cpp',
