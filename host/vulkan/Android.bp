@@ -70,6 +70,7 @@ cc_library_static {
         "VkDecoderSnapshot.cpp",
         "VkDecoderSnapshotUtils.cpp",
         "VkEmulatedPhysicalDeviceMemory.cpp",
+        "VkEmulatedPhysicalDeviceQueue.cpp",
         "VkFormatUtils.cpp",
         "VkReconstruction.cpp",
         "VulkanDispatch.cpp",
@@ -115,6 +116,33 @@ cc_test_host {
     defaults: ["gfxstream_defaults"],
     srcs: [
         "VkEmulatedPhysicalDeviceMemoryTests.cpp",
+    ],
+    shared_libs: [
+        "libbase",
+        "liblog",
+    ],
+    static_libs: [
+        "gfxstream_base",
+        "gfxstream_host_common",
+        "libgfxstream_host_features",
+        "libgfxstream_host_vulkan_server",
+        "libgtest",
+        "libgmock",
+    ],
+    test_options: {
+        unit_test: true,
+    },
+    test_suites: [
+        "general-tests",
+    ],
+}
+
+// Run with `atest --host gfxstream_vkguestqueueutils_tests`
+cc_test_host {
+    name: "gfxstream_vkemulatedphysicaldevicequeue_tests",
+    defaults: ["gfxstream_defaults"],
+    srcs: [
+        "VkEmulatedPhysicalDeviceQueueTests.cpp",
     ],
     shared_libs: [
         "libbase",
