@@ -2377,6 +2377,7 @@ class VkDecoderGlobalState::Impl {
             m_vk->vkDestroyDevice(device, pAllocator);
         }
 
+        INFO("Destroyed VkDevice:%p", device);
         delete_VkDevice(deviceInfo.boxed);
     }
 
@@ -8866,6 +8867,8 @@ class VkDecoderGlobalState::Impl {
         }
 
         m_vk->vkDestroyInstance(instance, nullptr);
+        INFO("Destroyed VkInstance:%p for application:%s engine:%s.", instance,
+             instanceInfo.applicationName.c_str(), instanceInfo.engineName.c_str());
         delete_VkInstance(instanceInfo.boxed);
         LOG_CALLS_VERBOSE("destroyInstanceObjects: finished.");
     }
