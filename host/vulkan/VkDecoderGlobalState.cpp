@@ -63,6 +63,7 @@
 #include "vulkan/emulated_textures/CompressedImageInfo.h"
 #include "vulkan/emulated_textures/GpuDecompressionPipeline.h"
 #include "vulkan/vk_enum_string_helper.h"
+#include "vulkan/vulkan_core.h"
 
 #ifndef _WIN32
 #include <unistd.h>
@@ -1523,6 +1524,16 @@ class VkDecoderGlobalState::Impl {
             imageFormatInfo.usage |= VK_IMAGE_USAGE_STORAGE_BIT;
             imageFormatInfo.format = CompressedImageInfo::getCompressedMipmapsFormat(format);
         }
+
+        auto* extImageFormatInfo =
+            vk_find_struct<VkPhysicalDeviceExternalImageFormatInfo>(pImageFormatInfo);
+
+        if (extImageFormatInfo &&
+            extImageFormatInfo->handleType == VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT) {
+            const_cast<VkPhysicalDeviceExternalImageFormatInfo*>(extImageFormatInfo)->handleType =
+                getDefaultExternalMemoryHandleType();
+        }
+
         std::lock_guard<std::mutex> lock(mMutex);
 
         auto* physdevInfo = android::base::find(mPhysdevInfo, physicalDevice);
@@ -1568,8 +1579,6 @@ class VkDecoderGlobalState::Impl {
             return res;
         }
 
-        const VkPhysicalDeviceExternalImageFormatInfo* extImageFormatInfo =
-            vk_find_struct<VkPhysicalDeviceExternalImageFormatInfo>(pImageFormatInfo);
         VkExternalImageFormatProperties* extImageFormatProps =
             vk_find_struct<VkExternalImageFormatProperties>(pImageFormatProperties);
 
@@ -7842,7 +7851,7 @@ class VkDecoderGlobalState::Impl {
         for (uint32_t i = 0; i < count; i++) {
             VkImageCreateInfo& imageCreateInfo =
                 const_cast<VkImageCreateInfo&>(pImageCreateInfos[i]);
-            const VkExternalMemoryImageCreateInfo* pExternalMemoryImageCi =
+            VkExternalMemoryImageCreateInfo* pExternalMemoryImageCi =
                 vk_find_struct<VkExternalMemoryImageCreateInfo>(&imageCreateInfo);
             bool importAndroidHardwareBuffer =
                 pExternalMemoryImageCi &&
@@ -7850,6 +7859,11 @@ class VkDecoderGlobalState::Impl {
                  VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID);
             const VkNativeBufferANDROID* pNativeBufferANDROID =
                 vk_find_struct<VkNativeBufferANDROID>(&imageCreateInfo);
+
+            if (pExternalMemoryImageCi && pExternalMemoryImageCi->handleTypes &
+                                              VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT) {
+                pExternalMemoryImageCi->handleTypes |= getDefaultExternalMemoryHandleType();
+            }
 
             // If the VkImage is going to bind to a ColorBuffer, we have to make sure the VkImage
             // that backs the ColorBuffer is created with identical parameters. From the spec: If

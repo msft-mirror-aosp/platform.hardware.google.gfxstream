@@ -3824,6 +3824,7 @@ VkExternalMemoryHandleTypeFlags transformExternalMemoryHandleTypeFlags_tohost(
     // may set them again below
     if (bits & VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT) {
         res &= ~VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT;
+        res |= getDefaultExternalMemoryHandleType();
     }
 
 #ifdef _WIN32
