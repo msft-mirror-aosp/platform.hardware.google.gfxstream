@@ -119,7 +119,7 @@ static std::optional<ExternalHandleInfo> dupExternalMemory(std::optional<Externa
         .streamHandleType = handleInfo->streamHandleType,
     };
 #elif defined(__QNX__)
-    if (STREAM_MEM_HANDLE_TYPE_SCREEN_BUFFER_QNX == handleInfo->streamHandleType) {
+    if (STREAM_HANDLE_TYPE_PLATFORM_SCREEN_BUFFER_QNX == handleInfo->streamHandleType) {
         // No dup required for the screen_buffer handle
         return ExternalHandleInfo{
             .handle = handleInfo->handle,
@@ -549,8 +549,7 @@ static std::vector<VkEmulation::ImageSupportInfo> getBasicImageSupportList() {
         {VK_FORMAT_ETC2_R8G8B8A8_UNORM_BLOCK},
         {VK_FORMAT_ASTC_4x4_UNORM_BLOCK},
 
-        // TODO: YUV formats used in Android
-        // Fails on Mac
+        // YUV formats used in Android
         {VK_FORMAT_G8_B8R8_2PLANE_420_UNORM},
         {VK_FORMAT_G8_B8R8_2PLANE_422_UNORM},
         {VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM},
@@ -1136,10 +1135,13 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk,
             deviceInfos[i].driverVersion = driverVersion;
         }
 
+// TODO(aruby@qnx.com): Remove once dmabuf extension support has been flushed out on QNX
+#if !defined(__QNX__)
         bool dmaBufBlockList = deviceInfos[i].driverVendor == "NVIDIA (Vendor 0x10de)";
         deviceInfos[i].supportsDmaBuf =
             extensionsSupported(deviceExts, {VK_EXT_EXTERNAL_MEMORY_DMA_BUF_EXTENSION_NAME}) &&
             !dmaBufBlockList;
+#endif
 
         deviceInfos[i].hasSamplerYcbcrConversionExtension =
             extensionsSupported(deviceExts, {VK_KHR_SAMPLER_YCBCR_CONVERSION_EXTENSION_NAME});
@@ -1889,7 +1891,7 @@ bool allocExternalMemory(VulkanDispatch* vk, VkEmulation::ExternalMemoryInfo* in
     validHandle = (VK_SUCCESS == exportRes) && (NULL != exportHandle);
     info->handleInfo = ExternalHandleInfo{
         .handle = reinterpret_cast<ExternalHandleType>(exportHandle),
-        .streamHandleType = STREAM_MEM_HANDLE_TYPE_OPAQUE_WIN32,
+        .streamHandleType = STREAM_HANDLE_TYPE_MEM_OPAQUE_WIN32,
     };
 #else
 
@@ -1909,12 +1911,12 @@ bool allocExternalMemory(VulkanDispatch* vk, VkEmulation::ExternalMemoryInfo* in
 #endif
 
     if (opaqueFd) {
-        uint32_t streamHandleType = STREAM_MEM_HANDLE_TYPE_OPAQUE_FD;
+        uint32_t streamHandleType = STREAM_HANDLE_TYPE_MEM_OPAQUE_FD;
         VkExternalMemoryHandleTypeFlagBits vkHandleType =
             VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT;
         if (sVkEmulation->deviceInfo.supportsDmaBuf) {
             vkHandleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT;
-            streamHandleType = STREAM_MEM_HANDLE_TYPE_DMABUF;
+            streamHandleType = STREAM_HANDLE_TYPE_MEM_DMABUF;
         }
 
         VkMemoryGetFdInfoKHR getFdInfo = {
@@ -1970,11 +1972,11 @@ void freeExternalMemoryLocked(VulkanDispatch* vk, VkEmulation::ExternalMemoryInf
         CloseHandle(static_cast<HANDLE>(reinterpret_cast<void*>(info->handleInfo->handle)));
 #else
         switch (info->handleInfo->streamHandleType) {
-            case STREAM_MEM_HANDLE_TYPE_OPAQUE_FD:
-            case STREAM_MEM_HANDLE_TYPE_DMABUF:
+            case STREAM_HANDLE_TYPE_MEM_OPAQUE_FD:
+            case STREAM_HANDLE_TYPE_MEM_DMABUF:
                 close(info->handleInfo->handle);
                 break;
-            case STREAM_MEM_HANDLE_TYPE_SCREEN_BUFFER_QNX:
+            case STREAM_HANDLE_TYPE_PLATFORM_SCREEN_BUFFER_QNX:
             default:
                 break;
         }
@@ -2316,43 +2318,34 @@ std::unique_ptr<VkImageCreateInfo> generateColorBufferVkImageCreateInfo(VkFormat
     return generateColorBufferVkImageCreateInfo_locked(format, width, height, tiling);
 }
 
-static bool updateExternalMemoryInfo(std::optional<ExternalHandleInfo> extMemHandleInfo,
-                                     const VkMemoryRequirements* pMemReqs,
-                                     VkEmulation::ExternalMemoryInfo* pInfo) {
-    pInfo->handleInfo = extMemHandleInfo;
-    pInfo->dedicatedAllocation = true;
-
+static bool updateMemReqsForExtMem(std::optional<ExternalHandleInfo> extMemHandleInfo,
+                                   VkMemoryRequirements* pMemReqs) {
 #if defined(__QNX__)
-    VkScreenBufferPropertiesQNX screenBufferProps = {
-        VK_STRUCTURE_TYPE_SCREEN_BUFFER_PROPERTIES_QNX,
-        0,
-    };
-    auto vk = sVkEmulation->dvk;
-    VkResult queryRes = vk->vkGetScreenBufferPropertiesQNX(
-        sVkEmulation->device, (screen_buffer_t)extMemHandleInfo->handle, &screenBufferProps);
-    if (VK_SUCCESS != queryRes) {
-        ERR("Failed to get QNX Screen Buffer properties, VK error: %s", string_VkResult(queryRes));
-        return false;
-    }
-    if (!((1 << pInfo->typeIndex) & screenBufferProps.memoryTypeBits)) {
-        ERR("QNX Screen buffer can not be imported to memory (typeIndex=%d): %d", pInfo->typeIndex);
-        return false;
-    }
-    if (screenBufferProps.allocationSize < pMemReqs->size) {
-        ERR("QNX Screen buffer allocationSize (0x%lx) is not large enough for ColorBuffer image "
-            "size requirements (0x%lx)",
-            screenBufferProps.allocationSize, pMemReqs->size);
-        return false;
-    }
-    // Use the actual allocationSize for VkDeviceMemory object creation
-    pInfo->size = screenBufferProps.allocationSize;
-#endif
-
-#ifdef __APPLE__
-    // importExtMemoryHandleToVkColorBuffer is not supported with MoltenVK
-    if (sVkEmulation->instanceSupportsMoltenVK) {
-        WARN("Unexpected call to updateExternalMemoryInfo!");
-        pInfo->externalMetalHandle = nullptr;
+    if (STREAM_HANDLE_TYPE_PLATFORM_SCREEN_BUFFER_QNX == extMemHandleInfo->streamHandleType) {
+        VkScreenBufferPropertiesQNX screenBufferProps = {
+            VK_STRUCTURE_TYPE_SCREEN_BUFFER_PROPERTIES_QNX,
+            0,
+        };
+        auto vk = sVkEmulation->dvk;
+        VkResult queryRes = vk->vkGetScreenBufferPropertiesQNX(
+            sVkEmulation->device, (screen_buffer_t)extMemHandleInfo->handle, &screenBufferProps);
+        if (VK_SUCCESS != queryRes) {
+            ERR("Failed to get QNX Screen Buffer properties, VK error: %s",
+                string_VkResult(queryRes));
+            return false;
+        }
+        if (screenBufferProps.allocationSize < pMemReqs->size) {
+            ERR("QNX Screen buffer allocationSize (0x%lx) is not large enough for ColorBuffer "
+                "image "
+                "size requirements (0x%lx)",
+                screenBufferProps.allocationSize, pMemReqs->size);
+            return false;
+        }
+        // Change memory requirements to the actual allocationSize; this may be larger
+        // than the original memory requirements
+        pMemReqs->size = screenBufferProps.allocationSize;
+        // Mask the memoryTypeBits with the ones available for screen_buffer import
+        pMemReqs->memoryTypeBits = screenBufferProps.memoryTypeBits;
     }
 #endif
 
@@ -2482,6 +2475,7 @@ static bool createVkColorBufferLocked(uint32_t width, uint32_t height, GLenum in
     infoPtr->imageCreateInfoShallow = vk_make_orphan_copy(*imageCi);
     infoPtr->currentQueueFamilyIndex = sVkEmulation->queueFamilyIndex;
 
+    VkMemoryRequirements memReqs;
     if (!useDedicated && vk->vkGetImageMemoryRequirements2KHR) {
         VkMemoryDedicatedRequirements dedicated_reqs{
             VK_STRUCTURE_TYPE_MEMORY_DEDICATED_REQUIREMENTS, nullptr};
@@ -2491,9 +2485,28 @@ static bool createVkColorBufferLocked(uint32_t width, uint32_t height, GLenum in
                                             nullptr, infoPtr->image};
         vk->vkGetImageMemoryRequirements2KHR(sVkEmulation->device, &info, &reqs);
         useDedicated = dedicated_reqs.requiresDedicatedAllocation;
-        infoPtr->memReqs = reqs.memoryRequirements;
+        memReqs = reqs.memoryRequirements;
     } else {
-        vk->vkGetImageMemoryRequirements(sVkEmulation->device, infoPtr->image, &infoPtr->memReqs);
+        vk->vkGetImageMemoryRequirements(sVkEmulation->device, infoPtr->image, &memReqs);
+    }
+
+    if (extMemHandleInfo) {
+        infoPtr->memory.handleInfo = extMemHandleInfo;
+        infoPtr->memory.dedicatedAllocation = true;
+        // External memory might change the memReqs for allocation
+        if (!updateMemReqsForExtMem(extMemHandleInfo, &memReqs)) {
+            ERR("Failed to update memReqs for ColorBuffer memory allocation with external memory: "
+                "%d\n",
+                colorBufferHandle);
+            return false;
+        }
+#if defined(__APPLE_)
+        // importExtMemoryHandleToVkColorBuffer is not supported with MoltenVK
+        if (sVkEmulation->instanceSupportsMoltenVK) {
+            WARN("extMemhandleInfo import in ColorBuffer creation is unexpected.");
+            infoPtr->memory.externalMetalHandle = nullptr;
+        }
+#endif
     }
 
     // Currently we only care about two memory properties: DEVICE_LOCAL
@@ -2502,11 +2515,11 @@ static bool createVkColorBufferLocked(uint32_t width, uint32_t height, GLenum in
     infoPtr->memoryProperty = infoPtr->memoryProperty & (VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT |
                                                          VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
 
-    infoPtr->memory.size = infoPtr->memReqs.size;
+    infoPtr->memory.size = memReqs.size;
 
     // Determine memory type.
     infoPtr->memory.typeIndex =
-        getValidMemoryTypeIndex(infoPtr->memReqs.memoryTypeBits, infoPtr->memoryProperty);
+        getValidMemoryTypeIndex(memReqs.memoryTypeBits, infoPtr->memoryProperty);
 
     const VkFormat imageVkFormat = infoPtr->imageCreateInfoShallow.format;
     VERBOSE(
@@ -2522,10 +2535,6 @@ static bool createVkColorBufferLocked(uint32_t width, uint32_t height, GLenum in
 
     Optional<VkImage> dedicatedImage = useDedicated ? Optional<VkImage>(infoPtr->image) : kNullopt;
     if (extMemHandleInfo) {
-        if (!updateExternalMemoryInfo(extMemHandleInfo, &infoPtr->memReqs, &infoPtr->memory)) {
-            ERR("Failed to update external memory info for ColorBuffer: %d\n", colorBufferHandle);
-            return false;
-        }
         VkMemoryDedicatedAllocateInfo dedicatedInfo = {
             VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO,
             nullptr,
@@ -2539,8 +2548,8 @@ static bool createVkColorBufferLocked(uint32_t width, uint32_t height, GLenum in
         }
         if (!importExternalMemory(vk, sVkEmulation->device, &infoPtr->memory, dedicatedInfoPtr,
                                   &infoPtr->memory.memory)) {
-            ERR("Failed to import external memory for colorBuffer: %d %s\n",
-                dedicatedInfoPtr ? "(dedicated)" : "");
+            ERR("Failed to import external memory%s for colorBuffer: %d\n",
+                dedicatedInfoPtr ? " (dedicated)" : "", colorBufferHandle);
             return false;
         }
 
@@ -2548,7 +2557,7 @@ static bool createVkColorBufferLocked(uint32_t width, uint32_t height, GLenum in
     } else {
         bool isHostVisible = infoPtr->memoryProperty & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
         Optional<uint64_t> deviceAlignment =
-            isHostVisible ? Optional<uint64_t>(infoPtr->memReqs.alignment) : kNullopt;
+            isHostVisible ? Optional<uint64_t>(memReqs.alignment) : kNullopt;
         bool allocRes = allocExternalMemory(vk, &infoPtr->memory, true /*actuallyExternal*/,
                                             deviceAlignment, kNullopt, dedicatedImage);
         if (!allocRes) {
@@ -3314,7 +3323,7 @@ MTLResource_id getColorBufferMetalMemoryHandle(uint32_t colorBuffer) {
     return infoPtr->memory.externalMetalHandle;
 }
 
-// TODO0(b/351765838): Temporary function for MoltenVK
+// TODO(b/351765838): Temporary function for MoltenVK
 VkImage getColorBufferVkImage(uint32_t colorBufferHandle) {
     if (!sVkEmulation || !sVkEmulation->live) return nullptr;
 
@@ -3490,6 +3499,7 @@ bool setupVkBuffer(uint64_t size, uint32_t bufferHandle, bool vulkanOnly, uint32
         return false;
     }
     bool useDedicated = false;
+    VkMemoryRequirements memReqs;
     if (vk->vkGetBufferMemoryRequirements2KHR) {
         VkMemoryDedicatedRequirements dedicated_reqs{
             VK_STRUCTURE_TYPE_MEMORY_DEDICATED_REQUIREMENTS, nullptr};
@@ -3499,9 +3509,9 @@ bool setupVkBuffer(uint64_t size, uint32_t bufferHandle, bool vulkanOnly, uint32
                                              nullptr, res.buffer};
         vk->vkGetBufferMemoryRequirements2KHR(sVkEmulation->device, &info, &reqs);
         useDedicated = dedicated_reqs.requiresDedicatedAllocation;
-        res.memReqs = reqs.memoryRequirements;
+        memReqs = reqs.memoryRequirements;
     } else {
-        vk->vkGetBufferMemoryRequirements(sVkEmulation->device, res.buffer, &res.memReqs);
+        vk->vkGetBufferMemoryRequirements(sVkEmulation->device, res.buffer, &memReqs);
     }
 
     // Currently we only care about two memory properties: DEVICE_LOCAL
@@ -3510,10 +3520,10 @@ bool setupVkBuffer(uint64_t size, uint32_t bufferHandle, bool vulkanOnly, uint32
     memoryProperty = memoryProperty &
                      (VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
 
-    res.memory.size = res.memReqs.size;
+    res.memory.size = memReqs.size;
 
     // Determine memory type.
-    res.memory.typeIndex = getValidMemoryTypeIndex(res.memReqs.memoryTypeBits, memoryProperty);
+    res.memory.typeIndex = getValidMemoryTypeIndex(memReqs.memoryTypeBits, memoryProperty);
 
     VERBOSE(
         "Buffer %d "
@@ -3526,7 +3536,7 @@ bool setupVkBuffer(uint64_t size, uint32_t bufferHandle, bool vulkanOnly, uint32
 
     bool isHostVisible = memoryProperty & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
     Optional<uint64_t> deviceAlignment =
-        isHostVisible ? Optional<uint64_t>(res.memReqs.alignment) : kNullopt;
+        isHostVisible ? Optional<uint64_t>(memReqs.alignment) : kNullopt;
     Optional<VkBuffer> dedicated_buffer = useDedicated ? Optional<VkBuffer>(res.buffer) : kNullopt;
     bool allocRes = allocExternalMemory(vk, &res.memory, true /* actuallyExternal */,
                                         deviceAlignment, dedicated_buffer);
@@ -3810,7 +3820,8 @@ VkExternalMemoryHandleTypeFlags transformExternalMemoryHandleTypeFlags_tohost(
     VkExternalMemoryHandleTypeFlags bits) {
     VkExternalMemoryHandleTypeFlags res = bits;
 
-    // Transform Android/Fuchsia/Linux bits to host bits.
+    // Drop OPAQUE_FD_BIT if it was set. Host's default external memory bits
+    // may set them again below
     if (bits & VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT) {
         res &= ~VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT;
     }
@@ -3820,25 +3831,25 @@ VkExternalMemoryHandleTypeFlags transformExternalMemoryHandleTypeFlags_tohost(
     res &= ~VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_KMT_BIT;
 #endif
 
+    // Replace guest AHardwareBuffer bits with host's default external memory bits
     if (bits & VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID) {
         res &= ~VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID;
-
-        VkExternalMemoryHandleTypeFlagBits handleTypeNeeded = getDefaultExternalMemoryHandleType();
-        res |= handleTypeNeeded;
+        res |= getDefaultExternalMemoryHandleType();
     }
 
+    // Replace guest Zircon VMO bits with host's default external memory bits
     if (bits & VK_EXTERNAL_MEMORY_HANDLE_TYPE_ZIRCON_VMO_BIT_FUCHSIA) {
         res &= ~VK_EXTERNAL_MEMORY_HANDLE_TYPE_ZIRCON_VMO_BIT_FUCHSIA;
         res |= getDefaultExternalMemoryHandleType();
     }
 
-#if defined(__QNX__)
-    // QNX only: Replace DMA_BUF_BIT_EXT with SCREEN_BUFFER_BIT_QNX for host calls
-    if (bits & VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT) {
+    // If the host does not support dmabuf, replace guest Linux DMA_BUF bits with
+    // the host's default external memory bits,
+    if (!sVkEmulation->deviceInfo.supportsDmaBuf &&
+        (bits & VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT)) {
         res &= ~VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT;
         res |= getDefaultExternalMemoryHandleType();
     }
-#endif
 
     return res;
 }

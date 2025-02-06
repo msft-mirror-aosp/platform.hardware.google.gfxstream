@@ -55,14 +55,22 @@ public:
 
     // Returns true iff the thread has finished.
     bool isFinished() const { return mFinished.load(std::memory_order_relaxed); }
+    void waitForFinished();
 
     void pausePreSnapshot();
     void resume(bool waitForSave);
     void save(android::base::Stream* stream);
 
+    // RenderThreads are blocked from exiting after finished to workaround driver bugs.
+    // `sendExitSignal` allows us to control when we can allow the thread to exit to synchronize
+    // between exits and other RenderThreads calling vkDestroyDevice, eglMakeCurrent, etc.
+    // This must be called after RenderThread has finished (use `waitForFinished`), as a deadlock
+    // can occur if vulkan commands are still processing.
+    void sendExitSignal();
 private:
     virtual intptr_t main();
     void setFinished();
+    void waitForExitSignal();
 
     // Snapshot support.
     enum class SnapshotState {
@@ -99,7 +107,10 @@ private:
     SnapshotState mState = SnapshotState::Empty;
     std::atomic<bool> mFinished { false };
     android::base::Lock mLock;
-    android::base::ConditionVariable mCondVar;
+    android::base::ConditionVariable mSnapshotSignal;
+    android::base::ConditionVariable mFinishedSignal;
+    android::base::ConditionVariable mExitSignal;
+    std::atomic<bool> mCanExit { false };
     android::base::Optional<android::base::MemStream> mStream;
 
     bool mRunInLimitedMode = false;

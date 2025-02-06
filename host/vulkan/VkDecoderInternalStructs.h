@@ -31,6 +31,7 @@
 #include "DeviceOpTracker.h"
 #include "Handle.h"
 #include "VkEmulatedPhysicalDeviceMemory.h"
+#include "VkEmulatedPhysicalDeviceQueue.h"
 #include "aemu/base/files/Stream.h"
 #include "aemu/base/memory/SharedMemory.h"
 #include "aemu/base/synchronization/ConditionVariable.h"
@@ -186,12 +187,8 @@ struct PhysicalDeviceInfo {
     VkInstance instance = VK_NULL_HANDLE;
     VkPhysicalDeviceProperties props;
     std::unique_ptr<EmulatedPhysicalDeviceMemoryProperties> memoryPropertiesHelper;
-    std::vector<VkQueueFamilyProperties> queueFamilyProperties;
+    std::unique_ptr<EmulatedPhysicalDeviceQueueProperties> queuePropertiesHelper;
     VkPhysicalDevice boxed = nullptr;
-
-    // Indicates that if the graphics queue family properties are overridden for
-    // this physical device to include a virtual queue.
-    bool hasVirtualGraphicsQueues = false;
 };
 
 struct ExternalFenceInfo {
@@ -385,6 +382,7 @@ struct DescriptorSetInfo {
         std::optional<HandleType> boundColorBuffer;
     };
 
+    VkDevice device;
     VkDescriptorPool pool;
     VkDescriptorSetLayout unboxedLayout = 0;
     std::vector<std::vector<DescriptorWrite>> allWrites;
@@ -396,6 +394,10 @@ struct ShaderModuleInfo {
 };
 
 struct PipelineCacheInfo {
+    VkDevice device;
+};
+
+struct PipelineLayoutInfo {
     VkDevice device;
 };
 
@@ -436,7 +438,6 @@ struct CommandBufferInfo {
     std::unordered_set<HandleType> imageBarrierColorBuffers;
 
     void reset() {
-        preprocessFuncs.clear();
         subCmds.clear();
         computePipeline = VK_NULL_HANDLE;
         firstSet = 0;
@@ -476,6 +477,7 @@ struct InstanceObjects {
         std::unordered_map<VkImageView, ImageViewInfo> imageViews;
         std::unordered_map<VkPipeline, PipelineInfo> pipelines;
         std::unordered_map<VkPipelineCache, PipelineCacheInfo> pipelineCaches;
+        std::unordered_map<VkPipelineLayout, PipelineLayoutInfo> pipelineLayouts;
         std::unordered_map<VkQueue, QueueInfo> queues;
         std::unordered_map<VkRenderPass, RenderPassInfo> renderPasses;
         std::unordered_map<VkSampler, SamplerInfo> samplers;
