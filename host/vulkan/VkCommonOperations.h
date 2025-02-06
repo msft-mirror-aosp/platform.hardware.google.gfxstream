@@ -171,10 +171,6 @@ struct VkEmulation {
         VkFormatProperties2 formatProps2;
         VkImageFormatProperties2 imageFormatProps2;
         VkExternalImageFormatProperties extFormatProps;
-
-        // Populated later when device is available.
-        uint32_t memoryTypeBits = 0;
-        bool memoryTypeBitsKnown = false;
     };
 
     std::vector<ImageSupportInfo> imageSupportInfo;
@@ -317,7 +313,6 @@ struct VkEmulation {
         VkImageView imageView = VK_NULL_HANDLE;
         VkSamplerYcbcrConversion ycbcrConversion = VK_NULL_HANDLE;
         VkImageCreateInfo imageCreateInfoShallow = {};
-        VkMemoryRequirements memReqs;
 
         VkImageLayout currentLayout = VK_IMAGE_LAYOUT_UNDEFINED;
         uint32_t currentQueueFamilyIndex = VK_QUEUE_FAMILY_EXTERNAL;
@@ -341,7 +336,6 @@ struct VkEmulation {
         VkSharingMode sharingMode;
 
         VkBuffer buffer = VK_NULL_HANDLE;
-        VkMemoryRequirements memReqs;
 
         bool glExported = false;
         VulkanMode vulkanMode = VulkanMode::Default;

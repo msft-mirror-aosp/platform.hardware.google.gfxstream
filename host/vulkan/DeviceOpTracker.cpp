@@ -27,7 +27,7 @@ namespace {
 using emugl::ABORT_REASON_OTHER;
 using emugl::FatalError;
 
-constexpr const size_t kSizeLoggingThreshold = 20;
+constexpr const size_t kSizeLoggingThreshold = 200;
 constexpr const auto kSizeLoggingTimeThreshold = std::chrono::seconds(1);
 
 constexpr const auto kAutoDeleteTimeThreshold = std::chrono::seconds(5);
@@ -87,7 +87,8 @@ void DeviceOpTracker::Poll() {
                 return (pollingFunc.timepoint < old);
             });
         if (numOldFuncs > kSizeLoggingThreshold) {
-            WARN("VkDevice:%p has %d pending waitables, %d taking more than %d milliseconds.",
+            //TODO(b/382028853): should be a warning
+            VERBOSE("VkDevice:%p has %d pending waitables, %d taking more than %d milliseconds.",
                  mDevice, mPollFunctions.size(), numOldFuncs,
                  std::chrono::duration_cast<std::chrono::milliseconds>(kSizeLoggingTimeThreshold));
         }
