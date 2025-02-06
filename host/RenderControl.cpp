@@ -874,7 +874,9 @@ static int rcFlushWindowColorBuffer(uint32_t windowSurface)
     }
 
     // Make the GL updates visible to other backings if necessary.
-    fb->flushColorBufferFromGl(colorBufferHandle);
+    if (colorBufferHandle != 0) {
+        fb->flushColorBufferFromGl(colorBufferHandle);
+    }
 
     GRSYNC_DPRINT("unlock gralloc cb lock }");
 
