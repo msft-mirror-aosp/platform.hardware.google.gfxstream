@@ -208,9 +208,6 @@ static uint64_t hostBlobId = 0;
 // snapshot with virtio.
 static uint32_t kTemporaryContextIdForSnapshotLoading = 1;
 
-static std::unordered_set<std::string> kSnapshotAppAllowList = {"Chromium"};
-static std::unordered_set<std::string> kSnapshotEngineAllowList = {"ANGLE", "ace"};
-
 #define DEFINE_BOXED_HANDLE_TYPE_TAG(type) Tag_##type,
 
 enum BoxedHandleTypeTag {
@@ -1154,15 +1151,7 @@ class VkDecoderGlobalState::Impl {
              info.applicationName.c_str(), info.engineName.c_str());
 
 #ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_SUPPORT
-        // TODO: bug 129484301
-        if (!m_emu->features.VulkanSnapshots.enabled ||
-            (kSnapshotAppAllowList.find(info.applicationName) == kSnapshotAppAllowList.end() &&
-             kSnapshotEngineAllowList.find(info.engineName) == kSnapshotEngineAllowList.end())) {
-            get_emugl_vm_operations().setSkipSnapshotSave(true);
-            get_emugl_vm_operations().setSkipSnapshotSaveReason(SNAPSHOT_SKIP_UNSUPPORTED_VK_APP);
-        }
-#else
-        get_emugl_vm_operations().setSkipSnapshotSave(true);
+        m_emu->callbacks.registerVulkanInstance((uint64_t)*pInstance, info.applicationName.c_str());
 #endif
         // Box it up
         VkInstance boxed = new_boxed_VkInstance(*pInstance, nullptr, true /* own dispatch */);
@@ -8869,6 +8858,10 @@ class VkDecoderGlobalState::Impl {
         m_vk->vkDestroyInstance(instance, nullptr);
         INFO("Destroyed VkInstance:%p for application:%s engine:%s.", instance,
              instanceInfo.applicationName.c_str(), instanceInfo.engineName.c_str());
+
+#ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_SUPPORT
+        m_emu->callbacks.unregisterVulkanInstance((uint64_t)instance);
+#endif
         delete_VkInstance(instanceInfo.boxed);
         LOG_CALLS_VERBOSE("destroyInstanceObjects: finished.");
     }

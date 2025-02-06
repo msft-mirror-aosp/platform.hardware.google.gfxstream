@@ -59,6 +59,7 @@
 #include "host-common/logging.h"
 #include "host-common/misc.h"
 #include "host-common/opengl/misc.h"
+#include "host-common/emugl_vm_operations.h"
 #include "host-common/vm_operations.h"
 #include "render-utils/MediaNative.h"
 #include "vulkan/DisplayVk.h"
@@ -350,6 +351,12 @@ bool FrameBuffer::initialize(int width, int height, gfxstream::host::FeatureSet 
                         description);
                     return future;
                 },
+            .registerVulkanInstance =
+                [fb = fb.get()](uint64_t id, const char* appName) {
+                    fb->registerVulkanInstance(id, appName);
+                },
+            .unregisterVulkanInstance =
+                [fb = fb.get()](uint64_t id) { fb->unregisterVulkanInstance(id); },
         };
         vkEmu = vk::createGlobalVkEmulation(vkDispatch, callbacks, fb->m_features);
         if (!vkEmu) {
@@ -3022,6 +3029,27 @@ HandleType FrameBuffer::getEmulatedEglWindowSurfaceColorBufferHandle(HandleType 
     }
 
     return it->second;
+}
+
+void FrameBuffer::unregisterVulkanInstance(uint64_t id) const {
+    get_emugl_vm_operations().vulkanInstanceUnregister(id);
+}
+
+void FrameBuffer::registerVulkanInstance(uint64_t id, const char* appName) const {
+    auto* tInfo = RenderThreadInfo::get();
+    std::string process_name;
+    if (tInfo && tInfo->m_processName.has_value()) {
+        process_name = tInfo->m_processName.value();
+        // for deqp: com.drawelements.deqp:testercore
+        // remove the ":testercore" for deqp
+        auto position = process_name.find(":");
+        if (position != std::string::npos) {
+            process_name = process_name.substr(0, position);
+        }
+    } else if(appName) {
+        process_name = std::string(appName);
+    }
+    get_emugl_vm_operations().vulkanInstanceRegister(id, process_name.c_str());
 }
 
 void FrameBuffer::createTrivialContext(HandleType shared, HandleType* contextOut,
