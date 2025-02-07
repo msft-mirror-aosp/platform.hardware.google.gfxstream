@@ -1303,7 +1303,7 @@ int FrameBuffer::openColorBuffer(HandleType p_colorbuffer) {
         c = m_colorbuffers.find(p_colorbuffer);
         if (c == m_colorbuffers.end()) {
             // bad colorbuffer handle
-            ERR("FB: openColorBuffer cb handle %#x not found", p_colorbuffer);
+            ERR("FB: openColorBuffer cb handle %d not found", p_colorbuffer);
             return -1;
         }
         c->second.refcount++;
@@ -2946,7 +2946,7 @@ bool FrameBuffer::flushColorBufferFromVk(HandleType colorBufferHandle) {
     AutoLock mutex(m_lock);
     auto colorBuffer = findColorBuffer(colorBufferHandle);
     if (!colorBuffer) {
-        ERR("Failed to find ColorBuffer:%d", colorBufferHandle);
+        ERR("%s: Failed to find ColorBuffer:%d", __func__, colorBufferHandle);
         return false;
     }
     return colorBuffer->flushFromVk();
@@ -2958,7 +2958,7 @@ bool FrameBuffer::flushColorBufferFromVkBytes(HandleType colorBufferHandle, cons
 
     auto colorBuffer = findColorBuffer(colorBufferHandle);
     if (!colorBuffer) {
-        ERR("Failed to find ColorBuffer:%d", colorBufferHandle);
+        ERR("%s: Failed to find ColorBuffer:%d", __func__, colorBufferHandle);
         return false;
     }
     return colorBuffer->flushFromVkBytes(bytes, bytesSize);
@@ -2973,7 +2973,7 @@ bool FrameBuffer::invalidateColorBufferForVk(HandleType colorBufferHandle) {
     AutoLock mutex(m_lock);
     auto colorBuffer = findColorBuffer(colorBufferHandle);
     if (!colorBuffer) {
-        ERR("Failed to find ColorBuffer:%d", colorBufferHandle);
+        VERBOSE("%s: Failed to find ColorBuffer:%d", __func__, colorBufferHandle);
         return false;
     }
     return colorBuffer->invalidateForVk();
@@ -3086,7 +3086,7 @@ bool FrameBuffer::setEmulatedEglWindowSurfaceColorBuffer(HandleType p_surface,
         AutoLock colorBufferMapLock(m_colorBufferMapLock);
         ColorBufferMap::iterator c(m_colorbuffers.find(p_colorbuffer));
         if (c == m_colorbuffers.end()) {
-            ERR("bad color buffer handle %#x", p_colorbuffer);
+            ERR("bad color buffer handle %d", p_colorbuffer);
             // bad colorbuffer handle
             return false;
         }
@@ -3616,7 +3616,7 @@ bool FrameBuffer::platformDestroySharedEglContext(void* underlyingContext) {
 bool FrameBuffer::flushColorBufferFromGl(HandleType colorBufferHandle) {
     auto colorBuffer = findColorBuffer(colorBufferHandle);
     if (!colorBuffer) {
-        ERR("Failed to find ColorBuffer:%d", colorBufferHandle);
+        ERR("%s: Failed to find ColorBuffer:%d", __func__, colorBufferHandle);
         return false;
     }
     return colorBuffer->flushFromGl();
@@ -3625,7 +3625,7 @@ bool FrameBuffer::flushColorBufferFromGl(HandleType colorBufferHandle) {
 bool FrameBuffer::invalidateColorBufferForGl(HandleType colorBufferHandle) {
     auto colorBuffer = findColorBuffer(colorBufferHandle);
     if (!colorBuffer) {
-        ERR("Failed to find ColorBuffer:%d", colorBufferHandle);
+        VERBOSE("%s: Failed to find ColorBuffer:%d", __func__, colorBufferHandle);
         return false;
     }
     return colorBuffer->invalidateForGl();
