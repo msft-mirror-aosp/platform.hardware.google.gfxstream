@@ -493,9 +493,10 @@ bool FrameBuffer::initialize(int width, int height, gfxstream::host::FeatureSet 
 #endif
     }
     // TODO: 0-copy gl interop on swiftshader vk
-    if (android::base::getEnvironmentVariable("ANDROID_EMU_VK_ICD") == "swiftshader") {
+    if (android::base::getEnvironmentVariable("ANDROID_EMU_VK_ICD") == "lavapipe"
+            || android::base::getEnvironmentVariable("ANDROID_EMU_VK_ICD") == "swiftshader") {
         vulkanInteropSupported = false;
-        GL_LOG("vk icd swiftshader, disable interop");
+        GL_LOG("vk icd software rendering, disable interop");
     }
 
     fb->m_vulkanInteropSupported = vulkanInteropSupported;
