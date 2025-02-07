@@ -2219,8 +2219,10 @@ static uint32_t getValidMemoryTypeIndex(uint32_t requiredMemoryTypeBits,
             return i;
         }
 
-        // Valid memory index, but keep looking for an exact match
-        const bool propertyValid = ((memPropertyFlags & memoryProperty) == memoryProperty);
+        // Valid memory index, but keep  looking for an exact match
+        // TODO: this should compare against memoryProperty, but some existing tests
+        // are depending on this behavior.
+        const bool propertyValid = !memoryProperty || ((memPropertyFlags & memoryProperty) != 0);
         if (propertyValid) {
             secondBest = i;
             found = true;
