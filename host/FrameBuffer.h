@@ -409,6 +409,9 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
     float getPy() const { return m_py; }
     int getZrot() const { return m_zRot; }
 
+    void registerVulkanInstance(uint64_t id, const char* appName) const;
+    void unregisterVulkanInstance(uint64_t id) const;
+
     bool isVulkanInteropSupported() const { return m_vulkanInteropSupported; }
     bool isVulkanEnabled() const { return m_vulkanEnabled; }
 
