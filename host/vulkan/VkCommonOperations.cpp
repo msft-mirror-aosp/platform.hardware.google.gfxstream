@@ -529,6 +529,7 @@ static std::vector<VkEmulation::ImageSupportInfo> getBasicImageSupportList() {
          VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT | VK_IMAGE_CREATE_EXTENDED_USAGE_BIT},
 
         {VK_FORMAT_R5G6B5_UNORM_PACK16},
+        {VK_FORMAT_A1R5G5B5_UNORM_PACK16},
 
         {VK_FORMAT_R16G16B16A16_SFLOAT},
         {VK_FORMAT_R16G16B16_SFLOAT},
