@@ -3145,20 +3145,17 @@ class VkDecoderGlobalState::Impl {
     VkResult on_vkCreateFence(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
                               VkDevice boxed_device, const VkFenceCreateInfo* pCreateInfo,
                               const VkAllocationCallbacks* pAllocator, VkFence* pFence) {
-        VkFenceCreateInfo localCreateInfo;
-        if (mSnapshotState == SnapshotState::Loading) {
-            // On snapshot load we create all fences as signaled then reset those that are not.
-            localCreateInfo = *pCreateInfo;
-            pCreateInfo = &localCreateInfo;
-            localCreateInfo.flags |= VK_FENCE_CREATE_SIGNALED_BIT;
-        }
         auto device = unbox_VkDevice(boxed_device);
         auto vk = dispatch_VkDevice(boxed_device);
 
-        VkFenceCreateInfo& createInfo = const_cast<VkFenceCreateInfo&>(*pCreateInfo);
+        VkFenceCreateInfo localCreateInfo = *pCreateInfo;
+        if (mSnapshotState == SnapshotState::Loading) {
+            // On snapshot load we create all fences as signaled then reset those that are not.
+            localCreateInfo.flags |= VK_FENCE_CREATE_SIGNALED_BIT;
+        }
 
         const VkExportFenceCreateInfo* exportFenceInfoPtr =
-            vk_find_struct<VkExportFenceCreateInfo>(pCreateInfo);
+            vk_find_struct<VkExportFenceCreateInfo>(&localCreateInfo);
         bool exportSyncFd = exportFenceInfoPtr && (exportFenceInfoPtr->handleTypes &
                                                    VK_EXTERNAL_FENCE_HANDLE_TYPE_SYNC_FD_BIT);
         bool fenceReused = false;
@@ -3169,21 +3166,21 @@ class VkDecoderGlobalState::Impl {
             // Remove VkExportFenceCreateInfo, since host doesn't need to create
             // an exportable fence in this case
             ExternalFencePool<VulkanDispatch>* externalFencePool = nullptr;
-            vk_struct_chain_remove(exportFenceInfoPtr, &createInfo);
+            vk_struct_chain_remove(exportFenceInfoPtr, &localCreateInfo);
             {
                 std::lock_guard<std::mutex> lock(mMutex);
                 auto* deviceInfo = android::base::find(mDeviceInfo, device);
                 if (!deviceInfo) return VK_ERROR_OUT_OF_HOST_MEMORY;
                 externalFencePool = deviceInfo->externalFencePool.get();
             }
-            *pFence = externalFencePool->pop(pCreateInfo);
+            *pFence = externalFencePool->pop(&localCreateInfo);
             if (*pFence != VK_NULL_HANDLE) {
                 fenceReused = true;
             }
         }
 
         if (*pFence == VK_NULL_HANDLE) {
-            VkResult res = vk->vkCreateFence(device, &createInfo, pAllocator, pFence);
+            VkResult res = vk->vkCreateFence(device, &localCreateInfo, pAllocator, pFence);
             if (res != VK_SUCCESS) {
                 return res;
             }
@@ -3203,7 +3200,12 @@ class VkDecoderGlobalState::Impl {
             *pFence = new_boxed_non_dispatchable_VkFence(*pFence);
             fenceInfo.boxed = *pFence;
             fenceInfo.external = exportSyncFd;
-            fenceInfo.state = FenceInfo::State::kNotWaitable;
+
+            if (localCreateInfo.flags & VK_FENCE_CREATE_SIGNALED_BIT) {
+                fenceInfo.state = FenceInfo::State::kWaitable;
+            } else {
+                fenceInfo.state = FenceInfo::State::kNotWaitable;
+            }
         }
 
         return VK_SUCCESS;
@@ -3213,6 +3215,14 @@ class VkDecoderGlobalState::Impl {
                                  VkDevice boxed_device, VkFence fence) {
         auto device = unbox_VkDevice(boxed_device);
         auto vk = dispatch_VkDevice(boxed_device);
+        {
+            std::lock_guard<std::mutex> lock(mMutex);
+            auto* fenceInfo = android::base::find(mFenceInfo, fence);
+            if (!fenceInfo) {
+                ERR("%s: Invalid fence %p", fence);
+                return VK_SUCCESS;
+            }
+        }
 
         return vk->vkGetFenceStatus(device, fence);
     }
@@ -3223,7 +3233,7 @@ class VkDecoderGlobalState::Impl {
         auto device = unbox_VkDevice(boxed_device);
         auto vk = dispatch_VkDevice(boxed_device);
 
-        return vk->vkWaitForFences(device, fenceCount, pFences, waitAll, timeout);
+        return waitForFences(device, vk, fenceCount, pFences, waitAll, timeout);
     }
 
     VkResult on_vkResetFences(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
@@ -6488,9 +6498,11 @@ class VkDecoderGlobalState::Impl {
             // waitForFence() on this fence.
             auto* fenceInfo = android::base::find(mFenceInfo, fence);
             if (fenceInfo) {
-                fenceInfo->state = FenceInfo::State::kWaitable;
-                fenceInfo->lock.lock();
-                fenceInfo->cv.signalAndUnlock(&fenceInfo->lock);
+                {
+                    std::unique_lock<std::mutex> lock(fenceInfo->mutex);
+                    fenceInfo->state = FenceInfo::State::kWaitable;
+                }
+                fenceInfo->cv.notify_all();
                 // Also update the latestUse waitable for this fence, to ensure
                 // it is not asynchronously destroyed before all the waitables
                 // referencing it
@@ -7727,58 +7739,94 @@ class VkDecoderGlobalState::Impl {
         }
     }
 
-    VkResult waitForFence(VkFence boxed_fence, uint64_t timeout) {
-        VkFence fence = unbox_VkFence(boxed_fence);
+    VkResult waitForFences(VkDevice unboxed_device, VulkanDispatch* vk, uint32_t fenceCount,
+                           const VkFence* pFences, VkBool32 waitAll, uint64_t timeout) {
+        if (!fenceCount) {
+            return VK_SUCCESS;
+        }
+
+        const auto startTime = std::chrono::system_clock::now();
+        for (uint32_t i = 0; i < fenceCount; i++) {
+            VkFence fence = pFences[i];
+            {
+                std::mutex* fenceMutex = nullptr;
+                std::condition_variable* cv = nullptr;
+                {
+                    std::lock_guard<std::mutex> lock(mMutex);
+                    auto* fenceInfo = android::base::find(mFenceInfo, fence);
+                    if (!fenceInfo) {
+                        ERR("%s: Invalid fence information! (%p)", __func__, fence);
+                        return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+                    }
+
+                    if (unboxed_device != fenceInfo->device || vk != fenceInfo->vk) {
+                        ERR("%s: Invalid fence device! (%p, %p, %p)", __func__, fence,
+                            unboxed_device, fenceInfo->device);
+                        return VK_ERROR_OUT_OF_HOST_MEMORY;
+                    }
+
+                    fenceMutex = &fenceInfo->mutex;
+                    cv = &fenceInfo->cv;
+                }
+
+                // Vulkan specs require fences of vkQueueSubmit to be *externally
+                // synchronized*, i.e. we cannot submit a queue while waiting for the
+                // fence in another thread. For threads that call this function, they
+                // have to wait until a vkQueueSubmit() using this fence is called
+                // before calling vkWaitForFences(). So we use a conditional variable
+                // and mutex for thread synchronization.
+                //
+                // See:
+                // https://www.khronos.org/registry/vulkan/specs/1.2/html/vkspec.html#fundamentals-threadingbehavior
+                // https://github.com/KhronosGroup/Vulkan-LoaderAndValidationLayers/issues/519
+
+                // Current implementation does not respect waitAll here.
+                {
+                    std::unique_lock<std::mutex> lock(*fenceMutex);
+                    cv->wait(lock, [this, fence] {
+                        std::lock_guard<std::mutex> lock(mMutex);
+                        auto* fenceInfo = android::base::find(mFenceInfo, fence);
+                        if (!fenceInfo) {
+                            GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
+                                << "Fence was destroyed while waiting.";
+                        }
+
+                        // Block vkWaitForFences calls until the fence is waitable
+                        // Should also allow 'kWaiting' stage as the user can call
+                        // vkWaitForFences multiple times on the same fence.
+                        if (fenceInfo->state == FenceInfo::State::kNotWaitable) {
+                            return false;
+                        }
+                        fenceInfo->state = FenceInfo::State::kWaiting;
+                        return true;
+                    });
+                }
+            }
+        }
+
+        const auto endTime = std::chrono::system_clock::now();
+        const uint64_t timePassed = std::chrono::nanoseconds(endTime - startTime).count();
+        const uint64_t timeoutLeft = (timeout > timePassed) ? timeout - timePassed : 0;
+        return vk->vkWaitForFences(unboxed_device, fenceCount, pFences, waitAll, timeoutLeft);
+    }
+
+    VkResult waitForFence(VkFence fence, uint64_t timeout) {
         VkDevice device;
         VulkanDispatch* vk;
-        StaticLock* fenceLock;
-        ConditionVariable* cv;
         {
             std::lock_guard<std::mutex> lock(mMutex);
-            if (fence == VK_NULL_HANDLE || mFenceInfo.find(fence) == mFenceInfo.end()) {
+            auto* fenceInfo = android::base::find(mFenceInfo, fence);
+            if (!fenceInfo) {
                 // No fence, could be a semaphore.
                 // TODO: Async wait for semaphores
                 return VK_SUCCESS;
             }
 
-            // Vulkan specs require fences of vkQueueSubmit to be *externally
-            // synchronized*, i.e. we cannot submit a queue while waiting for the
-            // fence in another thread. For threads that call this function, they
-            // have to wait until a vkQueueSubmit() using this fence is called
-            // before calling vkWaitForFences(). So we use a conditional variable
-            // and mutex for thread synchronization.
-            //
-            // See:
-            // https://www.khronos.org/registry/vulkan/specs/1.2/html/vkspec.html#fundamentals-threadingbehavior
-            // https://github.com/KhronosGroup/Vulkan-LoaderAndValidationLayers/issues/519
-
-            device = mFenceInfo[fence].device;
-            vk = mFenceInfo[fence].vk;
-            fenceLock = &mFenceInfo[fence].lock;
-            cv = &mFenceInfo[fence].cv;
+            device = fenceInfo->device;
+            vk = fenceInfo->vk;
         }
 
-        fenceLock->lock();
-        cv->wait(fenceLock, [this, fence] {
-            std::lock_guard<std::mutex> lock(mMutex);
-            if (mFenceInfo[fence].state == FenceInfo::State::kWaitable) {
-                mFenceInfo[fence].state = FenceInfo::State::kWaiting;
-                return true;
-            }
-            return false;
-        });
-        fenceLock->unlock();
-
-        {
-            std::lock_guard<std::mutex> lock(mMutex);
-            if (mFenceInfo.find(fence) == mFenceInfo.end()) {
-                GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                    << "Fence was destroyed before vkWaitForFences call.";
-            }
-        }
-
-        return vk->vkWaitForFences(device, /* fenceCount */ 1u, &fence,
-                                   /* waitAll */ false, timeout);
+        return waitForFences(device, vk, 1, &fence, true, timeout);
     }
 
 
@@ -10571,7 +10619,8 @@ void VkDecoderGlobalState::on_CheckOutOfMemory(VkResult result, uint32_t opCode,
 }
 
 VkResult VkDecoderGlobalState::waitForFence(VkFence boxed_fence, uint64_t timeout) {
-    return mImpl->waitForFence(boxed_fence, timeout);
+    VkFence fence = unbox_VkFence(boxed_fence);
+    return mImpl->waitForFence(fence, timeout);
 }
 
 AsyncResult VkDecoderGlobalState::registerQsriCallback(VkImage image,
