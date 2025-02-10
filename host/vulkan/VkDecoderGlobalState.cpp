@@ -3219,6 +3219,23 @@ class VkDecoderGlobalState::Impl {
         return VK_SUCCESS;
     }
 
+    VkResult on_vkGetFenceStatus(android::base::BumpPool*, VkSnapshotApiCallInfo*,
+                                 VkDevice boxed_device, VkFence fence) {
+        auto device = unbox_VkDevice(boxed_device);
+        auto vk = dispatch_VkDevice(boxed_device);
+
+        return vk->vkGetFenceStatus(device, fence);
+    }
+
+    VkResult on_vkWaitForFences(android::base::BumpPool*, VkSnapshotApiCallInfo*,
+                                VkDevice boxed_device, uint32_t fenceCount, const VkFence* pFences,
+                                VkBool32 waitAll, uint64_t timeout) {
+        auto device = unbox_VkDevice(boxed_device);
+        auto vk = dispatch_VkDevice(boxed_device);
+
+        return vk->vkWaitForFences(device, fenceCount, pFences, waitAll, timeout);
+    }
+
     VkResult on_vkResetFences(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
                               VkDevice boxed_device, uint32_t fenceCount, const VkFence* pFences) {
         auto device = unbox_VkDevice(boxed_device);
@@ -9666,6 +9683,21 @@ VkResult VkDecoderGlobalState::on_vkCreateFence(android::base::BumpPool* pool,
                                                 const VkAllocationCallbacks* pAllocator,
                                                 VkFence* pFence) {
     return mImpl->on_vkCreateFence(pool, snapshotInfo, device, pCreateInfo, pAllocator, pFence);
+}
+
+VkResult VkDecoderGlobalState::on_vkGetFenceStatus(android::base::BumpPool* pool,
+                                                   VkSnapshotApiCallInfo* snapshotInfo,
+                                                   VkDevice device, VkFence fence) {
+    return mImpl->on_vkGetFenceStatus(pool, snapshotInfo, device, fence);
+}
+
+VkResult VkDecoderGlobalState::on_vkWaitForFences(android::base::BumpPool* pool,
+                                                  VkSnapshotApiCallInfo* snapshotInfo,
+                                                  VkDevice device, uint32_t fenceCount,
+                                                  const VkFence* pFences, VkBool32 waitAll,
+                                                  uint64_t timeout) {
+    return mImpl->on_vkWaitForFences(pool, snapshotInfo, device, fenceCount, pFences, waitAll,
+                                     timeout);
 }
 
 VkResult VkDecoderGlobalState::on_vkResetFences(android::base::BumpPool* pool,
