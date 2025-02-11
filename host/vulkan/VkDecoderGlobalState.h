@@ -877,8 +877,6 @@ class VkDecoderGlobalState {
     // Fence waits
     VkResult waitForFence(VkFence boxed_fence, uint64_t timeout);
 
-    VkResult getFenceStatus(VkFence boxed_fence);
-
     // Wait for present (vkQueueSignalReleaseImageANDROID). This explicitly
     // requires the image to be presented again versus how many times it's been
     // presented so far, so it ends up incrementing a "target present count"
