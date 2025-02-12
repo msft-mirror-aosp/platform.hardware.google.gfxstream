@@ -631,6 +631,11 @@ class VkDecoderGlobalState {
     VkResult on_vkCreateFence(android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo,
                               VkDevice device, const VkFenceCreateInfo* pCreateInfo,
                               const VkAllocationCallbacks* pAllocator, VkFence* pFence);
+    VkResult on_vkGetFenceStatus(android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo,
+                                 VkDevice device, VkFence pFence);
+    VkResult on_vkWaitForFences(android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo,
+                                VkDevice device, uint32_t fenceCount, const VkFence* pFences,
+                                VkBool32 waitAll, uint64_t timeout);
     VkResult on_vkResetFences(android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo,
                               VkDevice device, uint32_t fenceCount, const VkFence* pFences);
     void on_vkDestroyFence(android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo,
@@ -871,8 +876,6 @@ class VkDecoderGlobalState {
 
     // Fence waits
     VkResult waitForFence(VkFence boxed_fence, uint64_t timeout);
-
-    VkResult getFenceStatus(VkFence boxed_fence);
 
     // Wait for present (vkQueueSignalReleaseImageANDROID). This explicitly
     // requires the image to be presented again versus how many times it's been

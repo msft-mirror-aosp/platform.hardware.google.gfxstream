@@ -529,6 +529,7 @@ static std::vector<VkEmulation::ImageSupportInfo> getBasicImageSupportList() {
          VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT | VK_IMAGE_CREATE_EXTENDED_USAGE_BIT},
 
         {VK_FORMAT_R5G6B5_UNORM_PACK16},
+        {VK_FORMAT_A1R5G5B5_UNORM_PACK16},
 
         {VK_FORMAT_R16G16B16A16_SFLOAT},
         {VK_FORMAT_R16G16B16_SFLOAT},
@@ -3824,6 +3825,7 @@ VkExternalMemoryHandleTypeFlags transformExternalMemoryHandleTypeFlags_tohost(
     // may set them again below
     if (bits & VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT) {
         res &= ~VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT;
+        res |= getDefaultExternalMemoryHandleType();
     }
 
 #ifdef _WIN32
