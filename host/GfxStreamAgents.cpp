@@ -434,6 +434,18 @@ static const QAndroidVmOperations sQAndroidVmOperations =
         .hostmemUnregister = android_emulation_hostmem_unregister,
         .hostmemGetInfo = android_emulation_hostmem_get_info,
 #ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_SUPPORT
+        .vulkanInstanceRegister =
+            [](uint64_t id, const char* name) {
+                DEBUG_LOG(stderr,
+                          "goldfish-opengl vm ops: register Vulkan instance "
+                          "skipped\n");
+            },
+        .vulkanInstanceUnregister =
+            [](uint64_t id) {
+                DEBUG_LOG(stderr,
+                          "goldfish-opengl vm ops: unregister Vulkan instance "
+                          "skipped\n");
+            },
         .setSkipSnapshotSaveReason =
             [](SnapshotSkipReason reason) {
                 DEBUG_LOG(stderr,
