@@ -168,7 +168,15 @@ void stream_renderer_log(uint32_t type, const char* file, int line, const char* 
         globalDebugCallback(globalUserData, &debug);
     } else {
         // Cannot use logging routines, fallback to stderr
-        fprintf(stderr, "stream_renderer_log error: %s\n", printbuf);
+        const char* logLevel = "error";
+        if (type == STREAM_RENDERER_DEBUG_WARN) {
+            logLevel = "warning";
+        } else if (type == STREAM_RENDERER_DEBUG_INFO) {
+            logLevel = "info";
+        } else if (type == STREAM_RENDERER_DEBUG_DEBUG) {
+            logLevel = "debug";
+        }
+        fprintf(stderr, "stream_renderer_log [%s]: %s\n", logLevel, printbuf);
     }
 }
 
