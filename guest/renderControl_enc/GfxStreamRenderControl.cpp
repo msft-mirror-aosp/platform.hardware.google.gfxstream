@@ -13,6 +13,7 @@
 #include "android-base/file.h"
 #include "android-base/properties.h"
 #endif
+#include "aemu/base/Process.h"
 
 constexpr const auto kEglProp = "ro.hardware.egl";
 
@@ -20,18 +21,6 @@ static uint64_t sProcUID = 0;
 static std::mutex sNeedInitMutex;
 static bool sNeedInit = true;
 static gfxstream::guest::IOStream* sProcessStream = nullptr;
-
-namespace {
-std::optional<std::string> GetProcessName() {
-#if defined(__ANDROID__)
-    std::string cmdline;
-    if (android::base::ReadFileToString("/proc/self/cmdline", &cmdline)) {
-        return cmdline;
-    }
-#endif  // defined(__ANDROID__)
-    return std::nullopt;
-}
-}  // namespace
 
 GfxStreamTransportType renderControlGetTransport() {
 #if defined(__Fuchsia__) || defined(LINUX_GUEST_BUILD)
@@ -133,10 +122,10 @@ int32_t renderControlInit(GfxStreamConnectionManager* mgr, void* vkInfo) {
         rcEnc->rcSetPuid(rcEnc, puid);
 
         static constexpr const char kRcMetadataKeyProcessName[] = "process_name";
-        if (auto process_name = GetProcessName(); process_name != std::nullopt) {
-            rcEnc->rcSetProcessMetadata(rcEnc, (char*)kRcMetadataKeyProcessName,
-                                        (char*)process_name->c_str(), process_name->length());
-        }
+        const std::string process_name = gfxstream::guest::getProcessName();
+        rcEnc->rcSetProcessMetadata(rcEnc, const_cast<char*>(kRcMetadataKeyProcessName),
+                                    const_cast<RenderControlByte*>(process_name.c_str()),
+                                    process_name.length() + 1);
 
         if (vkInfo) {
             rcEnc->setVulkanFeatureInfo(vkInfo);
