@@ -49,16 +49,16 @@ using gl::EmulatedEglFenceSync;
 
 #if DEBUG
 
-static uint64_t curr_ms() {
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-    return tv.tv_usec / 1000 + tv.tv_sec * 1000;
+static uint64_t curr_ns() {
+    auto now = std::chrono::system_clock::now();
+    auto now_ns = std::chrono::time_point_cast<std::chrono::nanoseconds>(now);
+    return now_ns.time_since_epoch().count();
 }
 
-#define DPRINT(fmt, ...) do { \
-    if (!VERBOSE_CHECK(syncthreads)) VERBOSE_ENABLE(syncthreads); \
-    VERBOSE_TID_FUNCTION_DPRINT(syncthreads, "@ time=%llu: " fmt, curr_ms(), ##__VA_ARGS__); \
-} while(0)
+#define DPRINT(fmt, ...)                                                   \
+    do {                                                                   \
+        INFO("@ time=%llu, %s: " fmt, curr_ns(), __func__, ##__VA_ARGS__); \
+    } while (0)
 
 #else
 
