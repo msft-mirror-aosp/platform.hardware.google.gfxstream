@@ -58,7 +58,7 @@ public:
     void waitForFinished();
 
     void pausePreSnapshot();
-    void resume(bool waitForSave);
+    void resume();
     void save(android::base::Stream* stream);
 
     // RenderThreads are blocked from exiting after finished to workaround driver bugs.
