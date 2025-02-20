@@ -9161,7 +9161,7 @@ class VkDecoderGlobalState::Impl {
     }
 
     // Returns the VkInstance associated with a VkDevice, or null if it's not found
-    VkInstance* deviceToInstanceLocked(VkDevice device) {
+    VkInstance* deviceToInstanceLocked(VkDevice device) REQUIRES(mMutex) {
         auto* physicalDevice = android::base::find(mDeviceToPhysicalDevice, device);
         if (!physicalDevice) return nullptr;
         return android::base::find(mPhysicalDeviceToInstance, *physicalDevice);
@@ -9280,8 +9280,8 @@ class VkDecoderGlobalState::Impl {
 
     // Back-reference to the physical device associated with a particular
     // VkDevice, and the VkDevice corresponding to a VkQueue.
-    std::unordered_map<VkDevice, VkPhysicalDevice> mDeviceToPhysicalDevice;
-    std::unordered_map<VkPhysicalDevice, VkInstance> mPhysicalDeviceToInstance;
+    std::unordered_map<VkDevice, VkPhysicalDevice> mDeviceToPhysicalDevice GUARDED_BY(mMutex);
+    std::unordered_map<VkPhysicalDevice, VkInstance> mPhysicalDeviceToInstance GUARDED_BY(mMutex);
 
     // Device objects
     std::unordered_map<VkBuffer, BufferInfo> mBufferInfo GUARDED_BY(mMutex);
