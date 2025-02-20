@@ -5107,8 +5107,8 @@ class VkDecoderGlobalState::Impl {
     }
 
     bool mapHostVisibleMemoryToGuestPhysicalAddressLocked(VulkanDispatch* vk, VkDevice device,
-                                                          VkDeviceMemory memory,
-                                                          uint64_t physAddr) {
+                                                          VkDeviceMemory memory, uint64_t physAddr)
+        REQUIRES(mMutex) {
         if (!m_emu->features.GlDirectMem.enabled &&
             !m_emu->features.VirtioGpuNext.enabled) {
             // INFO("%s: Tried to use direct mapping "
@@ -5779,7 +5779,7 @@ class VkDecoderGlobalState::Impl {
     }
 
     void freeMemoryLocked(VkDevice device, VulkanDispatch* deviceDispatch, VkDeviceMemory memory,
-                          const VkAllocationCallbacks* pAllocator) {
+                          const VkAllocationCallbacks* pAllocator) REQUIRES(mMutex) {
         auto memoryInfoIt = mMemoryInfo.find(memory);
         if (memoryInfoIt == mMemoryInfo.end()) return;
         auto& memoryInfo = memoryInfoIt->second;
@@ -5807,7 +5807,8 @@ class VkDecoderGlobalState::Impl {
         return on_vkMapMemoryLocked(0, memory, offset, size, flags, ppData);
     }
     VkResult on_vkMapMemoryLocked(VkDevice, VkDeviceMemory memory, VkDeviceSize offset,
-                                  VkDeviceSize size, VkMemoryMapFlags flags, void** ppData) {
+                                  VkDeviceSize size, VkMemoryMapFlags flags, void** ppData)
+        REQUIRES(mMutex) {
         auto* info = android::base::find(mMemoryInfo, memory);
         if (!info || !info->ptr) return VK_ERROR_MEMORY_MAP_FAILED;  // Invalid usage.
 
@@ -9292,7 +9293,7 @@ class VkDecoderGlobalState::Impl {
     std::unordered_map<VkDescriptorPool, DescriptorPoolInfo> mDescriptorPoolInfo;
     std::unordered_map<VkDescriptorSet, DescriptorSetInfo> mDescriptorSetInfo;
     std::unordered_map<VkDescriptorSetLayout, DescriptorSetLayoutInfo> mDescriptorSetLayoutInfo;
-    std::unordered_map<VkDeviceMemory, MemoryInfo> mMemoryInfo;
+    std::unordered_map<VkDeviceMemory, MemoryInfo> mMemoryInfo GUARDED_BY(mMutex);
     std::unordered_map<VkFence, FenceInfo> mFenceInfo GUARDED_BY(mMutex);
     std::unordered_map<VkFramebuffer, FramebufferInfo> mFramebufferInfo GUARDED_BY(mMutex);
     std::unordered_map<VkImage, ImageInfo> mImageInfo GUARDED_BY(mMutex);
