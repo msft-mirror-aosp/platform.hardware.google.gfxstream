@@ -9293,7 +9293,7 @@ class VkDecoderGlobalState::Impl {
     std::unordered_map<VkDescriptorSet, DescriptorSetInfo> mDescriptorSetInfo;
     std::unordered_map<VkDescriptorSetLayout, DescriptorSetLayoutInfo> mDescriptorSetLayoutInfo;
     std::unordered_map<VkDeviceMemory, MemoryInfo> mMemoryInfo;
-    std::unordered_map<VkFence, FenceInfo> mFenceInfo;
+    std::unordered_map<VkFence, FenceInfo> mFenceInfo GUARDED_BY(mMutex);
     std::unordered_map<VkFramebuffer, FramebufferInfo> mFramebufferInfo GUARDED_BY(mMutex);
     std::unordered_map<VkImage, ImageInfo> mImageInfo GUARDED_BY(mMutex);
     std::unordered_map<VkImageView, ImageViewInfo> mImageViewInfo GUARDED_BY(mMutex);
