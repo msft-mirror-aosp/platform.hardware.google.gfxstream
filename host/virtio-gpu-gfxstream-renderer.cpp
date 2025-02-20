@@ -384,13 +384,6 @@ VG_EXPORT int stream_renderer_platform_destroy_shared_egl_context(void* context)
     return sFrontend()->platformDestroySharedEglContext(context);
 }
 
-VG_EXPORT int stream_renderer_wait_sync_resource(uint32_t res_handle) {
-    GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY,
-                          "stream_renderer_wait_sync_resource()");
-
-    return sFrontend()->waitSyncResource(res_handle);
-}
-
 VG_EXPORT int stream_renderer_resource_map_info(uint32_t res_handle, uint32_t* map_info) {
     GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY,
                           "stream_renderer_resource_map_info()");

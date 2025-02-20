@@ -27,7 +27,6 @@
 #include "CompositorVk.h"
 #include "DebugUtilsHelper.h"
 #include "DeviceLostHelper.h"
-#include "DeviceOpTracker.h"
 #include "DisplayVk.h"
 #include "ExternalObjectManager.h"
 #include "FrameworkFormats.h"
@@ -321,9 +320,6 @@ struct VkEmulation {
         bool externalMemoryCompatible = false;
 
         VulkanMode vulkanMode = VulkanMode::Default;
-
-        std::optional<DeviceOpWaitable> latestUse;
-        DeviceOpTrackerPtr latestUseTracker = nullptr;
     };
 
     struct BufferInfo {
@@ -536,11 +532,6 @@ VkExternalMemoryProperties transformExternalMemoryProperties_fromhost(
 void setColorBufferCurrentLayout(uint32_t colorBufferHandle, VkImageLayout);
 
 VkImageLayout getColorBufferCurrentLayout(uint32_t colorBufferHandle);
-
-void setColorBufferLatestUse(uint32_t colorBufferHandle, DeviceOpWaitable waitable,
-                             DeviceOpTrackerPtr tracker);
-
-int waitSyncVkColorBuffer(uint32_t colorBufferHandle);
 
 void releaseColorBufferForGuestUse(uint32_t colorBufferHandle);
 

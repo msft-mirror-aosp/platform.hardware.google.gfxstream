@@ -438,18 +438,6 @@ bool ColorBuffer::invalidateForVk() {
     return true;
 }
 
-int ColorBuffer::waitSync() {
-    if (mColorBufferGl) {
-        return -1;
-    }
-
-    if (!mColorBufferVk) {
-        return -1;
-    }
-
-    return mColorBufferVk->waitSync();
-}
-
 std::optional<BlobDescriptorInfo> ColorBuffer::exportBlob() {
     if (!mColorBufferVk) {
         return std::nullopt;

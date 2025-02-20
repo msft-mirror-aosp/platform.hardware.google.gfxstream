@@ -2987,17 +2987,6 @@ bool FrameBuffer::invalidateColorBufferForVk(HandleType colorBufferHandle) {
     return colorBuffer->invalidateForVk();
 }
 
-int FrameBuffer::waitSyncColorBuffer(HandleType colorBufferHandle) {
-    AutoLock mutex(m_lock);
-
-    ColorBufferPtr colorBuffer = findColorBuffer(colorBufferHandle);
-    if (!colorBuffer) {
-        return -1;
-    }
-
-    return colorBuffer->waitSync();
-}
-
 std::optional<BlobDescriptorInfo> FrameBuffer::exportColorBuffer(HandleType colorBufferHandle) {
     AutoLock mutex(m_lock);
 
