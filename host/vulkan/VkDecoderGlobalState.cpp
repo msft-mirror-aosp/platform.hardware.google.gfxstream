@@ -452,50 +452,49 @@ class VkDecoderGlobalState::Impl {
 
     const gfxstream::host::FeatureSet& getFeatures() const { return m_emu->features; }
 
-    StateBlock createSnapshotStateBlock(VkDevice unboxed_device) {
-            const auto& device = unboxed_device;
-            const auto& deviceInfo = android::base::find(mDeviceInfo, device);
-            const auto physicalDevice = deviceInfo->physicalDevice;
-            const auto& physicalDeviceInfo = android::base::find(mPhysdevInfo, physicalDevice);
-            const auto& instanceInfo = android::base::find(mInstanceInfo, physicalDeviceInfo->instance);
+    StateBlock createSnapshotStateBlock(VkDevice unboxed_device) REQUIRES(mMutex) {
+        const auto& device = unboxed_device;
+        const auto& deviceInfo = android::base::find(mDeviceInfo, device);
+        const auto physicalDevice = deviceInfo->physicalDevice;
+        const auto& physicalDeviceInfo = android::base::find(mPhysdevInfo, physicalDevice);
+        const auto& instanceInfo = android::base::find(mInstanceInfo, physicalDeviceInfo->instance);
 
-            VulkanDispatch* ivk = dispatch_VkInstance(instanceInfo->boxed);
-            VulkanDispatch* dvk = dispatch_VkDevice(deviceInfo->boxed);
+        VulkanDispatch* ivk = dispatch_VkInstance(instanceInfo->boxed);
+        VulkanDispatch* dvk = dispatch_VkDevice(deviceInfo->boxed);
 
-            StateBlock stateBlock{
-                .physicalDevice = physicalDevice,
-                .physicalDeviceInfo = physicalDeviceInfo,
-                .device = device,
-                .deviceDispatch = dvk,
-                .queue = VK_NULL_HANDLE,
-                .commandPool = VK_NULL_HANDLE,
-            };
+        StateBlock stateBlock{
+            .physicalDevice = physicalDevice,
+            .physicalDeviceInfo = physicalDeviceInfo,
+            .device = device,
+            .deviceDispatch = dvk,
+            .queue = VK_NULL_HANDLE,
+            .commandPool = VK_NULL_HANDLE,
+        };
 
-            uint32_t queueFamilyCount = 0;
-            ivk->vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount,
-                                                          nullptr);
-            std::vector<VkQueueFamilyProperties> queueFamilyProps(queueFamilyCount);
-            ivk->vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount,
-                                                          queueFamilyProps.data());
-            uint32_t queueFamilyIndex = 0;
-            for (auto queue : deviceInfo->queues) {
-                int idx = queue.first;
-                if ((queueFamilyProps[idx].queueFlags & VK_QUEUE_GRAPHICS_BIT) == 0) {
-                    continue;
-                }
-                stateBlock.queue = queue.second[0];
-                queueFamilyIndex = idx;
-                break;
+        uint32_t queueFamilyCount = 0;
+        ivk->vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, nullptr);
+        std::vector<VkQueueFamilyProperties> queueFamilyProps(queueFamilyCount);
+        ivk->vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount,
+                                                      queueFamilyProps.data());
+        uint32_t queueFamilyIndex = 0;
+        for (auto queue : deviceInfo->queues) {
+            int idx = queue.first;
+            if ((queueFamilyProps[idx].queueFlags & VK_QUEUE_GRAPHICS_BIT) == 0) {
+                continue;
             }
+            stateBlock.queue = queue.second[0];
+            queueFamilyIndex = idx;
+            break;
+        }
 
-            VkCommandPoolCreateInfo commandPoolCi = {
-                VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
-                0,
-                VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
-                queueFamilyIndex,
-            };
-            dvk->vkCreateCommandPool(device, &commandPoolCi, nullptr, &stateBlock.commandPool);
-            return stateBlock;
+        VkCommandPoolCreateInfo commandPoolCi = {
+            VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+            0,
+            VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
+            queueFamilyIndex,
+        };
+        dvk->vkCreateCommandPool(device, &commandPoolCi, nullptr, &stateBlock.commandPool);
+        return stateBlock;
     }
 
     void releaseSnapshotStateBlock(const StateBlock* stateBlock) {
@@ -1619,50 +1618,73 @@ class VkDecoderGlobalState::Impl {
         auto physicalDevice = unbox_VkPhysicalDevice(boxed_physicalDevice);
         auto vk = dispatch_VkPhysicalDevice(boxed_physicalDevice);
 
-        std::lock_guard<std::mutex> lock(mMutex);
+        enum class WhichFunc {
+            kGetPhysicalDeviceFormatProperties,
+            kGetPhysicalDeviceFormatProperties2,
+            kGetPhysicalDeviceFormatProperties2KHR,
+        };
 
-        auto* physdevInfo = android::base::find(mPhysdevInfo, physicalDevice);
-        if (!physdevInfo) return;
+        auto func = WhichFunc::kGetPhysicalDeviceFormatProperties2KHR;
 
-        auto instance = mPhysicalDeviceToInstance[physicalDevice];
-        auto* instanceInfo = android::base::find(mInstanceInfo, instance);
-        if (!instanceInfo) return;
+        {
+            std::lock_guard<std::mutex> lock(mMutex);
 
-        if (instanceInfo->apiVersion >= VK_MAKE_VERSION(1, 1, 0) &&
-            physdevInfo->props.apiVersion >= VK_MAKE_VERSION(1, 1, 0)) {
-            getPhysicalDeviceFormatPropertiesCore<VkFormatProperties2>(
-                [vk](VkPhysicalDevice physicalDevice, VkFormat format,
-                     VkFormatProperties2* pFormatProperties) {
-                    vk->vkGetPhysicalDeviceFormatProperties2(physicalDevice, format,
-                                                             pFormatProperties);
-                },
-                vk, physicalDevice, format, pFormatProperties);
-        } else if (hasInstanceExtension(instance,
-                                        VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME)) {
-            getPhysicalDeviceFormatPropertiesCore<VkFormatProperties2>(
-                [vk](VkPhysicalDevice physicalDevice, VkFormat format,
-                     VkFormatProperties2* pFormatProperties) {
-                    vk->vkGetPhysicalDeviceFormatProperties2KHR(physicalDevice, format,
-                                                                pFormatProperties);
-                },
-                vk, physicalDevice, format, pFormatProperties);
-        } else {
-            // No instance extension, fake it!!!!
-            if (pFormatProperties->pNext) {
-                fprintf(stderr,
-                        "%s: Warning: Trying to use extension struct in "
-                        "vkGetPhysicalDeviceFormatProperties2 without having "
-                        "enabled the extension!!!!11111\n",
-                        __func__);
+            auto* physdevInfo = android::base::find(mPhysdevInfo, physicalDevice);
+            if (!physdevInfo) return;
+
+            auto instance = mPhysicalDeviceToInstance[physicalDevice];
+            auto* instanceInfo = android::base::find(mInstanceInfo, instance);
+            if (!instanceInfo) return;
+
+            if (instanceInfo->apiVersion >= VK_MAKE_VERSION(1, 1, 0) &&
+                physdevInfo->props.apiVersion >= VK_MAKE_VERSION(1, 1, 0)) {
+                func = WhichFunc::kGetPhysicalDeviceFormatProperties2;
+            } else if (hasInstanceExtension(
+                           instance, VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME)) {
+                func = WhichFunc::kGetPhysicalDeviceFormatProperties2KHR;
             }
-            pFormatProperties->sType = VK_STRUCTURE_TYPE_FORMAT_PROPERTIES_2;
-            getPhysicalDeviceFormatPropertiesCore<VkFormatProperties>(
-                [vk](VkPhysicalDevice physicalDevice, VkFormat format,
-                     VkFormatProperties* pFormatProperties) {
-                    vk->vkGetPhysicalDeviceFormatProperties(physicalDevice, format,
-                                                            pFormatProperties);
-                },
-                vk, physicalDevice, format, &pFormatProperties->formatProperties);
+        }
+
+        switch (func) {
+            case WhichFunc::kGetPhysicalDeviceFormatProperties2: {
+                getPhysicalDeviceFormatPropertiesCore<VkFormatProperties2>(
+                    [vk](VkPhysicalDevice physicalDevice, VkFormat format,
+                         VkFormatProperties2* pFormatProperties) {
+                        vk->vkGetPhysicalDeviceFormatProperties2(physicalDevice, format,
+                                                                 pFormatProperties);
+                    },
+                    vk, physicalDevice, format, pFormatProperties);
+                break;
+            }
+            case WhichFunc::kGetPhysicalDeviceFormatProperties2KHR: {
+                getPhysicalDeviceFormatPropertiesCore<VkFormatProperties2>(
+                    [vk](VkPhysicalDevice physicalDevice, VkFormat format,
+                         VkFormatProperties2* pFormatProperties) {
+                        vk->vkGetPhysicalDeviceFormatProperties2KHR(physicalDevice, format,
+                                                                    pFormatProperties);
+                    },
+                    vk, physicalDevice, format, pFormatProperties);
+                break;
+            }
+            case WhichFunc::kGetPhysicalDeviceFormatProperties: {
+                // No instance extension, fake it!!!!
+                if (pFormatProperties->pNext) {
+                    fprintf(stderr,
+                            "%s: Warning: Trying to use extension struct in "
+                            "vkGetPhysicalDeviceFormatProperties2 without having "
+                            "enabled the extension!!!!11111\n",
+                            __func__);
+                }
+                pFormatProperties->sType = VK_STRUCTURE_TYPE_FORMAT_PROPERTIES_2;
+                getPhysicalDeviceFormatPropertiesCore<VkFormatProperties>(
+                    [vk](VkPhysicalDevice physicalDevice, VkFormat format,
+                         VkFormatProperties* pFormatProperties) {
+                        vk->vkGetPhysicalDeviceFormatProperties(physicalDevice, format,
+                                                                pFormatProperties);
+                    },
+                    vk, physicalDevice, format, &pFormatProperties->formatProperties);
+                break;
+            }
         }
     }
 
@@ -1814,6 +1836,8 @@ class VkDecoderGlobalState::Impl {
         VkPhysicalDeviceMemoryProperties2* pMemoryProperties) {
         auto physicalDevice = unbox_VkPhysicalDevice(boxed_physicalDevice);
         auto vk = dispatch_VkPhysicalDevice(boxed_physicalDevice);
+
+        std::lock_guard<std::mutex> lock(mMutex);
 
         auto* physicalDeviceInfo = android::base::find(mPhysdevInfo, physicalDevice);
         if (!physicalDeviceInfo) return;
@@ -5813,7 +5837,7 @@ class VkDecoderGlobalState::Impl {
         return res;
     }
 
-    bool hasInstanceExtension(VkInstance instance, const std::string& name) {
+    bool hasInstanceExtension(VkInstance instance, const std::string& name) REQUIRES(mMutex) {
         auto* info = android::base::find(mInstanceInfo, instance);
         if (!info) return false;
 
@@ -8712,7 +8736,7 @@ class VkDecoderGlobalState::Impl {
         std::function<void(VkPhysicalDevice, VkFormat, VkFormatProperties1or2*)>
             getPhysicalDeviceFormatPropertiesFunc,
         VulkanDispatch* vk, VkPhysicalDevice physicalDevice, VkFormat format,
-        VkFormatProperties1or2* pFormatProperties) {
+        VkFormatProperties1or2* pFormatProperties) EXCLUDES(mMutex) {
         if (isEmulatedCompressedTexture(format, physicalDevice, vk)) {
             getPhysicalDeviceFormatPropertiesFunc(
                 physicalDevice, CompressedImageInfo::getOutputFormat(format),
@@ -9219,8 +9243,8 @@ class VkDecoderGlobalState::Impl {
     }
 
     // Info tracking for vulkan objects
-    std::unordered_map<VkInstance, InstanceInfo> mInstanceInfo;
-    std::unordered_map<VkPhysicalDevice, PhysicalDeviceInfo> mPhysdevInfo;
+    std::unordered_map<VkInstance, InstanceInfo> mInstanceInfo GUARDED_BY(mMutex);
+    std::unordered_map<VkPhysicalDevice, PhysicalDeviceInfo> mPhysdevInfo GUARDED_BY(mMutex);
     std::unordered_map<VkDevice, DeviceInfo> mDeviceInfo;
 
     // Back-reference to the physical device associated with a particular
