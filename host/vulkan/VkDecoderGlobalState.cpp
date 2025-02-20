@@ -3045,7 +3045,7 @@ class VkDecoderGlobalState::Impl {
     }
 
     void destroySamplerLocked(VkDevice device, VulkanDispatch* deviceDispatch, VkSampler sampler,
-                              const VkAllocationCallbacks* pAllocator) {
+                              const VkAllocationCallbacks* pAllocator) REQUIRES(mMutex) {
         auto samplerInfoIt = mSamplerInfo.find(sampler);
         if (samplerInfoIt == mSamplerInfo.end()) return;
         auto& samplerInfo = samplerInfoIt->second;
@@ -9300,7 +9300,7 @@ class VkDecoderGlobalState::Impl {
     std::unordered_map<VkPipelineLayout, PipelineLayoutInfo> mPipelineLayoutInfo;
     std::unordered_map<VkQueue, QueueInfo> mQueueInfo;
     std::unordered_map<VkRenderPass, RenderPassInfo> mRenderPassInfo;
-    std::unordered_map<VkSampler, SamplerInfo> mSamplerInfo;
+    std::unordered_map<VkSampler, SamplerInfo> mSamplerInfo GUARDED_BY(mMutex);
     std::unordered_map<VkSemaphore, SemaphoreInfo> mSemaphoreInfo GUARDED_BY(mMutex);
     std::unordered_map<VkShaderModule, ShaderModuleInfo> mShaderModuleInfo GUARDED_BY(mMutex);
 
