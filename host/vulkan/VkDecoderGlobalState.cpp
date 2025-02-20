@@ -7154,7 +7154,8 @@ class VkDecoderGlobalState::Impl {
     }
 
     void destroyRenderPassLocked(VkDevice device, VulkanDispatch* deviceDispatch,
-                                 VkRenderPass renderPass, const VkAllocationCallbacks* pAllocator) {
+                                 VkRenderPass renderPass, const VkAllocationCallbacks* pAllocator)
+        REQUIRES(mMutex) {
         auto renderPassInfoIt = mRenderPassInfo.find(renderPass);
         if (renderPassInfoIt == mRenderPassInfo.end()) return;
         auto& renderPassInfo = renderPassInfoIt->second;
@@ -9299,7 +9300,7 @@ class VkDecoderGlobalState::Impl {
     std::unordered_map<VkPipelineCache, PipelineCacheInfo> mPipelineCacheInfo;
     std::unordered_map<VkPipelineLayout, PipelineLayoutInfo> mPipelineLayoutInfo;
     std::unordered_map<VkQueue, QueueInfo> mQueueInfo;
-    std::unordered_map<VkRenderPass, RenderPassInfo> mRenderPassInfo;
+    std::unordered_map<VkRenderPass, RenderPassInfo> mRenderPassInfo GUARDED_BY(mMutex);
     std::unordered_map<VkSampler, SamplerInfo> mSamplerInfo GUARDED_BY(mMutex);
     std::unordered_map<VkSemaphore, SemaphoreInfo> mSemaphoreInfo GUARDED_BY(mMutex);
     std::unordered_map<VkShaderModule, ShaderModuleInfo> mShaderModuleInfo GUARDED_BY(mMutex);
