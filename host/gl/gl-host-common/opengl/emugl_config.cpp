@@ -235,7 +235,11 @@ bool emuglConfig_init(EmuglConfig* config,
             has_auto_no_window = true;
         } else {
             gpu_enabled = true;
-            gpu_mode = gpu_option;
+            if (!strcmp(gpu_option, "lavapipe")) {
+                gpu_mode = "swiftshader_indirect";
+            } else {
+                gpu_mode = gpu_option;
+            }
         }
     } else {
         // Support "hw.gpu.mode=on" in config.ini
@@ -397,6 +401,10 @@ void emuglConfig_setupEnv(const EmuglConfig* config) {
     } else if (sCurrentRenderer == SELECTED_RENDERER_SWIFTSHADER_INDIRECT) {
         // Use Swiftshader vk icd if using swiftshader_indirect
         android::base::setEnvironmentVariable("ANDROID_EMU_VK_ICD", "swiftshader");
+    }
+
+    if (0 == strcmp(emuglConfig_get_user_gpu_option(), "lavapipe")) {
+        android::base::setEnvironmentVariable("ANDROID_EMU_VK_ICD", "lavapipe");
     }
 
     if (!config->enabled) {
