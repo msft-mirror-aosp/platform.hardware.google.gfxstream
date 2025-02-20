@@ -3242,7 +3242,8 @@ class VkDecoderGlobalState::Impl {
         auto device = unbox_VkDevice(boxed_device);
         auto vk = dispatch_VkDevice(boxed_device);
 
-        return waitForFences(device, vk, fenceCount, pFences, waitAll, timeout);
+        // TODO(b/397501277): wait state checks cause test failures on old API levels
+        return waitForFences(device, vk, fenceCount, pFences, waitAll, timeout, false);
     }
 
     VkResult on_vkResetFences(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
@@ -7749,7 +7750,7 @@ class VkDecoderGlobalState::Impl {
     }
 
     VkResult waitForFences(VkDevice unboxed_device, VulkanDispatch* vk, uint32_t fenceCount,
-                           const VkFence* pFences, VkBool32 waitAll, uint64_t timeout) {
+                           const VkFence* pFences, VkBool32 waitAll, uint64_t timeout, bool checkWaitState) {
         if (!fenceCount) {
             return VK_SUCCESS;
         }
@@ -7790,7 +7791,7 @@ class VkDecoderGlobalState::Impl {
                 // https://github.com/KhronosGroup/Vulkan-LoaderAndValidationLayers/issues/519
 
                 // Current implementation does not respect waitAll here.
-                {
+                if (checkWaitState) {
                     std::unique_lock<std::mutex> lock(*fenceMutex);
                     cv->wait(lock, [this, fence] {
                         std::lock_guard<std::mutex> lock(mMutex);
@@ -7835,7 +7836,7 @@ class VkDecoderGlobalState::Impl {
             vk = fenceInfo->vk;
         }
 
-        return waitForFences(device, vk, 1, &fence, true, timeout);
+        return waitForFences(device, vk, 1, &fence, true, timeout, true);
     }
 
 
