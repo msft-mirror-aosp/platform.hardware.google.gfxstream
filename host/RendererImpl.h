@@ -103,7 +103,7 @@ public:
     struct AndroidVirtioGpuOps* getVirtioGpuOps() final;
 
     void pauseAllPreSave() final;
-    void resumeAll(bool waitForSave = true) final;
+    void resumeAll() final;
 
     void save(android::base::Stream* stream,
               const android::snapshot::ITextureSaverPtr& textureSaver) final;

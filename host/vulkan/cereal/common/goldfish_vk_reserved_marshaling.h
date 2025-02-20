@@ -1183,6 +1183,17 @@ void reservedunmarshal_VkMultiviewPerViewAttributesInfoNVX(
     VkMultiviewPerViewAttributesInfoNVX* forUnmarshaling, uint8_t** ptr);
 
 #endif
+#ifdef VK_KHR_multiview
+DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkRenderPassMultiviewCreateInfo,
+                      reservedunmarshal_VkRenderPassMultiviewCreateInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkPhysicalDeviceMultiviewFeatures,
+                      reservedunmarshal_VkPhysicalDeviceMultiviewFeaturesKHR)
+
+DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkPhysicalDeviceMultiviewProperties,
+                      reservedunmarshal_VkPhysicalDeviceMultiviewPropertiesKHR)
+
+#endif
 #ifdef VK_KHR_get_physical_device_properties2
 DEFINE_ALIAS_FUNCTION(reservedunmarshal_VkPhysicalDeviceFeatures2,
                       reservedunmarshal_VkPhysicalDeviceFeatures2KHR)

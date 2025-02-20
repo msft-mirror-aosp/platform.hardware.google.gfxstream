@@ -2297,6 +2297,26 @@ void unmarshal_VkMultiviewPerViewAttributesInfoNVX(
     VkMultiviewPerViewAttributesInfoNVX* forUnmarshaling);
 
 #endif
+#ifdef VK_KHR_multiview
+DEFINE_ALIAS_FUNCTION(marshal_VkRenderPassMultiviewCreateInfo,
+                      marshal_VkRenderPassMultiviewCreateInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkRenderPassMultiviewCreateInfo,
+                      unmarshal_VkRenderPassMultiviewCreateInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceMultiviewFeatures,
+                      marshal_VkPhysicalDeviceMultiviewFeaturesKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceMultiviewFeatures,
+                      unmarshal_VkPhysicalDeviceMultiviewFeaturesKHR)
+
+DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceMultiviewProperties,
+                      marshal_VkPhysicalDeviceMultiviewPropertiesKHR)
+
+DEFINE_ALIAS_FUNCTION(unmarshal_VkPhysicalDeviceMultiviewProperties,
+                      unmarshal_VkPhysicalDeviceMultiviewPropertiesKHR)
+
+#endif
 #ifdef VK_KHR_get_physical_device_properties2
 DEFINE_ALIAS_FUNCTION(marshal_VkPhysicalDeviceFeatures2, marshal_VkPhysicalDeviceFeatures2KHR)
 
