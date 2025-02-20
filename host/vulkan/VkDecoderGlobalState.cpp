@@ -9243,7 +9243,7 @@ class VkDecoderGlobalState::Impl {
 
     // Info tracking for vulkan objects
     std::unordered_map<VkInstance, InstanceInfo> mInstanceInfo GUARDED_BY(mMutex);
-    std::unordered_map<VkPhysicalDevice, PhysicalDeviceInfo> mPhysdevInfo;
+    std::unordered_map<VkPhysicalDevice, PhysicalDeviceInfo> mPhysdevInfo GUARDED_BY(mMutex);
     std::unordered_map<VkDevice, DeviceInfo> mDeviceInfo;
 
     // Back-reference to the physical device associated with a particular
