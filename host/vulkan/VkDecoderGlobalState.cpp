@@ -9299,7 +9299,7 @@ class VkDecoderGlobalState::Impl {
     std::unordered_map<VkPipeline, PipelineInfo> mPipelineInfo;
     std::unordered_map<VkPipelineCache, PipelineCacheInfo> mPipelineCacheInfo;
     std::unordered_map<VkPipelineLayout, PipelineLayoutInfo> mPipelineLayoutInfo;
-    std::unordered_map<VkQueue, QueueInfo> mQueueInfo;
+    std::unordered_map<VkQueue, QueueInfo> mQueueInfo GUARDED_BY(mMutex);
     std::unordered_map<VkRenderPass, RenderPassInfo> mRenderPassInfo GUARDED_BY(mMutex);
     std::unordered_map<VkSampler, SamplerInfo> mSamplerInfo GUARDED_BY(mMutex);
     std::unordered_map<VkSemaphore, SemaphoreInfo> mSemaphoreInfo GUARDED_BY(mMutex);
