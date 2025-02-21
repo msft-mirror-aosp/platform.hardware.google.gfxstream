@@ -8326,7 +8326,8 @@ class VkDecoderGlobalState::Impl {
     }
 
     VkDecoderSnapshot* snapshot() { return &mSnapshot; }
-    SnapshotState getSnapshotState() { return mSnapshotState; }
+
+    bool isSnapshotCurrentlyLoading() const { return mSnapshotState == SnapshotState::Loading; }
 
    private:
     bool isEmulatedInstanceExtension(const char* name) const {
@@ -9326,7 +9327,12 @@ class VkDecoderGlobalState::Impl {
 #endif
 
     VkDecoderSnapshot mSnapshot;
-
+    enum class SnapshotState {
+        Normal,
+        Saving,
+        Loading,
+    };
+    SnapshotState mSnapshotState = SnapshotState::Normal;
     std::vector<uint64_t> mCreatedHandlesForSnapshotLoad;
     size_t mCreatedHandlesForSnapshotLoadIndex = 0;
 
@@ -9391,8 +9397,6 @@ class VkDecoderGlobalState::Impl {
 
     std::unordered_map<LinearImageCreateInfo, LinearImageProperties, LinearImageCreateInfo::Hash>
         mLinearImageProperties;
-
-    SnapshotState mSnapshotState = SnapshotState::Normal;
 };
 
 VkDecoderGlobalState::VkDecoderGlobalState() : mImpl(new VkDecoderGlobalState::Impl()) {}
@@ -9423,8 +9427,8 @@ uint64_t VkDecoderGlobalState::newGlobalVkGenericHandle() {
     return mImpl->newGlobalHandle(item, Tag_VkGeneric);
 }
 
-VkDecoderGlobalState::SnapshotState VkDecoderGlobalState::getSnapshotState() const {
-    return mImpl->getSnapshotState();
+bool VkDecoderGlobalState::isSnapshotCurrentlyLoading() const {
+    return mImpl->isSnapshotCurrentlyLoading();
 }
 
 const gfxstream::host::FeatureSet& VkDecoderGlobalState::getFeatures() const { return mImpl->getFeatures(); }
