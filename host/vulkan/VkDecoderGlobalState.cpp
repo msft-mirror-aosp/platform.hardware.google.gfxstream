@@ -2701,7 +2701,7 @@ class VkDecoderGlobalState::Impl {
     }
 
     void destroyImageLocked(VkDevice device, VulkanDispatch* deviceDispatch, VkImage image,
-                            const VkAllocationCallbacks* pAllocator) {
+                            const VkAllocationCallbacks* pAllocator) REQUIRES(mMutex) {
         auto imageInfoIt = mImageInfo.find(image);
         if (imageInfoIt == mImageInfo.end()) return;
         auto& imageInfo = imageInfoIt->second;
@@ -2982,7 +2982,8 @@ class VkDecoderGlobalState::Impl {
     }
 
     void destroyImageViewLocked(VkDevice device, VulkanDispatch* deviceDispatch,
-                                VkImageView imageView, const VkAllocationCallbacks* pAllocator) {
+                                VkImageView imageView, const VkAllocationCallbacks* pAllocator)
+        REQUIRES(mMutex) {
         auto imageViewInfoIt = mImageViewInfo.find(imageView);
         if (imageViewInfoIt == mImageViewInfo.end()) return;
         auto& imageViewInfo = imageViewInfoIt->second;
@@ -3045,7 +3046,7 @@ class VkDecoderGlobalState::Impl {
     }
 
     void destroySamplerLocked(VkDevice device, VulkanDispatch* deviceDispatch, VkSampler sampler,
-                              const VkAllocationCallbacks* pAllocator) {
+                              const VkAllocationCallbacks* pAllocator) REQUIRES(mMutex) {
         auto samplerInfoIt = mSamplerInfo.find(sampler);
         if (samplerInfoIt == mSamplerInfo.end()) return;
         auto& samplerInfo = samplerInfoIt->second;
@@ -4232,7 +4233,7 @@ class VkDecoderGlobalState::Impl {
 
     void destroyPipelineCacheLocked(VkDevice device, VulkanDispatch* deviceDispatch,
                                     VkPipelineCache pipelineCache,
-                                    const VkAllocationCallbacks* pAllocator) {
+                                    const VkAllocationCallbacks* pAllocator) REQUIRES(mMutex) {
         auto pipelineCacheInfoIt = mPipelineCacheInfo.find(pipelineCache);
         if (pipelineCacheInfoIt == mPipelineCacheInfo.end()) return;
         auto& pipelineCacheInfo = pipelineCacheInfoIt->second;
@@ -4287,7 +4288,7 @@ class VkDecoderGlobalState::Impl {
 
     void destroyPipelineLayoutLocked(VkDevice device, VulkanDispatch* deviceDispatch,
                                      VkPipelineLayout pipelineLayout,
-                                     const VkAllocationCallbacks* pAllocator) {
+                                     const VkAllocationCallbacks* pAllocator) REQUIRES(mMutex) {
         auto pipelineLayoutInfoIt = mPipelineLayoutInfo.find(pipelineLayout);
         if (pipelineLayoutInfoIt == mPipelineLayoutInfo.end()) return;
         auto& pipelineLayoutInfo = pipelineLayoutInfoIt->second;
@@ -4379,7 +4380,7 @@ class VkDecoderGlobalState::Impl {
     }
 
     void destroyPipelineLocked(VkDevice device, VulkanDispatch* deviceDispatch, VkPipeline pipeline,
-                               const VkAllocationCallbacks* pAllocator) {
+                               const VkAllocationCallbacks* pAllocator) REQUIRES(mMutex) {
         auto pipelineInfoIt = mPipelineInfo.find(pipeline);
         if (pipelineInfoIt == mPipelineInfo.end()) return;
         auto& pipelineInfo = pipelineInfoIt->second;
@@ -7155,7 +7156,8 @@ class VkDecoderGlobalState::Impl {
     }
 
     void destroyRenderPassLocked(VkDevice device, VulkanDispatch* deviceDispatch,
-                                 VkRenderPass renderPass, const VkAllocationCallbacks* pAllocator) {
+                                 VkRenderPass renderPass, const VkAllocationCallbacks* pAllocator)
+        REQUIRES(mMutex) {
         auto renderPassInfoIt = mRenderPassInfo.find(renderPass);
         if (renderPassInfoIt == mRenderPassInfo.end()) return;
         auto& renderPassInfo = renderPassInfoIt->second;
@@ -9294,14 +9296,14 @@ class VkDecoderGlobalState::Impl {
     std::unordered_map<VkDeviceMemory, MemoryInfo> mMemoryInfo;
     std::unordered_map<VkFence, FenceInfo> mFenceInfo;
     std::unordered_map<VkFramebuffer, FramebufferInfo> mFramebufferInfo;
-    std::unordered_map<VkImage, ImageInfo> mImageInfo;
-    std::unordered_map<VkImageView, ImageViewInfo> mImageViewInfo;
-    std::unordered_map<VkPipeline, PipelineInfo> mPipelineInfo;
-    std::unordered_map<VkPipelineCache, PipelineCacheInfo> mPipelineCacheInfo;
-    std::unordered_map<VkPipelineLayout, PipelineLayoutInfo> mPipelineLayoutInfo;
-    std::unordered_map<VkQueue, QueueInfo> mQueueInfo;
-    std::unordered_map<VkRenderPass, RenderPassInfo> mRenderPassInfo;
-    std::unordered_map<VkSampler, SamplerInfo> mSamplerInfo;
+    std::unordered_map<VkImage, ImageInfo> mImageInfo GUARDED_BY(mMutex);
+    std::unordered_map<VkImageView, ImageViewInfo> mImageViewInfo GUARDED_BY(mMutex);
+    std::unordered_map<VkPipeline, PipelineInfo> mPipelineInfo GUARDED_BY(mMutex);
+    std::unordered_map<VkPipelineCache, PipelineCacheInfo> mPipelineCacheInfo GUARDED_BY(mMutex);
+    std::unordered_map<VkPipelineLayout, PipelineLayoutInfo> mPipelineLayoutInfo GUARDED_BY(mMutex);
+    std::unordered_map<VkQueue, QueueInfo> mQueueInfo GUARDED_BY(mMutex);
+    std::unordered_map<VkRenderPass, RenderPassInfo> mRenderPassInfo GUARDED_BY(mMutex);
+    std::unordered_map<VkSampler, SamplerInfo> mSamplerInfo GUARDED_BY(mMutex);
     std::unordered_map<VkSemaphore, SemaphoreInfo> mSemaphoreInfo GUARDED_BY(mMutex);
     std::unordered_map<VkShaderModule, ShaderModuleInfo> mShaderModuleInfo GUARDED_BY(mMutex);
 
