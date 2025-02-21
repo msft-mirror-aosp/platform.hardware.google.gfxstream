@@ -995,52 +995,8 @@ class BoxedHandleUnwrapMapping : public VulkanHandleMapping {
     GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES(BOXED_NON_DISPATCHABLE_UNWRAP_IMPL)
 };
 
-#define BOXED_DISPATCHABLE_WRAP_IMPL(type_name)                                                    \
-    MAKE_HANDLE_MAPPING_FOREACH(                                                                   \
-        type_name,                                                                                 \
-        if (handles[i]) { handles[i] = m_state->unboxed_to_boxed_##type_name(handles[i]); } else { \
-            handles[i] = (type_name) nullptr;                                                      \
-        };                                                                                         \
-        ,                                                                                          \
-        if (handles[i]) {                                                                          \
-            handle_u64s[i] = (uint64_t)m_state->unboxed_to_boxed_##type_name(handles[i]);          \
-        } else { handle_u64s[i] = 0; },                                                            \
-        if (handle_u64s[i]) {                                                                      \
-            handles[i] =                                                                           \
-                m_state->unboxed_to_boxed_##type_name((type_name)(uintptr_t)handle_u64s[i]);       \
-        } else { handles[i] = (type_name) nullptr; })
-
-#define BOXED_NON_DISPATCHABLE_WRAP_IMPL(type_name)                                           \
-    MAKE_HANDLE_MAPPING_FOREACH(                                                              \
-        type_name,                                                                            \
-        if (handles[i]) {                                                                     \
-            handles[i] = m_state->unboxed_to_boxed_non_dispatchable_##type_name(handles[i]);  \
-        } else { handles[i] = (type_name) nullptr; };                                         \
-        ,                                                                                     \
-        if (handles[i]) {                                                                     \
-            handle_u64s[i] =                                                                  \
-                (uint64_t)m_state->unboxed_to_boxed_non_dispatchable_##type_name(handles[i]); \
-        } else { handle_u64s[i] = 0; },                                                       \
-        if (handle_u64s[i]) {                                                                 \
-            handles[i] = m_state->unboxed_to_boxed_non_dispatchable_##type_name(              \
-                (type_name)(uintptr_t)handle_u64s[i]);                                        \
-        } else { handles[i] = (type_name) nullptr; })
-
-class BoxedHandleWrapMapping : public VulkanHandleMapping {
-   public:
-    BoxedHandleWrapMapping(VkDecoderGlobalState* state) : VulkanHandleMapping(state) {}
-    virtual ~BoxedHandleWrapMapping() {}
-    GOLDFISH_VK_LIST_DISPATCHABLE_HANDLE_TYPES(BOXED_DISPATCHABLE_WRAP_IMPL)
-    GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES(BOXED_NON_DISPATCHABLE_WRAP_IMPL)
-};
-
 // Not used, so we do not define.
 #define BOXED_DISPATCHABLE_CREATE_IMPL(type_name)                                  \
-    MAKE_HANDLE_MAPPING_FOREACH(type_name, (void)handles[i], (void)handle_u64s[i], \
-                                (void)handles[i];)
-
-// Not used, so we do not define.
-#define BOXED_DISPATCHABLE_DESTROY_IMPL(type_name)                                 \
     MAKE_HANDLE_MAPPING_FOREACH(type_name, (void)handles[i], (void)handle_u64s[i], \
                                 (void)handles[i];)
 
@@ -1051,11 +1007,6 @@ class BoxedHandleWrapMapping : public VulkanHandleMapping {
         , handle_u64s[i] = (uint64_t)new_boxed_non_dispatchable_##type_name(handles[i]), \
         handles[i] = (type_name)new_boxed_non_dispatchable_##type_name(                  \
             (type_name)(uintptr_t)handle_u64s[i]);)
-
-#define BOXED_NON_DISPATCHABLE_DESTROY_IMPL(type_name)                                           \
-    MAKE_HANDLE_MAPPING_FOREACH(type_name, delete_##type_name(handles[i]), (void)handle_u64s[i]; \
-                                delete_##type_name(handles[i]), (void)handles[i];                \
-                                delete_##type_name((type_name)handle_u64s[i]))
 
 #define BOXED_NON_DISPATCHABLE_UNWRAP_AND_DELETE_IMPL(type_name)                           \
     MAKE_HANDLE_MAPPING_FOREACH(                                                           \
@@ -1085,45 +1036,12 @@ class BoxedHandleCreateMapping : public VulkanHandleMapping {
     GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES(BOXED_NON_DISPATCHABLE_CREATE_IMPL)
 };
 
-class BoxedHandleDestroyMapping : public VulkanHandleMapping {
-   public:
-    BoxedHandleDestroyMapping(VkDecoderGlobalState* state) : VulkanHandleMapping(state) {}
-    virtual ~BoxedHandleDestroyMapping() {}
-    GOLDFISH_VK_LIST_DISPATCHABLE_HANDLE_TYPES(BOXED_DISPATCHABLE_DESTROY_IMPL)
-    GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES(BOXED_NON_DISPATCHABLE_DESTROY_IMPL)
-};
-
-class BoxedHandleUnwrapAndDeleteMapping : public VulkanHandleMapping {
-   public:
-    BoxedHandleUnwrapAndDeleteMapping(VkDecoderGlobalState* state) : VulkanHandleMapping(state) {}
-    virtual ~BoxedHandleUnwrapAndDeleteMapping() {}
-    GOLDFISH_VK_LIST_DISPATCHABLE_HANDLE_TYPES(BOXED_DISPATCHABLE_DESTROY_IMPL)
-    GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES(BOXED_NON_DISPATCHABLE_UNWRAP_AND_DELETE_IMPL)
-};
-
 #define HANDLE_MAPPING_DECLS(type_name)                                                            \
     void mapHandles_##type_name(type_name* handles, size_t count) override;                        \
     void mapHandles_##type_name##_u64(const type_name* handles, uint64_t* handle_u64s,             \
                                       size_t count) override;                                      \
     void mapHandles_u64_##type_name(const uint64_t* handle_u64s, type_name* handles, size_t count) \
         override;
-
-class BoxedHandleUnwrapAndDeletePreserveBoxedMapping : public VulkanHandleMapping {
-   public:
-    BoxedHandleUnwrapAndDeletePreserveBoxedMapping(VkDecoderGlobalState* state)
-        : VulkanHandleMapping(state) {}
-    void setup(android::base::BumpPool* pool, uint64_t** bufPtr);
-    virtual ~BoxedHandleUnwrapAndDeletePreserveBoxedMapping() {}
-
-    GOLDFISH_VK_LIST_DISPATCHABLE_HANDLE_TYPES(HANDLE_MAPPING_DECLS)
-    GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES(HANDLE_MAPPING_DECLS)
-
-   private:
-    void allocPreserve(size_t count);
-
-    android::base::BumpPool* mPool = nullptr;
-    uint64_t** mPreserveBufPtr = nullptr;
-};
 
 }  // namespace vk
 }  // namespace gfxstream
