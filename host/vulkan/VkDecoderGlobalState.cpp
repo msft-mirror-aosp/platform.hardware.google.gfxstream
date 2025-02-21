@@ -4177,7 +4177,7 @@ class VkDecoderGlobalState::Impl {
 
     void destroyShaderModuleLocked(VkDevice device, VulkanDispatch* deviceDispatch,
                                    VkShaderModule shaderModule,
-                                   const VkAllocationCallbacks* pAllocator) {
+                                   const VkAllocationCallbacks* pAllocator) REQUIRES(mMutex) {
         auto shaderModuleInfoIt = mShaderModuleInfo.find(shaderModule);
         if (shaderModuleInfoIt == mShaderModuleInfo.end()) return;
         auto& shaderModuleInfo = shaderModuleInfoIt->second;
@@ -9302,8 +9302,8 @@ class VkDecoderGlobalState::Impl {
     std::unordered_map<VkQueue, QueueInfo> mQueueInfo;
     std::unordered_map<VkRenderPass, RenderPassInfo> mRenderPassInfo;
     std::unordered_map<VkSampler, SamplerInfo> mSamplerInfo;
-    std::unordered_map<VkSemaphore, SemaphoreInfo> mSemaphoreInfo;
-    std::unordered_map<VkShaderModule, ShaderModuleInfo> mShaderModuleInfo;
+    std::unordered_map<VkSemaphore, SemaphoreInfo> mSemaphoreInfo GUARDED_BY(mMutex);
+    std::unordered_map<VkShaderModule, ShaderModuleInfo> mShaderModuleInfo GUARDED_BY(mMutex);
 
 #ifdef _WIN32
     int mSemaphoreId = 1;
