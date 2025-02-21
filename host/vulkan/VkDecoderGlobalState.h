@@ -91,14 +91,6 @@ class VkDecoderGlobalState {
     void load(android::base::Stream* stream, emugl::GfxApiLogger& gfxLogger,
               emugl::HealthMonitor<>* healthMonitor);
 
-    // Sets the current created handles for snapshot load
-    // which will override the effect of any new_boxed_*** calls.
-    // They are consumed in sequence.
-    // Returns number of bytes of |buffer|
-    // that have been consumed for this purpose.
-    size_t setCreatedHandlesForSnapshotLoad(const unsigned char* buffer);
-    void clearCreatedHandlesForSnapshotLoad();
-
     VkResult on_vkEnumerateInstanceVersion(android::base::BumpPool* pool,
                                            VkSnapshotApiCallInfo* snapshotInfo,
                                            uint32_t* pApiVersion);

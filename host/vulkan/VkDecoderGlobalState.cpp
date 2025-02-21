@@ -242,23 +242,41 @@ class BoxedHandleManager {
     };
     std::unordered_map<VkDevice, std::vector<DelayedRemove>> delayedRemoves;
 
+    // If true, `add()` will use and consume the handles in `mHandleReplayQueue`.
+    // This is useful for snapshot loading when a explicit set of handles should
+    // be used when replaying commands.
+    bool mHandleReplay = false;
+    std::deque<uint64_t> mHandleReplayQueue;
+
+    void replayHandles(std::vector<uint64_t> handles) {
+        mHandleReplay = true;
+        mHandleReplayQueue.clear();
+        for (uint64_t handle : handles) {
+            mHandleReplayQueue.push_back(handle);
+        }
+    }
+
     void clear() {
         reverseMap.clear();
         store.clear();
     }
 
     uint64_t add(const T& item, BoxedHandleTypeTag tag) {
-        auto res = (uint64_t)store.add(item, (size_t)tag);
-        AutoLock l(lock);
-        reverseMap[(uint64_t)(item.underlying)] = res;
-        return res;
-    }
+        uint64_t handle;
 
-    uint64_t addFixed(uint64_t handle, const T& item, BoxedHandleTypeTag tag) {
-        auto res = (uint64_t)store.addFixed(handle, item, (size_t)tag);
+        if (mHandleReplay) {
+            handle = mHandleReplayQueue.front();
+            mHandleReplayQueue.pop_front();
+            mHandleReplay = !mHandleReplayQueue.empty();
+
+            handle = (uint64_t)store.addFixed(handle, item, (size_t)tag);
+        } else {
+            handle = (uint64_t)store.add(item, (size_t)tag);
+        }
+
         AutoLock l(lock);
-        reverseMap[(uint64_t)(item.underlying)] = res;
-        return res;
+        reverseMap[(uint64_t)(item.underlying)] = handle;
+        return handle;
     }
 
     void update(uint64_t handle, const T& item, BoxedHandleTypeTag tag) {
@@ -436,9 +454,6 @@ class VkDecoderGlobalState::Impl {
 #endif
         mDescriptorUpdateTemplateInfo.clear();
 
-        mCreatedHandlesForSnapshotLoad.clear();
-        mCreatedHandlesForSnapshotLoadIndex = 0;
-
         sBoxedHandleManager.clear();
 
         mSnapshot.clear();
@@ -531,7 +546,7 @@ class VkDecoderGlobalState::Impl {
         }
 
         VERBOSE("snapshot save: replay command stream");
-        snapshot()->saveDecoderReplayBuffer(stream);
+        snapshot()->saveReplayBuffers(stream);
 
         // Save mapped memory
         uint32_t memoryCount = 0;
@@ -795,8 +810,11 @@ class VkDecoderGlobalState::Impl {
         // Replay command stream:
         VERBOSE("snapshot load: replay command stream");
         {
+            std::vector<uint64_t> handleReplayBuffer;
             std::vector<uint8_t> decoderReplayBuffer;
-            VkDecoderSnapshot::loadDecoderReplayBuffer(stream, &decoderReplayBuffer);
+            VkDecoderSnapshot::loadReplayBuffers(stream, &handleReplayBuffer, &decoderReplayBuffer);
+
+            sBoxedHandleManager.replayHandles(handleReplayBuffer);
 
             VkDecoder decoderForLoading;
             // A decoder that is set for snapshot load will load up the created handles first,
@@ -1022,37 +1040,6 @@ class VkDecoderGlobalState::Impl {
             mSnapshotState = SnapshotState::Normal;
         }
         VERBOSE("VulkanSnapshots load (end)");
-    }
-
-    size_t setCreatedHandlesForSnapshotLoad(const unsigned char* buffer) {
-        size_t consumed = 0;
-
-        if (!buffer) return consumed;
-
-        uint32_t bufferSize = *(uint32_t*)buffer;
-
-        consumed += 4;
-
-        uint32_t handleCount = bufferSize / 8;
-        VKDGS_LOG("incoming handle count: %u", handleCount);
-
-        uint64_t* handles = (uint64_t*)(buffer + 4);
-
-        mCreatedHandlesForSnapshotLoad.clear();
-        mCreatedHandlesForSnapshotLoadIndex = 0;
-
-        for (uint32_t i = 0; i < handleCount; ++i) {
-            VKDGS_LOG("handle to load: 0x%llx", (unsigned long long)(uintptr_t)handles[i]);
-            mCreatedHandlesForSnapshotLoad.push_back(handles[i]);
-            consumed += 8;
-        }
-
-        return consumed;
-    }
-
-    void clearCreatedHandlesForSnapshotLoad() {
-        mCreatedHandlesForSnapshotLoad.clear();
-        mCreatedHandlesForSnapshotLoadIndex = 0;
     }
 
     std::optional<uint32_t> getContextIdForDeviceLocked(VkDevice device) REQUIRES(mMutex) {
@@ -8224,17 +8211,7 @@ class VkDecoderGlobalState::Impl {
 
     uint64_t newGlobalHandle(const DispatchableHandleInfo<uint64_t>& item,
                              BoxedHandleTypeTag typeTag) {
-        if (!mCreatedHandlesForSnapshotLoad.empty() &&
-            (mCreatedHandlesForSnapshotLoad.size() - mCreatedHandlesForSnapshotLoadIndex > 0)) {
-            auto handle = mCreatedHandlesForSnapshotLoad[mCreatedHandlesForSnapshotLoadIndex];
-            VKDGS_LOG("use handle: 0x%lx underlying 0x%lx", handle, item.underlying);
-            ++mCreatedHandlesForSnapshotLoadIndex;
-            auto res = sBoxedHandleManager.addFixed(handle, item, typeTag);
-
-            return res;
-        } else {
-            return sBoxedHandleManager.add(item, typeTag);
-        }
+        return sBoxedHandleManager.add(item, typeTag);
     }
 
 #define DEFINE_BOXED_DISPATCHABLE_HANDLE_API_IMPL(type)                                           \
@@ -9394,8 +9371,6 @@ class VkDecoderGlobalState::Impl {
         Loading,
     };
     SnapshotState mSnapshotState = SnapshotState::Normal;
-    std::vector<uint64_t> mCreatedHandlesForSnapshotLoad;
-    size_t mCreatedHandlesForSnapshotLoadIndex = 0;
 
     // NOTE: Only present during snapshot loading. This is needed to associate
     // `VkDevice`s with Virtio GPU context ids because API calls are not currently
@@ -9503,14 +9478,6 @@ void VkDecoderGlobalState::save(android::base::Stream* stream) { mImpl->save(str
 void VkDecoderGlobalState::load(android::base::Stream* stream, GfxApiLogger& gfxLogger,
                                 HealthMonitor<>* healthMonitor) {
     mImpl->load(stream, gfxLogger, healthMonitor);
-}
-
-size_t VkDecoderGlobalState::setCreatedHandlesForSnapshotLoad(const unsigned char* buffer) {
-    return mImpl->setCreatedHandlesForSnapshotLoad(buffer);
-}
-
-void VkDecoderGlobalState::clearCreatedHandlesForSnapshotLoad() {
-    mImpl->clearCreatedHandlesForSnapshotLoad();
 }
 
 VkResult VkDecoderGlobalState::on_vkEnumerateInstanceVersion(android::base::BumpPool* pool,
