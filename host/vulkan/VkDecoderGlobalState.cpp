@@ -7307,7 +7307,7 @@ class VkDecoderGlobalState::Impl {
 
     void destroyFramebufferLocked(VkDevice device, VulkanDispatch* deviceDispatch,
                                   VkFramebuffer framebuffer,
-                                  const VkAllocationCallbacks* pAllocator) {
+                                  const VkAllocationCallbacks* pAllocator) REQUIRES(mMutex) {
         auto framebufferInfoIt = mFramebufferInfo.find(framebuffer);
         if (framebufferInfoIt == mFramebufferInfo.end()) return;
         auto& framebufferInfo = framebufferInfoIt->second;
@@ -9294,8 +9294,8 @@ class VkDecoderGlobalState::Impl {
     std::unordered_map<VkDescriptorSet, DescriptorSetInfo> mDescriptorSetInfo;
     std::unordered_map<VkDescriptorSetLayout, DescriptorSetLayoutInfo> mDescriptorSetLayoutInfo;
     std::unordered_map<VkDeviceMemory, MemoryInfo> mMemoryInfo;
-    std::unordered_map<VkFence, FenceInfo> mFenceInfo;
-    std::unordered_map<VkFramebuffer, FramebufferInfo> mFramebufferInfo;
+    std::unordered_map<VkFence, FenceInfo> mFenceInfo GUARDED_BY(mMutex);
+    std::unordered_map<VkFramebuffer, FramebufferInfo> mFramebufferInfo GUARDED_BY(mMutex);
     std::unordered_map<VkImage, ImageInfo> mImageInfo GUARDED_BY(mMutex);
     std::unordered_map<VkImageView, ImageViewInfo> mImageViewInfo GUARDED_BY(mMutex);
     std::unordered_map<VkPipeline, PipelineInfo> mPipelineInfo GUARDED_BY(mMutex);
