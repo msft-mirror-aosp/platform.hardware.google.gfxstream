@@ -33,16 +33,14 @@
 #include "VkDecoderSnapshotUtils.h"
 #include "VkEmulatedPhysicalDeviceMemory.h"
 #include "VkEmulatedPhysicalDeviceQueue.h"
+#include "VulkanBoxedHandles.h"
 #include "VulkanDispatch.h"
 #include "VulkanStream.h"
 #include "aemu/base/Optional.h"
 #include "aemu/base/ThreadAnnotations.h"
-#include "aemu/base/containers/EntityManager.h"
-#include "aemu/base/containers/HybridEntityManager.h"
 #include "aemu/base/containers/Lookup.h"
 #include "aemu/base/files/Stream.h"
 #include "aemu/base/memory/SharedMemory.h"
-#include "aemu/base/synchronization/ConditionVariable.h"
 #include "aemu/base/synchronization/Lock.h"
 #include "aemu/base/system/System.h"
 #include "common/goldfish_vk_deepcopy.h"
@@ -93,7 +91,6 @@ namespace gfxstream {
 namespace vk {
 
 using android::base::AutoLock;
-using android::base::ConditionVariable;
 using android::base::DescriptorType;
 using android::base::Lock;
 using android::base::MetricEventBadPacketLength;
@@ -209,196 +206,6 @@ static uint64_t hostBlobId = 0;
 // fake context ID. We will eventually need to fix it once we start using
 // snapshot with virtio.
 static uint32_t kTemporaryContextIdForSnapshotLoading = 1;
-
-#define DEFINE_BOXED_HANDLE_TYPE_TAG(type) Tag_##type,
-
-enum BoxedHandleTypeTag {
-    Tag_Invalid = 0,
-    GOLDFISH_VK_LIST_HANDLE_TYPES_BY_STAGE(DEFINE_BOXED_HANDLE_TYPE_TAG)
-
-    // additional generic tag
-    Tag_VkGeneric = 1001,
-};
-
-template <class T>
-class BoxedHandleManager {
-   public:
-    // The hybrid entity manager uses a sequence lock to protect access to
-    // a working set of 16000 handles, allowing us to avoid using a regular
-    // lock for those. Performance is degraded when going over this number,
-    // as it will then fall back to a std::map.
-    //
-    // We use 16000 as the max number of live handles to track; we don't
-    // expect the system to go over 16000 total live handles, outside some
-    // dEQP object management tests.
-    using Store = android::base::HybridEntityManager<16000, uint64_t, T>;
-
-    Lock lock;
-    mutable Store store;
-    std::unordered_map<uint64_t, uint64_t> reverseMap;
-    struct DelayedRemove {
-        uint64_t handle;
-        std::function<void()> callback;
-    };
-    std::unordered_map<VkDevice, std::vector<DelayedRemove>> delayedRemoves;
-
-    // If true, `add()` will use and consume the handles in `mHandleReplayQueue`.
-    // This is useful for snapshot loading when a explicit set of handles should
-    // be used when replaying commands.
-    bool mHandleReplay = false;
-    std::deque<uint64_t> mHandleReplayQueue;
-
-    void replayHandles(std::vector<uint64_t> handles) {
-        mHandleReplay = true;
-        mHandleReplayQueue.clear();
-        for (uint64_t handle : handles) {
-            mHandleReplayQueue.push_back(handle);
-        }
-    }
-
-    void clear() {
-        reverseMap.clear();
-        store.clear();
-    }
-
-    uint64_t add(const T& item, BoxedHandleTypeTag tag) {
-        uint64_t handle;
-
-        if (mHandleReplay) {
-            handle = mHandleReplayQueue.front();
-            mHandleReplayQueue.pop_front();
-            mHandleReplay = !mHandleReplayQueue.empty();
-
-            handle = (uint64_t)store.addFixed(handle, item, (size_t)tag);
-        } else {
-            handle = (uint64_t)store.add(item, (size_t)tag);
-        }
-
-        AutoLock l(lock);
-        reverseMap[(uint64_t)(item.underlying)] = handle;
-        return handle;
-    }
-
-    void update(uint64_t handle, const T& item, BoxedHandleTypeTag tag) {
-        auto storedItem = store.get(handle);
-        uint64_t oldHandle = (uint64_t)storedItem->underlying;
-        *storedItem = item;
-        AutoLock l(lock);
-        if (oldHandle) {
-            reverseMap.erase(oldHandle);
-        }
-        reverseMap[(uint64_t)(item.underlying)] = handle;
-    }
-
-    void remove(uint64_t h) {
-        auto item = get(h);
-        if (item) {
-            AutoLock l(lock);
-            reverseMap.erase((uint64_t)(item->underlying));
-        }
-        store.remove(h);
-    }
-
-    void removeDelayed(uint64_t h, VkDevice device, std::function<void()> callback) {
-        AutoLock l(lock);
-        delayedRemoves[device].push_back({h, callback});
-    }
-
-    // Do not call directly! Instead use `processDelayedRemovesForDevice()` which has
-    // thread safety annotations for `VkDecoderGlobalState::Impl`.
-    void processDelayedRemoves(VkDevice device) {
-        std::vector<DelayedRemove> deviceDelayedRemoves;
-
-        {
-            AutoLock l(lock);
-
-            auto it = delayedRemoves.find(device);
-            if (it == delayedRemoves.end()) return;
-
-            deviceDelayedRemoves = std::move(it->second);
-            delayedRemoves.erase(it);
-        }
-
-        for (const auto& r : deviceDelayedRemoves) {
-            auto h = r.handle;
-
-            // VkDecoderGlobalState is not locked when callback is called.
-            if (r.callback) {
-                r.callback();
-            }
-
-            store.remove(h);
-        }
-    }
-
-    T* get(uint64_t h) { return (T*)store.get_const(h); }
-
-    uint64_t getBoxedFromUnboxedLocked(uint64_t unboxed) {
-        auto* res = android::base::find(reverseMap, unboxed);
-        if (!res) return 0;
-        return *res;
-    }
-};
-
-struct OrderMaintenanceInfo {
-    uint32_t sequenceNumber = 0;
-    Lock lock;
-    ConditionVariable cv;
-
-    uint32_t refcount = 1;
-
-    void incRef() { __atomic_add_fetch(&refcount, 1, __ATOMIC_SEQ_CST); }
-
-    bool decRef() { return 0 == __atomic_sub_fetch(&refcount, 1, __ATOMIC_SEQ_CST); }
-};
-
-static void acquireOrderMaintInfo(OrderMaintenanceInfo* ord) {
-    if (!ord) return;
-    ord->incRef();
-}
-
-static void releaseOrderMaintInfo(OrderMaintenanceInfo* ord) {
-    if (!ord) return;
-    if (ord->decRef()) delete ord;
-}
-
-template <class T>
-class DispatchableHandleInfo {
-   public:
-    T underlying;
-    VulkanDispatch* dispatch = nullptr;
-    bool ownDispatch = false;
-    OrderMaintenanceInfo* ordMaintInfo = nullptr;
-    VulkanMemReadingStream* readStream = nullptr;
-};
-
-static BoxedHandleManager<DispatchableHandleInfo<uint64_t>> sBoxedHandleManager;
-
-struct ReadStreamRegistry {
-    Lock mLock;
-
-    std::vector<VulkanMemReadingStream*> freeStreams;
-
-    ReadStreamRegistry() { freeStreams.reserve(100); };
-
-    VulkanMemReadingStream* pop(const gfxstream::host::FeatureSet& features) {
-        AutoLock lock(mLock);
-        if (freeStreams.empty()) {
-            return new VulkanMemReadingStream(nullptr, features);
-        } else {
-            VulkanMemReadingStream* res = freeStreams.back();
-            freeStreams.pop_back();
-            return res;
-        }
-    }
-
-    void push(VulkanMemReadingStream* stream) {
-        AutoLock lock(mLock);
-        freeStreams.push_back(stream);
-    }
-};
-
-static ReadStreamRegistry sReadStreamRegistry;
 
 class VkDecoderGlobalState::Impl {
    public:
@@ -637,7 +444,7 @@ class VkDecoderGlobalState::Impl {
             const DescriptorPoolInfo& poolInfo = mDescriptorPoolInfo[unboxedDescriptorPool];
 
             for (uint64_t poolId : poolInfo.poolIds) {
-                DispatchableHandleInfo<uint64_t>* setHandleInfo = sBoxedHandleManager.get(poolId);
+                BoxedHandleInfo* setHandleInfo = sBoxedHandleManager.get(poolId);
                 bool allocated = setHandleInfo->underlying != 0;
                 stream->putByte(allocated);
                 if (!allocated) {
@@ -7627,7 +7434,7 @@ class VkDecoderGlobalState::Impl {
                 << "descriptor pool " << pool << " not found ";
         }
 
-        DispatchableHandleInfo<uint64_t>* setHandleInfo = sBoxedHandleManager.get(poolId);
+        BoxedHandleInfo* setHandleInfo = sBoxedHandleManager.get(poolId);
 
         if (setHandleInfo->underlying) {
             if (pendingAlloc) {
@@ -8209,158 +8016,8 @@ class VkDecoderGlobalState::Impl {
     DEFINE_EXTERNAL_MEMORY_PROPERTIES_TRANSFORM(VkExternalImageFormatProperties)
     DEFINE_EXTERNAL_MEMORY_PROPERTIES_TRANSFORM(VkExternalBufferProperties)
 
-    uint64_t newGlobalHandle(const DispatchableHandleInfo<uint64_t>& item,
-                             BoxedHandleTypeTag typeTag) {
+    BoxedHandle newGlobalHandle(const BoxedHandleInfo& item, BoxedHandleTypeTag typeTag) {
         return sBoxedHandleManager.add(item, typeTag);
-    }
-
-#define DEFINE_BOXED_DISPATCHABLE_HANDLE_API_IMPL(type)                                           \
-    type new_boxed_##type(type underlying, VulkanDispatch* dispatch, bool ownDispatch) {          \
-        DispatchableHandleInfo<uint64_t> item;                                                    \
-        item.underlying = (uint64_t)underlying;                                                   \
-        item.dispatch = dispatch ? dispatch : new VulkanDispatch;                                 \
-        item.ownDispatch = ownDispatch;                                                           \
-        item.ordMaintInfo = new OrderMaintenanceInfo;                                             \
-        item.readStream = nullptr;                                                                \
-        auto res = (type)newGlobalHandle(item, Tag_##type);                                       \
-        return res;                                                                               \
-    }                                                                                             \
-    void delete_##type(type boxed) {                                                              \
-        if (!boxed) return;                                                                       \
-        auto elt = sBoxedHandleManager.get((uint64_t)(uintptr_t)boxed);                           \
-        if (!elt) return;                                                                         \
-        releaseOrderMaintInfo(elt->ordMaintInfo);                                                 \
-        if (elt->readStream) {                                                                    \
-            sReadStreamRegistry.push(elt->readStream);                                            \
-            elt->readStream = nullptr;                                                            \
-        }                                                                                         \
-        sBoxedHandleManager.remove((uint64_t)boxed);                                              \
-    }                                                                                             \
-    OrderMaintenanceInfo* ordmaint_##type(type boxed) {                                           \
-        auto elt = sBoxedHandleManager.get((uint64_t)(uintptr_t)boxed);                           \
-        if (!elt) return 0;                                                                       \
-        auto info = elt->ordMaintInfo;                                                            \
-        if (!info) return 0;                                                                      \
-        acquireOrderMaintInfo(info);                                                              \
-        return info;                                                                              \
-    }                                                                                             \
-    VulkanMemReadingStream* readstream_##type(type boxed) {                                       \
-        auto elt = sBoxedHandleManager.get((uint64_t)(uintptr_t)boxed);                           \
-        if (!elt) return 0;                                                                       \
-        auto stream = elt->readStream;                                                            \
-        if (!stream) {                                                                            \
-            stream = sReadStreamRegistry.pop(getFeatures());                                      \
-            elt->readStream = stream;                                                             \
-        }                                                                                         \
-        return stream;                                                                            \
-    }                                                                                             \
-    VulkanDispatch* dispatch_##type(type boxed) {                                                 \
-        auto elt = sBoxedHandleManager.get((uint64_t)(uintptr_t)boxed);                           \
-        if (!elt) {                                                                               \
-            ERR("%s: Failed to unbox %p", __func__, boxed);                                       \
-            return nullptr;                                                                       \
-        }                                                                                         \
-        return elt->dispatch;                                                                     \
-    }
-
-#define DEFINE_BOXED_NON_DISPATCHABLE_HANDLE_API_IMPL(type)                                       \
-    type new_boxed_non_dispatchable_##type(type underlying) {                                     \
-        DispatchableHandleInfo<uint64_t> item;                                                    \
-        item.underlying = (uint64_t)underlying;                                                   \
-        auto res = (type)newGlobalHandle(item, Tag_##type);                                       \
-        return res;                                                                               \
-    }                                                                                             \
-    void delayed_delete_##type(type boxed, VkDevice device, std::function<void()> callback) {     \
-        sBoxedHandleManager.removeDelayed((uint64_t)boxed, device, callback);                     \
-    }                                                                                             \
-    void delete_##type(type boxed) { sBoxedHandleManager.remove((uint64_t)boxed); }               \
-    void set_boxed_non_dispatchable_##type(type boxed, type underlying) {                         \
-        DispatchableHandleInfo<uint64_t> item;                                                    \
-        item.underlying = (uint64_t)underlying;                                                   \
-        sBoxedHandleManager.update((uint64_t)boxed, item, Tag_##type);                            \
-    }                                                                                             \
-    type unboxed_to_boxed_non_dispatchable_##type(type unboxed) {                                 \
-        AutoLock lock(sBoxedHandleManager.lock);                                                  \
-        return (type)sBoxedHandleManager.getBoxedFromUnboxedLocked((uint64_t)(uintptr_t)unboxed); \
-    }                                                                                             \
-    type unbox_##type(type boxed) {                                                               \
-        AutoLock lock(sBoxedHandleManager.lock);                                                  \
-        auto elt = sBoxedHandleManager.get((uint64_t)(uintptr_t)boxed);                           \
-        if (!elt) {                                                                               \
-            if constexpr (!std::is_same_v<type, VkFence>) {                                       \
-                GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))                                   \
-                    << "Unbox " << boxed << " failed, not found.";                                \
-            }                                                                                     \
-            return VK_NULL_HANDLE;                                                                \
-        }                                                                                         \
-        return (type)elt->underlying;                                                             \
-    }                                                                                             \
-    type try_unbox_##type(type boxed) {                                                           \
-        AutoLock lock(sBoxedHandleManager.lock);                                                  \
-        auto elt = sBoxedHandleManager.get((uint64_t)(uintptr_t)boxed);                           \
-        if (!elt) {                                                                               \
-            WARN("%s: Failed to unbox %p", __func__, boxed);                                      \
-            return VK_NULL_HANDLE;                                                                \
-        }                                                                                         \
-        return (type)elt->underlying;                                                             \
-    }
-
-    GOLDFISH_VK_LIST_DISPATCHABLE_HANDLE_TYPES(DEFINE_BOXED_DISPATCHABLE_HANDLE_API_IMPL)
-    GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES(DEFINE_BOXED_NON_DISPATCHABLE_HANDLE_API_IMPL)
-
-#define DEFINE_BOXED_DISPATCHABLE_HANDLE_API_REGULAR_UNBOX_IMPL(type)                             \
-    type unbox_##type(type boxed) {                                                               \
-        auto elt = sBoxedHandleManager.get((uint64_t)(uintptr_t)boxed);                           \
-        if (!elt){                                                                                \
-            ERR("%s: Failed to unbox %p", __func__, boxed);                                       \
-            return VK_NULL_HANDLE;                                                                \
-        }                                                                                         \
-        return (type)elt->underlying;                                                             \
-    }                                                                                             \
-    type try_unbox_##type(type boxed) {                                                           \
-        auto elt = sBoxedHandleManager.get((uint64_t)(uintptr_t)boxed);                           \
-        if (!elt){                                                                                \
-            WARN("%s: Failed to unbox %p", __func__, boxed);                                      \
-            return VK_NULL_HANDLE;                                                                \
-        }                                                                                         \
-        return (type)elt->underlying;                                                             \
-    }                                                                                             \
-    type unboxed_to_boxed_##type(type unboxed) {                                                  \
-        AutoLock lock(sBoxedHandleManager.lock);                                                  \
-        return (type)sBoxedHandleManager.getBoxedFromUnboxedLocked((uint64_t)(uintptr_t)unboxed); \
-    }
-
-    GOLDFISH_VK_LIST_DISPATCHABLE_REGULAR_UNBOX_HANDLE_TYPES(DEFINE_BOXED_DISPATCHABLE_HANDLE_API_REGULAR_UNBOX_IMPL)
-
-    // Custom unbox_* functions or GOLDFISH_VK_LIST_DISPATCHABLE_CUSTOM_UNBOX_HANDLE_TYPES
-    // VkQueue objects can be virtual, meaning that multiple boxed queues can map into a single
-    // physical queue on the host GPU. Some conversion is needed for unboxing to physical.
-    VkQueue unbox_VkQueueImp(VkQueue boxed) {
-        auto elt = sBoxedHandleManager.get((uint64_t)(uintptr_t)boxed);
-        if (!elt) {
-            return VK_NULL_HANDLE;
-        }
-        const uint64_t unboxedQueue64 = elt->underlying;
-        // Use VulkanVirtualQueue directly to avoid locking for hasVirtualGraphicsQueue call.
-        if (m_emu->features.VulkanVirtualQueue.enabled) {
-            // Clear virtual bit and unbox into the actual physical queue handle
-            return (VkQueue)(unboxedQueue64 & ~QueueInfo::kVirtualQueueBit);
-        }
-        return (VkQueue)(unboxedQueue64);
-    }
-    VkQueue unbox_VkQueue(VkQueue boxed) {
-        VkQueue unboxed = unbox_VkQueueImp(boxed);
-        if (unboxed == VK_NULL_HANDLE) {
-            ERR("%s: Failed to unbox %p", __func__, boxed);
-        }
-        return unboxed;
-    }
-    VkQueue try_unbox_VkQueue(VkQueue boxed) {
-        VkQueue unboxed = unbox_VkQueueImp(boxed);
-        if (unboxed == VK_NULL_HANDLE) {
-            WARN("%s: Failed to unbox %p", __func__, boxed);
-        }
-        return unboxed;
     }
 
     VkDecoderSnapshot* snapshot() { return &mSnapshot; }
@@ -9461,7 +9118,7 @@ bool VkDecoderGlobalState::snapshotsEnabled() const { return mImpl->snapshotsEna
 bool VkDecoderGlobalState::batchedDescriptorSetUpdateEnabled() const { return mImpl->batchedDescriptorSetUpdateEnabled(); }
 
 uint64_t VkDecoderGlobalState::newGlobalVkGenericHandle() {
-    DispatchableHandleInfo<uint64_t> item;                                                    \
+    BoxedHandleInfo item;                                                    \
     return mImpl->newGlobalHandle(item, Tag_VkGeneric);
 }
 
@@ -10785,123 +10442,6 @@ VkDecoderSnapshot* VkDecoderGlobalState::snapshot() { return mImpl->snapshot(); 
     }
 
 LIST_TRANSFORMED_TYPES(DEFINE_TRANSFORMED_TYPE_IMPL)
-
-#define DEFINE_BOXED_DISPATCHABLE_HANDLE_API_DEF(type)                                         \
-    type VkDecoderGlobalState::new_boxed_##type(type underlying, VulkanDispatch* dispatch,     \
-                                                bool ownDispatch) {                            \
-        return mImpl->new_boxed_##type(underlying, dispatch, ownDispatch);                     \
-    }                                                                                          \
-    void VkDecoderGlobalState::delete_##type(type boxed) { mImpl->delete_##type(boxed); }      \
-    type VkDecoderGlobalState::unbox_##type(type boxed) { return mImpl->unbox_##type(boxed); } \
-    type VkDecoderGlobalState::try_unbox_##type(type boxed) {                                  \
-        return mImpl->try_unbox_##type(boxed);                                                 \
-    }                                                                                          \
-    VulkanDispatch* VkDecoderGlobalState::dispatch_##type(type boxed) {                        \
-        return mImpl->dispatch_##type(boxed);                                                  \
-    }
-
-#define DEFINE_UNBOXED_TO_BOXED_DISPATCHABLE_HANDLE_API_DEF(type)                              \
-    type VkDecoderGlobalState::unboxed_to_boxed_##type(type unboxed) {                         \
-        return mImpl->unboxed_to_boxed_##type(unboxed);                                        \
-    }
-
-#define DEFINE_BOXED_NON_DISPATCHABLE_HANDLE_API_DEF(type)                                     \
-    type VkDecoderGlobalState::new_boxed_non_dispatchable_##type(type underlying) {            \
-        return mImpl->new_boxed_non_dispatchable_##type(underlying);                           \
-    }                                                                                          \
-    void VkDecoderGlobalState::delete_##type(type boxed) { mImpl->delete_##type(boxed); }      \
-    type VkDecoderGlobalState::unbox_##type(type boxed) { return mImpl->unbox_##type(boxed); } \
-    type VkDecoderGlobalState::try_unbox_##type(type boxed) {                                  \
-        return mImpl->try_unbox_##type(boxed);                                                 \
-    }
-
-GOLDFISH_VK_LIST_DISPATCHABLE_HANDLE_TYPES(DEFINE_BOXED_DISPATCHABLE_HANDLE_API_DEF)
-GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES(DEFINE_BOXED_NON_DISPATCHABLE_HANDLE_API_DEF)
-
-// Custom unbox and non dispatchable handles should not use unboxed_to_boxed as there is no 1-1
-// mapping
-GOLDFISH_VK_LIST_DISPATCHABLE_REGULAR_UNBOX_HANDLE_TYPES(
-    DEFINE_UNBOXED_TO_BOXED_DISPATCHABLE_HANDLE_API_DEF)
-
-#define DEFINE_BOXED_DISPATCHABLE_HANDLE_GLOBAL_API_DEF(type)                                     \
-    type unbox_##type(type boxed) {                                                               \
-        auto elt = sBoxedHandleManager.get((uint64_t)(uintptr_t)boxed);                           \
-        if (!elt) return VK_NULL_HANDLE;                                                          \
-        return (type)elt->underlying;                                                             \
-    }                                                                                             \
-    type try_unbox_##type(type boxed) {                                                           \
-        auto elt = sBoxedHandleManager.get((uint64_t)(uintptr_t)boxed);                           \
-        if (!elt) {                                                                               \
-            WARN("%s: Failed to unbox %p", __func__, boxed);                                      \
-            return VK_NULL_HANDLE;                                                                \
-        }                                                                                         \
-        return (type)elt->underlying;                                                             \
-    }                                                                                             \
-    VulkanDispatch* dispatch_##type(type boxed) {                                                 \
-        auto elt = sBoxedHandleManager.get((uint64_t)(uintptr_t)boxed);                           \
-        if (!elt) {                                                                               \
-            ERR("%s: Failed to unbox %p", __func__, boxed);                                       \
-            return nullptr;                                                                       \
-        }                                                                                         \
-        return elt->dispatch;                                                                     \
-    }                                                                                             \
-    void delete_##type(type boxed) {                                                              \
-        if (!boxed) return;                                                                       \
-        auto elt = sBoxedHandleManager.get((uint64_t)(uintptr_t)boxed);                           \
-        if (!elt) return;                                                                         \
-        releaseOrderMaintInfo(elt->ordMaintInfo);                                                 \
-        if (elt->readStream) {                                                                    \
-            sReadStreamRegistry.push(elt->readStream);                                            \
-            elt->readStream = nullptr;                                                            \
-        }                                                                                         \
-        sBoxedHandleManager.remove((uint64_t)boxed);                                              \
-    }                                                                                             \
-    type unboxed_to_boxed_##type(type unboxed) {                                                  \
-        AutoLock lock(sBoxedHandleManager.lock);                                                  \
-        return (type)sBoxedHandleManager.getBoxedFromUnboxedLocked((uint64_t)(uintptr_t)unboxed); \
-    }
-
-#define DEFINE_BOXED_NON_DISPATCHABLE_HANDLE_GLOBAL_API_DEF(type)                                 \
-    type new_boxed_non_dispatchable_##type(type underlying) {                                     \
-        return VkDecoderGlobalState::get()->new_boxed_non_dispatchable_##type(underlying);        \
-    }                                                                                             \
-    void delete_##type(type boxed) {                                                              \
-        if (!boxed) return;                                                                       \
-        sBoxedHandleManager.remove((uint64_t)boxed);                                              \
-    }                                                                                             \
-    void delayed_delete_##type(type boxed, VkDevice device, std::function<void()> callback) {     \
-        sBoxedHandleManager.removeDelayed((uint64_t)boxed, device, callback);                     \
-    }                                                                                             \
-    type unbox_##type(type boxed) {                                                               \
-        if (!boxed) return boxed;                                                                 \
-        auto elt = sBoxedHandleManager.get((uint64_t)(uintptr_t)boxed);                           \
-        if (!elt) {                                                                               \
-            GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))                                       \
-                << "Unbox " << boxed << " failed, not found.";                                    \
-            return VK_NULL_HANDLE;                                                                \
-        }                                                                                         \
-        return (type)elt->underlying;                                                             \
-    }                                                                                             \
-    type try_unbox_##type(type boxed) {                                                           \
-        if (!boxed) return boxed;                                                                 \
-        auto elt = sBoxedHandleManager.get((uint64_t)(uintptr_t)boxed);                           \
-        if (!elt) {                                                                               \
-            WARN("%s: Failed to unbox %p", __func__, boxed);                                      \
-            return VK_NULL_HANDLE;                                                                \
-        }                                                                                         \
-        return (type)elt->underlying;                                                             \
-    }                                                                                             \
-    type unboxed_to_boxed_non_dispatchable_##type(type unboxed) {                                 \
-        if (!unboxed) {                                                                           \
-            return nullptr;                                                                       \
-        }                                                                                         \
-        AutoLock lock(sBoxedHandleManager.lock);                                                  \
-        return (type)sBoxedHandleManager.getBoxedFromUnboxedLocked((uint64_t)(uintptr_t)unboxed); \
-    }
-
-GOLDFISH_VK_LIST_DISPATCHABLE_HANDLE_TYPES(DEFINE_BOXED_DISPATCHABLE_HANDLE_GLOBAL_API_DEF)
-GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES(DEFINE_BOXED_NON_DISPATCHABLE_HANDLE_GLOBAL_API_DEF)
-
 
 }  // namespace vk
 }  // namespace gfxstream
