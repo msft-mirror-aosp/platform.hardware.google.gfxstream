@@ -328,7 +328,7 @@ void RendererImpl::addressSpaceGraphicsConsumerSave(void* consumer, android::bas
 
 void RendererImpl::addressSpaceGraphicsConsumerPostSave(void* consumer) {
     RenderThread* thread = (RenderThread*)consumer;
-    thread->resume(true);
+    thread->resume();
 }
 
 void RendererImpl::addressSpaceGraphicsConsumerRegisterPostLoadRenderThread(void* consumer) {
@@ -355,11 +355,11 @@ void RendererImpl::pauseAllPreSave() {
     waitForProcessCleanup();
 }
 
-void RendererImpl::resumeAll(bool waitForSave) {
+void RendererImpl::resumeAll() {
     {
         android::base::AutoLock lock(mAddressSpaceRenderThreadLock);
         for (const auto t : mAdditionalPostLoadRenderThreads) {
-            t->resume(waitForSave);
+            t->resume();
         }
     }
     {
@@ -368,10 +368,10 @@ void RendererImpl::resumeAll(bool waitForSave) {
             return;
         }
         for (const auto& c : mChannels) {
-            c->renderThread()->resume(waitForSave);
+            c->renderThread()->resume();
         }
         for (const auto& thread : mAddressSpaceRenderThreads) {
-            thread->resume(waitForSave);
+            thread->resume();
         }
         mAdditionalPostLoadRenderThreads.clear();
     }

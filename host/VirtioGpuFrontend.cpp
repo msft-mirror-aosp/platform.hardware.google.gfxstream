@@ -1239,9 +1239,7 @@ int VirtioGpuFrontend::restore(const char* directory) {
         return ret;
     }
 
-    // In end2end tests, we don't really do snapshot save for render threads.
-    // We will need to resume all render threads without waiting for snapshot.
-    android_getOpenglesRenderer()->resumeAll(false);
+    android_getOpenglesRenderer()->resumeAll();
 
     stream_renderer_debug("directory:%s - done!", directory);
     return 0;

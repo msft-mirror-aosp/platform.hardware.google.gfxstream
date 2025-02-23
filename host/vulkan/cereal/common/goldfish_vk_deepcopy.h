@@ -1210,6 +1210,17 @@ void deepcopy_VkMultiviewPerViewAttributesInfoNVX(Allocator* alloc, VkStructureT
                                                   VkMultiviewPerViewAttributesInfoNVX* to);
 
 #endif
+#ifdef VK_KHR_multiview
+DEFINE_ALIAS_FUNCTION(deepcopy_VkRenderPassMultiviewCreateInfo,
+                      deepcopy_VkRenderPassMultiviewCreateInfoKHR)
+
+DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDeviceMultiviewFeatures,
+                      deepcopy_VkPhysicalDeviceMultiviewFeaturesKHR)
+
+DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDeviceMultiviewProperties,
+                      deepcopy_VkPhysicalDeviceMultiviewPropertiesKHR)
+
+#endif
 #ifdef VK_KHR_get_physical_device_properties2
 DEFINE_ALIAS_FUNCTION(deepcopy_VkPhysicalDeviceFeatures2, deepcopy_VkPhysicalDeviceFeatures2KHR)
 

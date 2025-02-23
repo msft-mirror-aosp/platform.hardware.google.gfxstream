@@ -274,7 +274,7 @@ public:
     virtual void pauseAllPreSave() = 0;
 
     // Resumes all channels after snapshot saving or loading.
-    virtual void resumeAll(bool waitForSave = true) = 0;
+    virtual void resumeAll() = 0;
 
     virtual void save(
             android::base::Stream* stream,
