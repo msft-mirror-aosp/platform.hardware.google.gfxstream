@@ -1,3 +1,5 @@
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test", "objc_library")
+
 cc_library(
     name = "gfxstream_backend_headers",
     hdrs = glob(["include/**/*.h"]),
@@ -119,6 +121,7 @@ cc_library(
         "-fno-exceptions",
     ],
     defines = [
+        "QEMU_NEXT",
         "EMUGL_BUILD",
         "GFXSTREAM_ENABLE_HOST_GLES=1",
     ] + select({
