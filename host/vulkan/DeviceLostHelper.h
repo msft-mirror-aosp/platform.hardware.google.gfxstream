@@ -52,7 +52,7 @@ class DeviceLostHelper {
         const VulkanDispatch* deviceDispatch = nullptr;
         std::vector<QueueWithMutex> queues;
     };
-    void onDeviceCreated(DeviceWithQueues deviceInfo);
+    void onDeviceCreated(const DeviceWithQueues& deviceInfo);
     void onDeviceDestroyed(VkDevice device);
 
     void onBeginCommandBuffer(const VkCommandBuffer& commandBuffer, const VulkanDispatch* vk);
