@@ -9340,7 +9340,8 @@ class VkDecoderGlobalState::Impl {
     // `VkDevice`s with Virtio GPU context ids because API calls are not currently
     // replayed on the "same" RenderThread which originally made the API call so
     // RenderThreadInfoVk::ctx_id is not available.
-    std::optional<std::unordered_map<VkDevice, uint32_t>> mSnapshotLoadVkDeviceToVirtioCpuContextId;
+    std::optional<std::unordered_map<VkDevice, uint32_t>> mSnapshotLoadVkDeviceToVirtioCpuContextId
+        GUARDED_BY(mMutex);
 
     struct LinearImageCreateInfo {
         VkExtent3D extent;
