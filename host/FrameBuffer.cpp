@@ -171,7 +171,7 @@ struct InitializedGlobals {
 };
 
 bool postOnlyOnMainThread() {
-#ifdef __APPLE__
+#if defined(__APPLE__) && !defined(QEMU_NEXT)
     return true;
 #else
     return false;
