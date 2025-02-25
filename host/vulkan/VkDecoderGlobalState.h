@@ -75,18 +75,11 @@ class VkDecoderGlobalState {
     // For testing only - destroys the global instance of VkDecoderGlobalState.
     static void reset();
 
-    enum SnapshotState {
-        Normal,
-        Saving,
-        Loading,
-    };
-
     // Snapshot save/load
     bool snapshotsEnabled() const;
+    bool isSnapshotCurrentlyLoading() const;
 
     bool batchedDescriptorSetUpdateEnabled() const;
-
-    SnapshotState getSnapshotState() const;
 
     const gfxstream::host::FeatureSet& getFeatures() const;
 
