@@ -9323,7 +9323,7 @@ class VkDecoderGlobalState::Impl {
         ++mSemaphoreId;
         return res;
     }
-    std::unordered_map<int, VkSemaphore> mExternalSemaphoresById;
+    std::unordered_map<int, VkSemaphore> mExternalSemaphoresById GUARDED_BY(mMutex);
 #endif
 
     VkDecoderSnapshot mSnapshot;
