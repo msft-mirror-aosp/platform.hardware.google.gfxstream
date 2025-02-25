@@ -37,6 +37,7 @@
 
 #include "VkDecoderGlobalState.h"
 #include "VkReconstruction.h"
+#include "VulkanBoxedHandles.h"
 #include "VulkanHandleMapping.h"
 #include "aemu/base/ThreadAnnotations.h"
 
