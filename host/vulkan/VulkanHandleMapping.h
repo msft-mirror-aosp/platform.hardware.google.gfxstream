@@ -43,17 +43,29 @@ class VulkanHandleMapping {
     VkDecoderGlobalState* m_state;
 };
 
+#define DECLARE_HANDLE_MAP_OVERRIDE(type)                                                            \
+    void mapHandles_##type(type* handles, size_t count) override;                                    \
+    void mapHandles_##type##_u64(const type* handles, uint64_t* handle_u64s, size_t count) override; \
+    void mapHandles_u64_##type(const uint64_t* handle_u64s, type* handles, size_t count) override;
+
 class DefaultHandleMapping : public VulkanHandleMapping {
    public:
     DefaultHandleMapping() : VulkanHandleMapping(nullptr) {}
     virtual ~DefaultHandleMapping() {}
+    GOLDFISH_VK_LIST_HANDLE_TYPES(DECLARE_HANDLE_MAP_OVERRIDE)
+};
 
-#define DECLARE_HANDLE_MAP_OVERRIDE(type)                                                  \
-    void mapHandles_##type(type* handles, size_t count) override;                          \
-    void mapHandles_##type##_u64(const type* handles, uint64_t* handle_u64s, size_t count) \
-        override;                                                                          \
-    void mapHandles_u64_##type(const uint64_t* handle_u64s, type* handles, size_t count) override;
+class BoxedHandleCreateMapping : public VulkanHandleMapping {
+   public:
+    BoxedHandleCreateMapping(VkDecoderGlobalState* state) : VulkanHandleMapping(state) {}
+    virtual ~BoxedHandleCreateMapping() {}
+    GOLDFISH_VK_LIST_HANDLE_TYPES(DECLARE_HANDLE_MAP_OVERRIDE)
+};
 
+class BoxedHandleUnwrapMapping : public VulkanHandleMapping {
+   public:
+    BoxedHandleUnwrapMapping(VkDecoderGlobalState* state) : VulkanHandleMapping(state) {}
+    virtual ~BoxedHandleUnwrapMapping() {}
     GOLDFISH_VK_LIST_HANDLE_TYPES(DECLARE_HANDLE_MAP_OVERRIDE)
 };
 
