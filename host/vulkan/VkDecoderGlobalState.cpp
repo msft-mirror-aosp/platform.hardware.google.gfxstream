@@ -2368,6 +2368,7 @@ class VkDecoderGlobalState::Impl {
             deviceDispatch->vkDestroyFence(device, fence, pAllocator);
             fenceInfos.erase(fence);
         }
+        deviceInfo.externalFencePool.reset();
 
         // Run the underlying API call.
         {
