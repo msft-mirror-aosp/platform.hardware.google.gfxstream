@@ -29,6 +29,7 @@ add_library(gfxstream-vulkan-server
             VkEmulatedPhysicalDeviceQueue.cpp
             VkFormatUtils.cpp
             VkReconstruction.cpp
+            VulkanBoxedHandles.cpp
             VulkanDispatch.cpp
             VulkanHandleMapping.cpp
             VulkanStream.cpp
