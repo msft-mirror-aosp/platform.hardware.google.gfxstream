@@ -910,25 +910,6 @@ class VkDecoderGlobalState {
 
     LIST_TRANSFORMED_TYPES(DEFINE_TRANSFORMED_TYPE_PROTOTYPE)
 
-    // boxed handles
-#define DEFINE_BOXED_DISPATCHABLE_HANDLE_API_DECL(type)                                 \
-    type new_boxed_##type(type underlying, VulkanDispatch* dispatch, bool ownDispatch); \
-    void delete_##type(type boxed);                                                     \
-    type unbox_##type(type boxed);                                                      \
-    type try_unbox_##type(type boxed);                                                  \
-    type unboxed_to_boxed_##type(type boxed);                                           \
-    VulkanDispatch* dispatch_##type(type boxed);
-
-#define DEFINE_BOXED_NON_DISPATCHABLE_HANDLE_API_DECL(type)  \
-    type new_boxed_non_dispatchable_##type(type underlying); \
-    void delete_##type(type boxed);                          \
-    type unbox_##type(type boxed);                           \
-    type try_unbox_##type(type boxed);                       \
-    type unboxed_to_boxed_non_dispatchable_##type(type boxed);
-
-    GOLDFISH_VK_LIST_DISPATCHABLE_HANDLE_TYPES(DEFINE_BOXED_DISPATCHABLE_HANDLE_API_DECL)
-    GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES(DEFINE_BOXED_NON_DISPATCHABLE_HANDLE_API_DECL)
-
    private:
     class Impl;
     std::unique_ptr<Impl> mImpl;
