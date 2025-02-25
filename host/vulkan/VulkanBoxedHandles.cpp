@@ -365,8 +365,7 @@ VkObjectT unboxed_to_boxed_non_dispatchable_VkType(VkObjectT unboxed) {
         return VK_NULL_HANDLE;
     }
 
-    android::base::AutoLock lock(sBoxedHandleManager.lock);
-    return (VkObjectT)sBoxedHandleManager.getBoxedFromUnboxedLocked((uint64_t)(uintptr_t)unboxed);
+    return (VkObjectT)sBoxedHandleManager.getBoxedFromUnboxed((uint64_t)(uintptr_t)unboxed);
 }
 
 template <typename VkObjectT>
