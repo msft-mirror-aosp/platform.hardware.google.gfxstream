@@ -2508,10 +2508,13 @@ class VkDecoderGlobalState::Impl {
         destroyBufferLocked(device, deviceDispatch, buffer, pAllocator);
     }
 
-    void setBufferMemoryBindInfoLocked(VkDevice device, VkBuffer buffer, VkDeviceMemory memory,
+    VkResult setBufferMemoryBindInfoLocked(VkDevice device, VkBuffer buffer, VkDeviceMemory memory,
                                        VkDeviceSize memoryOffset) REQUIRES(mMutex) {
         auto* bufferInfo = android::base::find(mBufferInfo, buffer);
-        if (!bufferInfo) return;
+        if (!bufferInfo) {
+            WARN("%s: failed to find buffer info!", __func__);
+            return VK_ERROR_OUT_OF_HOST_MEMORY;
+        }
         bufferInfo->memory = memory;
         bufferInfo->memoryOffset = memoryOffset;
 
@@ -2523,6 +2526,7 @@ class VkDecoderGlobalState::Impl {
                                                            *memoryInfo->boundBuffer);
             }
         }
+        return VK_SUCCESS;
     }
 
     VkResult on_vkBindBufferMemory(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
@@ -2533,12 +2537,12 @@ class VkDecoderGlobalState::Impl {
 
         VALIDATE_REQUIRED_HANDLE(memory);
         VkResult result = vk->vkBindBufferMemory(device, buffer, memory, memoryOffset);
-
-        if (result == VK_SUCCESS) {
-            std::lock_guard<std::mutex> lock(mMutex);
-            setBufferMemoryBindInfoLocked(device, buffer, memory, memoryOffset);
+        if (result != VK_SUCCESS) {
+            return result;
         }
-        return result;
+
+        std::lock_guard<std::mutex> lock(mMutex);
+        return setBufferMemoryBindInfoLocked(device, buffer, memory, memoryOffset);
     }
 
     VkResult on_vkBindBufferMemory2(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
@@ -2551,16 +2555,20 @@ class VkDecoderGlobalState::Impl {
             VALIDATE_REQUIRED_HANDLE(pBindInfos[i].memory);
         }
         VkResult result = vk->vkBindBufferMemory2(device, bindInfoCount, pBindInfos);
+        if (result != VK_SUCCESS) {
+            return result;
+        }
 
-        if (result == VK_SUCCESS) {
-            std::lock_guard<std::mutex> lock(mMutex);
-            for (uint32_t i = 0; i < bindInfoCount; ++i) {
-                setBufferMemoryBindInfoLocked(device, pBindInfos[i].buffer, pBindInfos[i].memory,
-                                              pBindInfos[i].memoryOffset);
+        std::lock_guard<std::mutex> lock(mMutex);
+        for (uint32_t i = 0; i < bindInfoCount; ++i) {
+            result = setBufferMemoryBindInfoLocked(device, pBindInfos[i].buffer, pBindInfos[i].memory,
+                                            pBindInfos[i].memoryOffset);
+            if (result != VK_SUCCESS) {
+                return result;
             }
         }
 
-        return result;
+        return VK_SUCCESS;
     }
 
     VkResult on_vkBindBufferMemory2KHR(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
