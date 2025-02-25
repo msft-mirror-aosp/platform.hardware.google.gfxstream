@@ -32,9 +32,10 @@ class VkReconstruction {
 
     void clear();
 
-    void saveDecoderReplayBuffer(android::base::Stream* stream);
-    static void loadDecoderReplayBuffer(android::base::Stream* stream,
-                                        std::vector<uint8_t>* outBuffer);
+    void saveReplayBuffers(android::base::Stream* stream);
+    static void loadReplayBuffers(android::base::Stream* stream,
+                                  std::vector<uint64_t>* outHandleBuffer,
+                                  std::vector<uint8_t>* outDecoderBuffer);
 
     enum HandleState { BEGIN = 0, CREATED = 0, BOUND_MEMORY = 1, HANDLE_STATE_COUNT };
 
