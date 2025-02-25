@@ -503,6 +503,7 @@ class VkDecoderGlobalState::Impl {
     }
 
     void save(android::base::Stream* stream) {
+        VERBOSE("VulkanSnapshots save (begin)");
         std::lock_guard<std::mutex> lock(mMutex);
 
         mSnapshotState = SnapshotState::Saving;
@@ -513,6 +514,7 @@ class VkDecoderGlobalState::Impl {
         }
 #endif
 
+        VERBOSE("snapshot save: setup internal structures");
         {
             std::unordered_map<VkDevice, uint32_t> deviceToContextId;
             for (const auto& [device, deviceInfo] : mDeviceInfo) {
@@ -529,6 +531,7 @@ class VkDecoderGlobalState::Impl {
             }
         }
 
+        VERBOSE("snapshot save: replay command stream");
         snapshot()->saveDecoderReplayBuffer(stream);
 
         // Save mapped memory
@@ -538,6 +541,7 @@ class VkDecoderGlobalState::Impl {
                 memoryCount++;
             }
         }
+        VERBOSE("snapshot save: mapped memory");
         stream->putBe32(memoryCount);
         for (const auto& it : mMemoryInfo) {
             if (!it.second.ptr) {
@@ -552,6 +556,7 @@ class VkDecoderGlobalState::Impl {
         // Set up VK structs to snapshot other Vulkan objects
         // TODO(b/323064243): group all images from the same device and reuse queue / command pool
 
+        VERBOSE("snapshot save: image content");
         std::vector<VkImage> sortedBoxedImages;
         for (const auto& imageIte : mImageInfo) {
             sortedBoxedImages.push_back(unboxed_to_boxed_non_dispatchable_VkImage(imageIte.first));
@@ -562,7 +567,7 @@ class VkDecoderGlobalState::Impl {
         for (const auto& boxedImage : sortedBoxedImages) {
             auto unboxedImage = try_unbox_VkImage(boxedImage);
             if (unboxedImage == VK_NULL_HANDLE) {
-                //TODO(b/294277842): should return an error here.
+                // TODO(b/294277842): should return an error here.
                 continue;
             }
             const ImageInfo& imageInfo = mImageInfo[unboxedImage];
@@ -579,6 +584,7 @@ class VkDecoderGlobalState::Impl {
         }
 
         // snapshot buffers
+        VERBOSE("snapshot save: buffers");
         std::vector<VkBuffer> sortedBoxedBuffers;
         for (const auto& bufferIte : mBufferInfo) {
             sortedBoxedBuffers.push_back(
@@ -588,7 +594,7 @@ class VkDecoderGlobalState::Impl {
         for (const auto& boxedBuffer : sortedBoxedBuffers) {
             auto unboxedBuffer = try_unbox_VkBuffer(boxedBuffer);
             if (unboxedBuffer == VK_NULL_HANDLE) {
-                //TODO(b/294277842): should return an error here.
+                // TODO(b/294277842): should return an error here.
                 continue;
             }
             const BufferInfo& bufferInfo = mBufferInfo[unboxedBuffer];
@@ -604,6 +610,7 @@ class VkDecoderGlobalState::Impl {
         }
 
         // snapshot descriptors
+        VERBOSE("snapshot save: descriptors");
         std::vector<VkDescriptorPool> sortedBoxedDescriptorPools;
         for (const auto& descriptorPoolIte : mDescriptorPoolInfo) {
             auto boxed =
@@ -740,6 +747,7 @@ class VkDecoderGlobalState::Impl {
         }
 
         // Fences
+        VERBOSE("snapshot save: fences");
         std::vector<VkFence> unsignaledFencesBoxed;
         for (const auto& fence : mFenceInfo) {
             if (!fence.second.boxed) {
@@ -755,14 +763,17 @@ class VkDecoderGlobalState::Impl {
         stream->putBe64(unsignaledFencesBoxed.size());
         stream->write(unsignaledFencesBoxed.data(), unsignaledFencesBoxed.size() * sizeof(VkFence));
         mSnapshotState = SnapshotState::Normal;
+        VERBOSE("VulkanSnapshots save (end)");
     }
 
     void load(android::base::Stream* stream, GfxApiLogger& gfxLogger,
               HealthMonitor<>* healthMonitor) {
         // assume that we already destroyed all instances
         // from FrameBuffer's onLoad method.
+        VERBOSE("VulkanSnapshots load (begin)");
 
         // destroy all current internal data structures
+        VERBOSE("snapshot load: setup internal structures");
         {
             std::lock_guard<std::mutex> lock(mMutex);
 
@@ -783,6 +794,7 @@ class VkDecoderGlobalState::Impl {
         }
 
         // Replay command stream:
+        VERBOSE("snapshot load: replay command stream");
         {
             std::vector<uint8_t> decoderReplayBuffer;
             VkDecoderSnapshot::loadDecoderReplayBuffer(stream, &decoderReplayBuffer);
@@ -804,11 +816,11 @@ class VkDecoderGlobalState::Impl {
                                      &trivialStream, resources.get(), context);
         }
 
-
         {
             std::lock_guard<std::mutex> lock(mMutex);
 
             // load mapped memory
+            VERBOSE("snapshot load: mapped memory");
             uint32_t memoryCount = stream->getBe32();
             for (uint32_t i = 0; i < memoryCount; i++) {
                 VkDeviceMemory boxedMemory = reinterpret_cast<VkDeviceMemory>(stream->getBe64());
@@ -826,11 +838,14 @@ class VkDecoderGlobalState::Impl {
                 stream->read(it->second.ptr, size);
             }
             // Set up VK structs to snapshot other Vulkan objects
-            // TODO(b/323064243): group all images from the same device and reuse queue / command pool
+            // TODO(b/323064243): group all images from the same device and reuse queue / command
+            // pool
 
+            VERBOSE("snapshot load: image content");
             std::vector<VkImage> sortedBoxedImages;
             for (const auto& imageIte : mImageInfo) {
-                sortedBoxedImages.push_back(unboxed_to_boxed_non_dispatchable_VkImage(imageIte.first));
+                sortedBoxedImages.push_back(
+                    unboxed_to_boxed_non_dispatchable_VkImage(imageIte.first));
             }
             sort(sortedBoxedImages.begin(), sortedBoxedImages.end());
             for (const auto& boxedImage : sortedBoxedImages) {
@@ -841,14 +856,15 @@ class VkDecoderGlobalState::Impl {
                 }
                 // Playback doesn't recover image layout. We need to do it here.
                 //
-                // Layout transform was done by vkCmdPipelineBarrier but we don't record such command
-                // directly. Instead, we memorize the current layout and add our own
+                // Layout transform was done by vkCmdPipelineBarrier but we don't record such
+                // command directly. Instead, we memorize the current layout and add our own
                 // vkCmdPipelineBarrier after load.
                 //
-                // We do the layout transform in loadImageContent. There are still use cases where it
-                // should recover the layout but does not.
+                // We do the layout transform in loadImageContent. There are still use cases where
+                // it should recover the layout but does not.
                 //
-                // TODO(b/323059453): fix corner cases when image contents cannot be properly loaded.
+                // TODO(b/323059453): fix corner cases when image contents cannot be properly
+                // loaded.
                 imageInfo.layout = static_cast<VkImageLayout>(stream->getBe32());
                 StateBlock stateBlock = createSnapshotStateBlock(imageInfo.device);
                 // TODO(b/294277842): make sure the queue is empty before using.
@@ -857,6 +873,7 @@ class VkDecoderGlobalState::Impl {
             }
 
             // snapshot buffers
+            VERBOSE("snapshot load: buffers");
             std::vector<VkBuffer> sortedBoxedBuffers;
             for (const auto& bufferIte : mBufferInfo) {
                 sortedBoxedBuffers.push_back(
@@ -877,6 +894,7 @@ class VkDecoderGlobalState::Impl {
             }
 
             // snapshot descriptors
+            VERBOSE("snapshot load: descriptors");
             android::base::BumpPool bumpPool;
             std::vector<VkDescriptorPool> sortedBoxedDescriptorPools;
             for (const auto& descriptorPoolIte : mDescriptorPoolInfo) {
@@ -932,14 +950,15 @@ class VkDecoderGlobalState::Impl {
                                 VkDescriptorImageInfo& imageInfo = *tmpImageInfos.back();
                                 stream->read(&imageInfo, sizeof(imageInfo));
                                 imageInfo.imageView = descriptorTypeContainsImage(descriptorType)
-                                                        ? unbox_VkImageView(imageInfo.imageView)
-                                                        : 0;
+                                                          ? unbox_VkImageView(imageInfo.imageView)
+                                                          : 0;
                                 imageInfo.sampler = descriptorTypeContainsSampler(descriptorType)
                                                         ? unbox_VkSampler(imageInfo.sampler)
                                                         : 0;
                             } break;
                             case DescriptorSetInfo::DescriptorWriteType::BufferInfo: {
-                                tmpBufferInfos.push_back(std::make_unique<VkDescriptorBufferInfo>());
+                                tmpBufferInfos.push_back(
+                                    std::make_unique<VkDescriptorBufferInfo>());
                                 writeDescriptorSet.pBufferInfo = tmpBufferInfos.back().get();
                                 VkDescriptorBufferInfo& bufferInfo = *tmpBufferInfos.back();
                                 stream->read(&bufferInfo, sizeof(bufferInfo));
@@ -957,8 +976,8 @@ class VkDecoderGlobalState::Impl {
                                 // TODO
                                 GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
                                     << "Encountered pending inline uniform block or acceleration "
-                                    "structure "
-                                    "desc write, abort (NYI)";
+                                       "structure "
+                                       "desc write, abort (NYI)";
                             default:
                                 break;
                         }
@@ -977,7 +996,9 @@ class VkDecoderGlobalState::Impl {
                     writeStartingIndices.data(), writeDescriptorSets.size(),
                     writeDescriptorSets.data());
             }
+
             // Fences
+            VERBOSE("snapshot load: fences");
             uint64_t fenceCount = stream->getBe64();
             std::vector<VkFence> unsignaledFencesBoxed(fenceCount);
             stream->read(unsignaledFencesBoxed.data(), fenceCount * sizeof(VkFence));
@@ -1001,6 +1022,7 @@ class VkDecoderGlobalState::Impl {
 
             mSnapshotState = SnapshotState::Normal;
         }
+        VERBOSE("VulkanSnapshots load (end)");
     }
 
     size_t setCreatedHandlesForSnapshotLoad(const unsigned char* buffer) {
