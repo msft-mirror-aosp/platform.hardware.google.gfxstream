@@ -125,9 +125,6 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
     if (len < 8) return 0;
     unsigned char* ptr = (unsigned char*)buf;
     const unsigned char* const end = (const unsigned char*)buf + len;
-    if (m_forSnapshotLoad) {
-        ptr += m_state->setCreatedHandlesForSnapshotLoad(ptr);
-    }
     while (end - ptr >= 8) {
         const uint8_t* packet = (const uint8_t*)ptr;
         uint32_t opcode = *(uint32_t*)ptr;
@@ -21742,9 +21739,6 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
 
         ptr += packetLen;
         vkStream->clearPool();
-    }
-    if (m_forSnapshotLoad) {
-        m_state->clearCreatedHandlesForSnapshotLoad();
     }
     m_pool.freeAll();
     return ptr - (unsigned char*)buf;
