@@ -86,106 +86,25 @@ class BoxedHandleManager {
     // dEQP object management tests.
     using Store = android::base::HybridEntityManager<16000, BoxedHandle, BoxedHandleInfo>;
 
-    void replayHandles(std::vector<BoxedHandle> handles) {
-        mHandleReplay = true;
-        mHandleReplayQueue.clear();
-        for (BoxedHandle handle : handles) {
-            mHandleReplayQueue.push_back(handle);
-        }
-    }
+    BoxedHandle add(const BoxedHandleInfo& item, BoxedHandleTypeTag tag);
 
-    void clear() {
-        std::lock_guard<std::mutex> lock(mMutex);
-        mReverseMap.clear();
-        mStore.clear();
-    }
+    void update(BoxedHandle handle, const BoxedHandleInfo& item, BoxedHandleTypeTag tag);
 
-    BoxedHandle add(const BoxedHandleInfo& item, BoxedHandleTypeTag tag) {
-        BoxedHandle handle;
-
-        if (mHandleReplay) {
-            handle = mHandleReplayQueue.front();
-            mHandleReplayQueue.pop_front();
-            mHandleReplay = !mHandleReplayQueue.empty();
-
-            handle = (BoxedHandle)mStore.addFixed(handle, item, (size_t)tag);
-        } else {
-            handle = (BoxedHandle)mStore.add(item, (size_t)tag);
-        }
-
-        std::lock_guard<std::mutex> lock(mMutex);
-        mReverseMap[(BoxedHandle)(item.underlying)] = handle;
-        return handle;
-    }
-
-    void update(BoxedHandle handle, const BoxedHandleInfo& item, BoxedHandleTypeTag tag) {
-        auto storedItem = mStore.get(handle);
-        UnboxedHandle oldHandle = (UnboxedHandle)storedItem->underlying;
-        *storedItem = item;
-        std::lock_guard<std::mutex> lock(mMutex);
-        if (oldHandle) {
-            mReverseMap.erase(oldHandle);
-        }
-        mReverseMap[(UnboxedHandle)(item.underlying)] = handle;
-    }
-
-    void remove(BoxedHandle h) {
-        auto item = get(h);
-        if (item) {
-            std::lock_guard<std::mutex> lock(mMutex);
-            mReverseMap.erase((UnboxedHandle)(item->underlying));
-        }
-        mStore.remove(h);
-    }
-
-    void removeDelayed(uint64_t h, VkDevice device, std::function<void()> callback) {
-        std::lock_guard<std::mutex> lock(mMutex);
-        mDelayedRemoves[device].push_back({h, callback});
-    }
+    void remove(BoxedHandle h);
+    void removeDelayed(uint64_t h, VkDevice device, std::function<void()> callback);
 
     // Do not call directly! Instead use `processDelayedRemovesForDevice()` which has
     // thread safety annotations for `VkDecoderGlobalState::Impl`.
-    void processDelayedRemoves(VkDevice device) {
-        std::vector<DelayedRemove> deviceDelayedRemoves;
+    void processDelayedRemoves(VkDevice device);
 
-        {
-            std::lock_guard<std::mutex> lock(mMutex);
+    BoxedHandleInfo* get(BoxedHandle handle);
+    BoxedHandle getBoxedFromUnboxed(UnboxedHandle unboxed);
 
-            auto it = mDelayedRemoves.find(device);
-            if (it == mDelayedRemoves.end()) return;
+    void replayHandles(std::vector<BoxedHandle> handles);
 
-            deviceDelayedRemoves = std::move(it->second);
-            mDelayedRemoves.erase(it);
-        }
+    void clear();
 
-        for (const auto& r : deviceDelayedRemoves) {
-            auto h = r.handle;
-
-            // VkDecoderGlobalState is not locked when callback is called.
-            if (r.callback) {
-                r.callback();
-            }
-
-            mStore.remove(h);
-        }
-    }
-
-    BoxedHandleInfo* get(BoxedHandle handle) {
-        return (BoxedHandleInfo*)mStore.get_const(handle);
-    }
-
-    BoxedHandle getBoxedFromUnboxed(UnboxedHandle unboxed) {
-        std::lock_guard<std::mutex> lock(mMutex);
-
-        auto it = mReverseMap.find(unboxed);
-        if (it == mReverseMap.end()) {
-            return 0;
-        }
-
-        return it->second;
-    }
-
-  private:
+   private:
     mutable Store mStore;
 
     std::mutex mMutex;
