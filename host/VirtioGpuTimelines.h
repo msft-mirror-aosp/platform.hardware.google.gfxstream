@@ -27,6 +27,7 @@
 #ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
 #include "VirtioGpuTimelinesSnapshot.pb.h"
 #endif  // GFXSTREAM_BUILD_WITH_SNAPSHOT_FRONTEND_SUPPORT
+#include "aemu/base/ThreadAnnotations.h"
 #include "gfxstream/virtio-gpu-gfxstream-renderer.h"
 
 typedef uint32_t VirtioGpuCtxId;
@@ -140,11 +141,11 @@ class VirtioGpuTimelines {
 #endif
     };
 
-    Timeline& GetOrCreateTimelineLocked(const Ring& ring);
+    Timeline& GetOrCreateTimelineLocked(const Ring& ring) REQUIRES(mTimelinesMutex);
 
     // Go over the timeline, signal any fences without pending tasks, and remove
     // timeline items that are no longer needed.
-    void poll_locked(const Ring&);
+    void poll_locked(const Ring&) REQUIRES(mTimelinesMutex);
 
     FenceCompletionCallback mFenceCompletionCallback;
 
@@ -156,7 +157,7 @@ class VirtioGpuTimelines {
 
     // LINT.IfChange(virtio_gpu_timelines)
     std::atomic<TaskId> mNextId;
-    std::unordered_map<Ring, Timeline> mTimelineQueues;
+    std::unordered_map<Ring, Timeline> mTimelineQueues GUARDED_BY(mTimelinesMutex);
     // LINT.ThenChange(VirtioGpuTimelinesSnapshot.proto:virtio_gpu_timelines)
 };
 
