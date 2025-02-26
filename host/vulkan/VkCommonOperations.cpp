@@ -2775,17 +2775,15 @@ bool teardownVkColorBuffer(uint32_t colorBufferHandle) {
     return teardownVkColorBufferLocked(colorBufferHandle);
 }
 
-VkEmulation::ColorBufferInfo getColorBufferInfo(uint32_t colorBufferHandle) {
-    VkEmulation::ColorBufferInfo res;
-
+std::optional<VkEmulation::ColorBufferInfo> getColorBufferInfo(uint32_t colorBufferHandle) {
     AutoLock lock(sVkEmulationLock);
 
     auto infoPtr = android::base::find(sVkEmulation->colorBuffers, colorBufferHandle);
+    if (!infoPtr) {
+        return std::nullopt;
+    }
 
-    if (!infoPtr) return res;
-
-    res = *infoPtr;
-    return res;
+    return *infoPtr;
 }
 
 bool colorBufferNeedsUpdateBetweenGlAndVk(const VkEmulation::ColorBufferInfo& colorBufferInfo) {
