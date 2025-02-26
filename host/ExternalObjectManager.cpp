@@ -33,13 +33,13 @@ void ExternalObjectManager::addMapping(uint32_t ctxId, uint64_t blobId, void* ad
     };
 
     auto key = std::make_pair(ctxId, blobId);
-    std::lock_guard<std::mutex> lock(mLock);
+    std::lock_guard<std::mutex> lock(mMutex);
     mHostMemInfos.insert(std::make_pair(key, info));
 }
 
 std::optional<HostMemInfo> ExternalObjectManager::removeMapping(uint32_t ctxId, uint64_t blobId) {
     auto key = std::make_pair(ctxId, blobId);
-    std::lock_guard<std::mutex> lock(mLock);
+    std::lock_guard<std::mutex> lock(mMutex);
     auto found = mHostMemInfos.find(key);
     if (found != mHostMemInfos.end()) {
         std::optional<HostMemInfo> ret = found->second;
@@ -65,14 +65,14 @@ void ExternalObjectManager::addBlobDescriptorInfo(uint32_t ctxId, uint64_t blobI
     };
 
     auto key = std::make_pair(ctxId, blobId);
-    std::lock_guard<std::mutex> lock(mLock);
+    std::lock_guard<std::mutex> lock(mMutex);
     mBlobDescriptorInfos.insert(std::make_pair(key, std::move(info)));
 }
 
 std::optional<BlobDescriptorInfo> ExternalObjectManager::removeBlobDescriptorInfo(uint32_t ctxId,
                                                                                   uint64_t blobId) {
     auto key = std::make_pair(ctxId, blobId);
-    std::lock_guard<std::mutex> lock(mLock);
+    std::lock_guard<std::mutex> lock(mMutex);
     auto found = mBlobDescriptorInfos.find(key);
     if (found != mBlobDescriptorInfos.end()) {
         std::optional<BlobDescriptorInfo> ret = std::move(found->second);
@@ -92,14 +92,14 @@ void ExternalObjectManager::addSyncDescriptorInfo(uint32_t ctxId, uint64_t syncI
     };
 
     auto key = std::make_pair(ctxId, syncId);
-    std::lock_guard<std::mutex> lock(mLock);
+    std::lock_guard<std::mutex> lock(mMutex);
     mSyncDescriptorInfos.insert(std::make_pair(key, std::move(info)));
 }
 
 std::optional<SyncDescriptorInfo> ExternalObjectManager::removeSyncDescriptorInfo(uint32_t ctxId,
                                                                                   uint64_t syncId) {
     auto key = std::make_pair(ctxId, syncId);
-    std::lock_guard<std::mutex> lock(mLock);
+    std::lock_guard<std::mutex> lock(mMutex);
     auto found = mSyncDescriptorInfos.find(key);
     if (found != mSyncDescriptorInfos.end()) {
         std::optional<SyncDescriptorInfo> ret = std::move(found->second);
@@ -112,13 +112,13 @@ std::optional<SyncDescriptorInfo> ExternalObjectManager::removeSyncDescriptorInf
 
 void ExternalObjectManager::addResourceExternalHandleInfo(
     uint32_t resHandle, const ExternalHandleInfo& externalHandleInfo) {
-    std::lock_guard<std::mutex> lock(mLock);
+    std::lock_guard<std::mutex> lock(mMutex);
     mResourceExternalHandleInfos.insert(std::make_pair(resHandle, externalHandleInfo));
 }
 
 std::optional<ExternalHandleInfo> ExternalObjectManager::removeResourceExternalHandleInfo(
     uint32_t resHandle) {
-    std::lock_guard<std::mutex> lock(mLock);
+    std::lock_guard<std::mutex> lock(mMutex);
     auto found = mResourceExternalHandleInfos.find(resHandle);
     if (found != mResourceExternalHandleInfos.end()) {
         std::optional<ExternalHandleInfo> ret = found->second;
