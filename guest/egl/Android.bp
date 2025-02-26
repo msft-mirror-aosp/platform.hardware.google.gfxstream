@@ -59,6 +59,7 @@ cc_library_shared {
         "-DEGL_EGLEXT_PROTOTYPES",
         "-DLOG_TAG=\"EGL_emulation\"",
         "-DWITH_GLES2",
+        "-Wno-cast-function-type-mismatch",
         "-Wno-gnu-designator",
     ],
     srcs: [
