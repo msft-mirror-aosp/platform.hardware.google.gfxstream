@@ -473,7 +473,7 @@ bool createVkColorBuffer(uint32_t width, uint32_t height, GLenum format,
 
 bool teardownVkColorBuffer(uint32_t colorBufferHandle);
 
-VkEmulation::ColorBufferInfo getColorBufferInfo(uint32_t colorBufferHandle);
+std::optional<VkEmulation::ColorBufferInfo> getColorBufferInfo(uint32_t colorBufferHandle);
 std::optional<ExternalHandleInfo> dupColorBufferExtMemoryHandle(uint32_t colorBufferHandle);
 #ifdef __APPLE__
 MTLResource_id getColorBufferMetalMemoryHandle(uint32_t colorBufferHandle);

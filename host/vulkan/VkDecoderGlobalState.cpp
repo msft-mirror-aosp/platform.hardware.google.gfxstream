@@ -7877,8 +7877,10 @@ class VkDecoderGlobalState::Impl {
             } else if (pNativeBufferANDROID) {
                 // For native buffer binding, we can query the creation parameters from handle.
                 uint32_t cbHandle = *static_cast<const uint32_t*>(pNativeBufferANDROID->handle);
-                auto colorBufferInfo = getColorBufferInfo(cbHandle);
-                if (colorBufferInfo.handle == cbHandle) {
+
+                const auto colorBufferInfoOpt = getColorBufferInfo(cbHandle);
+                if (colorBufferInfoOpt) {
+                    const auto& colorBufferInfo = *colorBufferInfoOpt;
                     colorBufferVkImageCi =
                         std::make_unique<VkImageCreateInfo>(colorBufferInfo.imageCreateInfoShallow);
                 } else {
