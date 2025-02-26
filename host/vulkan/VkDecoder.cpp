@@ -40,6 +40,7 @@
 #include "FrameBuffer.h"
 #include "VkDecoderGlobalState.h"
 #include "VkDecoderSnapshot.h"
+#include "VulkanBoxedHandles.h"
 #include "VulkanDispatch.h"
 #include "VulkanStream.h"
 #include "aemu/base/BumpPool.h"
@@ -70,11 +71,8 @@ class VkDecoder::Impl {
           m_state(VkDecoderGlobalState::get()),
           m_vkStream(nullptr, m_state->getFeatures()),
           m_vkMemReadingStream(nullptr, m_state->getFeatures()),
-          m_boxedHandleUnwrapMapping(m_state),
           m_boxedHandleCreateMapping(m_state),
-          m_boxedHandleDestroyMapping(m_state),
-          m_boxedHandleUnwrapAndDeleteMapping(m_state),
-          m_boxedHandleUnwrapAndDeletePreserveBoxedMapping(m_state),
+          m_boxedHandleUnwrapMapping(m_state),
           m_prevSeqno(std::nullopt),
           m_queueSubmitWithCommandsEnabled(
               m_state->getFeatures().VulkanQueueSubmitWithCommands.enabled),
@@ -94,12 +92,9 @@ class VkDecoder::Impl {
     VkDecoderGlobalState* m_state;
     VulkanStream m_vkStream;
     VulkanMemReadingStream m_vkMemReadingStream;
-    BoxedHandleUnwrapMapping m_boxedHandleUnwrapMapping;
     BoxedHandleCreateMapping m_boxedHandleCreateMapping;
-    BoxedHandleDestroyMapping m_boxedHandleDestroyMapping;
-    BoxedHandleUnwrapAndDeleteMapping m_boxedHandleUnwrapAndDeleteMapping;
+    BoxedHandleUnwrapMapping m_boxedHandleUnwrapMapping;
     android::base::BumpPool m_pool;
-    BoxedHandleUnwrapAndDeletePreserveBoxedMapping m_boxedHandleUnwrapAndDeletePreserveBoxedMapping;
     std::optional<uint32_t> m_prevSeqno;
     bool m_queueSubmitWithCommandsEnabled = false;
     const bool m_snapshotsEnabled = false;
@@ -131,9 +126,6 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
     if (len < 8) return 0;
     unsigned char* ptr = (unsigned char*)buf;
     const unsigned char* const end = (const unsigned char*)buf + len;
-    if (m_forSnapshotLoad) {
-        ptr += m_state->setCreatedHandlesForSnapshotLoad(ptr);
-    }
     while (end - ptr >= 8) {
         const uint8_t* packet = (const uint8_t*)ptr;
         uint32_t opcode = *(uint32_t*)ptr;
@@ -21748,9 +21740,6 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
 
         ptr += packetLen;
         vkStream->clearPool();
-    }
-    if (m_forSnapshotLoad) {
-        m_state->clearCreatedHandlesForSnapshotLoad();
     }
     m_pool.freeAll();
     return ptr - (unsigned char*)buf;

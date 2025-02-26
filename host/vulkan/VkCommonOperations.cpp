@@ -3185,8 +3185,7 @@ static bool updateColorBufferFromBytesLocked(uint32_t colorBufferHandle, uint32_
     sVkEmulation->debugUtilsHelper.cmdBeginDebugLabel(
         commandBuffer, "updateColorBufferFromBytes(ColorBuffer:%d)", colorBufferHandle);
 
-    bool isSnapshotLoad =
-        VkDecoderGlobalState::get()->getSnapshotState() == VkDecoderGlobalState::Loading;
+    const bool isSnapshotLoad = VkDecoderGlobalState::get()->isSnapshotCurrentlyLoading();
     VkImageLayout currentLayout = colorBufferInfo->currentLayout;
     if (isSnapshotLoad) {
         currentLayout = VK_IMAGE_LAYOUT_UNDEFINED;
