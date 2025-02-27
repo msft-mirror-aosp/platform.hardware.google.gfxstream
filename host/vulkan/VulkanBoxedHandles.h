@@ -15,10 +15,12 @@
 #pragma once
 
 #include <deque>
+#include <mutex>
 
 #include "VulkanDispatch.h"
 #include "VulkanHandles.h"
 #include "VulkanStream.h"
+#include "aemu/base/ThreadAnnotations.h"
 #include "aemu/base/containers/HybridEntityManager.h"
 #include "aemu/base/containers/Lookup.h"
 #include "aemu/base/synchronization/ConditionVariable.h"
@@ -84,113 +86,41 @@ class BoxedHandleManager {
     // dEQP object management tests.
     using Store = android::base::HybridEntityManager<16000, BoxedHandle, BoxedHandleInfo>;
 
-    android::base::Lock lock;
-    mutable Store store;
-    std::unordered_map<UnboxedHandle, BoxedHandle> reverseMap;
+    BoxedHandle add(const BoxedHandleInfo& item, BoxedHandleTypeTag tag);
+
+    void update(BoxedHandle handle, const BoxedHandleInfo& item, BoxedHandleTypeTag tag);
+
+    void remove(BoxedHandle h);
+    void removeDelayed(uint64_t h, VkDevice device, std::function<void()> callback);
+
+    // Do not call directly! Instead use `processDelayedRemovesForDevice()` which has
+    // thread safety annotations for `VkDecoderGlobalState::Impl`.
+    void processDelayedRemoves(VkDevice device);
+
+    BoxedHandleInfo* get(BoxedHandle handle);
+    BoxedHandle getBoxedFromUnboxed(UnboxedHandle unboxed);
+
+    void replayHandles(std::vector<BoxedHandle> handles);
+
+    void clear();
+
+   private:
+    mutable Store mStore;
+
+    std::mutex mMutex;
+    std::unordered_map<UnboxedHandle, BoxedHandle> mReverseMap GUARDED_BY(mMutex);
+
     struct DelayedRemove {
         BoxedHandle handle;
         std::function<void()> callback;
     };
-    std::unordered_map<VkDevice, std::vector<DelayedRemove>> delayedRemoves;
+    std::unordered_map<VkDevice, std::vector<DelayedRemove>> mDelayedRemoves GUARDED_BY(mMutex);
 
     // If true, `add()` will use and consume the handles in `mHandleReplayQueue`.
     // This is useful for snapshot loading when a explicit set of handles should
     // be used when replaying commands.
     bool mHandleReplay = false;
     std::deque<BoxedHandle> mHandleReplayQueue;
-
-    void replayHandles(std::vector<BoxedHandle> handles) {
-        mHandleReplay = true;
-        mHandleReplayQueue.clear();
-        for (BoxedHandle handle : handles) {
-            mHandleReplayQueue.push_back(handle);
-        }
-    }
-
-    void clear() {
-        reverseMap.clear();
-        store.clear();
-    }
-
-    BoxedHandle add(const BoxedHandleInfo& item, BoxedHandleTypeTag tag) {
-        BoxedHandle handle;
-
-        if (mHandleReplay) {
-            handle = mHandleReplayQueue.front();
-            mHandleReplayQueue.pop_front();
-            mHandleReplay = !mHandleReplayQueue.empty();
-
-            handle = (BoxedHandle)store.addFixed(handle, item, (size_t)tag);
-        } else {
-            handle = (BoxedHandle)store.add(item, (size_t)tag);
-        }
-
-        android::base::AutoLock l(lock);
-        reverseMap[(BoxedHandle)(item.underlying)] = handle;
-        return handle;
-    }
-
-    void update(BoxedHandle handle, const BoxedHandleInfo& item, BoxedHandleTypeTag tag) {
-        auto storedItem = store.get(handle);
-        UnboxedHandle oldHandle = (UnboxedHandle)storedItem->underlying;
-        *storedItem = item;
-        android::base::AutoLock l(lock);
-        if (oldHandle) {
-            reverseMap.erase(oldHandle);
-        }
-        reverseMap[(UnboxedHandle)(item.underlying)] = handle;
-    }
-
-    void remove(BoxedHandle h) {
-        auto item = get(h);
-        if (item) {
-            android::base::AutoLock l(lock);
-            reverseMap.erase((UnboxedHandle)(item->underlying));
-        }
-        store.remove(h);
-    }
-
-    void removeDelayed(uint64_t h, VkDevice device, std::function<void()> callback) {
-        android::base::AutoLock l(lock);
-        delayedRemoves[device].push_back({h, callback});
-    }
-
-    // Do not call directly! Instead use `processDelayedRemovesForDevice()` which has
-    // thread safety annotations for `VkDecoderGlobalState::Impl`.
-    void processDelayedRemoves(VkDevice device) {
-        std::vector<DelayedRemove> deviceDelayedRemoves;
-
-        {
-            android::base::AutoLock l(lock);
-
-            auto it = delayedRemoves.find(device);
-            if (it == delayedRemoves.end()) return;
-
-            deviceDelayedRemoves = std::move(it->second);
-            delayedRemoves.erase(it);
-        }
-
-        for (const auto& r : deviceDelayedRemoves) {
-            auto h = r.handle;
-
-            // VkDecoderGlobalState is not locked when callback is called.
-            if (r.callback) {
-                r.callback();
-            }
-
-            store.remove(h);
-        }
-    }
-
-    BoxedHandleInfo* get(BoxedHandle handle) {
-        return (BoxedHandleInfo*)store.get_const(handle);
-    }
-
-    uint64_t getBoxedFromUnboxedLocked(uint64_t unboxed) {
-        auto* res = android::base::find(reverseMap, unboxed);
-        if (!res) return 0;
-        return *res;
-    }
 };
 
 extern BoxedHandleManager sBoxedHandleManager;

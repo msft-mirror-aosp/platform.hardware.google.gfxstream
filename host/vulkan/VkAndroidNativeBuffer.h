@@ -26,6 +26,7 @@
 #include "VkCommonOperations.h"
 #include "VkQsriTimeline.h"
 #include "aemu/base/BumpPool.h"
+#include "aemu/base/ThreadAnnotations.h"
 #include "aemu/base/synchronization/ConditionVariable.h"
 #include "aemu/base/synchronization/Lock.h"
 #include "gfxstream/host/BackendCallbacks.h"
@@ -139,8 +140,8 @@ struct AndroidNativeBufferInfo {
 
         // A pool of vkFences for waiting (optimization so we don't keep recreating them every
         // time).
-        std::vector<VkFence> mAvailableFences;
-        std::unordered_set<VkFence> mUsedFences;
+        std::vector<VkFence> mAvailableFences GUARDED_BY(mMutex);
+        std::unordered_set<VkFence> mUsedFences GUARDED_BY(mMutex);
     };
 
     std::unique_ptr<QsriWaitFencePool> qsriWaitFencePool = nullptr;

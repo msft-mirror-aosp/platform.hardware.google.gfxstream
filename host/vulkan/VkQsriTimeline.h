@@ -7,6 +7,7 @@
 #include <mutex>
 #include <sstream>
 
+#include "aemu/base/ThreadAnnotations.h"
 #include "host-common/logging.h"
 
 namespace gfxstream {
@@ -17,13 +18,13 @@ class VkQsriTimeline {
     using Callback = std::function<void()>;
 
     void signalNextPresentAndPoll() {
-        std::lock_guard<std::mutex> guard(mLock);
+        std::lock_guard<std::mutex> guard(mMutex);
         mPresentCount++;
         pollLocked();
     }
 
     void registerCallbackForNextPresentAndPoll(Callback callback) {
-        std::lock_guard<std::mutex> guard(mLock);
+        std::lock_guard<std::mutex> guard(mMutex);
         uint64_t requestPresentCount = mRequestPresentCount;
         mRequestPresentCount++;
         mPendingCallbacks.emplace(requestPresentCount, std::move(callback));
@@ -32,7 +33,7 @@ class VkQsriTimeline {
 
     VkQsriTimeline() : mPresentCount(0), mRequestPresentCount(0) {}
     ~VkQsriTimeline() {
-        std::lock_guard<std::mutex> guard(mLock);
+        std::lock_guard<std::mutex> guard(mMutex);
         if (mPendingCallbacks.empty()) {
             return;
         }
@@ -48,12 +49,12 @@ class VkQsriTimeline {
     }
 
    private:
-    std::map<uint64_t, Callback> mPendingCallbacks;
-    std::mutex mLock;
-    uint64_t mPresentCount;
-    uint64_t mRequestPresentCount;
+    std::mutex mMutex;
+    std::map<uint64_t, Callback> mPendingCallbacks GUARDED_BY(mMutex);
+    uint64_t mPresentCount GUARDED_BY(mMutex) = 0;
+    uint64_t mRequestPresentCount GUARDED_BY(mMutex) = 0;
 
-    void pollLocked() {
+    void pollLocked() REQUIRES(mMutex) {
         auto firstPendingCallback = mPendingCallbacks.lower_bound(mPresentCount);
         for (auto readyCallback = mPendingCallbacks.begin(); readyCallback != firstPendingCallback;
              readyCallback++) {
