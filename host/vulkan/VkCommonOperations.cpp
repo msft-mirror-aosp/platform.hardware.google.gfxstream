@@ -2585,6 +2585,10 @@ static bool createVkColorBufferLocked(uint32_t width, uint32_t height, GLenum in
                                               nullptr, VK_NULL_HANDLE};
     const bool addConversion = formatRequiresYcbcrConversion(imageVkFormat);
     if (addConversion) {
+        if (!sVkEmulation->deviceInfo.supportsSamplerYcbcrConversion) {
+            ERR("VkFormat: %d requires conversion, but device does not have required extension for conversion (%s)", imageVkFormat, VK_KHR_SAMPLER_YCBCR_CONVERSION_EXTENSION_NAME);
+            return false;
+        }
         VkSamplerYcbcrConversionCreateInfo ycbcrCreateInfo = {
             VK_STRUCTURE_TYPE_SAMPLER_YCBCR_CONVERSION_CREATE_INFO,
             nullptr,
@@ -2758,7 +2762,9 @@ bool teardownVkColorBufferLocked(uint32_t colorBufferHandle) {
             VK_CHECK(vk->vkQueueWaitIdle(sVkEmulation->queue));
         }
         vk->vkDestroyImageView(sVkEmulation->device, info.imageView, nullptr);
-        vk->vkDestroySamplerYcbcrConversion(sVkEmulation->device, info.ycbcrConversion, nullptr);
+        if (sVkEmulation->deviceInfo.hasSamplerYcbcrConversionExtension) {
+            vk->vkDestroySamplerYcbcrConversion(sVkEmulation->device, info.ycbcrConversion, nullptr);
+        }
         vk->vkDestroyImage(sVkEmulation->device, info.image, nullptr);
         freeExternalMemoryLocked(vk, &info.memory);
     }
