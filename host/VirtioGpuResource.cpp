@@ -384,7 +384,7 @@ void VirtioGpuResource::AttachIov(struct iovec* iov, uint32_t num_iovs) {
     size_t linearSize = 0;
     if (num_iovs) {
         mIovs.reserve(num_iovs);
-        for (int i = 0; i < num_iovs; ++i) {
+        for (uint32_t i = 0; i < num_iovs; ++i) {
             mIovs.push_back(iov[i]);
             linearSize += iov[i].iov_len;
         }

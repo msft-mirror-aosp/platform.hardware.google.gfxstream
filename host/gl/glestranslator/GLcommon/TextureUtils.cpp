@@ -552,9 +552,9 @@ void doCompressedTexImage2D(GLEScontext* ctx, GLenum target, GLint level,
             delete [] uncompressed;
         }
     } else if (isRgtcFormat(internalformat)) {
-        GLint format, type;
+        GLint format = 0, type = 0;
         GLint convertedInternalFormat = decompressedInternalFormat(ctx, internalformat);
-        RGTCImageFormat rgtcFormat;
+        RGTCImageFormat rgtcFormat = BC4_UNORM;
         switch (internalformat) {
             case GL_COMPRESSED_RED_RGTC1_EXT:               // BC4U
                 format = GL_RED;

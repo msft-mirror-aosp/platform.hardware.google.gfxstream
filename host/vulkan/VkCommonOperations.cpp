@@ -674,7 +674,7 @@ int getSelectedGpuIndex(const std::vector<VkEmulation::DeviceSupportInfo>& devic
             }
         }
 
-        if (enforceGpuIndex != -1 && enforceGpuIndex >= 0 && enforceGpuIndex < deviceInfos.size()) {
+        if (enforceGpuIndex != -1 && enforceGpuIndex >= 0 && enforceGpuIndex < (int)deviceInfos.size()) {
             INFO("Selecting GPU (%s) at index %d.",
                  deviceInfos[enforceGpuIndex].physdevProps.deviceName, enforceGpuIndex);
         } else {
@@ -1036,7 +1036,7 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk,
 
     std::vector<VkEmulation::DeviceSupportInfo> deviceInfos(physdevCount);
 
-    for (int i = 0; i < physdevCount; ++i) {
+    for (uint32_t i = 0; i < physdevCount; ++i) {
         ivk->vkGetPhysicalDeviceProperties(physdevs[i], &deviceInfos[i].physdevProps);
 
         VERBOSE("Considering Vulkan physical device %d : %s", i,

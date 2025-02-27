@@ -1954,7 +1954,7 @@ GL_APICALL void  GL_APIENTRY glGetActiveAttrib(GLuint program, GLuint index, GLs
         GLint numActiveAttributes = 0;
         ctx->dispatcher().glGetProgramiv(
             globalProgramName, GL_ACTIVE_ATTRIBUTES, &numActiveAttributes);
-        SET_ERROR_IF(index >= numActiveAttributes, GL_INVALID_VALUE);
+        SET_ERROR_IF(index >= (GLuint)numActiveAttributes, GL_INVALID_VALUE);
         SET_ERROR_IF(bufsize < 0, GL_INVALID_VALUE);
 
         ProgramData* pData = (ProgramData*)objData;
@@ -1977,7 +1977,7 @@ GL_APICALL void  GL_APIENTRY glGetActiveUniform(GLuint program, GLuint index, GL
         GLint numActiveUniforms = 0;
         ctx->dispatcher().glGetProgramiv(globalProgramName, GL_ACTIVE_UNIFORMS,
                                          &numActiveUniforms);
-        SET_ERROR_IF(index >= numActiveUniforms, GL_INVALID_VALUE);
+        SET_ERROR_IF(index >= (GLuint)numActiveUniforms, GL_INVALID_VALUE);
         SET_ERROR_IF(bufsize < 0, GL_INVALID_VALUE);
 
         ProgramData* pData = (ProgramData*)objData;
@@ -3801,7 +3801,7 @@ GL_APICALL void  GL_APIENTRY glGetTexImage(GLenum target, GLint level, GLenum fo
             case GL_TEXTURE_3D: {
                 unsigned int layerImgSize = texImageSize(
                         format, type, packAlignment, width, height);
-                for (unsigned int d = 0; d < depth; d++) {
+                for (int d = 0; d < depth; d++) {
                     gl.glFramebufferTexture3DOES(
                             GL_READ_FRAMEBUFFER, attachment, target,
                             globalName, level, d);
@@ -3818,7 +3818,7 @@ GL_APICALL void  GL_APIENTRY glGetTexImage(GLenum target, GLint level, GLenum fo
             case GL_TEXTURE_2D_ARRAY: {
                 unsigned int layerImgSize = texImageSize(
                         format, type, packAlignment, width, height);
-                for (unsigned int d = 0; d < depth; d++) {
+                for (int d = 0; d < depth; d++) {
                     gl.glFramebufferTextureLayer(
                             GL_READ_FRAMEBUFFER, attachment,
                             globalName, level, d);

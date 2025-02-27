@@ -86,7 +86,7 @@ int ReadBuffer::getData(IOStream* stream, size_t minSize) {
     }
 
     // get fresh data into the buffer;
-    int readTotal = 0;
+    size_t readTotal = 0;
     do {
         const size_t readNow = stream->read(m_readPtr + m_validData,
                                             maxSizeToRead - readTotal);
