@@ -209,9 +209,9 @@ static uint32_t kTemporaryContextIdForSnapshotLoading = 1;
 
 class VkDecoderGlobalState::Impl {
    public:
-    Impl()
+    Impl(VkEmulation* emulation)
         : m_vk(vkDispatch()),
-          m_vkEmulation(VkEmulation::get()),
+          m_vkEmulation(emulation),
           mRenderDocWithMultipleVkInstances(m_vkEmulation->getRenderDoc()) {
         mSnapshotsEnabled = m_vkEmulation->getFeatures().VulkanSnapshots.enabled;
         mBatchedDescriptorSetUpdateEnabled =
@@ -5698,17 +5698,16 @@ class VkDecoderGlobalState::Impl {
 
         if (!m_vk) return res;
 
-        auto emu = VkEmulation::get();
-
-        res.supportsVulkan = emu != nullptr;
+        res.supportsVulkan = m_vkEmulation != nullptr;
 
         if (!res.supportsVulkan) return res;
 
-        const auto& props = emu->getPhysicalDeviceProperties();
+        const auto& props = m_vkEmulation->getPhysicalDeviceProperties();
 
         res.supportsVulkan1_1 = props.apiVersion >= VK_API_VERSION_1_1;
-        res.useDeferredCommands = emu->deferredCommandsEnabled();
-        res.useCreateResourcesWithRequirements = emu->createResourcesWithRequirementsEnabled();
+        res.useDeferredCommands = m_vkEmulation->deferredCommandsEnabled();
+        res.useCreateResourcesWithRequirements =
+            m_vkEmulation->createResourcesWithRequirementsEnabled();
 
         res.apiVersion = props.apiVersion;
         res.driverVersion = props.driverVersion;
@@ -9070,16 +9069,27 @@ class VkDecoderGlobalState::Impl {
         mLinearImageProperties GUARDED_BY(mMutex);
 };
 
-VkDecoderGlobalState::VkDecoderGlobalState() : mImpl(new VkDecoderGlobalState::Impl()) {}
+VkDecoderGlobalState::VkDecoderGlobalState(VkEmulation* emulation)
+    : mImpl(new VkDecoderGlobalState::Impl(emulation)) {}
 
 VkDecoderGlobalState::~VkDecoderGlobalState() = default;
 
 static VkDecoderGlobalState* sGlobalDecoderState = nullptr;
 
 // static
+void VkDecoderGlobalState::initialize(VkEmulation* emulation) {
+    if (sGlobalDecoderState) {
+        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
+            << "Attempted to re-initialize VkDecoderGlobalState.";
+    }
+    sGlobalDecoderState = new VkDecoderGlobalState(emulation);
+}
+
+// static
 VkDecoderGlobalState* VkDecoderGlobalState::get() {
-    if (sGlobalDecoderState) return sGlobalDecoderState;
-    sGlobalDecoderState = new VkDecoderGlobalState;
+    if (!sGlobalDecoderState) {
+        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "VkDecoderGlobalState not initialized.";
+    }
     return sGlobalDecoderState;
 }
 

@@ -20,68 +20,67 @@ namespace gfxstream {
 namespace vk {
 
 /*static*/
-std::unique_ptr<ColorBufferVk> ColorBufferVk::create(uint32_t handle, uint32_t width,
-                                                     uint32_t height, GLenum format,
+std::unique_ptr<ColorBufferVk> ColorBufferVk::create(VkEmulation& vkEmulation, uint32_t handle,
+                                                     uint32_t width, uint32_t height, GLenum format,
                                                      FrameworkFormat frameworkFormat,
                                                      bool vulkanOnly, uint32_t memoryProperty,
                                                      android::base::Stream* stream) {
-    auto emulationVk = VkEmulation::get();
-    if (!emulationVk->createVkColorBuffer(width, height, format, frameworkFormat, handle,
-                                          vulkanOnly, memoryProperty)) {
+    if (!vkEmulation.createVkColorBuffer(width, height, format, frameworkFormat, handle, vulkanOnly,
+                                         memoryProperty)) {
         GL_LOG("Failed to create ColorBufferVk:%d", handle);
         return nullptr;
     }
-    if (emulationVk->getFeatures().VulkanSnapshots.enabled && stream) {
+    if (vkEmulation.getFeatures().VulkanSnapshots.enabled && stream) {
         VkImageLayout currentLayout = static_cast<VkImageLayout>(stream->getBe32());
-        emulationVk->setColorBufferCurrentLayout(handle, currentLayout);
+        vkEmulation.setColorBufferCurrentLayout(handle, currentLayout);
     }
-    return std::unique_ptr<ColorBufferVk>(new ColorBufferVk(handle));
+    return std::unique_ptr<ColorBufferVk>(new ColorBufferVk(vkEmulation, handle));
 }
 
 void ColorBufferVk::onSave(android::base::Stream* stream) {
-    auto emulationVk = VkEmulation::get();
-    if (!emulationVk->getFeatures().VulkanSnapshots.enabled) {
+    if (!mVkEmulation.getFeatures().VulkanSnapshots.enabled) {
         return;
     }
-    stream->putBe32(static_cast<uint32_t>(emulationVk->getColorBufferCurrentLayout(mHandle)));
+    stream->putBe32(static_cast<uint32_t>(mVkEmulation.getColorBufferCurrentLayout(mHandle)));
 }
 
-ColorBufferVk::ColorBufferVk(uint32_t handle) : mHandle(handle) {}
+ColorBufferVk::ColorBufferVk(VkEmulation& vkEmulation, uint32_t handle)
+    : mVkEmulation(vkEmulation), mHandle(handle) {}
 
 ColorBufferVk::~ColorBufferVk() {
-    if (!VkEmulation::get()->teardownVkColorBuffer(mHandle)) {
+    if (!mVkEmulation.teardownVkColorBuffer(mHandle)) {
         ERR("Failed to destroy ColorBufferVk:%d", mHandle);
     }
 }
 
 bool ColorBufferVk::readToBytes(std::vector<uint8_t>* outBytes) {
-    return VkEmulation::get()->readColorBufferToBytes(mHandle, outBytes);
+    return mVkEmulation.readColorBufferToBytes(mHandle, outBytes);
 }
 
 bool ColorBufferVk::readToBytes(uint32_t x, uint32_t y, uint32_t w, uint32_t h, void* outBytes,
                                 uint64_t outBytesSize) {
-    return VkEmulation::get()->readColorBufferToBytes(mHandle, x, y, w, h, outBytes, outBytesSize);
+    return mVkEmulation.readColorBufferToBytes(mHandle, x, y, w, h, outBytes, outBytesSize);
 }
 
 bool ColorBufferVk::updateFromBytes(const std::vector<uint8_t>& bytes) {
-    return VkEmulation::get()->updateColorBufferFromBytes(mHandle, bytes);
+    return mVkEmulation.updateColorBufferFromBytes(mHandle, bytes);
 }
 
 bool ColorBufferVk::updateFromBytes(uint32_t x, uint32_t y, uint32_t w, uint32_t h,
                                     const void* bytes) {
-    return VkEmulation::get()->updateColorBufferFromBytes(mHandle, x, y, w, h, bytes);
+    return mVkEmulation.updateColorBufferFromBytes(mHandle, x, y, w, h, bytes);
 }
 
 std::unique_ptr<BorrowedImageInfo> ColorBufferVk::borrowForComposition(bool colorBufferIsTarget) {
-    return VkEmulation::get()->borrowColorBufferForComposition(mHandle, colorBufferIsTarget);
+    return mVkEmulation.borrowColorBufferForComposition(mHandle, colorBufferIsTarget);
 }
 
 std::unique_ptr<BorrowedImageInfo> ColorBufferVk::borrowForDisplay() {
-    return VkEmulation::get()->borrowColorBufferForDisplay(mHandle);
+    return mVkEmulation.borrowColorBufferForDisplay(mHandle);
 }
 
 std::optional<BlobDescriptorInfo> ColorBufferVk::exportBlob() {
-    auto info = VkEmulation::get()->exportColorBufferMemory(mHandle);
+    auto info = mVkEmulation.exportColorBufferMemory(mHandle);
     if (info) {
         return BlobDescriptorInfo{
             .descriptorInfo =

@@ -587,6 +587,9 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
     gl::EmulationGl& getEmulationGl();
     bool hasEmulationGl() const { return m_emulationGl != nullptr; }
 
+    vk::VkEmulation& getEmulationVk();
+    bool hasEmulationVk() const { return m_emulationVk != nullptr; }
+
     // Return the host EGLDisplay used by this instance.
     EGLDisplay getDisplay() const;
     EGLSurface getWindowSurface() const;
@@ -870,7 +873,8 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
     Compositor* m_compositor = nullptr;
     bool m_useVulkanComposition = false;
 
-    vk::VkEmulation* m_emulationVk = nullptr;
+    std::unique_ptr<vk::VkEmulation> m_emulationVk;
+
     // The implementation for Vulkan native swapchain. Only initialized when useVulkan is set when
     // calling FrameBuffer::initialize(). DisplayVk is actually owned by VkEmulation.
     vk::DisplayVk* m_displayVk = nullptr;
