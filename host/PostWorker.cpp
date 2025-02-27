@@ -161,6 +161,9 @@ void PostWorker::runTask(std::packaged_task<void()> task) {
     using Task = std::packaged_task<void()>;
     auto taskPtr = std::make_unique<Task>(std::move(task));
     if (m_mainThreadPostingOnly) {
+        if (!m_runOnUiThread) {
+            ERR("m_runOnUiThread function ptr is NULL, going to crash");
+        }
         m_runOnUiThread(
             [](void* data) {
                 std::unique_ptr<Task> taskPtr(reinterpret_cast<Task*>(data));
