@@ -49,6 +49,105 @@ static ReadStreamRegistry sReadStreamRegistry;
 
 }  // namespace
 
+void BoxedHandleManager::replayHandles(std::vector<BoxedHandle> handles) {
+    mHandleReplay = true;
+    mHandleReplayQueue.clear();
+    for (BoxedHandle handle : handles) {
+        mHandleReplayQueue.push_back(handle);
+    }
+}
+
+void BoxedHandleManager::clear() {
+    std::lock_guard<std::mutex> lock(mMutex);
+    mReverseMap.clear();
+    mStore.clear();
+}
+
+BoxedHandle BoxedHandleManager::add(const BoxedHandleInfo& item, BoxedHandleTypeTag tag) {
+    BoxedHandle handle;
+
+    if (mHandleReplay) {
+        handle = mHandleReplayQueue.front();
+        mHandleReplayQueue.pop_front();
+        mHandleReplay = !mHandleReplayQueue.empty();
+
+        handle = (BoxedHandle)mStore.addFixed(handle, item, (size_t)tag);
+    } else {
+        handle = (BoxedHandle)mStore.add(item, (size_t)tag);
+    }
+
+    std::lock_guard<std::mutex> lock(mMutex);
+    mReverseMap[(BoxedHandle)(item.underlying)] = handle;
+    return handle;
+}
+
+void BoxedHandleManager::update(BoxedHandle handle, const BoxedHandleInfo& item,
+                                BoxedHandleTypeTag tag) {
+    auto storedItem = mStore.get(handle);
+    UnboxedHandle oldHandle = (UnboxedHandle)storedItem->underlying;
+    *storedItem = item;
+    std::lock_guard<std::mutex> lock(mMutex);
+    if (oldHandle) {
+        mReverseMap.erase(oldHandle);
+    }
+    mReverseMap[(UnboxedHandle)(item.underlying)] = handle;
+}
+
+void BoxedHandleManager::remove(BoxedHandle h) {
+    auto item = get(h);
+    if (item) {
+        std::lock_guard<std::mutex> lock(mMutex);
+        mReverseMap.erase((UnboxedHandle)(item->underlying));
+    }
+    mStore.remove(h);
+}
+
+void BoxedHandleManager::removeDelayed(uint64_t h, VkDevice device,
+                                       std::function<void()> callback) {
+    std::lock_guard<std::mutex> lock(mMutex);
+    mDelayedRemoves[device].push_back({h, callback});
+}
+
+void BoxedHandleManager::processDelayedRemoves(VkDevice device) {
+    std::vector<DelayedRemove> deviceDelayedRemoves;
+
+    {
+        std::lock_guard<std::mutex> lock(mMutex);
+
+        auto it = mDelayedRemoves.find(device);
+        if (it == mDelayedRemoves.end()) return;
+
+        deviceDelayedRemoves = std::move(it->second);
+        mDelayedRemoves.erase(it);
+    }
+
+    for (const auto& r : deviceDelayedRemoves) {
+        auto h = r.handle;
+
+        // VkDecoderGlobalState is not locked when callback is called.
+        if (r.callback) {
+            r.callback();
+        }
+
+        mStore.remove(h);
+    }
+}
+
+BoxedHandleInfo* BoxedHandleManager::get(BoxedHandle handle) {
+    return (BoxedHandleInfo*)mStore.get_const(handle);
+}
+
+BoxedHandle BoxedHandleManager::getBoxedFromUnboxed(UnboxedHandle unboxed) {
+    std::lock_guard<std::mutex> lock(mMutex);
+
+    auto it = mReverseMap.find(unboxed);
+    if (it == mReverseMap.end()) {
+        return 0;
+    }
+
+    return it->second;
+}
+
 BoxedHandleManager sBoxedHandleManager;
 
 template <typename VkObjectT>
