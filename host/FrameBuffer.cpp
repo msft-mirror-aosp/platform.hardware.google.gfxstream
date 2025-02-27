@@ -105,7 +105,6 @@ using gl::YUVPlane;
 #endif
 
 using gfxstream::vk::AstcEmulationMode;
-using gfxstream::vk::VkEmulationFeatures;
 
 // static std::string getTimeStampString() {
 //     const time_t timestamp = android::base::getUnixTimeUs();
@@ -358,7 +357,7 @@ bool FrameBuffer::initialize(int width, int height, gfxstream::host::FeatureSet 
             .unregisterVulkanInstance =
                 [fb = fb.get()](uint64_t id) { fb->unregisterVulkanInstance(id); },
         };
-        vkEmu = vk::createGlobalVkEmulation(vkDispatch, callbacks, fb->m_features);
+        vkEmu = vk::VkEmulation::create(vkDispatch, callbacks, fb->m_features);
         if (!vkEmu) {
             ERR("Failed to initialize global Vulkan emulation. Disable the Vulkan support.");
         }
@@ -367,11 +366,12 @@ bool FrameBuffer::initialize(int width, int height, gfxstream::host::FeatureSet 
     if (vkEmu) {
         fb->m_vulkanEnabled = true;
         if (fb->m_features.VulkanNativeSwapchain.enabled) {
-            fb->m_vkInstance = vkEmu->instance;
+            fb->m_vkInstance = vkEmu->getInstance();
         }
-        if (vkEmu->instanceSupportsPhysicalDeviceIDProperties) {
-            INFO("Supports id properties, got a vulkan device UUID");
-            memcpy(fb->m_vulkanUUID.data(), vkEmu->deviceInfo.idProps.deviceUUID, VK_UUID_SIZE);
+
+        auto vulkanUuidOpt = vkEmu->getDeviceUuid();
+        if (vulkanUuidOpt) {
+            fb->m_vulkanUUID = *vulkanUuidOpt;
         } else {
             WARN("Doesn't support id properties, no vulkan device UUID");
         }
@@ -391,25 +391,24 @@ bool FrameBuffer::initialize(int width, int height, gfxstream::host::FeatureSet 
     fb->m_useVulkanComposition = fb->m_features.GuestVulkanOnly.enabled ||
                                  fb->m_features.VulkanNativeSwapchain.enabled;
 
-    std::unique_ptr<VkEmulationFeatures> vkEmulationFeatures =
-        std::make_unique<VkEmulationFeatures>(VkEmulationFeatures{
-            .glInteropSupported = false,  // Set later.
-            .deferredCommands =
-                android::base::getEnvironmentVariable("ANDROID_EMU_VK_DISABLE_DEFERRED_COMMANDS")
-                    .empty(),
-            .createResourceWithRequirements =
-                android::base::getEnvironmentVariable(
-                    "ANDROID_EMU_VK_DISABLE_USE_CREATE_RESOURCES_WITH_REQUIREMENTS")
-                    .empty(),
-            .useVulkanComposition = fb->m_useVulkanComposition,
-            .useVulkanNativeSwapchain = fb->m_features.VulkanNativeSwapchain.enabled,
-            .guestRenderDoc = std::move(renderDocMultipleVkInstances),
-            .astcLdrEmulationMode = AstcEmulationMode::Gpu,
-            .enableEtc2Emulation = true,
-            .enableYcbcrEmulation = false,
-            .guestVulkanOnly = fb->m_features.GuestVulkanOnly.enabled,
-            .useDedicatedAllocations = false,  // Set later.
-        });
+    vk::VkEmulation::Features vkEmulationFeatures = {
+        .glInteropSupported = false,  // Set later.
+        .deferredCommands =
+            android::base::getEnvironmentVariable("ANDROID_EMU_VK_DISABLE_DEFERRED_COMMANDS")
+                .empty(),
+        .createResourceWithRequirements =
+            android::base::getEnvironmentVariable(
+                "ANDROID_EMU_VK_DISABLE_USE_CREATE_RESOURCES_WITH_REQUIREMENTS")
+                .empty(),
+        .useVulkanComposition = fb->m_useVulkanComposition,
+        .useVulkanNativeSwapchain = fb->m_features.VulkanNativeSwapchain.enabled,
+        .guestRenderDoc = std::move(renderDocMultipleVkInstances),
+        .astcLdrEmulationMode = AstcEmulationMode::Gpu,
+        .enableEtc2Emulation = true,
+        .enableYcbcrEmulation = false,
+        .guestVulkanOnly = fb->m_features.GuestVulkanOnly.enabled,
+        .useDedicatedAllocations = false,  // Set later.
+    };
 
     //
     // Cache the GL strings so we don't have to think about threading or
@@ -419,38 +418,11 @@ bool FrameBuffer::initialize(int width, int height, gfxstream::host::FeatureSet 
         vkEmu && fb->m_features.VulkanNativeSwapchain.enabled && fb->m_features.GuestVulkanOnly.enabled;
 
     if (useVulkanGraphicsDiagInfo) {
-        fb->m_graphicsAdapterVendor = vkEmu->deviceInfo.driverVendor;
-        fb->m_graphicsAdapterName = vkEmu->deviceInfo.physdevProps.deviceName;
-
-        uint32_t vkVersion = vkEmu->vulkanInstanceVersion;
-
-        std::stringstream versionStringBuilder;
-        versionStringBuilder << "Vulkan " << VK_API_VERSION_MAJOR(vkVersion) << "."
-                             << VK_API_VERSION_MINOR(vkVersion) << "."
-                             << VK_API_VERSION_PATCH(vkVersion) << " "
-                             << vkEmu->deviceInfo.driverVendor << " "
-                             << vkEmu->deviceInfo.driverVersion;
-        fb->m_graphicsApiVersion = versionStringBuilder.str();
-
-        std::stringstream instanceExtensionsStringBuilder;
-        for (auto& ext : vkEmu->instanceExtensions) {
-            if (instanceExtensionsStringBuilder.tellp() != 0) {
-                instanceExtensionsStringBuilder << " ";
-            }
-            instanceExtensionsStringBuilder << ext.extensionName;
-        }
-
-        fb->m_graphicsApiExtensions = instanceExtensionsStringBuilder.str();
-
-        std::stringstream deviceExtensionsStringBuilder;
-        for (auto& ext : vkEmu->deviceInfo.extensions) {
-            if (deviceExtensionsStringBuilder.tellp() != 0) {
-                deviceExtensionsStringBuilder << " ";
-            }
-            deviceExtensionsStringBuilder << ext.extensionName;
-        }
-
-        fb->m_graphicsDeviceExtensions = deviceExtensionsStringBuilder.str();
+        fb->m_graphicsAdapterVendor = vkEmu->getGpuVendor();
+        fb->m_graphicsAdapterName = vkEmu->getGpuName();
+        fb->m_graphicsApiVersion = vkEmu->getGpuVersionString();
+        fb->m_graphicsApiExtensions = vkEmu->getInstanceExtensionsString();
+        fb->m_graphicsDeviceExtensions = vkEmu->getDeviceExtensionsString();
     } else if (fb->m_emulationGl) {
 #if GFXSTREAM_ENABLE_HOST_GLES
         fb->m_graphicsAdapterVendor = fb->m_emulationGl->getGlesVendor();
@@ -476,7 +448,7 @@ bool FrameBuffer::initialize(int width, int height, gfxstream::host::FeatureSet 
     bool vulkanInteropSupported = true;
     // First, if the VkEmulation instance doesn't support ext memory capabilities,
     // it won't support uuids.
-    if (!vkEmu || !vkEmu->instanceSupportsPhysicalDeviceIDProperties) {
+    if (!vkEmu || !vkEmu->supportsPhysicalDeviceIDProperties()) {
         vulkanInteropSupported = false;
     }
     if (!fb->m_emulationGl) {
@@ -506,27 +478,29 @@ bool FrameBuffer::initialize(int width, int height, gfxstream::host::FeatureSet 
     if (vulkanInteropSupported && fb->m_emulationGl && fb->m_emulationGl->isMesa()) {
         // Mesa currently expects dedicated allocations for external memory sharing
         // between GL and VK. See b/265186355.
-        vkEmulationFeatures->useDedicatedAllocations = true;
+        vkEmulationFeatures.useDedicatedAllocations = true;
     }
 #endif
 
     GL_LOG("glvk interop final: %d", fb->m_vulkanInteropSupported);
-    vkEmulationFeatures->glInteropSupported = fb->m_vulkanInteropSupported;
+    vkEmulationFeatures.glInteropSupported = fb->m_vulkanInteropSupported;
     if (fb->m_features.Vulkan.enabled) {
-        vk::initVkEmulationFeatures(std::move(vkEmulationFeatures));
-        if (vkEmu && vkEmu->displayVk) {
-            fb->m_displayVk = vkEmu->displayVk.get();
+        vkEmu->initFeatures(std::move(vkEmulationFeatures));
+
+        auto* display = vkEmu->getDisplay();
+        if (display) {
+            fb->m_displayVk = display;
             fb->m_displaySurfaceUsers.push_back(fb->m_displayVk);
         }
     }
 
     if (fb->m_useVulkanComposition) {
-        if (!vkEmu->compositorVk) {
+        fb->m_compositor = vkEmu->getCompositor();
+        if (!fb->m_compositor) {
             ERR("Failed to get CompositorVk from VkEmulation.");
             return false;
         }
         GL_LOG("Performing composition using CompositorVk.");
-        fb->m_compositor = vkEmu->compositorVk.get();
     } else {
         GL_LOG("Performing composition using CompositorGl.");
 #if GFXSTREAM_ENABLE_HOST_GLES
@@ -684,7 +658,9 @@ FrameBuffer::~FrameBuffer() {
     }
 #endif
 
-    vk::teardownGlobalVkEmulation();
+    if (m_emulationVk) {
+        m_emulationVk->teardown();
+    }
 
     sInitialized.store(false, std::memory_order_relaxed);
 }
@@ -993,11 +969,9 @@ bool FrameBuffer::setupSubWindow(FBNativeWindowType p_window,
         if (m_subWin) {
             m_nativeWindow = p_window;
 
-
-
             if (m_displayVk) {
-                m_displaySurface =
-                    vk::createDisplaySurface(m_subWin, m_windowWidth * dpr, m_windowHeight * dpr);
+                m_displaySurface = m_emulationVk->createDisplaySurface(
+                    m_subWin, m_windowWidth * dpr, m_windowHeight * dpr);
             } else if (m_emulationGl) {
 #if GFXSTREAM_ENABLE_HOST_GLES
                 m_displaySurface = m_emulationGl->createWindowSurface(m_windowWidth * dpr,
@@ -1175,7 +1149,7 @@ bool FrameBuffer::isFormatSupported(GLenum format) {
         supported &= m_emulationGl->isFormatSupported(format);
     }
     if (m_emulationVk) {
-        supported &= vk::isFormatSupported(format);
+        supported &= m_emulationVk->isFormatSupported(format);
     }
     return supported;
 }
@@ -2865,7 +2839,7 @@ void FrameBuffer::logVulkanDeviceLost() {
     if (!m_emulationVk) {
         GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "Device lost without VkEmulation?";
     }
-    vk::onVkDeviceLost();
+    m_emulationVk->onVkDeviceLost();
 }
 
 void FrameBuffer::logVulkanOutOfMemory(VkResult result, const char* function, int line,
