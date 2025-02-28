@@ -7391,9 +7391,9 @@ class VkDecoderGlobalState::Impl {
             vk->vkGetImageSubresourceLayout(device, image, &subresource, &subresourceLayout);
             vk->vkDestroyImage(device, image, nullptr);
 
-            VkDeviceSize offset = subresourceLayout.offset;
+            offset = subresourceLayout.offset;
             uint64_t rowPitch = subresourceLayout.rowPitch;
-            VkDeviceSize rowPitchAlignment = rowPitch & (~rowPitch + 1);
+            rowPitchAlignment = rowPitch & (~rowPitch + 1);
 
             std::lock_guard<std::mutex> lock(mMutex);
 
