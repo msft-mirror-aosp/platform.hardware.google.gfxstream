@@ -234,15 +234,6 @@ VkResult prepareAndroidNativeBufferImage(VulkanDispatch* vk, VkDevice device,
 
         vk->vkGetImageMemoryRequirements(device, out->image, &out->memReqs);
 
-        if (out->memReqs.size > importedColorBufferMemoryInfo.size) {
-            VK_ANB_ERR(
-                "Failed to prepare ANB image: attempted to import memory that is not large enough "
-                "for the VkImage: image memory requirements size:%d vs actual memory size:%d",
-                out->memReqs.size, importedColorBufferMemoryInfo.size);
-
-            return VK_ERROR_INITIALIZATION_FAILED;
-        }
-
         if (out->memReqs.size < importedColorBufferMemoryInfo.size) {
             out->memReqs.size = importedColorBufferMemoryInfo.size;
         }
