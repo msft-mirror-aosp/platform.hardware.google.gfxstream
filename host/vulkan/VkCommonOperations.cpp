@@ -2775,17 +2775,15 @@ bool teardownVkColorBuffer(uint32_t colorBufferHandle) {
     return teardownVkColorBufferLocked(colorBufferHandle);
 }
 
-VkEmulation::ColorBufferInfo getColorBufferInfo(uint32_t colorBufferHandle) {
-    VkEmulation::ColorBufferInfo res;
-
+std::optional<VkEmulation::ColorBufferInfo> getColorBufferInfo(uint32_t colorBufferHandle) {
     AutoLock lock(sVkEmulationLock);
 
     auto infoPtr = android::base::find(sVkEmulation->colorBuffers, colorBufferHandle);
+    if (!infoPtr) {
+        return std::nullopt;
+    }
 
-    if (!infoPtr) return res;
-
-    res = *infoPtr;
-    return res;
+    return *infoPtr;
 }
 
 bool colorBufferNeedsUpdateBetweenGlAndVk(const VkEmulation::ColorBufferInfo& colorBufferInfo) {
@@ -3185,8 +3183,7 @@ static bool updateColorBufferFromBytesLocked(uint32_t colorBufferHandle, uint32_
     sVkEmulation->debugUtilsHelper.cmdBeginDebugLabel(
         commandBuffer, "updateColorBufferFromBytes(ColorBuffer:%d)", colorBufferHandle);
 
-    bool isSnapshotLoad =
-        VkDecoderGlobalState::get()->getSnapshotState() == VkDecoderGlobalState::Loading;
+    const bool isSnapshotLoad = VkDecoderGlobalState::get()->isSnapshotCurrentlyLoading();
     VkImageLayout currentLayout = colorBufferInfo->currentLayout;
     if (isSnapshotLoad) {
         currentLayout = VK_IMAGE_LAYOUT_UNDEFINED;

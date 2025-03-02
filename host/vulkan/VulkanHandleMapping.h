@@ -43,39 +43,31 @@ class VulkanHandleMapping {
     VkDecoderGlobalState* m_state;
 };
 
+#define DECLARE_HANDLE_MAP_OVERRIDE(type)                                                            \
+    void mapHandles_##type(type* handles, size_t count) override;                                    \
+    void mapHandles_##type##_u64(const type* handles, uint64_t* handle_u64s, size_t count) override; \
+    void mapHandles_u64_##type(const uint64_t* handle_u64s, type* handles, size_t count) override;
+
 class DefaultHandleMapping : public VulkanHandleMapping {
    public:
     DefaultHandleMapping() : VulkanHandleMapping(nullptr) {}
     virtual ~DefaultHandleMapping() {}
-
-#define DECLARE_HANDLE_MAP_OVERRIDE(type)                                                  \
-    void mapHandles_##type(type* handles, size_t count) override;                          \
-    void mapHandles_##type##_u64(const type* handles, uint64_t* handle_u64s, size_t count) \
-        override;                                                                          \
-    void mapHandles_u64_##type(const uint64_t* handle_u64s, type* handles, size_t count) override;
-
     GOLDFISH_VK_LIST_HANDLE_TYPES(DECLARE_HANDLE_MAP_OVERRIDE)
 };
 
-#define DEFINE_BOXED_DISPATCHABLE_HANDLE_GLOBAL_API_DECL(type) \
-    type unbox_##type(type boxed);                             \
-    type try_unbox_##type(type boxed);                         \
-    type unboxed_to_boxed_##type(type boxed);                  \
-    void delete_##type(type boxed);                            \
-    VulkanDispatch* dispatch_##type(type boxed);
+class BoxedHandleCreateMapping : public VulkanHandleMapping {
+   public:
+    BoxedHandleCreateMapping(VkDecoderGlobalState* state) : VulkanHandleMapping(state) {}
+    virtual ~BoxedHandleCreateMapping() {}
+    GOLDFISH_VK_LIST_HANDLE_TYPES(DECLARE_HANDLE_MAP_OVERRIDE)
+};
 
-GOLDFISH_VK_LIST_DISPATCHABLE_HANDLE_TYPES(DEFINE_BOXED_DISPATCHABLE_HANDLE_GLOBAL_API_DECL)
-
-#define DEFINE_BOXED_NON_DISPATCHABLE_HANDLE_GLOBAL_API_DECL(type)                           \
-    type new_boxed_non_dispatchable_##type(type underlying);                                 \
-    void delete_##type(type boxed);                                                          \
-    void delayed_delete_##type(type boxed, VkDevice device, std::function<void()> callback); \
-    void set_boxed_non_dispatchable_##type(type boxed, type underlying);                     \
-    type unbox_##type(type boxed);                                                           \
-    type try_unbox_##type(type boxed);                                                       \
-    type unboxed_to_boxed_non_dispatchable_##type(type boxed);
-
-GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES(DEFINE_BOXED_NON_DISPATCHABLE_HANDLE_GLOBAL_API_DECL)
+class BoxedHandleUnwrapMapping : public VulkanHandleMapping {
+   public:
+    BoxedHandleUnwrapMapping(VkDecoderGlobalState* state) : VulkanHandleMapping(state) {}
+    virtual ~BoxedHandleUnwrapMapping() {}
+    GOLDFISH_VK_LIST_HANDLE_TYPES(DECLARE_HANDLE_MAP_OVERRIDE)
+};
 
 }  // namespace vk
 }  // namespace gfxstream
