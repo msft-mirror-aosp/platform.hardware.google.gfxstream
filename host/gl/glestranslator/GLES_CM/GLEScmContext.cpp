@@ -622,7 +622,7 @@ void GLEScmContext::appendRepeatedVector(uint32_t count, std::vector<float>& in,
     size_t previousOutSize = out.size();
     out.resize(previousOutSize + (count * in.size()));
     auto it = out.begin() + previousOutSize;
-    for (int i = 0; i < count; i++) {
+    for (uint32_t i = 0; i < count; i++) {
         std::copy(in.begin(), in.end(), it);
         it += in.size();
     }

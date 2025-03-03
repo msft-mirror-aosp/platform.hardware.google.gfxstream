@@ -95,7 +95,7 @@ VkResult SwapChainStateVk::initSwapChainStateVk(const VkSwapchainCreateInfoKHR& 
     m_vkImages.resize(imageCount);
     VK_CHECK(
         m_vk.vkGetSwapchainImagesKHR(m_vkDevice, m_vkSwapChain, &imageCount, m_vkImages.data()));
-    for (auto i = 0; i < m_vkImages.size(); i++) {
+    for (size_t i = 0; i < m_vkImages.size(); i++) {
         VkImageViewCreateInfo imageViewCi = {
             .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
             .image = m_vkImages[i],

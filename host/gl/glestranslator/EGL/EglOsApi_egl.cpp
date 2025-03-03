@@ -845,10 +845,10 @@ class EglEngine : public EglOS::Engine {
 public:
  EglEngine(bool nullEgl)
      :
+       EglOS::Engine(),
 #ifdef __QNX__  // Ensure libEGL is loaded prior to libGLES
        mDisplay(sHostDisplay(nullEgl)),
 #endif
-       EglOS::Engine(),
        mUseNullEgl(nullEgl) {
  }
 
