@@ -987,7 +987,7 @@ VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer
     if (!skip_opengles) {
         // aemu currently does its own opengles initialization in
         // qemu/android/android-emu/android/opengles.cpp.
-        int ret =
+        ret =
             stream_renderer_opengles_init(display_width, display_height, renderer_flags, features);
         if (ret) {
             return ret;
