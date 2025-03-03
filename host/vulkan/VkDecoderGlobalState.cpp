@@ -1840,7 +1840,6 @@ class VkDecoderGlobalState::Impl {
 
         VkDeviceQueueCreateInfo filteredQueueCreateInfo = {};
         // Use VulkanVirtualQueue directly to avoid locking for hasVirtualGraphicsQueue call.
-        // TODO(b/379862480): consider making this modifications from a queue helper class
         if (m_emu->features.VulkanVirtualQueue.enabled &&
             (createInfoFiltered.queueCreateInfoCount == 1) &&
             (createInfoFiltered.pQueueCreateInfos[0].queueCount == 2)) {
@@ -3350,6 +3349,23 @@ class VkDecoderGlobalState::Impl {
 
         std::lock_guard<std::mutex> lock(mMutex);
         destroySemaphoreLocked(device, deviceDispatch, semaphore, pAllocator);
+    }
+
+    VkResult on_vkWaitSemaphores(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                             VkDevice boxed_device, const VkSemaphoreWaitInfo* pWaitInfo,
+                             uint64_t timeout) {
+        auto device = unbox_VkDevice(boxed_device);
+        auto deviceDispatch = dispatch_VkDevice(boxed_device);
+
+        return deviceDispatch->vkWaitSemaphores(device, pWaitInfo, timeout);
+    }
+
+    VkResult on_vkSignalSemaphore(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                                  VkDevice boxed_device, const VkSemaphoreSignalInfo* pSignalInfo) {
+        auto device = unbox_VkDevice(boxed_device);
+        auto deviceDispatch = dispatch_VkDevice(boxed_device);
+
+        return deviceDispatch->vkSignalSemaphore(device, pSignalInfo);
     }
 
     enum class DestroyFenceStatus { kDestroyed, kRecycled };
@@ -9487,6 +9503,21 @@ void VkDecoderGlobalState::on_vkDestroySemaphore(android::base::BumpPool* pool,
                                                  VkDevice device, VkSemaphore semaphore,
                                                  const VkAllocationCallbacks* pAllocator) {
     mImpl->on_vkDestroySemaphore(pool, snapshotInfo, device, semaphore, pAllocator);
+}
+
+VkResult VkDecoderGlobalState::on_vkWaitSemaphores(android::base::BumpPool* pool,
+                                                   VkSnapshotApiCallInfo* snapshotInfo,
+                                                   VkDevice device,
+                                                   const VkSemaphoreWaitInfo* pWaitInfo,
+                                                   uint64_t timeout) {
+    return mImpl->on_vkWaitSemaphores(pool, snapshotInfo, device, pWaitInfo, timeout);
+}
+
+VkResult VkDecoderGlobalState::on_vkSignalSemaphore(android::base::BumpPool* pool,
+                                                   VkSnapshotApiCallInfo* snapshotInfo,
+                                                   VkDevice device,
+                                                   const VkSemaphoreSignalInfo* pSignalInfo) {
+    return mImpl->on_vkSignalSemaphore(pool, snapshotInfo, device, pSignalInfo);
 }
 
 VkResult VkDecoderGlobalState::on_vkCreateFence(android::base::BumpPool* pool,
