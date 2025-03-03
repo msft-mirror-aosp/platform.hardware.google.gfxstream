@@ -220,7 +220,6 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 .setAnnotations(std::move(executionData))
                 .build();
 
-        auto vk = m_vk;
         switch (opcode) {
 #ifdef VK_VERSION_1_0
             case OP_vkCreateInstance: {
@@ -1035,8 +1034,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 VkResult vkEnumerateInstanceExtensionProperties_VkResult_return = (VkResult)0;
                 vkEnumerateInstanceExtensionProperties_VkResult_return =
-                    vk->vkEnumerateInstanceExtensionProperties(pLayerName, pPropertyCount,
-                                                               pProperties);
+                    m_vk->vkEnumerateInstanceExtensionProperties(pLayerName, pPropertyCount,
+                                                                 pProperties);
                 if ((vkEnumerateInstanceExtensionProperties_VkResult_return) ==
                     VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
@@ -1249,7 +1248,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 }
                 VkResult vkEnumerateInstanceLayerProperties_VkResult_return = (VkResult)0;
                 vkEnumerateInstanceLayerProperties_VkResult_return =
-                    vk->vkEnumerateInstanceLayerProperties(pPropertyCount, pProperties);
+                    m_vk->vkEnumerateInstanceLayerProperties(pPropertyCount, pProperties);
                 if ((vkEnumerateInstanceLayerProperties_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
                 m_state->on_CheckOutOfMemory(vkEnumerateInstanceLayerProperties_VkResult_return,
