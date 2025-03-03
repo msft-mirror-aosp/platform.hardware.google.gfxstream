@@ -674,7 +674,7 @@ int getSelectedGpuIndex(const std::vector<VkEmulation::DeviceSupportInfo>& devic
             }
         }
 
-        if (enforceGpuIndex != -1 && enforceGpuIndex >= 0 && enforceGpuIndex < deviceInfos.size()) {
+        if (enforceGpuIndex != -1 && enforceGpuIndex >= 0 && enforceGpuIndex < (int)deviceInfos.size()) {
             INFO("Selecting GPU (%s) at index %d.",
                  deviceInfos[enforceGpuIndex].physdevProps.deviceName, enforceGpuIndex);
         } else {
@@ -1036,7 +1036,7 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk,
 
     std::vector<VkEmulation::DeviceSupportInfo> deviceInfos(physdevCount);
 
-    for (int i = 0; i < physdevCount; ++i) {
+    for (uint32_t i = 0; i < physdevCount; ++i) {
         ivk->vkGetPhysicalDeviceProperties(physdevs[i], &deviceInfos[i].physdevProps);
 
         VERBOSE("Considering Vulkan physical device %d : %s", i,
@@ -2586,6 +2586,10 @@ static bool createVkColorBufferLocked(uint32_t width, uint32_t height, GLenum in
                                               nullptr, VK_NULL_HANDLE};
     const bool addConversion = formatRequiresYcbcrConversion(imageVkFormat);
     if (addConversion) {
+        if (!sVkEmulation->deviceInfo.supportsSamplerYcbcrConversion) {
+            ERR("VkFormat: %d requires conversion, but device does not have required extension for conversion (%s)", imageVkFormat, VK_KHR_SAMPLER_YCBCR_CONVERSION_EXTENSION_NAME);
+            return false;
+        }
         VkSamplerYcbcrConversionCreateInfo ycbcrCreateInfo = {
             VK_STRUCTURE_TYPE_SAMPLER_YCBCR_CONVERSION_CREATE_INFO,
             nullptr,
@@ -2759,7 +2763,9 @@ bool teardownVkColorBufferLocked(uint32_t colorBufferHandle) {
             VK_CHECK(vk->vkQueueWaitIdle(sVkEmulation->queue));
         }
         vk->vkDestroyImageView(sVkEmulation->device, info.imageView, nullptr);
-        vk->vkDestroySamplerYcbcrConversion(sVkEmulation->device, info.ycbcrConversion, nullptr);
+        if (sVkEmulation->deviceInfo.hasSamplerYcbcrConversionExtension) {
+            vk->vkDestroySamplerYcbcrConversion(sVkEmulation->device, info.ycbcrConversion, nullptr);
+        }
         vk->vkDestroyImage(sVkEmulation->device, info.image, nullptr);
         freeExternalMemoryLocked(vk, &info.memory);
     }

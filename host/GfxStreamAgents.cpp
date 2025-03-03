@@ -160,7 +160,7 @@ static const QAndroidMultiDisplayAgent sMultiDisplayAgent = {
             }
             // displays created by internal rcCommands
             if (*displayId == MultiDisplay::s_invalidIdMultiDisplay) {
-                for (int i = MultiDisplay::s_displayIdInternalBegin; i < MultiDisplay::s_maxNumMultiDisplay; i++) {
+                for (uint32_t i = MultiDisplay::s_displayIdInternalBegin; i < MultiDisplay::s_maxNumMultiDisplay; i++) {
                     if (mMultiDisplay.find(i) == mMultiDisplay.end()) {
                         *displayId = i;
                         break;
