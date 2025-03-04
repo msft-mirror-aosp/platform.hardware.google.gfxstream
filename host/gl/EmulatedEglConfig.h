@@ -124,7 +124,7 @@ class EmulatedEglConfigList {
     // which must be an integer between 0 and |size() - 1|. Returns
     // NULL in case of failure.
     const EmulatedEglConfig* get(int guestId) const {
-        if (guestId >= 0 && guestId < mConfigs.size()) {
+        if (guestId >= 0 && guestId < (int)mConfigs.size()) {
             return &mConfigs[guestId];
         } else {
             return NULL;

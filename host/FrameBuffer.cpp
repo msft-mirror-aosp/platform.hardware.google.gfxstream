@@ -2113,7 +2113,7 @@ int FrameBuffer::getScreenshot(unsigned int nChannels, unsigned int* width, unsi
     int needed =
         useSnipping ? (nChannels * rect.size.w * rect.size.h) : (nChannels * (*width) * (*height));
 
-    if (*cPixels < needed) {
+    if (*cPixels < (size_t)needed) {
         *cPixels = needed;
         return -2;
     }
@@ -2126,7 +2126,7 @@ int FrameBuffer::getScreenshot(unsigned int nChannels, unsigned int* width, unsi
     // Transform the x, y coordinates given the rotation.
     // Assume (0, 0) represents the top left corner of the screen.
     if (useSnipping) {
-        int x, y;
+        int x = 0, y = 0;
         switch (desiredRotation) {
             case SKIN_ROTATION_0:
                 x = rect.pos.x;
@@ -2784,7 +2784,7 @@ int FrameBuffer::setDisplayPose(uint32_t displayId, int32_t x, int32_t y, uint32
 }
 
 void FrameBuffer::sweepColorBuffersLocked() {
-    HandleType handleToDestroy;
+    HandleType handleToDestroy = 0;
     while (mOutstandingColorBufferDestroys.tryReceive(&handleToDestroy)) {
         decColorBufferRefCountLocked(handleToDestroy);
     }
