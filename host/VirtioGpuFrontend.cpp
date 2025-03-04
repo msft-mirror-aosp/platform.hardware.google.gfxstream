@@ -871,16 +871,6 @@ int VirtioGpuFrontend::platformDestroySharedEglContext(void* context) {
     return success ? 0 : -1;
 }
 
-int VirtioGpuFrontend::waitSyncResource(uint32_t res_handle) {
-    auto resourceIt = mResources.find(res_handle);
-    if (resourceIt == mResources.end()) {
-        stream_renderer_error("waitSyncResource could not find resource: %d", res_handle);
-        return -EINVAL;
-    }
-    auto& resource = resourceIt->second;
-    return resource.WaitSyncResource();
-}
-
 int VirtioGpuFrontend::resourceMapInfo(uint32_t resourceId, uint32_t* map_info) {
     stream_renderer_debug("resource: %u", resourceId);
 
