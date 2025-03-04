@@ -42,7 +42,6 @@ class ColorBufferVk {
 
     void onSave(android::base::Stream* stream);
 
-    int waitSync();
     std::optional<BlobDescriptorInfo> exportBlob();
 
    private:

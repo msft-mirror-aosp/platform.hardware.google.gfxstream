@@ -509,7 +509,6 @@ class FrameBuffer : public android::base::EventNotificationSupport<FrameBufferCh
                                      size_t bytesSize);
     bool invalidateColorBufferForVk(HandleType colorBufferHandle);
 
-    int waitSyncColorBuffer(HandleType colorBufferHandle);
     std::optional<BlobDescriptorInfo> exportColorBuffer(HandleType colorBufferHandle);
     std::optional<BlobDescriptorInfo> exportBuffer(HandleType bufferHandle);
 

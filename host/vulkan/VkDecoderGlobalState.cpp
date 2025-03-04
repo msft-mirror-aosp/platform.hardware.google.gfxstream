@@ -4824,9 +4824,6 @@ class VkDecoderGlobalState::Impl {
                 cmdBufferInfo->releasedColorBuffers.insert(cb);
             }
             cmdBufferInfo->cbLayouts[cb] = getIMBNewLayout(pImageMemoryBarriers[i]);
-            // Insert unconditionally to this list, regardless of whether or not
-            // there is a queue family ownership transfer
-            cmdBufferInfo->imageBarrierColorBuffers.insert(cb);
         }
     }
 
@@ -6331,27 +6328,6 @@ class VkDecoderGlobalState::Impl {
             queueCompletedWaitable = builder.OnQueueSubmittedWithFence(usedFence);
 
             deviceInfo->deviceOpTracker->PollAndProcessGarbage();
-        }
-
-        {
-            std::lock_guard<std::mutex> lock(mMutex);
-            std::unordered_set<HandleType> imageBarrierColorBuffers;
-            for (uint32_t i = 0; i < submitCount; i++) {
-                for (int j = 0; j < getCommandBufferCount(pSubmits[i]); j++) {
-                    VkCommandBuffer cmdBuffer = getCommandBuffer(pSubmits[i], j);
-                    CommandBufferInfo* cmdBufferInfo =
-                        android::base::find(mCommandBufferInfo, cmdBuffer);
-                    if (cmdBufferInfo) {
-                        imageBarrierColorBuffers.merge(cmdBufferInfo->imageBarrierColorBuffers);
-                    }
-                }
-            }
-            auto* deviceInfo = android::base::find(mDeviceInfo, device);
-            if (!deviceInfo) return VK_ERROR_INITIALIZATION_FAILED;
-            for (const auto& colorBuffer : imageBarrierColorBuffers) {
-                setColorBufferLatestUse(colorBuffer, queueCompletedWaitable,
-                                        deviceInfo->deviceOpTracker);
-            }
         }
 
         std::lock_guard<std::mutex> queueLock(*queueMutex);

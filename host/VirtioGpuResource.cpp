@@ -518,15 +518,6 @@ int VirtioGpuResource::GetCaching(uint32_t* outCaching) const {
     return -EINVAL;
 }
 
-int VirtioGpuResource::WaitSyncResource() {
-    if (mResourceType != VirtioGpuResourceType::COLOR_BUFFER) {
-        stream_renderer_error("waitSyncResource is undefined for non-ColorBuffer resource.");
-        return -EINVAL;
-    }
-
-    return FrameBuffer::getFB()->waitSyncColorBuffer(mId);
-}
-
 // Corresponds to Virtio GPU "TransferFromHost" commands and VMM requests to
 // copy into display buffers.
 int VirtioGpuResource::TransferRead(const GoldfishPipeServiceOps* ops, uint64_t offset,
