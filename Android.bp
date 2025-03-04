@@ -164,6 +164,7 @@ cc_defaults {
         "-DVK_GFXSTREAM_STRUCTURE_TYPE_EXT",
         "-DGFXSTREAM_ENABLE_HOST_GLES=1",
         "-Wall",
+        "-Wextra",
         "-Wshadow",
         "-Wthread-safety",
         "-Wno-unused-function",

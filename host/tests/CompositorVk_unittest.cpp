@@ -292,7 +292,7 @@ class CompositorVkTest : public ::testing::Test {
         uint32_t physicalDeviceCount = 0;
         ASSERT_EQ(k_vk->vkEnumeratePhysicalDevices(m_vkInstance, &physicalDeviceCount, nullptr),
                   VK_SUCCESS);
-        ASSERT_GT(physicalDeviceCount, 0);
+        ASSERT_GT(physicalDeviceCount, (uint32_t)0);
         std::vector<VkPhysicalDevice> physicalDevices(physicalDeviceCount);
         ASSERT_EQ(k_vk->vkEnumeratePhysicalDevices(m_vkInstance, &physicalDeviceCount,
                                                    physicalDevices.data()),
@@ -300,7 +300,7 @@ class CompositorVkTest : public ::testing::Test {
         for (const auto &device : physicalDevices) {
             uint32_t queueFamilyCount = 0;
             k_vk->vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
-            ASSERT_GT(queueFamilyCount, 0);
+            ASSERT_GT(queueFamilyCount, (uint32_t)0);
             std::vector<VkQueueFamilyProperties> queueFamilyProperties(queueFamilyCount);
             k_vk->vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount,
                                                            queueFamilyProperties.data());
