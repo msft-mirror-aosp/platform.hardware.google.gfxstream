@@ -31,7 +31,7 @@
 #include "ExternalObjectManager.h"
 #include "FrameworkFormats.h"
 #include "aemu/base/Optional.h"
-#include "aemu/base/synchronization/Lock.h"
+#include "aemu/base/ThreadAnnotations.h"
 #include "gfxstream/host/BackendCallbacks.h"
 #include "gfxstream/host/Features.h"
 #include "goldfish_vk_private_defs.h"
@@ -356,9 +356,6 @@ class VkEmulation {
     bool readColorBufferToBytes(uint32_t colorBufferHandle, std::vector<uint8_t>* bytes);
     bool readColorBufferToBytes(uint32_t colorBufferHandle, uint32_t x, uint32_t y, uint32_t w,
                                 uint32_t h, void* outPixels, uint64_t outPixelsSize);
-    bool readColorBufferToBytesLocked(uint32_t colorBufferHandle, uint32_t x, uint32_t y,
-                                      uint32_t w, uint32_t h, void* outPixels,
-                                      uint64_t outPixelsSize);
 
     bool updateColorBufferFromBytes(uint32_t colorBufferHandle, const std::vector<uint8_t>& bytes);
     bool updateColorBufferFromBytes(uint32_t colorBufferHandle, uint32_t x, uint32_t y, uint32_t w,
@@ -410,7 +407,7 @@ class VkEmulation {
     VkEmulation() = default;
 
     std::optional<RepresentativeColorBufferMemoryTypeInfo>
-    findRepresentativeColorBufferMemoryTypeIndexLocked();
+    findRepresentativeColorBufferMemoryTypeIndexLocked() REQUIRES(mMutex);
 
     struct ImageSupportInfo {
         // Input parameters
@@ -490,31 +487,35 @@ class VkEmulation {
 
     bool getColorBufferAllocationInfoLocked(uint32_t colorBufferHandle, VkDeviceSize* outSize,
                                             uint32_t* outMemoryTypeIndex,
-                                            bool* outMemoryIsDedicatedAlloc, void** outMappedPtr);
+                                            bool* outMemoryIsDedicatedAlloc, void** outMappedPtr) REQUIRES(mMutex);
 
-    std::unique_ptr<VkImageCreateInfo> generateColorBufferVkImageCreateInfo_locked(
-        VkFormat format, uint32_t width, uint32_t height, VkImageTiling tiling);
+    std::unique_ptr<VkImageCreateInfo> generateColorBufferVkImageCreateInfoLocked(
+        VkFormat format, uint32_t width, uint32_t height, VkImageTiling tiling) REQUIRES(mMutex);
 
     bool createVkColorBufferLocked(uint32_t width, uint32_t height, GLenum internalFormat,
                                    FrameworkFormat frameworkFormat, uint32_t colorBufferHandle,
-                                   bool vulkanOnly, uint32_t memoryProperty);
+                                   bool vulkanOnly, uint32_t memoryProperty) REQUIRES(mMutex);
 
-    bool teardownVkColorBufferLocked(uint32_t colorBufferHandle);
+    bool teardownVkColorBufferLocked(uint32_t colorBufferHandle) REQUIRES(mMutex);
 
     bool colorBufferNeedsUpdateBetweenGlAndVk(const VkEmulation::ColorBufferInfo& colorBufferInfo);
 
+    bool readColorBufferToBytesLocked(uint32_t colorBufferHandle, uint32_t x, uint32_t y,
+                                      uint32_t w, uint32_t h, void* outPixels,
+                                      uint64_t outPixelsSize) REQUIRES(mMutex);
+
     bool updateColorBufferFromBytesLocked(uint32_t colorBufferHandle, uint32_t x, uint32_t y,
                                           uint32_t w, uint32_t h, const void* pixels,
-                                          size_t inputPixelsSize);
+                                          size_t inputPixelsSize) REQUIRES(mMutex);
 
     bool updateMemReqsForExtMem(std::optional<ExternalHandleInfo> extMemHandleInfo,
                                 VkMemoryRequirements* pMemReqs);
 
-    std::tuple<VkCommandBuffer, VkFence> allocateQueueTransferCommandBuffer_locked();
+    std::tuple<VkCommandBuffer, VkFence> allocateQueueTransferCommandBufferLocked() REQUIRES(mMutex);
 
-    void freeExternalMemoryLocked(VulkanDispatch* vk, ExternalMemoryInfo* info);
+    void freeExternalMemoryLocked(VulkanDispatch* vk, ExternalMemoryInfo* info) REQUIRES(mMutex);
 
-    android::base::StaticLock mMutex;
+    std::mutex mMutex;
 
     gfxstream::host::BackendCallbacks mCallbacks;
 
@@ -616,28 +617,28 @@ class VkEmulation {
     // host. It is shareable across instances. The memory is shareable but the
     // buffer is not; other users need to create buffers that
     // bind to imported versions of the memory.
-    StagingBufferInfo mStaging;
+    StagingBufferInfo mStaging GUARDED_BY(mMutex);
 
     // ColorBuffers are intended to back the guest's shareable images.
     // For example:
     // Android: gralloc
     // Fuchsia: ImagePipeHandle
     // Linux: dmabuf
-    std::unordered_map<uint32_t, ColorBufferInfo> mColorBuffers;
+    std::unordered_map<uint32_t, ColorBufferInfo> mColorBuffers GUARDED_BY(mMutex);
 
     // Buffers are intended to back the guest's shareable Vulkan buffers.
-    std::unordered_map<uint32_t, BufferInfo> mBuffers;
+    std::unordered_map<uint32_t, BufferInfo> mBuffers GUARDED_BY(mMutex);
 
     // In order to support VK_KHR_external_memory_(fd|win32) we need also to
     // support the concept of plain external memories that are just memory and
     // not necessarily images. These are then intended to pass through to the
     // guest in some way, with 1:1 mapping between guest and host external
     // memory handles.
-    std::unordered_map<uint32_t, ExternalMemoryInfo> mExternalMemories;
+    std::unordered_map<uint32_t, ExternalMemoryInfo> mExternalMemories GUARDED_BY(mMutex);
 
     // The host keeps a set of occupied guest memory addresses to avoid a
     // host memory address mapped to guest twice.
-    std::unordered_set<uint64_t> mOccupiedGpas;
+    std::unordered_set<uint64_t> mOccupiedGpas GUARDED_BY(mMutex);
 
     // We can also consider using a single external memory object to back all
     // host visible allocations in the guest. This would save memory, but we
@@ -656,7 +657,7 @@ class VkEmulation {
 
     // Every command buffer in the pool is associated with a VkFence which is
     // signaled only if the command buffer completes.
-    std::vector<std::tuple<VkCommandBuffer, VkFence>> mTransferQueueCommandBufferPool;
+    std::vector<std::tuple<VkCommandBuffer, VkFence>> mTransferQueueCommandBufferPool GUARDED_BY(mMutex);
 
     std::unique_ptr<CompositorVk> mCompositorVk;
 
