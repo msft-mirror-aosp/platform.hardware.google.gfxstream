@@ -771,19 +771,10 @@ int VkEmulation::getSelectedGpuIndex(
     return selectedGpuIndex;
 }
 
-namespace temporary {
-
-// TODO: remove this.
-static VkEmulation* sEmulation = nullptr;
-
-}  // namespace temporary
-
 /*static*/
-VkEmulation* VkEmulation::get() { return temporary::sEmulation; }
-
-/*static*/
-VkEmulation* VkEmulation::create(VulkanDispatch* gvk, gfxstream::host::BackendCallbacks callbacks,
-                                 gfxstream::host::FeatureSet features) {
+std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
+                                                 gfxstream::host::BackendCallbacks callbacks,
+                                                 gfxstream::host::FeatureSet features) {
 // Downstream branches can provide abort logic or otherwise use result without a new macro
 #define VK_EMU_INIT_RETURN_OR_ABORT_ON_ERROR(res, ...) \
     do {                                               \
@@ -792,16 +783,11 @@ VkEmulation* VkEmulation::create(VulkanDispatch* gvk, gfxstream::host::BackendCa
         return nullptr;                                \
     } while (0)
 
-    if (temporary::sEmulation) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-            << "Attempted to initialize VkEmulation twice.";
-    }
-
     if (!vkDispatchValid(gvk)) {
         VK_EMU_INIT_RETURN_OR_ABORT_ON_ERROR(ABORT_REASON_OTHER, "Dispatch is invalid.");
     }
 
-    VkEmulation* emulation = new VkEmulation();
+    std::unique_ptr<VkEmulation> emulation(new VkEmulation());
 
     std::lock_guard<std::mutex> lock(emulation->mMutex);
 
@@ -1647,8 +1633,6 @@ VkEmulation* VkEmulation::create(VulkanDispatch* gvk, gfxstream::host::BackendCa
 
     emulation->mTransferQueueCommandBufferPool.resize(0);
 
-    temporary::sEmulation = emulation;
-
     return emulation;
 }
 
@@ -1707,7 +1691,7 @@ void VkEmulation::initFeatures(Features features) {
         mRepresentativeColorBufferMemoryTypeInfo.guestMemoryTypeIndex);
 }
 
-void VkEmulation::teardown() {
+VkEmulation::~VkEmulation() {
     std::lock_guard<std::mutex> lock(mMutex);
 
     mCompositorVk.reset();
@@ -1723,10 +1707,6 @@ void VkEmulation::teardown() {
     mIvk->vkDestroyDevice(mDevice, nullptr);
 
     mGvk->vkDestroyInstance(mInstance, nullptr);
-
-    VkDecoderGlobalState::reset();
-
-    temporary::sEmulation = nullptr;
 }
 
 bool VkEmulation::isYcbcrEmulationEnabled() const { return mEnableYcbcrEmulation; }

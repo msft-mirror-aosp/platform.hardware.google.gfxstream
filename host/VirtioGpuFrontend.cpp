@@ -611,9 +611,9 @@ void VirtioGpuFrontend::fillCaps(uint32_t set, void* caps) {
             capset->ringSize = 12288;
             capset->bufferSize = 1048576;
 
-            if (gfxstream::vk::VkEmulation::isLive()) {
-                const auto info =
-                    gfxstream::vk::VkEmulation::get()->getRepresentativeColorBufferMemoryTypeInfo();
+            auto* fb = gfxstream::FrameBuffer::getFB();
+            if (fb->hasEmulationVk()) {
+                const auto info = fb->getEmulationVk().getRepresentativeColorBufferMemoryTypeInfo();
                 capset->colorBufferMemoryIndex = info.guestMemoryTypeIndex;
                 capset->deferredMapping = 1;
             }
