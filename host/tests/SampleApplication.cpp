@@ -345,9 +345,9 @@ void SampleApplication::drawWorkerWithCompose(ColorBufferQueue& app2sfQueue,
         app2sfQueue.dequeueBuffer(&appItem);
         if (appItem.sync) { appItem.sync->wait(EGL_FOREVER_KHR); }
 
-        hwc_rect_t displayFrame = {0, 0, mWidth, mHeight/2};
-        hwc_frect_t crop = {0.0, 0.0, (float)mWidth, (float)mHeight};
-        hwc_color_t color = {0, 0, 0, 0};
+        displayFrame = {0, 0, mWidth, mHeight/2};
+        crop = {0.0, 0.0, (float)mWidth, (float)mHeight};
+        color = {0, 0, 0, 0};
         autoComposeDevice.configureLayer(1,
                                          appItem.colorBuffer,
                                          HWC2_COMPOSITION_DEVICE,
