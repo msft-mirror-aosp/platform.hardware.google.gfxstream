@@ -117,7 +117,8 @@ const char* emuglConfig_get_vulkan_runtime_full_path();
 
 // Returns the properties of the hardware gpu to be used for emulation
 void emuglConfig_get_vulkan_hardware_gpu(char** vendor, int* major, int* minor, int* patch,
-                                         uint64_t* deviceMemBytes, uint32_t* driverVersion);
+                                         uint64_t* deviceMemBytes, uint32_t* driverVersion,
+                                         uint64_t* deviceMaxAllocationCount);
 
 // Returns a string representation of the renderer enum. Return value is a
 // static constant string, it is NOT heap-allocated.
