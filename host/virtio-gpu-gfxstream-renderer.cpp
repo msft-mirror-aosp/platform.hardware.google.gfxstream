@@ -582,8 +582,6 @@ static int stream_renderer_opengles_init(uint32_t display_width, uint32_t displa
 
     android::featurecontrol::productFeatureOverride();
 
-    gfxstream::vk::vkDispatch(false /* don't use test ICD */);
-
     auto androidHw = aemu_get_android_hw();
 
     androidHw->hw_gltransport_asg_writeBufferSize = 1048576;
@@ -605,6 +603,8 @@ static int stream_renderer_opengles_init(uint32_t display_width, uint32_t displa
                      WINSYS_GLESBACKEND_PREFERENCE_AUTO, true /* force host gpu vulkan */);
 
     emuglConfig_setupEnv(&config);
+
+    gfxstream::vk::vkDispatch(false /* don't use test ICD */);
 
     android_prepareOpenglesEmulation();
 
