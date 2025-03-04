@@ -489,10 +489,10 @@ class VkDecoderGlobalState::Impl {
                 // regardless, we might hit a Vulkan validation error because the new image might
                 // have the "usage" flag that is unsuitable to bind to descriptors.
                 std::vector<std::pair<int, int>> validWriteIndices;
-                for (int bindingIdx = 0; bindingIdx < descriptorSetInfo.allWrites.size();
+                for (int bindingIdx = 0; bindingIdx < (int)descriptorSetInfo.allWrites.size();
                      bindingIdx++) {
                     for (int bindingElemIdx = 0;
-                         bindingElemIdx < descriptorSetInfo.allWrites[bindingIdx].size();
+                         bindingElemIdx < (int)descriptorSetInfo.allWrites[bindingIdx].size();
                          bindingElemIdx++) {
                         const auto& entry = descriptorSetInfo.allWrites[bindingIdx][bindingElemIdx];
                         if (entry.writeType == DescriptorSetInfo::DescriptorWriteType::Empty) {
@@ -500,7 +500,7 @@ class VkDecoderGlobalState::Impl {
                         }
                         int dependencyObjCount =
                             descriptorDependencyObjectCount(entry.descriptorType);
-                        if (entry.alives.size() < dependencyObjCount) {
+                        if ((int)entry.alives.size() < dependencyObjCount) {
                             continue;
                         }
                         bool isValid = true;
@@ -752,7 +752,7 @@ class VkDecoderGlobalState::Impl {
                     VkDescriptorSetLayout boxedLayout = (VkDescriptorSetLayout)stream->getBe64();
                     layouts.push_back(unbox_VkDescriptorSetLayout(boxedLayout));
                     uint64_t validWriteCount = stream->getBe64();
-                    for (int write = 0; write < validWriteCount; write++) {
+                    for (uint64_t write = 0; write < validWriteCount; write++) {
                         uint32_t binding = stream->getBe32();
                         uint32_t arrayElement = stream->getBe32();
                         DescriptorSetInfo::DescriptorWriteType writeType =
@@ -1840,7 +1840,6 @@ class VkDecoderGlobalState::Impl {
 
         VkDeviceQueueCreateInfo filteredQueueCreateInfo = {};
         // Use VulkanVirtualQueue directly to avoid locking for hasVirtualGraphicsQueue call.
-        // TODO(b/379862480): consider making this modifications from a queue helper class
         if (m_emu->features.VulkanVirtualQueue.enabled &&
             (createInfoFiltered.queueCreateInfoCount == 1) &&
             (createInfoFiltered.pQueueCreateInfos[0].queueCount == 2)) {
@@ -3352,6 +3351,23 @@ class VkDecoderGlobalState::Impl {
         destroySemaphoreLocked(device, deviceDispatch, semaphore, pAllocator);
     }
 
+    VkResult on_vkWaitSemaphores(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                             VkDevice boxed_device, const VkSemaphoreWaitInfo* pWaitInfo,
+                             uint64_t timeout) {
+        auto device = unbox_VkDevice(boxed_device);
+        auto deviceDispatch = dispatch_VkDevice(boxed_device);
+
+        return deviceDispatch->vkWaitSemaphores(device, pWaitInfo, timeout);
+    }
+
+    VkResult on_vkSignalSemaphore(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
+                                  VkDevice boxed_device, const VkSemaphoreSignalInfo* pSignalInfo) {
+        auto device = unbox_VkDevice(boxed_device);
+        auto deviceDispatch = dispatch_VkDevice(boxed_device);
+
+        return deviceDispatch->vkSignalSemaphore(device, pSignalInfo);
+    }
+
     enum class DestroyFenceStatus { kDestroyed, kRecycled };
 
     DestroyFenceStatus destroyFenceWithExclusiveInfo(VkDevice device,
@@ -3637,7 +3653,7 @@ class VkDecoderGlobalState::Impl {
         for (size_t i = 0; i < setInfo.bindings.size(); i++) {
             VkDescriptorSetLayoutBinding dslBinding = setInfo.bindings[i];
             int bindingIdx = dslBinding.binding;
-            if (setInfo.allWrites.size() <= bindingIdx) {
+            if ((int)setInfo.allWrites.size() <= bindingIdx) {
                 setInfo.allWrites.resize(bindingIdx + 1);
             }
             setInfo.allWrites[bindingIdx].resize(dslBinding.descriptorCount);
@@ -6238,7 +6254,7 @@ class VkDecoderGlobalState::Impl {
         if (!m_emu->features.GuestVulkanOnly.enabled) {
             {
                 std::lock_guard<std::mutex> lock(mMutex);
-                for (int i = 0; i < submitCount; i++) {
+                for (uint32_t i = 0; i < submitCount; i++) {
                     for (int j = 0; j < getCommandBufferCount(pSubmits[i]); j++) {
                         VkCommandBuffer cmdBuffer = getCommandBuffer(pSubmits[i], j);
                         CommandBufferInfo* cmdBufferInfo =
@@ -6322,7 +6338,7 @@ class VkDecoderGlobalState::Impl {
         {
             std::lock_guard<std::mutex> lock(mMutex);
             std::unordered_set<HandleType> imageBarrierColorBuffers;
-            for (int i = 0; i < submitCount; i++) {
+            for (uint32_t i = 0; i < submitCount; i++) {
                 for (int j = 0; j < getCommandBufferCount(pSubmits[i]); j++) {
                     VkCommandBuffer cmdBuffer = getCommandBuffer(pSubmits[i], j);
                     CommandBufferInfo* cmdBufferInfo =
@@ -6350,7 +6366,7 @@ class VkDecoderGlobalState::Impl {
         {
             std::lock_guard<std::mutex> lock(mMutex);
             // Update image layouts
-            for (int i = 0; i < submitCount; i++) {
+            for (uint32_t i = 0; i < submitCount; i++) {
                 for (int j = 0; j < getCommandBufferCount(pSubmits[i]); j++) {
                     VkCommandBuffer cmdBuffer = getCommandBuffer(pSubmits[i], j);
                     CommandBufferInfo* cmdBufferInfo =
@@ -6370,15 +6386,15 @@ class VkDecoderGlobalState::Impl {
             // Update latestUse for all wait/signal semaphores, to ensure that they
             // are never asynchronously destroyed before the queue submissions referencing
             // them have completed
-            for (int i = 0; i < submitCount; i++) {
-                for (int j = 0; j < getWaitSemaphoreCount(pSubmits[i]); j++) {
+            for (uint32_t i = 0; i < submitCount; i++) {
+                for (uint32_t j = 0; j < getWaitSemaphoreCount(pSubmits[i]); j++) {
                     SemaphoreInfo* semaphoreInfo =
                         android::base::find(mSemaphoreInfo, getWaitSemaphore(pSubmits[i], j));
                     if (semaphoreInfo) {
                         semaphoreInfo->latestUse = queueCompletedWaitable;
                     }
                 }
-                for (int j = 0; j < getSignalSemaphoreCount(pSubmits[i]); j++) {
+                for (uint32_t j = 0; j < getSignalSemaphoreCount(pSubmits[i]); j++) {
                     SemaphoreInfo* semaphoreInfo =
                         android::base::find(mSemaphoreInfo, getSignalSemaphore(pSubmits[i], j));
                     if (semaphoreInfo) {
@@ -7112,7 +7128,7 @@ class VkDecoderGlobalState::Impl {
             // Track the Colorbuffers that would be written to.
             // It might be better to check for VK_QUEUE_FAMILY_EXTERNAL in pipeline barrier.
             // But the guest does not always add it to pipeline barrier.
-            for (int i = 0; i < pCreateInfo->attachmentCount; i++) {
+            for (uint32_t i = 0; i < pCreateInfo->attachmentCount; i++) {
                 auto* imageViewInfo = android::base::find(mImageViewInfo, pCreateInfo->pAttachments[i]);
                 if (imageViewInfo->boundColorBuffer.has_value()) {
                     framebufferInfo.attachedColorBuffers.push_back(
@@ -9487,6 +9503,21 @@ void VkDecoderGlobalState::on_vkDestroySemaphore(android::base::BumpPool* pool,
                                                  VkDevice device, VkSemaphore semaphore,
                                                  const VkAllocationCallbacks* pAllocator) {
     mImpl->on_vkDestroySemaphore(pool, snapshotInfo, device, semaphore, pAllocator);
+}
+
+VkResult VkDecoderGlobalState::on_vkWaitSemaphores(android::base::BumpPool* pool,
+                                                   VkSnapshotApiCallInfo* snapshotInfo,
+                                                   VkDevice device,
+                                                   const VkSemaphoreWaitInfo* pWaitInfo,
+                                                   uint64_t timeout) {
+    return mImpl->on_vkWaitSemaphores(pool, snapshotInfo, device, pWaitInfo, timeout);
+}
+
+VkResult VkDecoderGlobalState::on_vkSignalSemaphore(android::base::BumpPool* pool,
+                                                   VkSnapshotApiCallInfo* snapshotInfo,
+                                                   VkDevice device,
+                                                   const VkSemaphoreSignalInfo* pSignalInfo) {
+    return mImpl->on_vkSignalSemaphore(pool, snapshotInfo, device, pSignalInfo);
 }
 
 VkResult VkDecoderGlobalState::on_vkCreateFence(android::base::BumpPool* pool,
