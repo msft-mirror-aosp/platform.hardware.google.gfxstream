@@ -166,6 +166,7 @@ cc_defaults {
         "-Wall",
         "-Werror",
         "-Wextra",
+        "-Wformat",
         "-Wshadow",
         "-Wthread-safety",
         "-Wno-unused-function",
