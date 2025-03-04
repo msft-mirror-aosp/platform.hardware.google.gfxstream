@@ -98,8 +98,6 @@ VG_EXPORT int stream_renderer_restore(const char* dir);
 
 VG_EXPORT int stream_renderer_resume();
 
-VG_EXPORT int stream_renderer_wait_sync_resource(uint32_t res_handle);
-
 // Matches Resource3DInfo in rutabaga_gfx
 struct stream_renderer_3d_info {
     uint32_t width;

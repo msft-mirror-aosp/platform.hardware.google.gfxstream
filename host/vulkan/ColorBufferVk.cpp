@@ -70,8 +70,6 @@ bool ColorBufferVk::updateFromBytes(uint32_t x, uint32_t y, uint32_t w, uint32_t
     return updateColorBufferFromBytes(mHandle, x, y, w, h, bytes);
 }
 
-int ColorBufferVk::waitSync() { return waitSyncVkColorBuffer(mHandle); }
-
 std::optional<BlobDescriptorInfo> ColorBufferVk::exportBlob() {
     auto info = exportColorBufferMemory(mHandle);
     if (info) {
