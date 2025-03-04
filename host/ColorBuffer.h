@@ -40,7 +40,7 @@ class EmulationGl;
 namespace gfxstream {
 namespace vk {
 class ColorBufferVk;
-struct VkEmulation;
+class VkEmulation;
 }  // namespace vk
 }  // namespace gfxstream
 

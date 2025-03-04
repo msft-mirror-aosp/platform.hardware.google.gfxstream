@@ -17,6 +17,7 @@
 #include <memory>
 #include <vector>
 
+#include "BorrowedImage.h"
 #include "ExternalObjectManager.h"
 #include "FrameworkFormats.h"
 #include "aemu/base/files/Stream.h"
@@ -39,6 +40,9 @@ class ColorBufferVk {
 
     bool updateFromBytes(const std::vector<uint8_t>& bytes);
     bool updateFromBytes(uint32_t x, uint32_t y, uint32_t w, uint32_t h, const void* bytes);
+
+    std::unique_ptr<BorrowedImageInfo> borrowForComposition(bool colorBufferIsTarget);
+    std::unique_ptr<BorrowedImageInfo> borrowForDisplay();
 
     void onSave(android::base::Stream* stream);
 

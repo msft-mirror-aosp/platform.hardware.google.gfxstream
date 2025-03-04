@@ -611,10 +611,11 @@ void VirtioGpuFrontend::fillCaps(uint32_t set, void* caps) {
             capset->ringSize = 12288;
             capset->bufferSize = 1048576;
 
-            auto vk_emu = gfxstream::vk::getGlobalVkEmulation();
-            if (vk_emu && vk_emu->live && vk_emu->representativeColorBufferMemoryTypeInfo) {
-                capset->colorBufferMemoryIndex =
-                    vk_emu->representativeColorBufferMemoryTypeInfo->guestMemoryTypeIndex;
+            if (gfxstream::vk::VkEmulation::isLive()) {
+                const auto info =
+                    gfxstream::vk::VkEmulation::get()->getRepresentativeColorBufferMemoryTypeInfo();
+                capset->colorBufferMemoryIndex = info.guestMemoryTypeIndex;
+                capset->deferredMapping = 1;
             }
 
             if (mFeatures.VulkanBatchedDescriptorSetUpdate.enabled) {
@@ -622,9 +623,6 @@ void VirtioGpuFrontend::fillCaps(uint32_t set, void* caps) {
             }
             capset->noRenderControlEnc = 1;
             capset->blobAlignment = mPageSize;
-            if (vk_emu && vk_emu->live) {
-                capset->deferredMapping = 1;
-            }
 
 #if GFXSTREAM_UNSTABLE_VULKAN_DMABUF_WINSYS
             capset->alwaysBlob = 1;

@@ -114,7 +114,7 @@ bool parseAndroidNativeBufferInfo(const VkImageCreateInfo* pCreateInfo,
     return structType == VK_STRUCTURE_TYPE_NATIVE_BUFFER_ANDROID;
 }
 
-VkResult prepareAndroidNativeBufferImage(VulkanDispatch* vk, VkDevice device,
+VkResult prepareAndroidNativeBufferImage(VkEmulation* emu, VulkanDispatch* vk, VkDevice device,
                                          android::base::BumpPool& allocator,
                                          const VkImageCreateInfo* pCreateInfo,
                                          const VkNativeBufferANDROID* nativeBufferANDROID,
@@ -138,21 +138,18 @@ VkResult prepareAndroidNativeBufferImage(VulkanDispatch* vk, VkDevice device,
     out->stride = nativeBufferANDROID->stride;
     out->colorBufferHandle = *static_cast<const uint32_t*>(nativeBufferANDROID->handle);
 
-    auto emu = getGlobalVkEmulation();
-
-    if (!getColorBufferShareInfo(out->colorBufferHandle, &colorBufferExportedToGl,
-                                 &externalMemoryCompatible)) {
+    if (!emu->getColorBufferShareInfo(out->colorBufferHandle, &colorBufferExportedToGl,
+                                      &externalMemoryCompatible)) {
         VK_ANB_ERR("Failed to query if ColorBuffer:%d exported to GL.", out->colorBufferHandle);
         return VK_ERROR_INITIALIZATION_FAILED;
     }
 
     if (externalMemoryCompatible) {
-        releaseColorBufferForGuestUse(out->colorBufferHandle);
+        emu->releaseColorBufferForGuestUse(out->colorBufferHandle);
         out->externallyBacked = true;
     }
 
-    out->useVulkanNativeImage =
-        (emu && emu->live && emu->guestVulkanOnly) || colorBufferExportedToGl;
+    out->useVulkanNativeImage = (emu && emu->isGuestVulkanOnly()) || colorBufferExportedToGl;
 
     VkDeviceSize bindOffset = 0;
     if (out->externallyBacked) {
@@ -174,7 +171,7 @@ VkResult prepareAndroidNativeBufferImage(VulkanDispatch* vk, VkDevice device,
                 "Failed to prepare ANB image: attempted to import a non-existent ColorBuffer.");
             return VK_ERROR_INITIALIZATION_FAILED;
         }
-        const auto importedColorBufferInfoOpt = getColorBufferInfo(importedColorBufferHandle);
+        const auto importedColorBufferInfoOpt = emu->getColorBufferInfo(importedColorBufferHandle);
         if (!importedColorBufferInfoOpt) {
             VK_ANB_ERR("Failed to prepare ANB image: ColorBuffer:%d info not found.",
                        importedColorBufferHandle);
@@ -216,11 +213,11 @@ VkResult prepareAndroidNativeBufferImage(VulkanDispatch* vk, VkDevice device,
         VkExternalMemoryImageCreateInfo extImageCi = {
             VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_IMAGE_CREATE_INFO,
             0,
-            static_cast<VkExternalMemoryHandleTypeFlags>(getDefaultExternalMemoryHandleType()),
+            static_cast<VkExternalMemoryHandleTypeFlags>(emu->getDefaultExternalMemoryHandleType()),
         };
 
 #if defined(__APPLE__)
-        if (emu->instanceSupportsMoltenVK) {
+        if (emu->supportsMoltenVk()) {
             // Change handle type requested to metal handle
             extImageCi.handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_MTLHEAP_BIT_EXT;
         }
@@ -250,8 +247,8 @@ VkResult prepareAndroidNativeBufferImage(VulkanDispatch* vk, VkDevice device,
             dedicatedInfoPtr = &dedicatedInfo;
         }
 
-        if (!importExternalMemory(vk, device, &importedColorBufferMemoryInfo, dedicatedInfoPtr,
-                                  &out->imageMemory)) {
+        if (!emu->importExternalMemory(vk, device, &importedColorBufferMemoryInfo, dedicatedInfoPtr,
+                                       &out->imageMemory)) {
             VK_ANB_ERR("VK_ANDROID_native_buffer: Failed to import external memory%s",
                        importedColorBufferMemoryInfo.dedicatedAllocation ? " (dedicated)" : "");
             return VK_ERROR_INITIALIZATION_FAILED;
@@ -549,13 +546,12 @@ void AndroidNativeBufferInfo::QueueState::teardown(VulkanDispatch* vk, VkDevice 
     queueFamilyIndex = 0;
 }
 
-VkResult setAndroidNativeImageSemaphoreSignaled(VulkanDispatch* vk, VkDevice device,
-                                                VkQueue defaultQueue,
+VkResult setAndroidNativeImageSemaphoreSignaled(VkEmulation* emu, VulkanDispatch* vk,
+                                                VkDevice device, VkQueue defaultQueue,
                                                 uint32_t defaultQueueFamilyIndex,
-                                                std::mutex* defaultQueueMutex, VkSemaphore semaphore,
-                                                VkFence fence, AndroidNativeBufferInfo* anbInfo) {
-    auto emu = getGlobalVkEmulation();
-
+                                                std::mutex* defaultQueueMutex,
+                                                VkSemaphore semaphore, VkFence fence,
+                                                AndroidNativeBufferInfo* anbInfo) {
     bool firstTimeSetup = !anbInfo->everSynced && !anbInfo->everAcquired;
 
     anbInfo->everAcquired = true;
@@ -598,9 +594,9 @@ VkResult setAndroidNativeImageSemaphoreSignaled(VulkanDispatch* vk, VkDevice dev
 
             vk->vkBeginCommandBuffer(queueState.cb2, &beginInfo);
 
-            emu->debugUtilsHelper.cmdBeginDebugLabel(queueState.cb2,
-                                                     "vkAcquireImageANDROID(ColorBuffer:%d)",
-                                                     anbInfo->colorBufferHandle);
+            emu->getDebugUtilsHelper().cmdBeginDebugLabel(queueState.cb2,
+                                                          "vkAcquireImageANDROID(ColorBuffer:%d)",
+                                                          anbInfo->colorBufferHandle);
 
             VkImageMemoryBarrier queueTransferBarrier = {
                 .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
@@ -624,7 +620,7 @@ VkResult setAndroidNativeImageSemaphoreSignaled(VulkanDispatch* vk, VkDevice dev
                                      VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, 0, nullptr, 0, nullptr,
                                      1, &queueTransferBarrier);
 
-            emu->debugUtilsHelper.cmdEndDebugLabel(queueState.cb2);
+            emu->getDebugUtilsHelper().cmdEndDebugLabel(queueState.cb2);
 
             vk->vkEndCommandBuffer(queueState.cb2);
 
@@ -667,10 +663,10 @@ VkResult setAndroidNativeImageSemaphoreSignaled(VulkanDispatch* vk, VkDevice dev
 
 static constexpr uint64_t kTimeoutNs = 3ULL * 1000000000ULL;
 
-VkResult syncImageToColorBuffer(gfxstream::host::BackendCallbacks& callbacks, VulkanDispatch* vk,
-                                uint32_t queueFamilyIndex, VkQueue queue, std::mutex* queueMutex,
-                                uint32_t waitSemaphoreCount, const VkSemaphore* pWaitSemaphores,
-                                int* pNativeFenceFd, AndroidNativeBufferInfo* anbInfo) {
+VkResult syncImageToColorBuffer(VkEmulation* emu, VulkanDispatch* vk, uint32_t queueFamilyIndex,
+                                VkQueue queue, std::mutex* queueMutex, uint32_t waitSemaphoreCount,
+                                const VkSemaphore* pWaitSemaphores, int* pNativeFenceFd,
+                                AndroidNativeBufferInfo* anbInfo) {
     const uint64_t traceId = gfxstream::host::GetUniqueTracingId();
     GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DEFAULT_CATEGORY, "vkQSRI syncImageToColorBuffer()",
                           GFXSTREAM_TRACE_FLOW(traceId));
@@ -695,8 +691,6 @@ VkResult syncImageToColorBuffer(gfxstream::host::BackendCallbacks& callbacks, Vu
         queueState.setup(vk, anbInfo->device, queue, queueFamilyIndex, queueMutex);
     }
 
-    auto emu = getGlobalVkEmulation();
-
     // Record our synchronization commands.
     VkCommandBufferBeginInfo beginInfo = {
         VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
@@ -707,9 +701,9 @@ VkResult syncImageToColorBuffer(gfxstream::host::BackendCallbacks& callbacks, Vu
 
     vk->vkBeginCommandBuffer(queueState.cb, &beginInfo);
 
-    emu->debugUtilsHelper.cmdBeginDebugLabel(queueState.cb,
-                                             "vkQueueSignalReleaseImageANDROID(ColorBuffer:%d)",
-                                             anbInfo->colorBufferHandle);
+    emu->getDebugUtilsHelper().cmdBeginDebugLabel(
+        queueState.cb, "vkQueueSignalReleaseImageANDROID(ColorBuffer:%d)",
+        anbInfo->colorBufferHandle);
 
     // If using the Vulkan image directly (rather than copying it back to
     // the CPU), change its layout for that use.
@@ -810,7 +804,7 @@ VkResult syncImageToColorBuffer(gfxstream::host::BackendCallbacks& callbacks, Vu
                                  &backToPresentSrc);
     }
 
-    emu->debugUtilsHelper.cmdEndDebugLabel(queueState.cb);
+    emu->getDebugUtilsHelper().cmdEndDebugLabel(queueState.cb);
 
     vk->vkEndCommandBuffer(queueState.cb);
 
@@ -859,7 +853,7 @@ VkResult syncImageToColorBuffer(gfxstream::host::BackendCallbacks& callbacks, Vu
         VK_ANB_DEBUG_OBJ(anbInfo, "using native image, so use sync thread to wait");
         // Queue wait to sync thread with completion callback
         // Pass anbInfo by value to get a ref
-        auto waitable = callbacks.scheduleAsyncWork(
+        auto waitable = emu->getCallbacks().scheduleAsyncWork(
             [waitForQsriFenceTask = std::move(waitForQsriFenceTask), anbInfo]() mutable {
                 waitForQsriFenceTask();
                 anbInfo->qsriTimeline->signalNextPresentAndPoll();
@@ -896,7 +890,7 @@ VkResult syncImageToColorBuffer(gfxstream::host::BackendCallbacks& callbacks, Vu
         }
         const void* bytes = anbInfo->mappedStagingPtr;
         const size_t bytesSize = bpp * anbInfo->extent.width * anbInfo->extent.height;
-        callbacks.flushColorBufferFromBytes(colorBufferHandle, bytes, bytesSize);
+        emu->getCallbacks().flushColorBufferFromBytes(colorBufferHandle, bytes, bytesSize);
 
         anbInfo->qsriTimeline->signalNextPresentAndPoll();
     }
