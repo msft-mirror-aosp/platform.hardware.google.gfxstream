@@ -1062,7 +1062,8 @@ bool FrameBuffer::setupSubWindow(FBNativeWindowType p_window,
             m_windowHeight = wh;
 
             {
-                auto watchdog = WATCHDOG_BUILDER(m_healthMonitor.get(), "Moving subwindow").build();
+                auto moveWatchdog =
+                    WATCHDOG_BUILDER(m_healthMonitor.get(), "Moving subwindow").build();
                 success = moveSubWindow(m_nativeWindow, m_subWin, m_x, m_y, m_windowWidth,
                                         m_windowHeight, dpr);
             }
@@ -1092,9 +1093,9 @@ bool FrameBuffer::setupSubWindow(FBNativeWindowType p_window,
                     postImpl(m_lastPostedColorBuffer,
                         [](std::shared_future<void> waitForGpu) {}, false);
                 } else {
-                    Post postCmd;
-                    postCmd.cmd = PostCmd::Clear;
-                    sendPostWorkerCmd(std::move(postCmd));
+                    Post clearCmd;
+                    clearCmd.cmd = PostCmd::Clear;
+                    sendPostWorkerCmd(std::move(clearCmd));
                 }
             }
             m_windowContentFullWidth = fbw;
@@ -1887,15 +1888,15 @@ AsyncResult FrameBuffer::postImpl(HandleType p_colorbuffer, Post::CompletionCall
             if (iter.first == 0) {
                 cb = colorBuffer;
             } else {
-                uint32_t colorBuffer;
-                if (getDisplayColorBuffer(iter.first, &colorBuffer) < 0) {
+                uint32_t displayColorBufferHandle = 0;
+                if (getDisplayColorBuffer(iter.first, &displayColorBufferHandle) < 0) {
                     ERR("Failed to get color buffer for display %d, skip onPost", iter.first);
                     continue;
                 }
 
-                cb = findColorBuffer(colorBuffer);
+                cb = findColorBuffer(displayColorBufferHandle);
                 if (!cb) {
-                    ERR("Failed to find colorbuffer %d, skip onPost", colorBuffer);
+                    ERR("Failed to find ColorBuffer %d, skip onPost", displayColorBufferHandle);
                     continue;
                 }
             }
@@ -2374,7 +2375,7 @@ void FrameBuffer::onSave(Stream* stream, const android::snapshot::ITextureSaverP
 
     // TODO(b/309858017): remove if when ready to bump snapshot version
     if (m_features.VulkanSnapshots.enabled) {
-        AutoLock mutex(m_procOwnedResourcesLock);
+        AutoLock procResourceLock(m_procOwnedResourcesLock);
         stream->putBe64(m_procOwnedResources.size());
         for (const auto& element : m_procOwnedResources) {
             stream->putBe64(element.first);
@@ -3732,20 +3733,20 @@ bool FrameBuffer::bindContext(HandleType p_context, HandleType p_drawSurface,
     if (p_context || p_drawSurface || p_readSurface) {
         ctx = getContext_locked(p_context);
         if (!ctx) return false;
-        EmulatedEglWindowSurfaceMap::iterator w(m_windows.find(p_drawSurface));
-        if (w == m_windows.end()) {
+        auto drawWindowIt = m_windows.find(p_drawSurface);
+        if (drawWindowIt == m_windows.end()) {
             // bad surface handle
             return false;
         }
-        draw = (*w).second.first;
+        draw = (*drawWindowIt).second.first;
 
         if (p_readSurface != p_drawSurface) {
-            EmulatedEglWindowSurfaceMap::iterator w(m_windows.find(p_readSurface));
-            if (w == m_windows.end()) {
+            auto readWindowIt = m_windows.find(p_readSurface);
+            if (readWindowIt == m_windows.end()) {
                 // bad surface handle
                 return false;
             }
-            read = (*w).second.first;
+            read = (*readWindowIt).second.first;
         } else {
             read = draw;
         }

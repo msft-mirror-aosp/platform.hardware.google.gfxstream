@@ -199,7 +199,7 @@ static constexpr uint32_t kMinVersion = VK_MAKE_VERSION(1, 0, 0);
 static constexpr uint64_t kPageSizeforBlob = 4096;
 static constexpr uint64_t kPageMaskForBlob = ~(0xfff);
 
-static uint64_t hostBlobId = 0;
+static std::atomic<uint64_t> sNextHostBlobId{1};
 
 // b/319729462
 // On snapshot load, thread local data is not available, thus we use a
@@ -6006,8 +6006,6 @@ class VkDecoderGlobalState::Impl {
                 virtioGpuContextId, hostBlobId, std::move(managedHandle), streamHandleType,
                 info->caching, std::optional<VulkanInfo>(vulkanInfo));
         } else if (!info->needUnmap) {
-            auto device = unbox_VkDevice(boxed_device);
-            auto vk = dispatch_VkDevice(boxed_device);
             VkResult mapResult = vk->vkMapMemory(device, memory, 0, info->size, 0, &info->ptr);
             if (mapResult != VK_SUCCESS) {
                 return VK_ERROR_OUT_OF_HOST_MEMORY;
@@ -6045,7 +6043,7 @@ class VkDecoderGlobalState::Impl {
                                                  VkSnapshotApiCallInfo*, VkDevice boxed_device,
                                                  VkDeviceMemory memory, uint64_t* pAddress,
                                                  uint64_t* pSize, uint64_t* pHostmemId) {
-        hostBlobId++;
+        uint64_t hostBlobId = sNextHostBlobId++;
         *pHostmemId = hostBlobId;
         return vkGetBlobInternal(boxed_device, memory, hostBlobId);
     }
@@ -6409,7 +6407,7 @@ class VkDecoderGlobalState::Impl {
             auto* fenceInfo = android::base::find(mFenceInfo, fence);
             if (fenceInfo) {
                 {
-                    std::unique_lock<std::mutex> lock(fenceInfo->mutex);
+                    std::unique_lock<std::mutex> fenceLock(fenceInfo->mutex);
                     fenceInfo->state = FenceInfo::State::kWaitable;
                 }
                 fenceInfo->cv.notify_all();
