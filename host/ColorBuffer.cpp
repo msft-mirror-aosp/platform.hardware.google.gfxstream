@@ -86,8 +86,9 @@ std::shared_ptr<ColorBuffer> ColorBuffer::create(gl::EmulationGl* emulationGl,
         if (vulkanOnly && linear) {
             memoryProperty |= VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
         }
-        colorBuffer->mColorBufferVk = vk::ColorBufferVk::create(
-            handle, width, height, format, frameworkFormat, vulkanOnly, memoryProperty, stream);
+        colorBuffer->mColorBufferVk =
+            vk::ColorBufferVk::create(*emulationVk, handle, width, height, format, frameworkFormat,
+                                      vulkanOnly, memoryProperty, stream);
         if (!colorBuffer->mColorBufferVk) {
             if (emulationGl) {
                 // Historically, ColorBufferVk setup was deferred until the first actual Vulkan

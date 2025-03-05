@@ -46,7 +46,7 @@ std::shared_ptr<Buffer> Buffer::create(gl::EmulationGl* emulationGl, vk::VkEmula
     if (emulationVk) {
         const bool vulkanOnly = emulationGl == nullptr;
 
-        buffer->mBufferVk = vk::BufferVk::create(handle, size, vulkanOnly);
+        buffer->mBufferVk = vk::BufferVk::create(*emulationVk, handle, size, vulkanOnly);
         if (!buffer->mBufferVk) {
             ERR("Failed to initialize BufferVk.");
             return nullptr;
