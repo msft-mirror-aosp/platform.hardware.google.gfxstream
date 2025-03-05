@@ -1138,7 +1138,11 @@ VkEmulation* createGlobalVkEmulation(VulkanDispatch* vk,
 
 // TODO(aruby@qnx.com): Remove once dmabuf extension support has been flushed out on QNX
 #if !defined(__QNX__)
-        bool dmaBufBlockList = deviceInfos[i].driverVendor == "NVIDIA (Vendor 0x10de)";
+        bool dmaBufBlockList = (deviceInfos[i].driverVendor == "NVIDIA (Vendor 0x10de)");
+#ifdef CONFIG_AEMU
+        // TODO(b/400999642): dma_buf support should be checked with image format support
+        dmaBufBlockList |= (deviceInfos[i].driverVendor == "radv (Vendor 0x1002)");
+#endif
         deviceInfos[i].supportsDmaBuf =
             extensionsSupported(deviceExts, {VK_EXT_EXTERNAL_MEMORY_DMA_BUF_EXTENSION_NAME}) &&
             !dmaBufBlockList;
