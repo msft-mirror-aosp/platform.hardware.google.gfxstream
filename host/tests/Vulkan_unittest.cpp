@@ -471,16 +471,22 @@ protected:
 };
 
 TEST_F(VulkanFrameBufferTest, VkColorBufferWithoutMemoryProperties) {
+    auto* vkEmulation = VkEmulation::get();
+    ASSERT_NE(vkEmulation, nullptr);
+
     // Create a color buffer without any memory properties restriction.
-    EXPECT_TRUE(createVkColorBuffer(mWidth, mHeight, GL_RGBA, FRAMEWORK_FORMAT_GL_COMPATIBLE,
-                                    kArbitraryColorBufferHandle, true, /* vulkanOnly */
-                                    0                                  /* memoryProperty */
-                                    ));
-    EXPECT_TRUE(teardownVkColorBuffer(kArbitraryColorBufferHandle));
+    EXPECT_TRUE(vkEmulation->createVkColorBuffer(mWidth, mHeight, GL_RGBA,
+                                                 FRAMEWORK_FORMAT_GL_COMPATIBLE,
+                                                 kArbitraryColorBufferHandle, true, /* vulkanOnly */
+                                                 0 /* memoryProperty */
+                                                 ));
+    EXPECT_TRUE(vkEmulation->teardownVkColorBuffer(kArbitraryColorBufferHandle));
 }
 
 TEST_F(VulkanFrameBufferTest, VkColorBufferWithMemoryPropertyFlags) {
-    auto* vkEmulation = getGlobalVkEmulation();
+    auto* vkEmulation = VkEmulation::get();
+    ASSERT_NE(vkEmulation, nullptr);
+
     VkMemoryPropertyFlags kTargetMemoryPropertyFlags =
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
 
@@ -519,12 +525,13 @@ TEST_F(VulkanFrameBufferTest, VkColorBufferWithMemoryPropertyFlags) {
         GTEST_SKIP();
     }
 
+    VkPhysicalDeviceMemoryProperties memProps;
+    mVk.vkGetPhysicalDeviceMemoryProperties(mPhysicalDevice, &memProps);
+
     int32_t memoryTypeIndex = 31;
     do {
         if (((1 << memoryTypeIndex) & memReq.memoryTypeBits) &&
-            (vkEmulation->deviceInfo.memProps.memoryTypes[memoryTypeIndex]
-                     .propertyFlags &
-             kTargetMemoryPropertyFlags)) {
+            (memProps.memoryTypes[memoryTypeIndex].propertyFlags & kTargetMemoryPropertyFlags)) {
             break;
         }
     } while (--memoryTypeIndex >= 0);
@@ -537,19 +544,19 @@ TEST_F(VulkanFrameBufferTest, VkColorBufferWithMemoryPropertyFlags) {
     }
 
     // Create a color buffer with the target memory property flags.
-    EXPECT_TRUE(createVkColorBuffer(mWidth, mHeight, GL_RGBA, FRAMEWORK_FORMAT_GL_COMPATIBLE,
-                                    kArbitraryColorBufferHandle, true, /* vulkanOnly */
-                                    static_cast<uint32_t>(kTargetMemoryPropertyFlags)));
+    EXPECT_TRUE(
+        vkEmulation->createVkColorBuffer(mWidth, mHeight, GL_RGBA, FRAMEWORK_FORMAT_GL_COMPATIBLE,
+                                         kArbitraryColorBufferHandle, true, /* vulkanOnly */
+                                         static_cast<uint32_t>(kTargetMemoryPropertyFlags)));
 
     uint32_t allocatedTypeIndex = 0u;
-    EXPECT_TRUE(getColorBufferAllocationInfo(kArbitraryColorBufferHandle, nullptr,
-                                             &allocatedTypeIndex, nullptr, nullptr));
+    EXPECT_TRUE(vkEmulation->getColorBufferAllocationInfo(kArbitraryColorBufferHandle, nullptr,
+                                                          &allocatedTypeIndex, nullptr, nullptr));
 
-    EXPECT_TRUE(vkEmulation->deviceInfo.memProps.memoryTypes[allocatedTypeIndex]
-                        .propertyFlags &
+    EXPECT_TRUE(memProps.memoryTypes[allocatedTypeIndex].propertyFlags &
                 kTargetMemoryPropertyFlags);
 
-    EXPECT_TRUE(teardownVkColorBuffer(kArbitraryColorBufferHandle));
+    EXPECT_TRUE(vkEmulation->teardownVkColorBuffer(kArbitraryColorBufferHandle));
 }
 
 #endif // !_WIN32
