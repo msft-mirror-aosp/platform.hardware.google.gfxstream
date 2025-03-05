@@ -153,7 +153,7 @@ bool DisplayVk::recreateSwapchain() {
     int numSwapChainImages = m_swapChainStateVk->getVkImages().size();
 
     m_postResourceFutures.resize(numSwapChainImages, std::nullopt);
-    for (uint32_t i = 0; i < numSwapChainImages + 1; ++i) {
+    for (int i = 0; i < numSwapChainImages + 1; ++i) {
         m_freePostResources.emplace_back(PostResource::create(m_vk, m_vkDevice, m_vkCommandPool));
     }
 

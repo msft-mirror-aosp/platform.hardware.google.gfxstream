@@ -104,8 +104,8 @@ using gl::YUVConverter;
 using gl::YUVPlane;
 #endif
 
-using gfxstream::vk::AstcEmulationMode;
-using gfxstream::vk::VkEmulationFeatures;
+using vk::AstcEmulationMode;
+using vk::VkEmulation;
 
 // static std::string getTimeStampString() {
 //     const time_t timestamp = android::base::getUnixTimeUs();
@@ -315,7 +315,6 @@ bool FrameBuffer::initialize(int width, int height, gfxstream::host::FeatureSet 
     // used by underlying EGL driver might become invalid,
     // preventing new contexts from being created that share
     // against those contexts.
-    vk::VkEmulation* vkEmu = nullptr;
     vk::VulkanDispatch* vkDispatch = nullptr;
     if (fb->m_features.Vulkan.enabled) {
         vkDispatch = vk::vkDispatch(false /* not for testing */);
@@ -358,20 +357,22 @@ bool FrameBuffer::initialize(int width, int height, gfxstream::host::FeatureSet 
             .unregisterVulkanInstance =
                 [fb = fb.get()](uint64_t id) { fb->unregisterVulkanInstance(id); },
         };
-        vkEmu = vk::createGlobalVkEmulation(vkDispatch, callbacks, fb->m_features);
-        if (!vkEmu) {
+        fb->m_emulationVk = vk::VkEmulation::create(vkDispatch, callbacks, fb->m_features);
+        if (!fb->m_emulationVk) {
             ERR("Failed to initialize global Vulkan emulation. Disable the Vulkan support.");
         }
-        fb->m_emulationVk = vkEmu;
+
+        vk::VkDecoderGlobalState::initialize(fb->m_emulationVk.get());
     }
-    if (vkEmu) {
+    if (fb->m_emulationVk) {
         fb->m_vulkanEnabled = true;
         if (fb->m_features.VulkanNativeSwapchain.enabled) {
-            fb->m_vkInstance = vkEmu->instance;
+            fb->m_vkInstance = fb->m_emulationVk->getInstance();
         }
-        if (vkEmu->instanceSupportsPhysicalDeviceIDProperties) {
-            INFO("Supports id properties, got a vulkan device UUID");
-            memcpy(fb->m_vulkanUUID.data(), vkEmu->deviceInfo.idProps.deviceUUID, VK_UUID_SIZE);
+
+        auto vulkanUuidOpt = fb->m_emulationVk->getDeviceUuid();
+        if (vulkanUuidOpt) {
+            fb->m_vulkanUUID = *vulkanUuidOpt;
         } else {
             WARN("Doesn't support id properties, no vulkan device UUID");
         }
@@ -391,66 +392,39 @@ bool FrameBuffer::initialize(int width, int height, gfxstream::host::FeatureSet 
     fb->m_useVulkanComposition = fb->m_features.GuestVulkanOnly.enabled ||
                                  fb->m_features.VulkanNativeSwapchain.enabled;
 
-    std::unique_ptr<VkEmulationFeatures> vkEmulationFeatures =
-        std::make_unique<VkEmulationFeatures>(VkEmulationFeatures{
-            .glInteropSupported = false,  // Set later.
-            .deferredCommands =
-                android::base::getEnvironmentVariable("ANDROID_EMU_VK_DISABLE_DEFERRED_COMMANDS")
-                    .empty(),
-            .createResourceWithRequirements =
-                android::base::getEnvironmentVariable(
-                    "ANDROID_EMU_VK_DISABLE_USE_CREATE_RESOURCES_WITH_REQUIREMENTS")
-                    .empty(),
-            .useVulkanComposition = fb->m_useVulkanComposition,
-            .useVulkanNativeSwapchain = fb->m_features.VulkanNativeSwapchain.enabled,
-            .guestRenderDoc = std::move(renderDocMultipleVkInstances),
-            .astcLdrEmulationMode = AstcEmulationMode::Gpu,
-            .enableEtc2Emulation = true,
-            .enableYcbcrEmulation = false,
-            .guestVulkanOnly = fb->m_features.GuestVulkanOnly.enabled,
-            .useDedicatedAllocations = false,  // Set later.
-        });
+    vk::VkEmulation::Features vkEmulationFeatures = {
+        .glInteropSupported = false,  // Set later.
+        .deferredCommands =
+            android::base::getEnvironmentVariable("ANDROID_EMU_VK_DISABLE_DEFERRED_COMMANDS")
+                .empty(),
+        .createResourceWithRequirements =
+            android::base::getEnvironmentVariable(
+                "ANDROID_EMU_VK_DISABLE_USE_CREATE_RESOURCES_WITH_REQUIREMENTS")
+                .empty(),
+        .useVulkanComposition = fb->m_useVulkanComposition,
+        .useVulkanNativeSwapchain = fb->m_features.VulkanNativeSwapchain.enabled,
+        .guestRenderDoc = std::move(renderDocMultipleVkInstances),
+        .astcLdrEmulationMode = AstcEmulationMode::Gpu,
+        .enableEtc2Emulation = true,
+        .enableYcbcrEmulation = false,
+        .guestVulkanOnly = fb->m_features.GuestVulkanOnly.enabled,
+        .useDedicatedAllocations = false,  // Set later.
+    };
 
     //
     // Cache the GL strings so we don't have to think about threading or
     // current-context when asked for them.
     //
-    bool useVulkanGraphicsDiagInfo =
-        vkEmu && fb->m_features.VulkanNativeSwapchain.enabled && fb->m_features.GuestVulkanOnly.enabled;
+    bool useVulkanGraphicsDiagInfo = fb->m_emulationVk &&
+                                     fb->m_features.VulkanNativeSwapchain.enabled &&
+                                     fb->m_features.GuestVulkanOnly.enabled;
 
     if (useVulkanGraphicsDiagInfo) {
-        fb->m_graphicsAdapterVendor = vkEmu->deviceInfo.driverVendor;
-        fb->m_graphicsAdapterName = vkEmu->deviceInfo.physdevProps.deviceName;
-
-        uint32_t vkVersion = vkEmu->vulkanInstanceVersion;
-
-        std::stringstream versionStringBuilder;
-        versionStringBuilder << "Vulkan " << VK_API_VERSION_MAJOR(vkVersion) << "."
-                             << VK_API_VERSION_MINOR(vkVersion) << "."
-                             << VK_API_VERSION_PATCH(vkVersion) << " "
-                             << vkEmu->deviceInfo.driverVendor << " "
-                             << vkEmu->deviceInfo.driverVersion;
-        fb->m_graphicsApiVersion = versionStringBuilder.str();
-
-        std::stringstream instanceExtensionsStringBuilder;
-        for (auto& ext : vkEmu->instanceExtensions) {
-            if (instanceExtensionsStringBuilder.tellp() != 0) {
-                instanceExtensionsStringBuilder << " ";
-            }
-            instanceExtensionsStringBuilder << ext.extensionName;
-        }
-
-        fb->m_graphicsApiExtensions = instanceExtensionsStringBuilder.str();
-
-        std::stringstream deviceExtensionsStringBuilder;
-        for (auto& ext : vkEmu->deviceInfo.extensions) {
-            if (deviceExtensionsStringBuilder.tellp() != 0) {
-                deviceExtensionsStringBuilder << " ";
-            }
-            deviceExtensionsStringBuilder << ext.extensionName;
-        }
-
-        fb->m_graphicsDeviceExtensions = deviceExtensionsStringBuilder.str();
+        fb->m_graphicsAdapterVendor = fb->m_emulationVk->getGpuVendor();
+        fb->m_graphicsAdapterName = fb->m_emulationVk->getGpuName();
+        fb->m_graphicsApiVersion = fb->m_emulationVk->getGpuVersionString();
+        fb->m_graphicsApiExtensions = fb->m_emulationVk->getInstanceExtensionsString();
+        fb->m_graphicsDeviceExtensions = fb->m_emulationVk->getDeviceExtensionsString();
     } else if (fb->m_emulationGl) {
 #if GFXSTREAM_ENABLE_HOST_GLES
         fb->m_graphicsAdapterVendor = fb->m_emulationGl->getGlesVendor();
@@ -476,7 +450,7 @@ bool FrameBuffer::initialize(int width, int height, gfxstream::host::FeatureSet 
     bool vulkanInteropSupported = true;
     // First, if the VkEmulation instance doesn't support ext memory capabilities,
     // it won't support uuids.
-    if (!vkEmu || !vkEmu->instanceSupportsPhysicalDeviceIDProperties) {
+    if (!fb->m_emulationVk || !fb->m_emulationVk->supportsPhysicalDeviceIDProperties()) {
         vulkanInteropSupported = false;
     }
     if (!fb->m_emulationGl) {
@@ -506,27 +480,29 @@ bool FrameBuffer::initialize(int width, int height, gfxstream::host::FeatureSet 
     if (vulkanInteropSupported && fb->m_emulationGl && fb->m_emulationGl->isMesa()) {
         // Mesa currently expects dedicated allocations for external memory sharing
         // between GL and VK. See b/265186355.
-        vkEmulationFeatures->useDedicatedAllocations = true;
+        vkEmulationFeatures.useDedicatedAllocations = true;
     }
 #endif
 
     GL_LOG("glvk interop final: %d", fb->m_vulkanInteropSupported);
-    vkEmulationFeatures->glInteropSupported = fb->m_vulkanInteropSupported;
+    vkEmulationFeatures.glInteropSupported = fb->m_vulkanInteropSupported;
     if (fb->m_features.Vulkan.enabled) {
-        vk::initVkEmulationFeatures(std::move(vkEmulationFeatures));
-        if (vkEmu && vkEmu->displayVk) {
-            fb->m_displayVk = vkEmu->displayVk.get();
+        fb->m_emulationVk->initFeatures(std::move(vkEmulationFeatures));
+
+        auto* display = fb->m_emulationVk->getDisplay();
+        if (display) {
+            fb->m_displayVk = display;
             fb->m_displaySurfaceUsers.push_back(fb->m_displayVk);
         }
     }
 
     if (fb->m_useVulkanComposition) {
-        if (!vkEmu->compositorVk) {
+        fb->m_compositor = fb->m_emulationVk->getCompositor();
+        if (!fb->m_compositor) {
             ERR("Failed to get CompositorVk from VkEmulation.");
             return false;
         }
         GL_LOG("Performing composition using CompositorVk.");
-        fb->m_compositor = vkEmu->compositorVk.get();
     } else {
         GL_LOG("Performing composition using CompositorGl.");
 #if GFXSTREAM_ENABLE_HOST_GLES
@@ -684,7 +660,12 @@ FrameBuffer::~FrameBuffer() {
     }
 #endif
 
-    vk::teardownGlobalVkEmulation();
+    if (m_emulationGl) {
+        m_emulationGl.reset();
+    }
+    if (m_emulationVk) {
+        m_emulationVk.reset();
+    }
 
     sInitialized.store(false, std::memory_order_relaxed);
 }
@@ -993,11 +974,9 @@ bool FrameBuffer::setupSubWindow(FBNativeWindowType p_window,
         if (m_subWin) {
             m_nativeWindow = p_window;
 
-
-
             if (m_displayVk) {
-                m_displaySurface =
-                    vk::createDisplaySurface(m_subWin, m_windowWidth * dpr, m_windowHeight * dpr);
+                m_displaySurface = m_emulationVk->createDisplaySurface(
+                    m_subWin, m_windowWidth * dpr, m_windowHeight * dpr);
             } else if (m_emulationGl) {
 #if GFXSTREAM_ENABLE_HOST_GLES
                 m_displaySurface = m_emulationGl->createWindowSurface(m_windowWidth * dpr,
@@ -1062,7 +1041,8 @@ bool FrameBuffer::setupSubWindow(FBNativeWindowType p_window,
             m_windowHeight = wh;
 
             {
-                auto watchdog = WATCHDOG_BUILDER(m_healthMonitor.get(), "Moving subwindow").build();
+                auto moveWatchdog =
+                    WATCHDOG_BUILDER(m_healthMonitor.get(), "Moving subwindow").build();
                 success = moveSubWindow(m_nativeWindow, m_subWin, m_x, m_y, m_windowWidth,
                                         m_windowHeight, dpr);
             }
@@ -1092,9 +1072,9 @@ bool FrameBuffer::setupSubWindow(FBNativeWindowType p_window,
                     postImpl(m_lastPostedColorBuffer,
                         [](std::shared_future<void> waitForGpu) {}, false);
                 } else {
-                    Post postCmd;
-                    postCmd.cmd = PostCmd::Clear;
-                    sendPostWorkerCmd(std::move(postCmd));
+                    Post clearCmd;
+                    clearCmd.cmd = PostCmd::Clear;
+                    sendPostWorkerCmd(std::move(clearCmd));
                 }
             }
             m_windowContentFullWidth = fbw;
@@ -1174,7 +1154,7 @@ bool FrameBuffer::isFormatSupported(GLenum format) {
         supported &= m_emulationGl->isFormatSupported(format);
     }
     if (m_emulationVk) {
-        supported &= vk::isFormatSupported(format);
+        supported &= m_emulationVk->isFormatSupported(format);
     }
     return supported;
 }
@@ -1220,9 +1200,9 @@ HandleType FrameBuffer::createColorBufferWithResourceHandleLocked(int p_width, i
                                                                   FrameworkFormat p_frameworkFormat,
                                                                   HandleType handle,
                                                                   bool p_linear) {
-    ColorBufferPtr cb =
-        ColorBuffer::create(m_emulationGl.get(), m_emulationVk, p_width, p_height, p_internalFormat,
-                            p_frameworkFormat, handle, nullptr /*stream*/, p_linear);
+    ColorBufferPtr cb = ColorBuffer::create(m_emulationGl.get(), m_emulationVk.get(), p_width,
+                                            p_height, p_internalFormat, p_frameworkFormat, handle,
+                                            nullptr /*stream*/, p_linear);
     if (cb.get() == nullptr) {
         GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
             << "Failed to create ColorBuffer:" << handle << " format:" << p_internalFormat
@@ -1285,7 +1265,7 @@ HandleType FrameBuffer::createBufferWithResourceHandleLocked(int p_size, HandleT
             << "Buffer already exists with handle " << handle;
     }
 
-    BufferPtr buffer(Buffer::create(m_emulationGl.get(), m_emulationVk, p_size, handle));
+    BufferPtr buffer(Buffer::create(m_emulationGl.get(), m_emulationVk.get(), p_size, handle));
     if (!buffer) {
         ERR("Create buffer failed.\n");
         return 0;
@@ -1887,15 +1867,15 @@ AsyncResult FrameBuffer::postImpl(HandleType p_colorbuffer, Post::CompletionCall
             if (iter.first == 0) {
                 cb = colorBuffer;
             } else {
-                uint32_t colorBuffer;
-                if (getDisplayColorBuffer(iter.first, &colorBuffer) < 0) {
+                uint32_t displayColorBufferHandle = 0;
+                if (getDisplayColorBuffer(iter.first, &displayColorBufferHandle) < 0) {
                     ERR("Failed to get color buffer for display %d, skip onPost", iter.first);
                     continue;
                 }
 
-                cb = findColorBuffer(colorBuffer);
+                cb = findColorBuffer(displayColorBufferHandle);
                 if (!cb) {
-                    ERR("Failed to find colorbuffer %d, skip onPost", colorBuffer);
+                    ERR("Failed to find ColorBuffer %d, skip onPost", displayColorBufferHandle);
                     continue;
                 }
             }
@@ -2113,7 +2093,7 @@ int FrameBuffer::getScreenshot(unsigned int nChannels, unsigned int* width, unsi
     int needed =
         useSnipping ? (nChannels * rect.size.w * rect.size.h) : (nChannels * (*width) * (*height));
 
-    if (*cPixels < needed) {
+    if (*cPixels < (size_t)needed) {
         *cPixels = needed;
         return -2;
     }
@@ -2126,7 +2106,7 @@ int FrameBuffer::getScreenshot(unsigned int nChannels, unsigned int* width, unsi
     // Transform the x, y coordinates given the rotation.
     // Assume (0, 0) represents the top left corner of the screen.
     if (useSnipping) {
-        int x, y;
+        int x = 0, y = 0;
         switch (desiredRotation) {
             case SKIN_ROTATION_0:
                 x = rect.pos.x;
@@ -2374,7 +2354,7 @@ void FrameBuffer::onSave(Stream* stream, const android::snapshot::ITextureSaverP
 
     // TODO(b/309858017): remove if when ready to bump snapshot version
     if (m_features.VulkanSnapshots.enabled) {
-        AutoLock mutex(m_procOwnedResourcesLock);
+        AutoLock procResourceLock(m_procOwnedResourcesLock);
         stream->putBe64(m_procOwnedResources.size());
         for (const auto& element : m_procOwnedResources) {
             stream->putBe64(element.first);
@@ -2578,7 +2558,8 @@ bool FrameBuffer::onLoad(Stream* stream,
         m_guestManagedColorBufferLifetime = stream->getByte();
         loadCollection(
             stream, &m_colorbuffers, [this, now](Stream* stream) -> ColorBufferMap::value_type {
-                ColorBufferPtr cb = ColorBuffer::onLoad(m_emulationGl.get(), m_emulationVk, stream);
+                ColorBufferPtr cb =
+                    ColorBuffer::onLoad(m_emulationGl.get(), m_emulationVk.get(), stream);
                 const HandleType handle = cb->getHndl();
                 const unsigned refCount = stream->getBe32();
                 const bool opened = stream->getByte();
@@ -2784,7 +2765,7 @@ int FrameBuffer::setDisplayPose(uint32_t displayId, int32_t x, int32_t y, uint32
 }
 
 void FrameBuffer::sweepColorBuffersLocked() {
-    HandleType handleToDestroy;
+    HandleType handleToDestroy = 0;
     while (mOutstandingColorBufferDestroys.tryReceive(&handleToDestroy)) {
         decColorBufferRefCountLocked(handleToDestroy);
     }
@@ -2864,7 +2845,7 @@ void FrameBuffer::logVulkanDeviceLost() {
     if (!m_emulationVk) {
         GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "Device lost without VkEmulation?";
     }
-    vk::onVkDeviceLost();
+    m_emulationVk->onVkDeviceLost();
 }
 
 void FrameBuffer::logVulkanOutOfMemory(VkResult result, const char* function, int line,
@@ -2985,17 +2966,6 @@ bool FrameBuffer::invalidateColorBufferForVk(HandleType colorBufferHandle) {
         return false;
     }
     return colorBuffer->invalidateForVk();
-}
-
-int FrameBuffer::waitSyncColorBuffer(HandleType colorBufferHandle) {
-    AutoLock mutex(m_lock);
-
-    ColorBufferPtr colorBuffer = findColorBuffer(colorBufferHandle);
-    if (!colorBuffer) {
-        return -1;
-    }
-
-    return colorBuffer->waitSync();
 }
 
 std::optional<BlobDescriptorInfo> FrameBuffer::exportColorBuffer(HandleType colorBufferHandle) {
@@ -3414,6 +3384,13 @@ EmulationGl& FrameBuffer::getEmulationGl() {
     return *m_emulationGl;
 }
 
+VkEmulation& FrameBuffer::getEmulationVk() {
+    if (!m_emulationVk) {
+        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "GL/EGL emulation not enabled.";
+    }
+    return *m_emulationVk;
+}
+
 EGLDisplay FrameBuffer::getDisplay() const {
     if (!m_emulationGl) {
         GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "EGL emulation not enabled.";
@@ -3732,20 +3709,20 @@ bool FrameBuffer::bindContext(HandleType p_context, HandleType p_drawSurface,
     if (p_context || p_drawSurface || p_readSurface) {
         ctx = getContext_locked(p_context);
         if (!ctx) return false;
-        EmulatedEglWindowSurfaceMap::iterator w(m_windows.find(p_drawSurface));
-        if (w == m_windows.end()) {
+        auto drawWindowIt = m_windows.find(p_drawSurface);
+        if (drawWindowIt == m_windows.end()) {
             // bad surface handle
             return false;
         }
-        draw = (*w).second.first;
+        draw = (*drawWindowIt).second.first;
 
         if (p_readSurface != p_drawSurface) {
-            EmulatedEglWindowSurfaceMap::iterator w(m_windows.find(p_readSurface));
-            if (w == m_windows.end()) {
+            auto readWindowIt = m_windows.find(p_readSurface);
+            if (readWindowIt == m_windows.end()) {
                 // bad surface handle
                 return false;
             }
-            read = (*w).second.first;
+            read = (*readWindowIt).second.first;
         } else {
             read = draw;
         }

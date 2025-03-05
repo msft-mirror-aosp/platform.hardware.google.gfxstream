@@ -112,7 +112,7 @@ class ExternalFencePool {
     VkDevice mDevice;
     android::base::Lock mLock;
     std::vector<VkFence> mPool;
-    int mMaxSize;
+    size_t mMaxSize;
 };
 
 class PrivateMemory {
@@ -437,7 +437,6 @@ struct CommandBufferInfo {
     std::unordered_set<HandleType> releasedColorBuffers;
     std::unordered_map<HandleType, VkImageLayout> cbLayouts;
     std::unordered_map<VkImage, VkImageLayout> imageLayouts;
-    std::unordered_set<HandleType> imageBarrierColorBuffers;
 
     void reset() {
         subCmds.clear();

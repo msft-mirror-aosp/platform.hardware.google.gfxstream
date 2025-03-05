@@ -442,7 +442,7 @@ struct TextureDataReader {
                 D("with glFramebufferTexture3DOES + glReadPixels");
                 unsigned int layerImgSize = s_texImageSize(
                         format, type, 1, width, height);
-                for (unsigned int d = 0; d < depth; d++) {
+                for (int d = 0; d < depth; d++) {
                     gl.glFramebufferTexture3DOES(
                             fbTarget, attachment, target,
                             globalName, level, d);
@@ -460,7 +460,7 @@ struct TextureDataReader {
                 D("with glFramebufferTextureLayer + glReadPixels");
                 unsigned int layerImgSize = s_texImageSize(
                         format, type, 1, width, height);
-                for (unsigned int d = 0; d < depth; d++) {
+                for (int d = 0; d < depth; d++) {
                     gl.glFramebufferTextureLayer(
                             fbTarget, attachment,
                             globalName, level, d);
@@ -607,7 +607,7 @@ void SaveableTexture::onSave(
         GLint prevTex = 0;
         GLDispatch& dispatcher = GLEScontext::dispatcher();
         assert(dispatcher.glGetIntegerv);
-        for (int i = 0; i != android::base::arraySize(pixelStoreIndexes); ++i) {
+        for (int i = 0; i != (int)android::base::arraySize(pixelStoreIndexes); ++i) {
             if (isGles2Gles() && pixelStoreIndexes[i] != GL_PACK_ALIGNMENT &&
                 pixelStoreIndexes[i] != GL_UNPACK_ALIGNMENT) {
                 continue;
@@ -782,13 +782,13 @@ void SaveableTexture::onSave(
                 dispatcher.glGetTexParameteriv(m_target, plist[i], &param);
                 if (isSwizzleParam(plist[i]) && param != GL_ZERO &&
                         param != GL_ONE) {
-                    if (param == emulatedBaseSwizzle.toRed) {
+                    if (param == (GLint)emulatedBaseSwizzle.toRed) {
                         param = GL_RED;
-                    } else if (param == emulatedBaseSwizzle.toGreen) {
+                    } else if (param == (GLint)emulatedBaseSwizzle.toGreen) {
                         param = GL_GREEN;
-                    } else if (param == emulatedBaseSwizzle.toBlue) {
+                    } else if (param == (GLint)emulatedBaseSwizzle.toBlue) {
                         param = GL_BLUE;
-                    } else if (param == emulatedBaseSwizzle.toAlpha) {
+                    } else if (param == (GLint)emulatedBaseSwizzle.toAlpha) {
                         param = GL_ALPHA;
                     }
                 }
@@ -807,7 +807,7 @@ void SaveableTexture::onSave(
                     s->putBe32(pair.second);
                 });
         // Restore environment
-        for (int i = 0; i != android::base::arraySize(pixelStoreIndexes); ++i) {
+        for (int i = 0; i != (int)android::base::arraySize(pixelStoreIndexes); ++i) {
             if (isGles2Gles() && pixelStoreIndexes[i] != GL_PACK_ALIGNMENT &&
                 pixelStoreIndexes[i] != GL_UNPACK_ALIGNMENT) {
                 continue;
@@ -869,7 +869,7 @@ void SaveableTexture::restore() {
         static constexpr GLint pixelStoreDesired[] = {0, 0, 0, 0, 0, 1};
 
         GLint pixelStorePrev[android::base::arraySize(pixelStoreIndexes)];
-        for (int i = 0; i != android::base::arraySize(pixelStoreIndexes); ++i) {
+        for (int i = 0; i != (int)android::base::arraySize(pixelStoreIndexes); ++i) {
             if (isGles2Gles() && pixelStoreIndexes[i] != GL_PACK_ALIGNMENT &&
                 pixelStoreIndexes[i] != GL_UNPACK_ALIGNMENT) {
                 continue;
@@ -1026,7 +1026,7 @@ void SaveableTexture::restore() {
         }
         m_texParam.clear();
         // Restore environment
-        for (int i = 0; i != android::base::arraySize(pixelStoreIndexes); ++i) {
+        for (int i = 0; i != (int)android::base::arraySize(pixelStoreIndexes); ++i) {
             if (isGles2Gles() && pixelStoreIndexes[i] != GL_PACK_ALIGNMENT &&
                 pixelStoreIndexes[i] != GL_UNPACK_ALIGNMENT) {
                 continue;

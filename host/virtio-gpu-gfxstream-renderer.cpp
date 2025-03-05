@@ -384,13 +384,6 @@ VG_EXPORT int stream_renderer_platform_destroy_shared_egl_context(void* context)
     return sFrontend()->platformDestroySharedEglContext(context);
 }
 
-VG_EXPORT int stream_renderer_wait_sync_resource(uint32_t res_handle) {
-    GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY,
-                          "stream_renderer_wait_sync_resource()");
-
-    return sFrontend()->waitSyncResource(res_handle);
-}
-
 VG_EXPORT int stream_renderer_resource_map_info(uint32_t res_handle, uint32_t* map_info) {
     GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_STREAM_RENDERER_CATEGORY,
                           "stream_renderer_resource_map_info()");
@@ -582,8 +575,6 @@ static int stream_renderer_opengles_init(uint32_t display_width, uint32_t displa
 
     android::featurecontrol::productFeatureOverride();
 
-    gfxstream::vk::vkDispatch(false /* don't use test ICD */);
-
     auto androidHw = aemu_get_android_hw();
 
     androidHw->hw_gltransport_asg_writeBufferSize = 1048576;
@@ -605,6 +596,8 @@ static int stream_renderer_opengles_init(uint32_t display_width, uint32_t displa
                      WINSYS_GLESBACKEND_PREFERENCE_AUTO, true /* force host gpu vulkan */);
 
     emuglConfig_setupEnv(&config);
+
+    gfxstream::vk::vkDispatch(false /* don't use test ICD */);
 
     android_prepareOpenglesEmulation();
 
@@ -987,7 +980,7 @@ VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer
     if (!skip_opengles) {
         // aemu currently does its own opengles initialization in
         // qemu/android/android-emu/android/opengles.cpp.
-        int ret =
+        ret =
             stream_renderer_opengles_init(display_width, display_height, renderer_flags, features);
         if (ret) {
             return ret;
