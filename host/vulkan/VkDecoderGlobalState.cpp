@@ -329,7 +329,7 @@ class VkDecoderGlobalState::Impl {
 
         mSnapshotState = SnapshotState::Saving;
 
-#ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_SUPPORT
+#ifdef CONFIG_AEMU
         if (!mInstanceInfo.empty()) {
             get_emugl_vm_operations().setStatSnapshotUseVulkan();
         }
@@ -838,7 +838,7 @@ class VkDecoderGlobalState::Impl {
                 VulkanDispatch* dvk = dispatch_VkDevice(deviceInfo->boxed);
                 dvk->vkResetFences(device, 1, &unboxedFence);
             }
-#ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_SUPPORT
+#ifdef CONFIG_AEMU
             if (!mInstanceInfo.empty()) {
                 get_emugl_vm_operations().setStatSnapshotUseVulkan();
             }
@@ -961,7 +961,7 @@ class VkDecoderGlobalState::Impl {
         INFO("Created VkInstance:%p for application:%s engine:%s.", *pInstance,
              info.applicationName.c_str(), info.engineName.c_str());
 
-#ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_SUPPORT
+#ifdef CONFIG_AEMU
         m_vkEmulation->getCallbacks().registerVulkanInstance((uint64_t)*pInstance,
                                                              info.applicationName.c_str());
 #endif
@@ -2668,7 +2668,7 @@ class VkDecoderGlobalState::Impl {
                                    VkSnapshotApiCallInfo* snapshotInfo, VkDevice boxed_device,
                                    uint32_t bindInfoCount, const VkBindImageMemoryInfo* pBindInfos)
         EXCLUDES(mMutex) {
-#ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_SUPPORT
+#ifdef CONFIG_AEMU
         if (bindInfoCount > 1 && snapshotsEnabled()) {
             if (mVerbosePrints) {
                 fprintf(stderr,
@@ -8664,7 +8664,7 @@ class VkDecoderGlobalState::Impl {
         INFO("Destroyed VkInstance:%p for application:%s engine:%s.", instance,
              instanceInfo.applicationName.c_str(), instanceInfo.engineName.c_str());
 
-#ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_SUPPORT
+#ifdef CONFIG_AEMU
         m_vkEmulation->getCallbacks().unregisterVulkanInstance((uint64_t)instance);
 #endif
         delete_VkInstance(instanceInfo.boxed);
