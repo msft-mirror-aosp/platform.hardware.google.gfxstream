@@ -165,7 +165,6 @@ cc_defaults {
         "-DGFXSTREAM_ENABLE_HOST_GLES=1",
         "-Wall",
         "-Wextra",
-        "-Wshadow",
         "-Wthread-safety",
         "-Wno-unused-function",
         "-Wno-unused-parameter",
