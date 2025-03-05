@@ -25,23 +25,25 @@
 namespace gfxstream {
 namespace gl {
 
+static constexpr const GLenum kNoError = GL_NO_ERROR;
+
 GLuint createBuffer(const GLESv2Dispatch* gl, GlBufferData data) {
     // We bind to GL_ARRAY_BUFFER in order to set up buffer data,
     // so let's hold on to what the old binding was so we can restore it
     GLuint currentArrayBuffer;
     gl->glGetIntegerv(GL_ARRAY_BUFFER_BINDING, (GLint*)&currentArrayBuffer);
-    EXPECT_EQ(GL_NO_ERROR, gl->glGetError());
+    EXPECT_EQ(kNoError, gl->glGetError());
 
     GLuint name;
     gl->glGenBuffers(1, &name);
-    EXPECT_EQ(GL_NO_ERROR, gl->glGetError());
+    EXPECT_EQ(kNoError, gl->glGetError());
 
     gl->glBindBuffer(GL_ARRAY_BUFFER, name);
     gl->glBufferData(GL_ARRAY_BUFFER, data.size, data.bytes, data.usage);
 
     // Restore the old binding
     gl->glBindBuffer(GL_ARRAY_BUFFER, currentArrayBuffer);
-    EXPECT_EQ(GL_NO_ERROR, gl->glGetError());
+    EXPECT_EQ(kNoError, gl->glGetError());
     return name;
 };
 
@@ -89,21 +91,21 @@ std::vector<GLubyte> getTextureImageData(const GLESv2Dispatch* gl,
     GLuint auxFramebuffer;
     gl->glGenFramebuffers(1, &auxFramebuffer);
     gl->glBindFramebuffer(GL_FRAMEBUFFER, auxFramebuffer);
-    EXPECT_EQ(GL_NO_ERROR, gl->glGetError());
+    EXPECT_EQ(kNoError, gl->glGetError());
 
     gl->glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, target,
                                texture, level);
-    EXPECT_EQ(GL_NO_ERROR, gl->glGetError());
+    EXPECT_EQ(kNoError, gl->glGetError());
     gl->glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE,
                      out.data());  // TODO(benzene): flexible format/type?
                                    // seems like RGBA/UNSIGNED_BYTE is the only
                                    // guaranteed supported format+type
-    EXPECT_EQ(GL_NO_ERROR, gl->glGetError());
+    EXPECT_EQ(kNoError, gl->glGetError());
 
     // restore old framebuffer
     gl->glBindFramebuffer(GL_FRAMEBUFFER, oldFramebuffer);
     gl->glDeleteFramebuffers(1, &auxFramebuffer);
-    EXPECT_EQ(GL_NO_ERROR, gl->glGetError());
+    EXPECT_EQ(kNoError, gl->glGetError());
 
     return out;
 }
