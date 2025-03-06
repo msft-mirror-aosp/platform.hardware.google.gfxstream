@@ -40,7 +40,7 @@ class EmulationGl;
 namespace gfxstream {
 namespace vk {
 class ColorBufferVk;
-struct VkEmulation;
+class VkEmulation;
 }  // namespace vk
 }  // namespace gfxstream
 
@@ -93,7 +93,6 @@ class ColorBuffer : public android::snapshot::LazySnapshotObj<ColorBuffer> {
     bool invalidateForGl();
     bool invalidateForVk();
 
-    int waitSync();
     std::optional<BlobDescriptorInfo> exportBlob();
 
 #if GFXSTREAM_ENABLE_HOST_GLES

@@ -94,8 +94,6 @@ class VirtioGpuResource {
 
     void SetHostPipe(GoldfishHostPipe* pipe) { mHostPipe = pipe; }
 
-    int WaitSyncResource();
-
     // Corresponds to Virtio GPU "TransferFromHost" commands and VMM requests to
     // copy into display buffers.
     int TransferRead(const GoldfishPipeServiceOps* ops, uint64_t offset, stream_renderer_box* box,

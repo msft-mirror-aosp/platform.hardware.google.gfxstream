@@ -284,7 +284,7 @@ EGLint EmulatedEglConfigList::packConfigs(GLuint bufferByteSize, GLuint* buffer)
     // of the configs, their values.
     memcpy(buffer, kConfigAttributes, kConfigAttributesLen * kGLuintSize);
 
-    for (int i = 0; i < mConfigs.size(); ++i) {
+    for (int i = 0; i < (int)mConfigs.size(); ++i) {
         memcpy(buffer + (i + 1) * kConfigAttributesLen,
                mConfigs[i].mAttribValues.data(),
                kConfigAttributesLen * kGLuintSize);

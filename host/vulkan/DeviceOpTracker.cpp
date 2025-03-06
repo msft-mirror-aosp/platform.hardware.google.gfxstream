@@ -68,7 +68,7 @@ void DeviceOpTracker::AddPendingGarbage(DeviceOpWaitable waitable, VkSemaphore s
     }
 }
 
-void DeviceOpTracker::Poll() {
+void DeviceOpTracker::PollAndProcessGarbage() {
     std::lock_guard<std::mutex> lock(mPollFunctionsMutex);
     mPollFunctions.erase(std::remove_if(mPollFunctions.begin(), mPollFunctions.end(),
                                         [](const PollFunction& pollingFunc) {
@@ -82,7 +82,7 @@ void DeviceOpTracker::Poll() {
         // when many requests have been done in a small amount of time.
         const auto now = std::chrono::system_clock::now();
         const auto old = now - kSizeLoggingTimeThreshold;
-        int numOldFuncs = std::count_if(
+        size_t numOldFuncs = std::count_if(
             mPollFunctions.begin(), mPollFunctions.end(), [old](const PollFunction& pollingFunc) {
                 return (pollingFunc.timepoint < old);
             });
@@ -93,10 +93,6 @@ void DeviceOpTracker::Poll() {
                  std::chrono::duration_cast<std::chrono::milliseconds>(kSizeLoggingTimeThreshold));
         }
     }
-}
-
-void DeviceOpTracker::PollAndProcessGarbage() {
-    Poll();
 
     const auto now = std::chrono::system_clock::now();
     const auto old = now - kAutoDeleteTimeThreshold;

@@ -384,7 +384,7 @@ void VirtioGpuResource::AttachIov(struct iovec* iov, uint32_t num_iovs) {
     size_t linearSize = 0;
     if (num_iovs) {
         mIovs.reserve(num_iovs);
-        for (int i = 0; i < num_iovs; ++i) {
+        for (uint32_t i = 0; i < num_iovs; ++i) {
             mIovs.push_back(iov[i]);
             linearSize += iov[i].iov_len;
         }
@@ -516,15 +516,6 @@ int VirtioGpuResource::GetCaching(uint32_t* outCaching) const {
 
     stream_renderer_error("failed to get caching for resource %d: unhandled type?", mId);
     return -EINVAL;
-}
-
-int VirtioGpuResource::WaitSyncResource() {
-    if (mResourceType != VirtioGpuResourceType::COLOR_BUFFER) {
-        stream_renderer_error("waitSyncResource is undefined for non-ColorBuffer resource.");
-        return -EINVAL;
-    }
-
-    return FrameBuffer::getFB()->waitSyncColorBuffer(mId);
 }
 
 // Corresponds to Virtio GPU "TransferFromHost" commands and VMM requests to
