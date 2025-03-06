@@ -32,6 +32,8 @@
 namespace gfxstream {
 namespace gl {
 
+static constexpr const GLenum kNoError = GL_NO_ERROR;
+
 using android::base::StdioStream;
 using android::snapshot::TextureLoader;
 using android::snapshot::TextureSaver;
@@ -71,7 +73,7 @@ testing::AssertionResult compareGlobalGlBoolean(const GLESv2Dispatch* gl,
                                                 GLboolean expected) {
     GLboolean current;
     gl->glGetBooleanv(name, &current);
-    EXPECT_EQ(GL_NO_ERROR, gl->glGetError());
+    EXPECT_EQ(kNoError, gl->glGetError());
     return compareValue<GLboolean>(expected, current,
                                    "GL global boolean mismatch for parameter " +
                                            describeGlEnum(name) + ":");
@@ -82,7 +84,7 @@ testing::AssertionResult compareGlobalGlInt(const GLESv2Dispatch* gl,
                                             GLint expected) {
     GLint current;
     gl->glGetIntegerv(name, &current);
-    EXPECT_EQ(GL_NO_ERROR, gl->glGetError());
+    EXPECT_EQ(kNoError, gl->glGetError());
     return compareValue<GLint>(expected, current,
                                "GL global int mismatch for parameter " +
                                        describeGlEnum(name) + ":");
@@ -94,7 +96,7 @@ testing::AssertionResult compareGlobalGlInt_i(const GLESv2Dispatch* gl,
                                               GLint expected) {
     GLint current;
     gl->glGetIntegeri_v(name, index, &current);
-    EXPECT_EQ(GL_NO_ERROR, gl->glGetError());
+    EXPECT_EQ(kNoError, gl->glGetError());
     return compareValue<GLint>(expected, current,
                                "GL global int_i mismatch for parameter " +
                                        describeGlEnum(name) + ":" + std::to_string(index));
@@ -106,7 +108,7 @@ testing::AssertionResult compareGlobalGlFloat(const GLESv2Dispatch* gl,
                                               GLfloat expected) {
     GLfloat current;
     gl->glGetFloatv(name, &current);
-    EXPECT_EQ(GL_NO_ERROR, gl->glGetError());
+    EXPECT_EQ(kNoError, gl->glGetError());
     return compareValue<GLfloat>(expected, current,
                                  "GL global float mismatch for parameter " +
                                          describeGlEnum(name) + ":");
@@ -123,7 +125,7 @@ testing::AssertionResult compareVector(const std::vector<T>& expected,
     }
 
     int mismatches = 0;
-    for (int i = 0; i < expected.size(); i++) {
+    for (size_t i = 0; i < expected.size(); i++) {
         if (i >= actual.size()) {
             if (mismatches < 10) {
                 mismatches++;
@@ -181,7 +183,7 @@ testing::AssertionResult compareGlobalGlBooleanv(
     std::vector<GLboolean> current;
     current.resize(std::max(size, static_cast<GLuint>(expected.size())));
     gl->glGetBooleanv(name, &current[0]);
-    EXPECT_EQ(GL_NO_ERROR, gl->glGetError());
+    EXPECT_EQ(kNoError, gl->glGetError());
     return compareVector<GLboolean>(
             expected, current,
             "GL global booleanv parameter " + describeGlEnum(name));
@@ -197,7 +199,7 @@ testing::AssertionResult compareGlobalGlBooleanv_i(
     std::vector<GLboolean> current;
     current.resize(std::max(size, static_cast<GLuint>(expected.size())));
     gl->glGetBooleani_v(name, index,  &current[0]);
-    EXPECT_EQ(GL_NO_ERROR, gl->glGetError());
+    EXPECT_EQ(kNoError, gl->glGetError());
     return compareVector<GLboolean>(
             expected, current,
             "GL global booleanv_i parameter " + describeGlEnum(name) + ":" + std::to_string(index) );
@@ -210,7 +212,7 @@ testing::AssertionResult compareGlobalGlIntv(const GLESv2Dispatch* gl,
     std::vector<GLint> current;
     current.resize(std::max(size, static_cast<GLuint>(expected.size())));
     gl->glGetIntegerv(name, &current[0]);
-    EXPECT_EQ(GL_NO_ERROR, gl->glGetError());
+    EXPECT_EQ(kNoError, gl->glGetError());
     return compareVector<GLint>(
             expected, current,
             "GL global intv parameter " + describeGlEnum(name));
@@ -225,7 +227,7 @@ testing::AssertionResult compareGlobalGlFloatv(
     std::vector<GLfloat> current;
     current.resize(std::max(size, static_cast<GLuint>(expected.size())));
     gl->glGetFloatv(name, &current[0]);
-    EXPECT_EQ(GL_NO_ERROR, gl->glGetError());
+    EXPECT_EQ(kNoError, gl->glGetError());
     return compareVector<GLfloat>(
             expected, current,
             "GL global floatv parameter " + describeGlEnum(name));
@@ -321,12 +323,12 @@ void SnapshotPreserveTest::doCheckedSnapshot() {
     {
         SCOPED_TRACE("during pre-snapshot default state check");
         defaultStateCheck();
-        ASSERT_EQ(GL_NO_ERROR, gl->glGetError());
+        ASSERT_EQ(kNoError, gl->glGetError());
     }
     {
         SCOPED_TRACE("during pre-snapshot state change");
         stateChange();
-        ASSERT_EQ(GL_NO_ERROR, gl->glGetError());
+        ASSERT_EQ(kNoError, gl->glGetError());
     }
     {
         SCOPED_TRACE("during pre-snapshot changed state check");
@@ -334,14 +336,14 @@ void SnapshotPreserveTest::doCheckedSnapshot() {
     }
     SnapshotTest::doSnapshot([this] {
         SCOPED_TRACE("during post-reset default state check");
-        EXPECT_EQ(GL_NO_ERROR, gl->glGetError());
+        EXPECT_EQ(kNoError, gl->glGetError());
         defaultStateCheck();
     });
-    EXPECT_EQ(GL_NO_ERROR, gl->glGetError());
+    EXPECT_EQ(kNoError, gl->glGetError());
     {
         SCOPED_TRACE("during post-snapshot changed state check");
         changedStateCheck();
-        EXPECT_EQ(GL_NO_ERROR, gl->glGetError());
+        EXPECT_EQ(kNoError, gl->glGetError());
     }
 }
 

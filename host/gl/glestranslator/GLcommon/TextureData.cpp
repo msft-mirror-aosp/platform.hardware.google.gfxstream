@@ -53,8 +53,8 @@ TextureData::TextureData(android::base::Stream* stream) : ObjectData(stream) {
     });
 }
 
-void TextureData::onSave(android::base::Stream* stream, unsigned int globalName) const {
-    ObjectData::onSave(stream, globalName);
+void TextureData::onSave(android::base::Stream* stream, unsigned int overrideGlobalName) const {
+    ObjectData::onSave(stream, overrideGlobalName);
     // The current TextureData structure is wrong when dealing with mipmaps.
     stream->putBe32(target);
     stream->putBe32(width);
@@ -73,7 +73,7 @@ void TextureData::onSave(android::base::Stream* stream, unsigned int globalName)
     stream->write(crop_rect, sizeof(crop_rect));
     stream->putBe32(texStorageLevels);
     stream->putBe32(0); // deprecated mipmap level
-    stream->putBe32(globalName);
+    stream->putBe32(overrideGlobalName);
     saveCollection(stream, m_texParam,
                    [](android::base::Stream* stream,
                       const std::pair<const GLenum, GLint>& texParam) {

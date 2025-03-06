@@ -329,7 +329,7 @@ class VkDecoderGlobalState::Impl {
 
         mSnapshotState = SnapshotState::Saving;
 
-#ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_SUPPORT
+#ifdef CONFIG_AEMU
         if (!mInstanceInfo.empty()) {
             get_emugl_vm_operations().setStatSnapshotUseVulkan();
         }
@@ -838,7 +838,7 @@ class VkDecoderGlobalState::Impl {
                 VulkanDispatch* dvk = dispatch_VkDevice(deviceInfo->boxed);
                 dvk->vkResetFences(device, 1, &unboxedFence);
             }
-#ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_SUPPORT
+#ifdef CONFIG_AEMU
             if (!mInstanceInfo.empty()) {
                 get_emugl_vm_operations().setStatSnapshotUseVulkan();
             }
@@ -926,17 +926,22 @@ class VkDecoderGlobalState::Impl {
         }
 #endif
 
+#if defined(__linux__)
+        // TODO(b/401005629) always lock before the call on linux
+        const bool doLockEarly = true;
+#else
         const bool swiftshader =
             (android::base::getEnvironmentVariable("ANDROID_EMU_VK_ICD").compare("swiftshader") ==
              0);
-
+        // b/155795731: swiftshader needs to lock early.
+        const bool doLockEarly = swiftshader;
+#endif
         VkResult res = VK_SUCCESS;
-        if (!swiftshader) {
+        if (!doLockEarly) {
             res = m_vk->vkCreateInstance(&createInfoFiltered, pAllocator, pInstance);
         }
         std::lock_guard<std::mutex> lock(mMutex);
-        if (swiftshader) {
-            // b/155795731: inside the lock.
+        if (doLockEarly) {
             res = m_vk->vkCreateInstance(&createInfoFiltered, pAllocator, pInstance);
         }
         if (res != VK_SUCCESS) {
@@ -961,7 +966,7 @@ class VkDecoderGlobalState::Impl {
         INFO("Created VkInstance:%p for application:%s engine:%s.", *pInstance,
              info.applicationName.c_str(), info.engineName.c_str());
 
-#ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_SUPPORT
+#ifdef CONFIG_AEMU
         m_vkEmulation->getCallbacks().registerVulkanInstance((uint64_t)*pInstance,
                                                              info.applicationName.c_str());
 #endif
@@ -1923,17 +1928,22 @@ class VkDecoderGlobalState::Impl {
         createInfoFiltered.enabledExtensionCount = (uint32_t)updatedDeviceExtensions.size();
         createInfoFiltered.ppEnabledExtensionNames = updatedDeviceExtensions.data();
 
+#if defined(__linux__)
+        // TODO(b/401005629) always lock before the call on linux
+        const bool doLockEarly = true;
+#else
         const bool swiftshader =
             (android::base::getEnvironmentVariable("ANDROID_EMU_VK_ICD").compare("swiftshader") ==
              0);
-
+        // b/155795731: swiftshader needs to lock early.
+        const bool doLockEarly = swiftshader;
+#endif
         VkResult result = VK_SUCCESS;
-        if (!swiftshader) {
+        if (!doLockEarly) {
             result = vk->vkCreateDevice(physicalDevice, &createInfoFiltered, pAllocator, pDevice);
         }
         std::lock_guard<std::mutex> lock(mMutex);
-        if (swiftshader) {
-            // b/155795731: inside the lock.
+        if (doLockEarly) {
             result = vk->vkCreateDevice(physicalDevice, &createInfoFiltered, pAllocator, pDevice);
         }
 
@@ -2479,12 +2489,14 @@ class VkDecoderGlobalState::Impl {
             const VkPhysicalDeviceMemoryProperties& memoryProperties =
                 physicalDeviceInfo->memoryPropertiesHelper->getHostMemoryProperties();
 
-            anbInfo = std::make_unique<AndroidNativeBufferInfo>();
-            createRes = prepareAndroidNativeBufferImage(
-                m_vkEmulation, vk, device, *pool, pCreateInfo, nativeBufferANDROID, pAllocator,
-                &memoryProperties, anbInfo.get());
+            anbInfo = AndroidNativeBufferInfo::create(
+                m_vkEmulation, vk, device, *pool, pCreateInfo, nativeBufferANDROID, pAllocator, &memoryProperties);
+            if (anbInfo == nullptr) {
+                createRes = VK_ERROR_OUT_OF_DEVICE_MEMORY;
+            }
+
             if (createRes == VK_SUCCESS) {
-                *pImage = anbInfo->image;
+                *pImage = anbInfo->getImage();
             }
         } else {
             createRes = vk->vkCreateImage(device, pCreateInfo, pAllocator, pImage);
@@ -2509,7 +2521,7 @@ class VkDecoderGlobalState::Impl {
         imageInfo.cmpInfo = std::move(cmpInfo);
         imageInfo.imageCreateInfoShallow = vk_make_orphan_copy(*pCreateInfo);
         imageInfo.layout = pCreateInfo->initialLayout;
-        if (nativeBufferANDROID) imageInfo.anbInfo = std::move(anbInfo);
+        imageInfo.anbInfo = std::move(anbInfo);
 
         if (boxImage) {
             *pImage = new_boxed_non_dispatchable_VkImage(*pImage);
@@ -2668,7 +2680,7 @@ class VkDecoderGlobalState::Impl {
                                    VkSnapshotApiCallInfo* snapshotInfo, VkDevice boxed_device,
                                    uint32_t bindInfoCount, const VkBindImageMemoryInfo* pBindInfos)
         EXCLUDES(mMutex) {
-#ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_SUPPORT
+#ifdef CONFIG_AEMU
         if (bindInfoCount > 1 && snapshotsEnabled()) {
             if (mVerbosePrints) {
                 fprintf(stderr,
@@ -2781,7 +2793,7 @@ class VkDecoderGlobalState::Impl {
             createInfo.subresourceRange.baseMipLevel = 0;
             pCreateInfo = &createInfo;
         }
-        if (imageInfo->anbInfo && imageInfo->anbInfo->externallyBacked) {
+        if (imageInfo->anbInfo && imageInfo->anbInfo->isExternallyBacked()) {
             createInfo = *pCreateInfo;
             pCreateInfo = &createInfo;
         }
@@ -5811,9 +5823,9 @@ class VkDecoderGlobalState::Impl {
 
         AndroidNativeBufferInfo* anbInfo = imageInfo->anbInfo.get();
 
-        VkResult result = setAndroidNativeImageSemaphoreSignaled(
-            m_vkEmulation, vk, device, defaultQueue, defaultQueueFamilyIndex, defaultQueueMutex,
-            semaphore, usedFence, anbInfo);
+        VkResult result =
+            anbInfo->on_vkAcquireImageANDROID(m_vkEmulation, vk, device, defaultQueue, defaultQueueFamilyIndex,
+                                              defaultQueueMutex, semaphore, usedFence);
         if (result != VK_SUCCESS) {
             return result;
         }
@@ -5861,20 +5873,20 @@ class VkDecoderGlobalState::Impl {
         if (!imageInfo) return VK_ERROR_INITIALIZATION_FAILED;
 
         auto* anbInfo = imageInfo->anbInfo.get();
-        if (anbInfo->useVulkanNativeImage) {
+        if (anbInfo->isUsingNativeImage()) {
             // vkQueueSignalReleaseImageANDROID() is only called by the Android framework's
             // implementation of vkQueuePresentKHR(). The guest application is responsible for
             // transitioning the image layout of the image passed to vkQueuePresentKHR() to
             // VK_IMAGE_LAYOUT_PRESENT_SRC_KHR before the call. If the host is using native
             // Vulkan images where `image` is backed with the same memory as its ColorBuffer,
             // then we need to update the tracked layout for that ColorBuffer.
-            m_vkEmulation->setColorBufferCurrentLayout(anbInfo->colorBufferHandle,
-                                                       VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+            m_vkEmulation->setColorBufferCurrentLayout(anbInfo->getColorBufferHandle(),
+                                        VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
         }
 
-        return syncImageToColorBuffer(m_vkEmulation, vk, queueInfo->queueFamilyIndex, queue,
-                                      queueInfo->queueMutex.get(), waitSemaphoreCount,
-                                      pWaitSemaphores, pNativeFenceFd, anbInfo);
+        return anbInfo->on_vkQueueSignalReleaseImageANDROID(
+            m_vkEmulation, vk, queueInfo->queueFamilyIndex, queue, queueInfo->queueMutex.get(),
+            waitSemaphoreCount, pWaitSemaphores, pNativeFenceFd);
     }
 
     VkResult on_vkMapMemoryIntoAddressSpaceGOOGLE(android::base::BumpPool* pool,
@@ -7738,20 +7750,7 @@ class VkDecoderGlobalState::Impl {
             ERR("Attempted to register QSRI callback on VkImage:%p without ANB info.", image);
             return AsyncResult::FAIL_AND_CALLBACK_NOT_SCHEDULED;
         }
-        if (!anbInfo->vk) {
-            ERR("Attempted to register QSRI callback on VkImage:%p with uninitialized ANB info.",
-                image);
-            return AsyncResult::FAIL_AND_CALLBACK_NOT_SCHEDULED;
-        }
-        // Could be null or mismatched image, check later
-        if (image != anbInfo->image) {
-            ERR("Attempted on register QSRI callback on VkImage:%p with wrong image %p.", image,
-                anbInfo->image);
-            return AsyncResult::FAIL_AND_CALLBACK_NOT_SCHEDULED;
-        }
-
-        anbInfo->qsriTimeline->registerCallbackForNextPresentAndPoll(std::move(callback));
-        return AsyncResult::OK_AND_CALLBACK_SCHEDULED;
+        return anbInfo->registerQsriCallback(image, std::move(callback));
     }
 
 #define GUEST_EXTERNAL_MEMORY_HANDLE_TYPES                                \
@@ -8664,7 +8663,7 @@ class VkDecoderGlobalState::Impl {
         INFO("Destroyed VkInstance:%p for application:%s engine:%s.", instance,
              instanceInfo.applicationName.c_str(), instanceInfo.engineName.c_str());
 
-#ifdef GFXSTREAM_BUILD_WITH_SNAPSHOT_SUPPORT
+#ifdef CONFIG_AEMU
         m_vkEmulation->getCallbacks().unregisterVulkanInstance((uint64_t)instance);
 #endif
         delete_VkInstance(instanceInfo.boxed);
