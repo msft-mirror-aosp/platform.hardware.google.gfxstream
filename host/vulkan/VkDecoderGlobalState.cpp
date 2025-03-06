@@ -8052,6 +8052,14 @@ class VkDecoderGlobalState::Impl {
             // mitigate the issues with duplicated vulkan handles. This should be
             // removed once the issue is properly resolved.
             VK_EXT_PRIVATE_DATA_EXTENSION_NAME,
+            // It is not uncommon for a guest app flow to expect to use
+            // VK_EXT_IMAGE_DRM_FORMAT_MODIFIER without actually enabling it in the
+            // ppEnabledExtensionNames. Mesa WSI (in Linux) does this, because it has certain
+            // assumptions about the Vulkan loader architecture it is using. However, depending on
+            // the host's Vulkan loader architecture, this could in NULL function pointer access
+            // (i.e. on vkGetImageDrmFormatModifierPropertiesEXT()). So just enable it if it's
+            // available.
+            VK_EXT_IMAGE_DRM_FORMAT_MODIFIER_EXTENSION_NAME,
 #ifdef _WIN32
             VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME,
             VK_KHR_EXTERNAL_SEMAPHORE_WIN32_EXTENSION_NAME,
@@ -8064,16 +8072,6 @@ class VkDecoderGlobalState::Impl {
 #elif __unix__
             VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME,
             VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME,
-#endif
-
-#ifdef __linux__
-            // Mesa Vulkan Wayland WSI needs vkGetImageDrmFormatModifierPropertiesEXT. On some Intel
-            // GPUs, this extension is exposed by the driver only if
-            // VK_EXT_image_drm_format_modifier extension is requested via
-            // VkDeviceCreateInfo::ppEnabledExtensionNames. vkcube-wayland does not request it,
-            // which makes the host attempt to call a null function pointer unless we force-enable
-            // it regardless of the client's wishes.
-            VK_EXT_IMAGE_DRM_FORMAT_MODIFIER_EXTENSION_NAME,
 #endif
         };
 
