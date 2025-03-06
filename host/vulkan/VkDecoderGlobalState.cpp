@@ -8042,100 +8042,65 @@ class VkDecoderGlobalState::Impl {
             return res;
         }
 
-        if (hasDeviceExtension(properties, VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME)) {
-            res.push_back(VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME);
-        }
-
-        if (hasDeviceExtension(properties, VK_EXT_EXTERNAL_MEMORY_HOST_EXTENSION_NAME)) {
-            res.push_back(VK_EXT_EXTERNAL_MEMORY_HOST_EXTENSION_NAME);
-        }
-
-        if (hasDeviceExtension(properties, VK_KHR_EXTERNAL_SEMAPHORE_EXTENSION_NAME)) {
-            res.push_back(VK_KHR_EXTERNAL_SEMAPHORE_EXTENSION_NAME);
-        }
-
-        if (hasDeviceExtension(properties, VK_KHR_SAMPLER_YCBCR_CONVERSION_EXTENSION_NAME)) {
-            res.push_back(VK_KHR_SAMPLER_YCBCR_CONVERSION_EXTENSION_NAME);
-        }
-
-        if (hasDeviceExtension(properties, VK_KHR_SWAPCHAIN_EXTENSION_NAME)) {
-            res.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
-        }
-
+        std::vector<const char*> hostAlwaysDeviceExtensions = {
+            VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME,
+            VK_EXT_EXTERNAL_MEMORY_HOST_EXTENSION_NAME,
+            VK_KHR_EXTERNAL_SEMAPHORE_EXTENSION_NAME,
+            VK_KHR_SAMPLER_YCBCR_CONVERSION_EXTENSION_NAME,
+            VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+            // TODO(b/378686769): Enable private data extension where available to
+            // mitigate the issues with duplicated vulkan handles. This should be
+            // removed once the issue is properly resolved.
+            VK_EXT_PRIVATE_DATA_EXTENSION_NAME,
 #ifdef _WIN32
-        if (hasDeviceExtension(properties, VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME)) {
-            res.push_back(VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME);
-        }
-
-        if (hasDeviceExtension(properties, VK_KHR_EXTERNAL_SEMAPHORE_WIN32_EXTENSION_NAME)) {
-            res.push_back(VK_KHR_EXTERNAL_SEMAPHORE_WIN32_EXTENSION_NAME);
-        }
+            VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME,
+            VK_KHR_EXTERNAL_SEMAPHORE_WIN32_EXTENSION_NAME,
 #elif defined(__QNX__)
-        // Note: VK_QNX_external_memory_screen_buffer is not supported in API translation,
-        // decoding, etc. However, push name to indicate external memory support to guest
-        if (hasDeviceExtension(properties, VK_QNX_EXTERNAL_MEMORY_SCREEN_BUFFER_EXTENSION_NAME)) {
-            res.push_back(VK_QNX_EXTERNAL_MEMORY_SCREEN_BUFFER_EXTENSION_NAME);
-            // EXT_queue_family_foreign is a pre-requisite for QNX_external_memory_screen_buffer
-            if (hasDeviceExtension(properties, VK_EXT_QUEUE_FAMILY_FOREIGN_EXTENSION_NAME)) {
-                res.push_back(VK_EXT_QUEUE_FAMILY_FOREIGN_EXTENSION_NAME);
-            }
-        }
-
-        if (hasDeviceExtension(properties, VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME)) {
-            res.push_back(VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME);
-        }
+            VK_QNX_EXTERNAL_MEMORY_SCREEN_BUFFER_EXTENSION_NAME,
+            // EXT_queue_family_foreign is an extension dependency of
+            // VK_QNX_external_memory_screen_buffer
+            VK_EXT_QUEUE_FAMILY_FOREIGN_EXTENSION_NAME,
+            VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME,
 #elif __unix__
-        if (hasDeviceExtension(properties, VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME)) {
-            res.push_back(VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME);
-        }
-
-        if (hasDeviceExtension(properties, VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME)) {
-            res.push_back(VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME);
-        }
-#elif defined(__APPLE__)
-        if (m_vkEmulation->supportsMoltenVk()) {
-            if (hasDeviceExtension(properties, VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME)) {
-                res.push_back(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME);
-            }
-            if (hasDeviceExtension(properties, VK_EXT_METAL_OBJECTS_EXTENSION_NAME)) {
-                res.push_back(VK_EXT_METAL_OBJECTS_EXTENSION_NAME);
-            }
-            if (hasDeviceExtension(properties, VK_EXT_EXTERNAL_MEMORY_METAL_EXTENSION_NAME)) {
-                res.push_back(VK_EXT_EXTERNAL_MEMORY_METAL_EXTENSION_NAME);
-            }
-        } else {
-            // Non-MoltenVK path, use memory_fd
-            if (hasDeviceExtension(properties, VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME)) {
-                res.push_back(VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME);
-            }
-        }
+            VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME,
+            VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME,
 #endif
 
 #ifdef __linux__
-        // A dma-buf is a Linux kernel construct, commonly used with open-source DRM drivers.
-        // See https://docs.kernel.org/driver-api/dma-buf.html for details.
-        if (m_vkEmulation->supportsDmaBuf() &&
-            hasDeviceExtension(properties, VK_EXT_EXTERNAL_MEMORY_DMA_BUF_EXTENSION_NAME)) {
-            res.push_back(VK_EXT_EXTERNAL_MEMORY_DMA_BUF_EXTENSION_NAME);
-        }
-
-        if (hasDeviceExtension(properties, VK_EXT_IMAGE_DRM_FORMAT_MODIFIER_EXTENSION_NAME)) {
             // Mesa Vulkan Wayland WSI needs vkGetImageDrmFormatModifierPropertiesEXT. On some Intel
             // GPUs, this extension is exposed by the driver only if
             // VK_EXT_image_drm_format_modifier extension is requested via
             // VkDeviceCreateInfo::ppEnabledExtensionNames. vkcube-wayland does not request it,
             // which makes the host attempt to call a null function pointer unless we force-enable
             // it regardless of the client's wishes.
-            res.push_back(VK_EXT_IMAGE_DRM_FORMAT_MODIFIER_EXTENSION_NAME);
-        }
+            VK_EXT_IMAGE_DRM_FORMAT_MODIFIER_EXTENSION_NAME,
+#endif
+        };
 
+#if defined(__APPLE__)
+        if (m_vkEmulation->supportsMoltenVk()) {
+            hostAlwaysDeviceExtensions.push_back(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME);
+            hostAlwaysDeviceExtensions.push_back(VK_EXT_METAL_OBJECTS_EXTENSION_NAME);
+            hostAlwaysDeviceExtensions.push_back(VK_EXT_EXTERNAL_MEMORY_METAL_EXTENSION_NAME);
+        } else {
+            // Non-MoltenVK path, use memory_fd
+            hostAlwaysDeviceExtensions.push_back(VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME);
+        }
 #endif
 
-        if (hasDeviceExtension(properties, VK_EXT_PRIVATE_DATA_EXTENSION_NAME)) {
-            //TODO(b/378686769): Enable private data extension where available to
-            // mitigate the issues with duplicated vulkan handles. This should be
-            // removed once the issue is properly resolved.
-            res.push_back(VK_EXT_PRIVATE_DATA_EXTENSION_NAME);
+#if defined(__linux__)
+        // A dma-buf is a Linux kernel construct, commonly used with open-source DRM drivers.
+        // See https://docs.kernel.org/driver-api/dma-buf.html for details.
+        if (m_vkEmulation->supportsDmaBuf()) {
+            hostAlwaysDeviceExtensions.push_back(VK_EXT_EXTERNAL_MEMORY_DMA_BUF_EXTENSION_NAME);
+        }
+#endif
+
+        // Enable all the device extensions that should always be enabled on the host (if available)
+        for (auto extName : hostAlwaysDeviceExtensions) {
+            if (hasDeviceExtension(properties, extName)) {
+                res.push_back(extName);
+            }
         }
 
         return res;
