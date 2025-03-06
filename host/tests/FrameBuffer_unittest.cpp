@@ -180,7 +180,7 @@ TEST_F(FrameBufferTest, FrameBufferBasic) {
 TEST_F(FrameBufferTest, CreateColorBuffer) {
     HandleType handle =
         mFb->createColorBuffer(mWidth, mHeight, GL_RGBA, FRAMEWORK_FORMAT_GL_COMPATIBLE);
-    EXPECT_NE(0, handle);
+    EXPECT_NE((HandleType)0, handle);
     // FramBuffer::finalize handles color buffer destruction here
 }
 
@@ -188,7 +188,7 @@ TEST_F(FrameBufferTest, CreateColorBuffer) {
 TEST_F(FrameBufferTest, CreateCloseColorBuffer) {
     HandleType handle =
         mFb->createColorBuffer(mWidth, mHeight, GL_RGBA, FRAMEWORK_FORMAT_GL_COMPATIBLE);
-    EXPECT_NE(0, handle);
+    EXPECT_NE((HandleType)0, handle);
     mFb->closeColorBuffer(handle);
 }
 
@@ -196,7 +196,7 @@ TEST_F(FrameBufferTest, CreateCloseColorBuffer) {
 TEST_F(FrameBufferTest, CreateOpenCloseColorBuffer) {
     HandleType handle =
         mFb->createColorBuffer(mWidth, mHeight, GL_RGBA, FRAMEWORK_FORMAT_GL_COMPATIBLE);
-    EXPECT_NE(0, handle);
+    EXPECT_NE((HandleType)0, handle);
     EXPECT_EQ(0, mFb->openColorBuffer(handle));
     mFb->closeColorBuffer(handle);
 }
@@ -206,7 +206,7 @@ TEST_F(FrameBufferTest, CreateOpenCloseColorBuffer) {
 TEST_F(FrameBufferTest, CreateOpenUpdateCloseColorBuffer) {
     HandleType handle =
         mFb->createColorBuffer(mWidth, mHeight, GL_RGBA, FRAMEWORK_FORMAT_GL_COMPATIBLE);
-    EXPECT_NE(0, handle);
+    EXPECT_NE((HandleType)0, handle);
     EXPECT_EQ(0, mFb->openColorBuffer(handle));
 
     TestTexture forUpdate = createTestPatternRGBA8888(mWidth, mHeight);
@@ -225,7 +225,7 @@ TEST_F(FrameBufferTest, CreateOpenUpdateCloseColorBuffer) {
 TEST_F(FrameBufferTest, CreateOpenUpdateCloseColorBuffer_ReadYUV420) {
     HandleType handle = mFb->createColorBuffer(mWidth, mHeight, GL_RGBA,
                                                FRAMEWORK_FORMAT_YUV_420_888);
-    EXPECT_NE(0, handle);
+    EXPECT_NE((HandleType)0, handle);
     EXPECT_EQ(0, mFb->openColorBuffer(handle));
 
     TestTexture forUpdate = createTestPatternRGBA8888(mWidth, mHeight);
@@ -252,7 +252,7 @@ TEST_F(FrameBufferTest, CreateOpenUpdateCloseColorBuffer_ReadYUV420) {
 TEST_F(FrameBufferTest, CreateOpenUpdateCloseColorBuffer_ReadNV12) {
     HandleType handle = mFb->createColorBuffer(mWidth, mHeight, GL_RGBA,
                                                FRAMEWORK_FORMAT_NV12);
-    EXPECT_NE(0, handle);
+    EXPECT_NE((HandleType)0, handle);
     EXPECT_EQ(0, mFb->openColorBuffer(handle));
 
     TestTexture forUpdate = createTestPatternRGBA8888(mWidth, mHeight);
@@ -282,7 +282,7 @@ TEST_F(FrameBufferTest, CreateOpenUpdateCloseColorBuffer_ReadNV12TOYUV420) {
     mHeight = 8;
     HandleType handle_nv12 = mFb->createColorBuffer(mWidth, mHeight, GL_RGBA,
                                                     FRAMEWORK_FORMAT_NV12);
-    EXPECT_NE(0, handle_nv12);
+    EXPECT_NE((HandleType)0, handle_nv12);
     EXPECT_EQ(0, mFb->openColorBuffer(handle_nv12));
 
     uint8_t forUpdate[] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -306,7 +306,7 @@ TEST_F(FrameBufferTest, CreateOpenUpdateCloseColorBuffer_ReadNV12TOYUV420) {
     // yuv420
     HandleType handle_yuv420 = mFb->createColorBuffer(
             mWidth, mHeight, GL_RGBA, FRAMEWORK_FORMAT_YUV_420_888);
-    EXPECT_NE(0, handle_yuv420);
+    EXPECT_NE((HandleType)0, handle_yuv420);
     EXPECT_EQ(0, mFb->openColorBuffer(handle_yuv420));
 
     uint32_t textures[2] = {1, 2};
@@ -334,7 +334,7 @@ TEST_F(FrameBufferTest, CreateOpenUpdateCloseColorBuffer_ReadYV12) {
     mWidth = 20 * 16;
     HandleType handle = mFb->createColorBuffer(mWidth, mHeight, GL_RGBA,
                                                FRAMEWORK_FORMAT_YV12);
-    EXPECT_NE(0, handle);
+    EXPECT_NE((HandleType)0, handle);
     EXPECT_EQ(0, mFb->openColorBuffer(handle));
 
     TestTexture forUpdate = createTestPatternRGBA8888(mWidth, mHeight);
@@ -364,7 +364,7 @@ TEST_F(FrameBufferTest, CreateOpenUpdateCloseColorBuffer_ReadYV12) {
 TEST_F(FrameBufferTest, CreateOpenUpdateCloseColorBuffer_FormatChange) {
     HandleType handle =
         mFb->createColorBuffer(mWidth, mHeight, GL_RGBA, FRAMEWORK_FORMAT_GL_COMPATIBLE);
-    EXPECT_NE(0, handle);
+    EXPECT_NE((HandleType)0, handle);
     EXPECT_EQ(0, mFb->openColorBuffer(handle));
 
     TestTexture forUpdate = createTestPatternRGBA8888(mWidth, mHeight);
@@ -384,19 +384,19 @@ TEST_F(FrameBufferTest, CreateOpenUpdateCloseColorBuffer_FormatChange) {
 // Tests obtaining EGL configs from FrameBuffer.
 TEST_F(FrameBufferTest, Configs) {
     const EmulatedEglConfigList* configs = mFb->getConfigs();
-    EXPECT_GE(configs->size(), 0);
+    EXPECT_GE(configs->size(), (size_t)0);
 }
 
 // Tests creating GL context from FrameBuffer.
 TEST_F(FrameBufferTest, CreateEmulatedEglContext) {
     HandleType handle = mFb->createEmulatedEglContext(0, 0, GLESApi_3_0);
-    EXPECT_NE(0, handle);
+    EXPECT_NE((HandleType)0, handle);
 }
 
 // Tests creating window surface from FrameBuffer.
 TEST_F(FrameBufferTest, CreateEmulatedEglWindowSurface) {
     HandleType handle = mFb->createEmulatedEglWindowSurface(0, mWidth, mHeight);
-    EXPECT_NE(0, handle);
+    EXPECT_NE((HandleType)0, handle);
 }
 
 // Tests eglMakeCurrent from FrameBuffer.
@@ -745,7 +745,7 @@ TEST_F(FrameBufferTest, VulkanInteropQuery) {
 TEST_F(FrameBufferTest, CreateColorBufferBGRA) {
     HandleType handle =
         mFb->createColorBuffer(mWidth, mHeight, GL_BGRA_EXT, FRAMEWORK_FORMAT_GL_COMPATIBLE);
-    EXPECT_NE(0, handle);
+    EXPECT_NE((HandleType)0, handle);
     // FramBuffer::finalize handles color buffer destruction here
 }
 
@@ -754,7 +754,7 @@ TEST_F(FrameBufferTest, CreateColorBufferBGRA) {
 TEST_F(FrameBufferTest, DISABLED_ReadColorBufferSwitchRedBlue) {
     HandleType handle =
         mFb->createColorBuffer(mWidth, mHeight, GL_RGBA, FRAMEWORK_FORMAT_GL_COMPATIBLE);
-    EXPECT_NE(0, handle);
+    EXPECT_NE((HandleType)0, handle);
     EXPECT_EQ(0, mFb->openColorBuffer(handle));
 
     TestTexture forUpdate = createTestPatternRGBA8888(mWidth, mHeight);
@@ -769,8 +769,8 @@ TEST_F(FrameBufferTest, DISABLED_ReadColorBufferSwitchRedBlue) {
     // Switch them back, so we get the original image
     uint8_t* forReadBytes = forRead.data();
 
-    for (uint32_t row = 0; row < mHeight; ++row) {
-        for (uint32_t col = 0; col < mWidth; ++col) {
+    for (int row = 0; row < mHeight; ++row) {
+        for (int col = 0; col < mWidth; ++col) {
             uint8_t* pixel = forReadBytes + mWidth * 4 * row + col * 4;
             // In RGBA8:
             //    3 2 1 0
@@ -801,7 +801,7 @@ TEST_F(FrameBufferTest, BindMultiDisplayColorBuffer) {
     EXPECT_EQ(0, mFb->createDisplay(&id));
     uint32_t handle =
         mFb->createColorBuffer(mWidth, mHeight, GL_RGBA, FRAMEWORK_FORMAT_GL_COMPATIBLE);
-    EXPECT_NE(0, handle);
+    EXPECT_NE((HandleType)0, handle);
     EXPECT_EQ(0, mFb->setDisplayColorBuffer(id, handle));
     uint32_t getHandle = 0;
     mFb->getDisplayColorBuffer(id, &getHandle);
@@ -816,7 +816,7 @@ TEST_F(FrameBufferTest, BindMultiDisplayColorBuffer) {
 TEST_F(FrameBufferTest, SetMultiDisplayPosition) {
     uint32_t id = FrameBuffer::s_invalidIdMultiDisplay;
     mFb->createDisplay(&id);
-    EXPECT_NE(0, id);
+    EXPECT_NE((uint32_t)0, id);
     uint32_t w = mWidth / 2, h = mHeight / 2;
     EXPECT_EQ(0, mFb->setDisplayPose(id, -1, -1, w, h));
     int32_t x, y;

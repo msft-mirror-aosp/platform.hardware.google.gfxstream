@@ -190,7 +190,7 @@ void RendererImpl::stop(bool wait) {
     for (const auto& c : mStoppedChannels) {
         c->renderThread()->waitForFinished();
         {
-            android::base::AutoLock lock(*graphicsDriverLock());
+            android::base::AutoLock driverLock(*graphicsDriverLock());
             c->renderThread()->sendExitSignal();
             c->renderThread()->wait();
         }
@@ -231,7 +231,7 @@ void RendererImpl::cleanupRenderThreads() {
     for (const auto& c : channels) {
         c->renderThread()->waitForFinished();
         {
-            android::base::AutoLock lock(*graphicsDriverLock());
+            android::base::AutoLock driverLock(*graphicsDriverLock());
             c->renderThread()->sendExitSignal();
             c->renderThread()->wait();
         }
@@ -309,7 +309,7 @@ void RendererImpl::addressSpaceGraphicsConsumerDestroy(void* consumer) {
 
     thread->waitForFinished();
     {
-        android::base::AutoLock lock(*graphicsDriverLock());
+        android::base::AutoLock driverLock(*graphicsDriverLock());
         thread->sendExitSignal();
         thread->wait();
     }

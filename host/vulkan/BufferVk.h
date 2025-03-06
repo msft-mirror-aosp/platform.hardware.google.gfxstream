@@ -20,9 +20,12 @@
 namespace gfxstream {
 namespace vk {
 
+class VkEmulation;
+
 class BufferVk {
    public:
-    static std::unique_ptr<BufferVk> create(uint32_t handle, uint64_t size, bool vulkanOnly);
+    static std::unique_ptr<BufferVk> create(VkEmulation& vkEmulation, uint32_t handle,
+                                            uint64_t size, bool vulkanOnly);
 
     ~BufferVk();
 
@@ -33,7 +36,9 @@ class BufferVk {
     std::optional<BlobDescriptorInfo> exportBlob();
 
    private:
-    BufferVk(uint32_t handle);
+    BufferVk(VkEmulation& vkEmulation, uint32_t handle);
+
+    VkEmulation& mVkEmulation;
 
     const uint32_t mHandle;
 };

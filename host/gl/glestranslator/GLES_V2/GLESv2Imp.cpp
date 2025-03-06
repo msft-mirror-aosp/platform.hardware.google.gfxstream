@@ -2187,12 +2187,12 @@ static void s_glStateQueryTv(bool es2, GLenum pname, T* params, GLStateQueryFunc
         {
             int nparams = getCompressedFormats(2, NULL);
             if (nparams > 0) {
-                int* iparams = new int[nparams];
-                getCompressedFormats(2, iparams);
-                for (int i = 0; i < nparams; i++) {
-                    params[i] = (T)iparams[i];
+                int* compressedFormats = new int[nparams];
+                getCompressedFormats(2, compressedFormats);
+                for (int paramIndex = 0; paramIndex < nparams; paramIndex++) {
+                    params[paramIndex] = (T)compressedFormats[paramIndex];
                 }
-                delete [] iparams;
+                delete[] compressedFormats;
             }
         }
         break;
@@ -2549,18 +2549,17 @@ GL_APICALL void  GL_APIENTRY glGetFramebufferAttachmentParameteriv(GLenum target
     if (fbName) {
         auto fbObj = ctx->getFBOData(fbName);
         if (fbObj != NULL) {
-            GLenum target;
-            GLuint name = fbObj->getAttachment(attachment, &target, NULL);
+            GLenum attachmentTarget;
+            GLuint name = fbObj->getAttachment(attachment, &attachmentTarget, NULL);
             if (!name) {
                 SET_ERROR_IF(pname != GL_FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE &&
                         pname != GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME, GL_INVALID_ENUM);
             }
             if (pname == GL_FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE) {
-                if (target == GL_TEXTURE_2D) {
+                if (attachmentTarget == GL_TEXTURE_2D) {
                     *params = GL_TEXTURE;
                     return;
-                }
-                else if (target == GL_RENDERBUFFER) {
+                } else if (attachmentTarget == GL_RENDERBUFFER) {
                     *params = GL_RENDERBUFFER;
                     return;
                 } else {

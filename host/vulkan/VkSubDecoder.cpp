@@ -33,14 +33,14 @@
 #define MAX_STACK_ITEMS 16
 #define MAX_PACKET_LENGTH (400 * 1024 * 1024)  // 400MB
 size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* boxed_dispatchHandle,
-                 void* dispatchHandle, VkDeviceSize dataSize, const void* pData,
+                 void* dispatchHandle, VkDeviceSize subDecodeDataSize, const void* pSubDecodeData,
                  const VkDecoderContext& context) {
     auto& metricsLogger = *context.metricsLogger;
     uint32_t count = 0;
-    unsigned char* buf = (unsigned char*)pData;
+    unsigned char* buf = (unsigned char*)pSubDecodeData;
     android::base::BumpPool* pool = readStream->pool();
-    unsigned char* ptr = (unsigned char*)pData;
-    const unsigned char* const end = (const unsigned char*)buf + dataSize;
+    unsigned char* ptr = (unsigned char*)pSubDecodeData;
+    const unsigned char* const end = (const unsigned char*)buf + subDecodeDataSize;
     VkDecoderGlobalState* globalstate = VkDecoderGlobalState::get();
     while (end - ptr >= 8) {
         uint32_t opcode = *(uint32_t*)ptr;
