@@ -876,6 +876,17 @@ class VkDecoderGlobalState::Impl {
         return VK_SUCCESS;
     }
 
+    VkResult on_vkEnumerateInstanceExtensionProperties(android::base::BumpPool* pool,
+                                                   VkSnapshotApiCallInfo*, const char* pLayerName,
+                                                   uint32_t* pPropertyCount,
+                                                   VkExtensionProperties* pProperties) {
+#if defined(__linux__)
+        // TODO(b/401005629) always lock before the call on linux
+        std::lock_guard<std::mutex> lock(mMutex);
+#endif
+        return m_vk->vkEnumerateInstanceExtensionProperties(pLayerName, pPropertyCount, pProperties);
+    }
+
     VkResult on_vkCreateInstance(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
                                  const VkInstanceCreateInfo* pCreateInfo,
                                  const VkAllocationCallbacks* pAllocator, VkInstance* pInstance) {
@@ -9126,6 +9137,13 @@ VkResult VkDecoderGlobalState::on_vkEnumerateInstanceVersion(android::base::Bump
                                                              VkSnapshotApiCallInfo* snapshotInfo,
                                                              uint32_t* pApiVersion) {
     return mImpl->on_vkEnumerateInstanceVersion(pool, snapshotInfo, pApiVersion);
+}
+
+VkResult VkDecoderGlobalState::on_vkEnumerateInstanceExtensionProperties(
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo, const char* pLayerName,
+    uint32_t* pPropertyCount, VkExtensionProperties* pProperties) {
+    return mImpl->on_vkEnumerateInstanceExtensionProperties(pool, snapshotInfo, pLayerName,
+                                                            pPropertyCount, pProperties);
 }
 
 VkResult VkDecoderGlobalState::on_vkCreateInstance(android::base::BumpPool* pool,
