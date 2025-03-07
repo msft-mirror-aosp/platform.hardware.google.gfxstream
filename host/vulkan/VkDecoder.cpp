@@ -1076,8 +1076,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream,
                 VkResult vkEnumerateInstanceExtensionProperties_VkResult_return =
                     VK_ERROR_OUT_OF_HOST_MEMORY;
                 vkEnumerateInstanceExtensionProperties_VkResult_return =
-                    m_vk->vkEnumerateInstanceExtensionProperties(pLayerName, pPropertyCount,
-                                                                 pProperties);
+                    m_state->on_vkEnumerateInstanceExtensionProperties(
+                        &m_pool, snapshotApiCallInfo, pLayerName, pPropertyCount, pProperties);
                 if ((vkEnumerateInstanceExtensionProperties_VkResult_return) ==
                     VK_ERROR_DEVICE_LOST)
                     m_state->on_DeviceLost();
