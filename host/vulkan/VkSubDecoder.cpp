@@ -32,6 +32,8 @@
 //
 #define MAX_STACK_ITEMS 16
 #define MAX_PACKET_LENGTH (400 * 1024 * 1024)  // 400MB
+#define CC_LIKELY(exp) (__builtin_expect(!!(exp), true))
+#define CC_UNLIKELY(exp) (__builtin_expect(!!(exp), false))
 size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* boxed_dispatchHandle,
                  void* dispatchHandle, VkDeviceSize subDecodeDataSize, const void* pSubDecodeData,
                  const VkDecoderContext& context) {
@@ -72,9 +74,12 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     transform_tohost_VkCommandBufferBeginInfo(
                         globalstate, (VkCommandBufferBeginInfo*)(pBeginInfo));
                 }
-                VkResult vkBeginCommandBuffer_VkResult_return = (VkResult)0;
-                vkBeginCommandBuffer_VkResult_return = this->on_vkBeginCommandBuffer(
-                    pool, nullptr, (VkCommandBuffer)(boxed_dispatchHandle), pBeginInfo, context);
+                VkResult vkBeginCommandBuffer_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
+                if (CC_LIKELY(vk)) {
+                    vkBeginCommandBuffer_VkResult_return = this->on_vkBeginCommandBuffer(
+                        pool, nullptr, (VkCommandBuffer)(boxed_dispatchHandle), pBeginInfo,
+                        context);
+                }
                 if ((vkBeginCommandBuffer_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     this->on_DeviceLost();
                 this->on_CheckOutOfMemory(vkBeginCommandBuffer_VkResult_return, opcode, context);
@@ -83,9 +88,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
             case OP_vkEndCommandBuffer: {
                 GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
                                       "VkSubDecoder vkEndCommandBuffer");
-                VkResult vkEndCommandBuffer_VkResult_return = (VkResult)0;
-                vkEndCommandBuffer_VkResult_return = this->on_vkEndCommandBuffer(
-                    pool, nullptr, (VkCommandBuffer)(boxed_dispatchHandle), context);
+                VkResult vkEndCommandBuffer_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
+                if (CC_LIKELY(vk)) {
+                    vkEndCommandBuffer_VkResult_return = this->on_vkEndCommandBuffer(
+                        pool, nullptr, (VkCommandBuffer)(boxed_dispatchHandle), context);
+                }
                 if ((vkEndCommandBuffer_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     this->on_DeviceLost();
                 this->on_CheckOutOfMemory(vkEndCommandBuffer_VkResult_return, opcode, context);
@@ -98,9 +105,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 memcpy((VkCommandBufferResetFlags*)&flags, *readStreamPtrPtr,
                        sizeof(VkCommandBufferResetFlags));
                 *readStreamPtrPtr += sizeof(VkCommandBufferResetFlags);
-                VkResult vkResetCommandBuffer_VkResult_return = (VkResult)0;
-                vkResetCommandBuffer_VkResult_return = this->on_vkResetCommandBuffer(
-                    pool, nullptr, (VkCommandBuffer)(boxed_dispatchHandle), flags);
+                VkResult vkResetCommandBuffer_VkResult_return = VK_ERROR_OUT_OF_HOST_MEMORY;
+                if (CC_LIKELY(vk)) {
+                    vkResetCommandBuffer_VkResult_return = this->on_vkResetCommandBuffer(
+                        pool, nullptr, (VkCommandBuffer)(boxed_dispatchHandle), flags);
+                }
                 if ((vkResetCommandBuffer_VkResult_return) == VK_ERROR_DEVICE_LOST)
                     this->on_DeviceLost();
                 this->on_CheckOutOfMemory(vkResetCommandBuffer_VkResult_return, opcode, context);
@@ -118,8 +127,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
                 *readStreamPtrPtr += 1 * 8;
                 *(VkPipeline*)&pipeline = (VkPipeline)unbox_VkPipeline((VkPipeline)(*&cgen_var_0));
-                this->on_vkCmdBindPipeline(pool, nullptr, (VkCommandBuffer)(boxed_dispatchHandle),
-                                           pipelineBindPoint, pipeline);
+                if (CC_LIKELY(vk)) {
+                    this->on_vkCmdBindPipeline(pool, nullptr,
+                                               (VkCommandBuffer)(boxed_dispatchHandle),
+                                               pipelineBindPoint, pipeline);
+                }
                 break;
             }
             case OP_vkCmdSetViewport: {
@@ -148,8 +160,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                         transform_tohost_VkViewport(globalstate, (VkViewport*)(pViewports + i));
                     }
                 }
-                vk->vkCmdSetViewport((VkCommandBuffer)dispatchHandle, firstViewport, viewportCount,
-                                     pViewports);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetViewport((VkCommandBuffer)dispatchHandle, firstViewport,
+                                         viewportCount, pViewports);
+                }
                 break;
             }
             case OP_vkCmdSetScissor: {
@@ -178,8 +192,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                         transform_tohost_VkRect2D(globalstate, (VkRect2D*)(pScissors + i));
                     }
                 }
-                vk->vkCmdSetScissor((VkCommandBuffer)dispatchHandle, firstScissor, scissorCount,
-                                    pScissors);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetScissor((VkCommandBuffer)dispatchHandle, firstScissor, scissorCount,
+                                        pScissors);
+                }
                 break;
             }
             case OP_vkCmdSetLineWidth: {
@@ -188,7 +204,9 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 float lineWidth;
                 memcpy((float*)&lineWidth, *readStreamPtrPtr, sizeof(float));
                 *readStreamPtrPtr += sizeof(float);
-                vk->vkCmdSetLineWidth((VkCommandBuffer)dispatchHandle, lineWidth);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetLineWidth((VkCommandBuffer)dispatchHandle, lineWidth);
+                }
                 break;
             }
             case OP_vkCmdSetDepthBias: {
@@ -203,8 +221,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 *readStreamPtrPtr += sizeof(float);
                 memcpy((float*)&depthBiasSlopeFactor, *readStreamPtrPtr, sizeof(float));
                 *readStreamPtrPtr += sizeof(float);
-                vk->vkCmdSetDepthBias((VkCommandBuffer)dispatchHandle, depthBiasConstantFactor,
-                                      depthBiasClamp, depthBiasSlopeFactor);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetDepthBias((VkCommandBuffer)dispatchHandle, depthBiasConstantFactor,
+                                          depthBiasClamp, depthBiasSlopeFactor);
+                }
                 break;
             }
             case OP_vkCmdSetBlendConstants: {
@@ -213,7 +233,9 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 float blendConstants[4];
                 memcpy((float*)blendConstants, *readStreamPtrPtr, 4 * sizeof(const float));
                 *readStreamPtrPtr += 4 * sizeof(const float);
-                vk->vkCmdSetBlendConstants((VkCommandBuffer)dispatchHandle, blendConstants);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetBlendConstants((VkCommandBuffer)dispatchHandle, blendConstants);
+                }
                 break;
             }
             case OP_vkCmdSetDepthBounds: {
@@ -225,8 +247,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 *readStreamPtrPtr += sizeof(float);
                 memcpy((float*)&maxDepthBounds, *readStreamPtrPtr, sizeof(float));
                 *readStreamPtrPtr += sizeof(float);
-                vk->vkCmdSetDepthBounds((VkCommandBuffer)dispatchHandle, minDepthBounds,
-                                        maxDepthBounds);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetDepthBounds((VkCommandBuffer)dispatchHandle, minDepthBounds,
+                                            maxDepthBounds);
+                }
                 break;
             }
             case OP_vkCmdSetStencilCompareMask: {
@@ -239,8 +263,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 *readStreamPtrPtr += sizeof(VkStencilFaceFlags);
                 memcpy((uint32_t*)&compareMask, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                vk->vkCmdSetStencilCompareMask((VkCommandBuffer)dispatchHandle, faceMask,
-                                               compareMask);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetStencilCompareMask((VkCommandBuffer)dispatchHandle, faceMask,
+                                                   compareMask);
+                }
                 break;
             }
             case OP_vkCmdSetStencilWriteMask: {
@@ -253,7 +279,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 *readStreamPtrPtr += sizeof(VkStencilFaceFlags);
                 memcpy((uint32_t*)&writeMask, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                vk->vkCmdSetStencilWriteMask((VkCommandBuffer)dispatchHandle, faceMask, writeMask);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetStencilWriteMask((VkCommandBuffer)dispatchHandle, faceMask,
+                                                 writeMask);
+                }
                 break;
             }
             case OP_vkCmdSetStencilReference: {
@@ -266,7 +295,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 *readStreamPtrPtr += sizeof(VkStencilFaceFlags);
                 memcpy((uint32_t*)&reference, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                vk->vkCmdSetStencilReference((VkCommandBuffer)dispatchHandle, faceMask, reference);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetStencilReference((VkCommandBuffer)dispatchHandle, faceMask,
+                                                 reference);
+                }
                 break;
             }
             case OP_vkCmdBindDescriptorSets: {
@@ -321,10 +353,12 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 memcpy((uint32_t*)pDynamicOffsets, *readStreamPtrPtr,
                        ((dynamicOffsetCount)) * sizeof(const uint32_t));
                 *readStreamPtrPtr += ((dynamicOffsetCount)) * sizeof(const uint32_t);
-                this->on_vkCmdBindDescriptorSets(
-                    pool, nullptr, (VkCommandBuffer)(boxed_dispatchHandle), pipelineBindPoint,
-                    layout, firstSet, descriptorSetCount, pDescriptorSets, dynamicOffsetCount,
-                    pDynamicOffsets);
+                if (CC_LIKELY(vk)) {
+                    this->on_vkCmdBindDescriptorSets(
+                        pool, nullptr, (VkCommandBuffer)(boxed_dispatchHandle), pipelineBindPoint,
+                        layout, firstSet, descriptorSetCount, pDescriptorSets, dynamicOffsetCount,
+                        pDynamicOffsets);
+                }
                 break;
             }
             case OP_vkCmdBindIndexBuffer: {
@@ -341,8 +375,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 *readStreamPtrPtr += sizeof(VkDeviceSize);
                 memcpy((VkIndexType*)&indexType, *readStreamPtrPtr, sizeof(VkIndexType));
                 *readStreamPtrPtr += sizeof(VkIndexType);
-                vk->vkCmdBindIndexBuffer((VkCommandBuffer)dispatchHandle, buffer, offset,
-                                         indexType);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdBindIndexBuffer((VkCommandBuffer)dispatchHandle, buffer, offset,
+                                             indexType);
+                }
                 break;
             }
             case OP_vkCmdBindVertexBuffers: {
@@ -382,8 +418,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 memcpy((VkDeviceSize*)pOffsets, *readStreamPtrPtr,
                        ((bindingCount)) * sizeof(const VkDeviceSize));
                 *readStreamPtrPtr += ((bindingCount)) * sizeof(const VkDeviceSize);
-                vk->vkCmdBindVertexBuffers((VkCommandBuffer)dispatchHandle, firstBinding,
-                                           bindingCount, pBuffers, pOffsets);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdBindVertexBuffers((VkCommandBuffer)dispatchHandle, firstBinding,
+                                               bindingCount, pBuffers, pOffsets);
+                }
                 break;
             }
             case OP_vkCmdDraw: {
@@ -400,8 +438,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 *readStreamPtrPtr += sizeof(uint32_t);
                 memcpy((uint32_t*)&firstInstance, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                vk->vkCmdDraw((VkCommandBuffer)dispatchHandle, vertexCount, instanceCount,
-                              firstVertex, firstInstance);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdDraw((VkCommandBuffer)dispatchHandle, vertexCount, instanceCount,
+                                  firstVertex, firstInstance);
+                }
                 break;
             }
             case OP_vkCmdDrawIndexed: {
@@ -422,8 +462,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 *readStreamPtrPtr += sizeof(int32_t);
                 memcpy((uint32_t*)&firstInstance, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                vk->vkCmdDrawIndexed((VkCommandBuffer)dispatchHandle, indexCount, instanceCount,
-                                     firstIndex, vertexOffset, firstInstance);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdDrawIndexed((VkCommandBuffer)dispatchHandle, indexCount, instanceCount,
+                                         firstIndex, vertexOffset, firstInstance);
+                }
                 break;
             }
             case OP_vkCmdDrawIndirect: {
@@ -443,8 +485,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 *readStreamPtrPtr += sizeof(uint32_t);
                 memcpy((uint32_t*)&stride, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                vk->vkCmdDrawIndirect((VkCommandBuffer)dispatchHandle, buffer, offset, drawCount,
-                                      stride);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdDrawIndirect((VkCommandBuffer)dispatchHandle, buffer, offset,
+                                          drawCount, stride);
+                }
                 break;
             }
             case OP_vkCmdDrawIndexedIndirect: {
@@ -464,8 +508,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 *readStreamPtrPtr += sizeof(uint32_t);
                 memcpy((uint32_t*)&stride, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                vk->vkCmdDrawIndexedIndirect((VkCommandBuffer)dispatchHandle, buffer, offset,
-                                             drawCount, stride);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdDrawIndexedIndirect((VkCommandBuffer)dispatchHandle, buffer, offset,
+                                                 drawCount, stride);
+                }
                 break;
             }
             case OP_vkCmdDispatch: {
@@ -480,8 +526,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 *readStreamPtrPtr += sizeof(uint32_t);
                 memcpy((uint32_t*)&groupCountZ, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                vk->vkCmdDispatch((VkCommandBuffer)dispatchHandle, groupCountX, groupCountY,
-                                  groupCountZ);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdDispatch((VkCommandBuffer)dispatchHandle, groupCountX, groupCountY,
+                                      groupCountZ);
+                }
                 break;
             }
             case OP_vkCmdDispatchIndirect: {
@@ -495,7 +543,9 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 *(VkBuffer*)&buffer = (VkBuffer)unbox_VkBuffer((VkBuffer)(*&cgen_var_0));
                 memcpy((VkDeviceSize*)&offset, *readStreamPtrPtr, sizeof(VkDeviceSize));
                 *readStreamPtrPtr += sizeof(VkDeviceSize);
-                vk->vkCmdDispatchIndirect((VkCommandBuffer)dispatchHandle, buffer, offset);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdDispatchIndirect((VkCommandBuffer)dispatchHandle, buffer, offset);
+                }
                 break;
             }
             case OP_vkCmdCopyBuffer: {
@@ -531,8 +581,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                         transform_tohost_VkBufferCopy(globalstate, (VkBufferCopy*)(pRegions + i));
                     }
                 }
-                vk->vkCmdCopyBuffer((VkCommandBuffer)dispatchHandle, srcBuffer, dstBuffer,
-                                    regionCount, pRegions);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdCopyBuffer((VkCommandBuffer)dispatchHandle, srcBuffer, dstBuffer,
+                                        regionCount, pRegions);
+                }
                 break;
             }
             case OP_vkCmdCopyImage: {
@@ -574,9 +626,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                         transform_tohost_VkImageCopy(globalstate, (VkImageCopy*)(pRegions + i));
                     }
                 }
-                this->on_vkCmdCopyImage(pool, nullptr, (VkCommandBuffer)(boxed_dispatchHandle),
-                                        srcImage, srcImageLayout, dstImage, dstImageLayout,
-                                        regionCount, pRegions);
+                if (CC_LIKELY(vk)) {
+                    this->on_vkCmdCopyImage(pool, nullptr, (VkCommandBuffer)(boxed_dispatchHandle),
+                                            srcImage, srcImageLayout, dstImage, dstImageLayout,
+                                            regionCount, pRegions);
+                }
                 break;
             }
             case OP_vkCmdBlitImage: {
@@ -621,8 +675,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                         transform_tohost_VkImageBlit(globalstate, (VkImageBlit*)(pRegions + i));
                     }
                 }
-                vk->vkCmdBlitImage((VkCommandBuffer)dispatchHandle, srcImage, srcImageLayout,
-                                   dstImage, dstImageLayout, regionCount, pRegions, filter);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdBlitImage((VkCommandBuffer)dispatchHandle, srcImage, srcImageLayout,
+                                       dstImage, dstImageLayout, regionCount, pRegions, filter);
+                }
                 break;
             }
             case OP_vkCmdCopyBufferToImage: {
@@ -663,9 +719,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                                                            (VkBufferImageCopy*)(pRegions + i));
                     }
                 }
-                this->on_vkCmdCopyBufferToImage(
-                    pool, nullptr, (VkCommandBuffer)(boxed_dispatchHandle), srcBuffer, dstImage,
-                    dstImageLayout, regionCount, pRegions, context);
+                if (CC_LIKELY(vk)) {
+                    this->on_vkCmdCopyBufferToImage(
+                        pool, nullptr, (VkCommandBuffer)(boxed_dispatchHandle), srcBuffer, dstImage,
+                        dstImageLayout, regionCount, pRegions, context);
+                }
                 break;
             }
             case OP_vkCmdCopyImageToBuffer: {
@@ -706,9 +764,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                                                            (VkBufferImageCopy*)(pRegions + i));
                     }
                 }
-                this->on_vkCmdCopyImageToBuffer(pool, nullptr,
-                                                (VkCommandBuffer)(boxed_dispatchHandle), srcImage,
-                                                srcImageLayout, dstBuffer, regionCount, pRegions);
+                if (CC_LIKELY(vk)) {
+                    this->on_vkCmdCopyImageToBuffer(
+                        pool, nullptr, (VkCommandBuffer)(boxed_dispatchHandle), srcImage,
+                        srcImageLayout, dstBuffer, regionCount, pRegions);
+                }
                 break;
             }
             case OP_vkCmdUpdateBuffer: {
@@ -734,8 +794,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 }
                 memcpy((void*)pData, *readStreamPtrPtr, ((dataSize)) * sizeof(const uint8_t));
                 *readStreamPtrPtr += ((dataSize)) * sizeof(const uint8_t);
-                vk->vkCmdUpdateBuffer((VkCommandBuffer)dispatchHandle, dstBuffer, dstOffset,
-                                      dataSize, pData);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdUpdateBuffer((VkCommandBuffer)dispatchHandle, dstBuffer, dstOffset,
+                                          dataSize, pData);
+                }
                 break;
             }
             case OP_vkCmdFillBuffer: {
@@ -755,8 +817,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 *readStreamPtrPtr += sizeof(VkDeviceSize);
                 memcpy((uint32_t*)&data, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                vk->vkCmdFillBuffer((VkCommandBuffer)dispatchHandle, dstBuffer, dstOffset, size,
-                                    data);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdFillBuffer((VkCommandBuffer)dispatchHandle, dstBuffer, dstOffset, size,
+                                        data);
+                }
                 break;
             }
             case OP_vkCmdClearColorImage: {
@@ -800,8 +864,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                             globalstate, (VkImageSubresourceRange*)(pRanges + i));
                     }
                 }
-                vk->vkCmdClearColorImage((VkCommandBuffer)dispatchHandle, image, imageLayout,
-                                         pColor, rangeCount, pRanges);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdClearColorImage((VkCommandBuffer)dispatchHandle, image, imageLayout,
+                                             pColor, rangeCount, pRanges);
+                }
                 break;
             }
             case OP_vkCmdClearDepthStencilImage: {
@@ -847,8 +913,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                             globalstate, (VkImageSubresourceRange*)(pRanges + i));
                     }
                 }
-                vk->vkCmdClearDepthStencilImage((VkCommandBuffer)dispatchHandle, image, imageLayout,
-                                                pDepthStencil, rangeCount, pRanges);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdClearDepthStencilImage((VkCommandBuffer)dispatchHandle, image,
+                                                    imageLayout, pDepthStencil, rangeCount,
+                                                    pRanges);
+                }
                 break;
             }
             case OP_vkCmdClearAttachments: {
@@ -895,8 +964,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                         transform_tohost_VkClearRect(globalstate, (VkClearRect*)(pRects + i));
                     }
                 }
-                vk->vkCmdClearAttachments((VkCommandBuffer)dispatchHandle, attachmentCount,
-                                          pAttachments, rectCount, pRects);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdClearAttachments((VkCommandBuffer)dispatchHandle, attachmentCount,
+                                              pAttachments, rectCount, pRects);
+                }
                 break;
             }
             case OP_vkCmdResolveImage: {
@@ -940,8 +1011,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                                                         (VkImageResolve*)(pRegions + i));
                     }
                 }
-                vk->vkCmdResolveImage((VkCommandBuffer)dispatchHandle, srcImage, srcImageLayout,
-                                      dstImage, dstImageLayout, regionCount, pRegions);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdResolveImage((VkCommandBuffer)dispatchHandle, srcImage, srcImageLayout,
+                                          dstImage, dstImageLayout, regionCount, pRegions);
+                }
                 break;
             }
             case OP_vkCmdSetEvent: {
@@ -956,7 +1029,9 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 memcpy((VkPipelineStageFlags*)&stageMask, *readStreamPtrPtr,
                        sizeof(VkPipelineStageFlags));
                 *readStreamPtrPtr += sizeof(VkPipelineStageFlags);
-                vk->vkCmdSetEvent((VkCommandBuffer)dispatchHandle, event, stageMask);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetEvent((VkCommandBuffer)dispatchHandle, event, stageMask);
+                }
                 break;
             }
             case OP_vkCmdResetEvent: {
@@ -971,7 +1046,9 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 memcpy((VkPipelineStageFlags*)&stageMask, *readStreamPtrPtr,
                        sizeof(VkPipelineStageFlags));
                 *readStreamPtrPtr += sizeof(VkPipelineStageFlags);
-                vk->vkCmdResetEvent((VkCommandBuffer)dispatchHandle, event, stageMask);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdResetEvent((VkCommandBuffer)dispatchHandle, event, stageMask);
+                }
                 break;
             }
             case OP_vkCmdWaitEvents: {
@@ -1073,10 +1150,12 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                             globalstate, (VkImageMemoryBarrier*)(pImageMemoryBarriers + i));
                     }
                 }
-                vk->vkCmdWaitEvents((VkCommandBuffer)dispatchHandle, eventCount, pEvents,
-                                    srcStageMask, dstStageMask, memoryBarrierCount, pMemoryBarriers,
-                                    bufferMemoryBarrierCount, pBufferMemoryBarriers,
-                                    imageMemoryBarrierCount, pImageMemoryBarriers);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdWaitEvents(
+                        (VkCommandBuffer)dispatchHandle, eventCount, pEvents, srcStageMask,
+                        dstStageMask, memoryBarrierCount, pMemoryBarriers, bufferMemoryBarrierCount,
+                        pBufferMemoryBarriers, imageMemoryBarrierCount, pImageMemoryBarriers);
+                }
                 break;
             }
             case OP_vkCmdPipelineBarrier: {
@@ -1162,11 +1241,13 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                             globalstate, (VkImageMemoryBarrier*)(pImageMemoryBarriers + i));
                     }
                 }
-                this->on_vkCmdPipelineBarrier(
-                    pool, nullptr, (VkCommandBuffer)(boxed_dispatchHandle), srcStageMask,
-                    dstStageMask, dependencyFlags, memoryBarrierCount, pMemoryBarriers,
-                    bufferMemoryBarrierCount, pBufferMemoryBarriers, imageMemoryBarrierCount,
-                    pImageMemoryBarriers);
+                if (CC_LIKELY(vk)) {
+                    this->on_vkCmdPipelineBarrier(
+                        pool, nullptr, (VkCommandBuffer)(boxed_dispatchHandle), srcStageMask,
+                        dstStageMask, dependencyFlags, memoryBarrierCount, pMemoryBarriers,
+                        bufferMemoryBarrierCount, pBufferMemoryBarriers, imageMemoryBarrierCount,
+                        pImageMemoryBarriers);
+                }
                 break;
             }
             case OP_vkCmdBeginQuery: {
@@ -1185,7 +1266,9 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 memcpy((VkQueryControlFlags*)&flags, *readStreamPtrPtr,
                        sizeof(VkQueryControlFlags));
                 *readStreamPtrPtr += sizeof(VkQueryControlFlags);
-                vk->vkCmdBeginQuery((VkCommandBuffer)dispatchHandle, queryPool, query, flags);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdBeginQuery((VkCommandBuffer)dispatchHandle, queryPool, query, flags);
+                }
                 break;
             }
             case OP_vkCmdEndQuery: {
@@ -1200,7 +1283,9 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     (VkQueryPool)unbox_VkQueryPool((VkQueryPool)(*&cgen_var_0));
                 memcpy((uint32_t*)&query, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                vk->vkCmdEndQuery((VkCommandBuffer)dispatchHandle, queryPool, query);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdEndQuery((VkCommandBuffer)dispatchHandle, queryPool, query);
+                }
                 break;
             }
             case OP_vkCmdResetQueryPool: {
@@ -1218,8 +1303,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 *readStreamPtrPtr += sizeof(uint32_t);
                 memcpy((uint32_t*)&queryCount, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                vk->vkCmdResetQueryPool((VkCommandBuffer)dispatchHandle, queryPool, firstQuery,
-                                        queryCount);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdResetQueryPool((VkCommandBuffer)dispatchHandle, queryPool, firstQuery,
+                                            queryCount);
+                }
                 break;
             }
             case OP_vkCmdWriteTimestamp: {
@@ -1238,8 +1325,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     (VkQueryPool)unbox_VkQueryPool((VkQueryPool)(*&cgen_var_0));
                 memcpy((uint32_t*)&query, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                vk->vkCmdWriteTimestamp((VkCommandBuffer)dispatchHandle, pipelineStage, queryPool,
-                                        query);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdWriteTimestamp((VkCommandBuffer)dispatchHandle, pipelineStage,
+                                            queryPool, query);
+                }
                 break;
             }
             case OP_vkCmdCopyQueryPoolResults: {
@@ -1271,9 +1360,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 *readStreamPtrPtr += sizeof(VkDeviceSize);
                 memcpy((VkQueryResultFlags*)&flags, *readStreamPtrPtr, sizeof(VkQueryResultFlags));
                 *readStreamPtrPtr += sizeof(VkQueryResultFlags);
-                this->on_vkCmdCopyQueryPoolResults(
-                    pool, nullptr, (VkCommandBuffer)(boxed_dispatchHandle), queryPool, firstQuery,
-                    queryCount, dstBuffer, dstOffset, stride, flags);
+                if (CC_LIKELY(vk)) {
+                    this->on_vkCmdCopyQueryPoolResults(
+                        pool, nullptr, (VkCommandBuffer)(boxed_dispatchHandle), queryPool,
+                        firstQuery, queryCount, dstBuffer, dstOffset, stride, flags);
+                }
                 break;
             }
             case OP_vkCmdPushConstants: {
@@ -1304,8 +1395,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 }
                 memcpy((void*)pValues, *readStreamPtrPtr, ((size)) * sizeof(const uint8_t));
                 *readStreamPtrPtr += ((size)) * sizeof(const uint8_t);
-                vk->vkCmdPushConstants((VkCommandBuffer)dispatchHandle, layout, stageFlags, offset,
-                                       size, pValues);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdPushConstants((VkCommandBuffer)dispatchHandle, layout, stageFlags,
+                                           offset, size, pValues);
+                }
                 break;
             }
             case OP_vkCmdBeginRenderPass: {
@@ -1324,9 +1417,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     transform_tohost_VkRenderPassBeginInfo(
                         globalstate, (VkRenderPassBeginInfo*)(pRenderPassBegin));
                 }
-                this->on_vkCmdBeginRenderPass(pool, nullptr,
-                                              (VkCommandBuffer)(boxed_dispatchHandle),
-                                              pRenderPassBegin, contents);
+                if (CC_LIKELY(vk)) {
+                    this->on_vkCmdBeginRenderPass(pool, nullptr,
+                                                  (VkCommandBuffer)(boxed_dispatchHandle),
+                                                  pRenderPassBegin, contents);
+                }
                 break;
             }
             case OP_vkCmdNextSubpass: {
@@ -1335,13 +1430,17 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 VkSubpassContents contents;
                 memcpy((VkSubpassContents*)&contents, *readStreamPtrPtr, sizeof(VkSubpassContents));
                 *readStreamPtrPtr += sizeof(VkSubpassContents);
-                vk->vkCmdNextSubpass((VkCommandBuffer)dispatchHandle, contents);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdNextSubpass((VkCommandBuffer)dispatchHandle, contents);
+                }
                 break;
             }
             case OP_vkCmdEndRenderPass: {
                 GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
                                       "VkSubDecoder vkCmdEndRenderPass");
-                vk->vkCmdEndRenderPass((VkCommandBuffer)dispatchHandle);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdEndRenderPass((VkCommandBuffer)dispatchHandle);
+                }
                 break;
             }
             case OP_vkCmdExecuteCommands: {
@@ -1369,9 +1468,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                                    : VK_NULL_HANDLE;
                     }
                 }
-                this->on_vkCmdExecuteCommands(pool, nullptr,
-                                              (VkCommandBuffer)(boxed_dispatchHandle),
-                                              commandBufferCount, pCommandBuffers);
+                if (CC_LIKELY(vk)) {
+                    this->on_vkCmdExecuteCommands(pool, nullptr,
+                                                  (VkCommandBuffer)(boxed_dispatchHandle),
+                                                  commandBufferCount, pCommandBuffers);
+                }
                 break;
             }
 #endif
@@ -1382,7 +1483,9 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 uint32_t deviceMask;
                 memcpy((uint32_t*)&deviceMask, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                vk->vkCmdSetDeviceMask((VkCommandBuffer)dispatchHandle, deviceMask);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetDeviceMask((VkCommandBuffer)dispatchHandle, deviceMask);
+                }
                 break;
             }
             case OP_vkCmdDispatchBase: {
@@ -1406,8 +1509,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 *readStreamPtrPtr += sizeof(uint32_t);
                 memcpy((uint32_t*)&groupCountZ, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                vk->vkCmdDispatchBase((VkCommandBuffer)dispatchHandle, baseGroupX, baseGroupY,
-                                      baseGroupZ, groupCountX, groupCountY, groupCountZ);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdDispatchBase((VkCommandBuffer)dispatchHandle, baseGroupX, baseGroupY,
+                                          baseGroupZ, groupCountX, groupCountY, groupCountZ);
+                }
                 break;
             }
 #endif
@@ -1437,8 +1542,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 *readStreamPtrPtr += sizeof(uint32_t);
                 memcpy((uint32_t*)&stride, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                vk->vkCmdDrawIndirectCount((VkCommandBuffer)dispatchHandle, buffer, offset,
-                                           countBuffer, countBufferOffset, maxDrawCount, stride);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdDrawIndirectCount((VkCommandBuffer)dispatchHandle, buffer, offset,
+                                               countBuffer, countBufferOffset, maxDrawCount,
+                                               stride);
+                }
                 break;
             }
             case OP_vkCmdDrawIndexedIndirectCount: {
@@ -1466,9 +1574,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 *readStreamPtrPtr += sizeof(uint32_t);
                 memcpy((uint32_t*)&stride, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                vk->vkCmdDrawIndexedIndirectCount((VkCommandBuffer)dispatchHandle, buffer, offset,
-                                                  countBuffer, countBufferOffset, maxDrawCount,
-                                                  stride);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdDrawIndexedIndirectCount((VkCommandBuffer)dispatchHandle, buffer,
+                                                      offset, countBuffer, countBufferOffset,
+                                                      maxDrawCount, stride);
+                }
                 break;
             }
             case OP_vkCmdBeginRenderPass2: {
@@ -1494,9 +1604,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     transform_tohost_VkSubpassBeginInfo(globalstate,
                                                         (VkSubpassBeginInfo*)(pSubpassBeginInfo));
                 }
-                this->on_vkCmdBeginRenderPass2(pool, nullptr,
-                                               (VkCommandBuffer)(boxed_dispatchHandle),
-                                               pRenderPassBegin, pSubpassBeginInfo);
+                if (CC_LIKELY(vk)) {
+                    this->on_vkCmdBeginRenderPass2(pool, nullptr,
+                                                   (VkCommandBuffer)(boxed_dispatchHandle),
+                                                   pRenderPassBegin, pSubpassBeginInfo);
+                }
                 break;
             }
             case OP_vkCmdNextSubpass2: {
@@ -1522,8 +1634,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     transform_tohost_VkSubpassEndInfo(globalstate,
                                                       (VkSubpassEndInfo*)(pSubpassEndInfo));
                 }
-                vk->vkCmdNextSubpass2((VkCommandBuffer)dispatchHandle, pSubpassBeginInfo,
-                                      pSubpassEndInfo);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdNextSubpass2((VkCommandBuffer)dispatchHandle, pSubpassBeginInfo,
+                                          pSubpassEndInfo);
+                }
                 break;
             }
             case OP_vkCmdEndRenderPass2: {
@@ -1539,7 +1653,9 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     transform_tohost_VkSubpassEndInfo(globalstate,
                                                       (VkSubpassEndInfo*)(pSubpassEndInfo));
                 }
-                vk->vkCmdEndRenderPass2((VkCommandBuffer)dispatchHandle, pSubpassEndInfo);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdEndRenderPass2((VkCommandBuffer)dispatchHandle, pSubpassEndInfo);
+                }
                 break;
             }
 #endif
@@ -1562,7 +1678,9 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     transform_tohost_VkDependencyInfo(globalstate,
                                                       (VkDependencyInfo*)(pDependencyInfo));
                 }
-                vk->vkCmdSetEvent2((VkCommandBuffer)dispatchHandle, event, pDependencyInfo);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetEvent2((VkCommandBuffer)dispatchHandle, event, pDependencyInfo);
+                }
                 break;
             }
             case OP_vkCmdResetEvent2: {
@@ -1577,7 +1695,9 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 memcpy((VkPipelineStageFlags2*)&stageMask, *readStreamPtrPtr,
                        sizeof(VkPipelineStageFlags2));
                 *readStreamPtrPtr += sizeof(VkPipelineStageFlags2);
-                vk->vkCmdResetEvent2((VkCommandBuffer)dispatchHandle, event, stageMask);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdResetEvent2((VkCommandBuffer)dispatchHandle, event, stageMask);
+                }
                 break;
             }
             case OP_vkCmdWaitEvents2: {
@@ -1622,8 +1742,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                             globalstate, (VkDependencyInfo*)(pDependencyInfos + i));
                     }
                 }
-                vk->vkCmdWaitEvents2((VkCommandBuffer)dispatchHandle, eventCount, pEvents,
-                                     pDependencyInfos);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdWaitEvents2((VkCommandBuffer)dispatchHandle, eventCount, pEvents,
+                                         pDependencyInfos);
+                }
                 break;
             }
             case OP_vkCmdPipelineBarrier2: {
@@ -1639,8 +1761,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     transform_tohost_VkDependencyInfo(globalstate,
                                                       (VkDependencyInfo*)(pDependencyInfo));
                 }
-                this->on_vkCmdPipelineBarrier2(
-                    pool, nullptr, (VkCommandBuffer)(boxed_dispatchHandle), pDependencyInfo);
+                if (CC_LIKELY(vk)) {
+                    this->on_vkCmdPipelineBarrier2(
+                        pool, nullptr, (VkCommandBuffer)(boxed_dispatchHandle), pDependencyInfo);
+                }
                 break;
             }
             case OP_vkCmdWriteTimestamp2: {
@@ -1659,7 +1783,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     (VkQueryPool)unbox_VkQueryPool((VkQueryPool)(*&cgen_var_0));
                 memcpy((uint32_t*)&query, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                vk->vkCmdWriteTimestamp2((VkCommandBuffer)dispatchHandle, stage, queryPool, query);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdWriteTimestamp2((VkCommandBuffer)dispatchHandle, stage, queryPool,
+                                             query);
+                }
                 break;
             }
             case OP_vkCmdCopyBuffer2: {
@@ -1675,7 +1802,9 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     transform_tohost_VkCopyBufferInfo2(globalstate,
                                                        (VkCopyBufferInfo2*)(pCopyBufferInfo));
                 }
-                vk->vkCmdCopyBuffer2((VkCommandBuffer)dispatchHandle, pCopyBufferInfo);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdCopyBuffer2((VkCommandBuffer)dispatchHandle, pCopyBufferInfo);
+                }
                 break;
             }
             case OP_vkCmdCopyImage2: {
@@ -1691,8 +1820,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     transform_tohost_VkCopyImageInfo2(globalstate,
                                                       (VkCopyImageInfo2*)(pCopyImageInfo));
                 }
-                this->on_vkCmdCopyImage2(pool, nullptr, (VkCommandBuffer)(boxed_dispatchHandle),
-                                         pCopyImageInfo);
+                if (CC_LIKELY(vk)) {
+                    this->on_vkCmdCopyImage2(pool, nullptr, (VkCommandBuffer)(boxed_dispatchHandle),
+                                             pCopyImageInfo);
+                }
                 break;
             }
             case OP_vkCmdCopyBufferToImage2: {
@@ -1708,9 +1839,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     transform_tohost_VkCopyBufferToImageInfo2(
                         globalstate, (VkCopyBufferToImageInfo2*)(pCopyBufferToImageInfo));
                 }
-                this->on_vkCmdCopyBufferToImage2(pool, nullptr,
-                                                 (VkCommandBuffer)(boxed_dispatchHandle),
-                                                 pCopyBufferToImageInfo, context);
+                if (CC_LIKELY(vk)) {
+                    this->on_vkCmdCopyBufferToImage2(pool, nullptr,
+                                                     (VkCommandBuffer)(boxed_dispatchHandle),
+                                                     pCopyBufferToImageInfo, context);
+                }
                 break;
             }
             case OP_vkCmdCopyImageToBuffer2: {
@@ -1726,8 +1859,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     transform_tohost_VkCopyImageToBufferInfo2(
                         globalstate, (VkCopyImageToBufferInfo2*)(pCopyImageToBufferInfo));
                 }
-                this->on_vkCmdCopyImageToBuffer2(
-                    pool, nullptr, (VkCommandBuffer)(boxed_dispatchHandle), pCopyImageToBufferInfo);
+                if (CC_LIKELY(vk)) {
+                    this->on_vkCmdCopyImageToBuffer2(pool, nullptr,
+                                                     (VkCommandBuffer)(boxed_dispatchHandle),
+                                                     pCopyImageToBufferInfo);
+                }
                 break;
             }
             case OP_vkCmdBlitImage2: {
@@ -1743,7 +1879,9 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     transform_tohost_VkBlitImageInfo2(globalstate,
                                                       (VkBlitImageInfo2*)(pBlitImageInfo));
                 }
-                vk->vkCmdBlitImage2((VkCommandBuffer)dispatchHandle, pBlitImageInfo);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdBlitImage2((VkCommandBuffer)dispatchHandle, pBlitImageInfo);
+                }
                 break;
             }
             case OP_vkCmdResolveImage2: {
@@ -1759,7 +1897,9 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     transform_tohost_VkResolveImageInfo2(globalstate,
                                                          (VkResolveImageInfo2*)(pResolveImageInfo));
                 }
-                vk->vkCmdResolveImage2((VkCommandBuffer)dispatchHandle, pResolveImageInfo);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdResolveImage2((VkCommandBuffer)dispatchHandle, pResolveImageInfo);
+                }
                 break;
             }
             case OP_vkCmdBeginRendering: {
@@ -1775,13 +1915,17 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     transform_tohost_VkRenderingInfo(globalstate,
                                                      (VkRenderingInfo*)(pRenderingInfo));
                 }
-                vk->vkCmdBeginRendering((VkCommandBuffer)dispatchHandle, pRenderingInfo);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdBeginRendering((VkCommandBuffer)dispatchHandle, pRenderingInfo);
+                }
                 break;
             }
             case OP_vkCmdEndRendering: {
                 GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
                                       "VkSubDecoder vkCmdEndRendering");
-                vk->vkCmdEndRendering((VkCommandBuffer)dispatchHandle);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdEndRendering((VkCommandBuffer)dispatchHandle);
+                }
                 break;
             }
             case OP_vkCmdSetCullMode: {
@@ -1790,7 +1934,9 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 VkCullModeFlags cullMode;
                 memcpy((VkCullModeFlags*)&cullMode, *readStreamPtrPtr, sizeof(VkCullModeFlags));
                 *readStreamPtrPtr += sizeof(VkCullModeFlags);
-                vk->vkCmdSetCullMode((VkCommandBuffer)dispatchHandle, cullMode);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetCullMode((VkCommandBuffer)dispatchHandle, cullMode);
+                }
                 break;
             }
             case OP_vkCmdSetFrontFace: {
@@ -1799,7 +1945,9 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 VkFrontFace frontFace;
                 memcpy((VkFrontFace*)&frontFace, *readStreamPtrPtr, sizeof(VkFrontFace));
                 *readStreamPtrPtr += sizeof(VkFrontFace);
-                vk->vkCmdSetFrontFace((VkCommandBuffer)dispatchHandle, frontFace);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetFrontFace((VkCommandBuffer)dispatchHandle, frontFace);
+                }
                 break;
             }
             case OP_vkCmdSetPrimitiveTopology: {
@@ -1809,7 +1957,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 memcpy((VkPrimitiveTopology*)&primitiveTopology, *readStreamPtrPtr,
                        sizeof(VkPrimitiveTopology));
                 *readStreamPtrPtr += sizeof(VkPrimitiveTopology);
-                vk->vkCmdSetPrimitiveTopology((VkCommandBuffer)dispatchHandle, primitiveTopology);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetPrimitiveTopology((VkCommandBuffer)dispatchHandle,
+                                                  primitiveTopology);
+                }
                 break;
             }
             case OP_vkCmdSetViewportWithCount: {
@@ -1835,8 +1986,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                         transform_tohost_VkViewport(globalstate, (VkViewport*)(pViewports + i));
                     }
                 }
-                vk->vkCmdSetViewportWithCount((VkCommandBuffer)dispatchHandle, viewportCount,
-                                              pViewports);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetViewportWithCount((VkCommandBuffer)dispatchHandle, viewportCount,
+                                                  pViewports);
+                }
                 break;
             }
             case OP_vkCmdSetScissorWithCount: {
@@ -1862,8 +2015,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                         transform_tohost_VkRect2D(globalstate, (VkRect2D*)(pScissors + i));
                     }
                 }
-                vk->vkCmdSetScissorWithCount((VkCommandBuffer)dispatchHandle, scissorCount,
-                                             pScissors);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetScissorWithCount((VkCommandBuffer)dispatchHandle, scissorCount,
+                                                 pScissors);
+                }
                 break;
             }
             case OP_vkCmdBindVertexBuffers2: {
@@ -1945,8 +2100,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                            ((bindingCount)) * sizeof(const VkDeviceSize));
                     *readStreamPtrPtr += ((bindingCount)) * sizeof(const VkDeviceSize);
                 }
-                vk->vkCmdBindVertexBuffers2((VkCommandBuffer)dispatchHandle, firstBinding,
-                                            bindingCount, pBuffers, pOffsets, pSizes, pStrides);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdBindVertexBuffers2((VkCommandBuffer)dispatchHandle, firstBinding,
+                                                bindingCount, pBuffers, pOffsets, pSizes, pStrides);
+                }
                 break;
             }
             case OP_vkCmdSetDepthTestEnable: {
@@ -1955,7 +2112,9 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 VkBool32 depthTestEnable;
                 memcpy((VkBool32*)&depthTestEnable, *readStreamPtrPtr, sizeof(VkBool32));
                 *readStreamPtrPtr += sizeof(VkBool32);
-                vk->vkCmdSetDepthTestEnable((VkCommandBuffer)dispatchHandle, depthTestEnable);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetDepthTestEnable((VkCommandBuffer)dispatchHandle, depthTestEnable);
+                }
                 break;
             }
             case OP_vkCmdSetDepthWriteEnable: {
@@ -1964,7 +2123,9 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 VkBool32 depthWriteEnable;
                 memcpy((VkBool32*)&depthWriteEnable, *readStreamPtrPtr, sizeof(VkBool32));
                 *readStreamPtrPtr += sizeof(VkBool32);
-                vk->vkCmdSetDepthWriteEnable((VkCommandBuffer)dispatchHandle, depthWriteEnable);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetDepthWriteEnable((VkCommandBuffer)dispatchHandle, depthWriteEnable);
+                }
                 break;
             }
             case OP_vkCmdSetDepthCompareOp: {
@@ -1973,7 +2134,9 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 VkCompareOp depthCompareOp;
                 memcpy((VkCompareOp*)&depthCompareOp, *readStreamPtrPtr, sizeof(VkCompareOp));
                 *readStreamPtrPtr += sizeof(VkCompareOp);
-                vk->vkCmdSetDepthCompareOp((VkCommandBuffer)dispatchHandle, depthCompareOp);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetDepthCompareOp((VkCommandBuffer)dispatchHandle, depthCompareOp);
+                }
                 break;
             }
             case OP_vkCmdSetDepthBoundsTestEnable: {
@@ -1982,8 +2145,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 VkBool32 depthBoundsTestEnable;
                 memcpy((VkBool32*)&depthBoundsTestEnable, *readStreamPtrPtr, sizeof(VkBool32));
                 *readStreamPtrPtr += sizeof(VkBool32);
-                vk->vkCmdSetDepthBoundsTestEnable((VkCommandBuffer)dispatchHandle,
-                                                  depthBoundsTestEnable);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetDepthBoundsTestEnable((VkCommandBuffer)dispatchHandle,
+                                                      depthBoundsTestEnable);
+                }
                 break;
             }
             case OP_vkCmdSetStencilTestEnable: {
@@ -1992,7 +2157,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 VkBool32 stencilTestEnable;
                 memcpy((VkBool32*)&stencilTestEnable, *readStreamPtrPtr, sizeof(VkBool32));
                 *readStreamPtrPtr += sizeof(VkBool32);
-                vk->vkCmdSetStencilTestEnable((VkCommandBuffer)dispatchHandle, stencilTestEnable);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetStencilTestEnable((VkCommandBuffer)dispatchHandle,
+                                                  stencilTestEnable);
+                }
                 break;
             }
             case OP_vkCmdSetStencilOp: {
@@ -2014,8 +2182,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 *readStreamPtrPtr += sizeof(VkStencilOp);
                 memcpy((VkCompareOp*)&compareOp, *readStreamPtrPtr, sizeof(VkCompareOp));
                 *readStreamPtrPtr += sizeof(VkCompareOp);
-                vk->vkCmdSetStencilOp((VkCommandBuffer)dispatchHandle, faceMask, failOp, passOp,
-                                      depthFailOp, compareOp);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetStencilOp((VkCommandBuffer)dispatchHandle, faceMask, failOp, passOp,
+                                          depthFailOp, compareOp);
+                }
                 break;
             }
             case OP_vkCmdSetRasterizerDiscardEnable: {
@@ -2024,8 +2194,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 VkBool32 rasterizerDiscardEnable;
                 memcpy((VkBool32*)&rasterizerDiscardEnable, *readStreamPtrPtr, sizeof(VkBool32));
                 *readStreamPtrPtr += sizeof(VkBool32);
-                vk->vkCmdSetRasterizerDiscardEnable((VkCommandBuffer)dispatchHandle,
-                                                    rasterizerDiscardEnable);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetRasterizerDiscardEnable((VkCommandBuffer)dispatchHandle,
+                                                        rasterizerDiscardEnable);
+                }
                 break;
             }
             case OP_vkCmdSetDepthBiasEnable: {
@@ -2034,7 +2206,9 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 VkBool32 depthBiasEnable;
                 memcpy((VkBool32*)&depthBiasEnable, *readStreamPtrPtr, sizeof(VkBool32));
                 *readStreamPtrPtr += sizeof(VkBool32);
-                vk->vkCmdSetDepthBiasEnable((VkCommandBuffer)dispatchHandle, depthBiasEnable);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetDepthBiasEnable((VkCommandBuffer)dispatchHandle, depthBiasEnable);
+                }
                 break;
             }
             case OP_vkCmdSetPrimitiveRestartEnable: {
@@ -2043,8 +2217,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 VkBool32 primitiveRestartEnable;
                 memcpy((VkBool32*)&primitiveRestartEnable, *readStreamPtrPtr, sizeof(VkBool32));
                 *readStreamPtrPtr += sizeof(VkBool32);
-                vk->vkCmdSetPrimitiveRestartEnable((VkCommandBuffer)dispatchHandle,
-                                                   primitiveRestartEnable);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetPrimitiveRestartEnable((VkCommandBuffer)dispatchHandle,
+                                                       primitiveRestartEnable);
+                }
                 break;
             }
 #endif
@@ -2062,13 +2238,17 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     transform_tohost_VkRenderingInfo(globalstate,
                                                      (VkRenderingInfo*)(pRenderingInfo));
                 }
-                vk->vkCmdBeginRenderingKHR((VkCommandBuffer)dispatchHandle, pRenderingInfo);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdBeginRenderingKHR((VkCommandBuffer)dispatchHandle, pRenderingInfo);
+                }
                 break;
             }
             case OP_vkCmdEndRenderingKHR: {
                 GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
                                       "VkSubDecoder vkCmdEndRenderingKHR");
-                vk->vkCmdEndRenderingKHR((VkCommandBuffer)dispatchHandle);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdEndRenderingKHR((VkCommandBuffer)dispatchHandle);
+                }
                 break;
             }
 #endif
@@ -2096,9 +2276,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     transform_tohost_VkSubpassBeginInfo(globalstate,
                                                         (VkSubpassBeginInfo*)(pSubpassBeginInfo));
                 }
-                this->on_vkCmdBeginRenderPass2KHR(pool, nullptr,
-                                                  (VkCommandBuffer)(boxed_dispatchHandle),
-                                                  pRenderPassBegin, pSubpassBeginInfo);
+                if (CC_LIKELY(vk)) {
+                    this->on_vkCmdBeginRenderPass2KHR(pool, nullptr,
+                                                      (VkCommandBuffer)(boxed_dispatchHandle),
+                                                      pRenderPassBegin, pSubpassBeginInfo);
+                }
                 break;
             }
             case OP_vkCmdNextSubpass2KHR: {
@@ -2124,8 +2306,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     transform_tohost_VkSubpassEndInfo(globalstate,
                                                       (VkSubpassEndInfo*)(pSubpassEndInfo));
                 }
-                vk->vkCmdNextSubpass2KHR((VkCommandBuffer)dispatchHandle, pSubpassBeginInfo,
-                                         pSubpassEndInfo);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdNextSubpass2KHR((VkCommandBuffer)dispatchHandle, pSubpassBeginInfo,
+                                             pSubpassEndInfo);
+                }
                 break;
             }
             case OP_vkCmdEndRenderPass2KHR: {
@@ -2141,7 +2325,9 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     transform_tohost_VkSubpassEndInfo(globalstate,
                                                       (VkSubpassEndInfo*)(pSubpassEndInfo));
                 }
-                vk->vkCmdEndRenderPass2KHR((VkCommandBuffer)dispatchHandle, pSubpassEndInfo);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdEndRenderPass2KHR((VkCommandBuffer)dispatchHandle, pSubpassEndInfo);
+                }
                 break;
             }
 #endif
@@ -2164,7 +2350,9 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     transform_tohost_VkDependencyInfo(globalstate,
                                                       (VkDependencyInfo*)(pDependencyInfo));
                 }
-                vk->vkCmdSetEvent2KHR((VkCommandBuffer)dispatchHandle, event, pDependencyInfo);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetEvent2KHR((VkCommandBuffer)dispatchHandle, event, pDependencyInfo);
+                }
                 break;
             }
             case OP_vkCmdResetEvent2KHR: {
@@ -2179,7 +2367,9 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 memcpy((VkPipelineStageFlags2*)&stageMask, *readStreamPtrPtr,
                        sizeof(VkPipelineStageFlags2));
                 *readStreamPtrPtr += sizeof(VkPipelineStageFlags2);
-                vk->vkCmdResetEvent2KHR((VkCommandBuffer)dispatchHandle, event, stageMask);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdResetEvent2KHR((VkCommandBuffer)dispatchHandle, event, stageMask);
+                }
                 break;
             }
             case OP_vkCmdWaitEvents2KHR: {
@@ -2224,8 +2414,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                             globalstate, (VkDependencyInfo*)(pDependencyInfos + i));
                     }
                 }
-                vk->vkCmdWaitEvents2KHR((VkCommandBuffer)dispatchHandle, eventCount, pEvents,
-                                        pDependencyInfos);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdWaitEvents2KHR((VkCommandBuffer)dispatchHandle, eventCount, pEvents,
+                                            pDependencyInfos);
+                }
                 break;
             }
             case OP_vkCmdPipelineBarrier2KHR: {
@@ -2241,7 +2433,9 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     transform_tohost_VkDependencyInfo(globalstate,
                                                       (VkDependencyInfo*)(pDependencyInfo));
                 }
-                vk->vkCmdPipelineBarrier2KHR((VkCommandBuffer)dispatchHandle, pDependencyInfo);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdPipelineBarrier2KHR((VkCommandBuffer)dispatchHandle, pDependencyInfo);
+                }
                 break;
             }
             case OP_vkCmdWriteTimestamp2KHR: {
@@ -2260,8 +2454,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     (VkQueryPool)unbox_VkQueryPool((VkQueryPool)(*&cgen_var_0));
                 memcpy((uint32_t*)&query, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                vk->vkCmdWriteTimestamp2KHR((VkCommandBuffer)dispatchHandle, stage, queryPool,
-                                            query);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdWriteTimestamp2KHR((VkCommandBuffer)dispatchHandle, stage, queryPool,
+                                                query);
+                }
                 break;
             }
             case OP_vkCmdWriteBufferMarker2AMD: {
@@ -2282,8 +2478,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 *readStreamPtrPtr += sizeof(VkDeviceSize);
                 memcpy((uint32_t*)&marker, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                vk->vkCmdWriteBufferMarker2AMD((VkCommandBuffer)dispatchHandle, stage, dstBuffer,
-                                               dstOffset, marker);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdWriteBufferMarker2AMD((VkCommandBuffer)dispatchHandle, stage,
+                                                   dstBuffer, dstOffset, marker);
+                }
                 break;
             }
 #endif
@@ -2301,7 +2499,9 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     transform_tohost_VkCopyBufferInfo2(globalstate,
                                                        (VkCopyBufferInfo2*)(pCopyBufferInfo));
                 }
-                vk->vkCmdCopyBuffer2KHR((VkCommandBuffer)dispatchHandle, pCopyBufferInfo);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdCopyBuffer2KHR((VkCommandBuffer)dispatchHandle, pCopyBufferInfo);
+                }
                 break;
             }
             case OP_vkCmdCopyImage2KHR: {
@@ -2317,8 +2517,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     transform_tohost_VkCopyImageInfo2(globalstate,
                                                       (VkCopyImageInfo2*)(pCopyImageInfo));
                 }
-                this->on_vkCmdCopyImage2KHR(pool, nullptr, (VkCommandBuffer)(boxed_dispatchHandle),
-                                            pCopyImageInfo);
+                if (CC_LIKELY(vk)) {
+                    this->on_vkCmdCopyImage2KHR(
+                        pool, nullptr, (VkCommandBuffer)(boxed_dispatchHandle), pCopyImageInfo);
+                }
                 break;
             }
             case OP_vkCmdCopyBufferToImage2KHR: {
@@ -2334,9 +2536,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     transform_tohost_VkCopyBufferToImageInfo2(
                         globalstate, (VkCopyBufferToImageInfo2*)(pCopyBufferToImageInfo));
                 }
-                this->on_vkCmdCopyBufferToImage2KHR(pool, nullptr,
-                                                    (VkCommandBuffer)(boxed_dispatchHandle),
-                                                    pCopyBufferToImageInfo, context);
+                if (CC_LIKELY(vk)) {
+                    this->on_vkCmdCopyBufferToImage2KHR(pool, nullptr,
+                                                        (VkCommandBuffer)(boxed_dispatchHandle),
+                                                        pCopyBufferToImageInfo, context);
+                }
                 break;
             }
             case OP_vkCmdCopyImageToBuffer2KHR: {
@@ -2352,8 +2556,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     transform_tohost_VkCopyImageToBufferInfo2(
                         globalstate, (VkCopyImageToBufferInfo2*)(pCopyImageToBufferInfo));
                 }
-                this->on_vkCmdCopyImageToBuffer2KHR(
-                    pool, nullptr, (VkCommandBuffer)(boxed_dispatchHandle), pCopyImageToBufferInfo);
+                if (CC_LIKELY(vk)) {
+                    this->on_vkCmdCopyImageToBuffer2KHR(pool, nullptr,
+                                                        (VkCommandBuffer)(boxed_dispatchHandle),
+                                                        pCopyImageToBufferInfo);
+                }
                 break;
             }
             case OP_vkCmdBlitImage2KHR: {
@@ -2369,7 +2576,9 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     transform_tohost_VkBlitImageInfo2(globalstate,
                                                       (VkBlitImageInfo2*)(pBlitImageInfo));
                 }
-                vk->vkCmdBlitImage2KHR((VkCommandBuffer)dispatchHandle, pBlitImageInfo);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdBlitImage2KHR((VkCommandBuffer)dispatchHandle, pBlitImageInfo);
+                }
                 break;
             }
             case OP_vkCmdResolveImage2KHR: {
@@ -2385,7 +2594,9 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     transform_tohost_VkResolveImageInfo2(globalstate,
                                                          (VkResolveImageInfo2*)(pResolveImageInfo));
                 }
-                vk->vkCmdResolveImage2KHR((VkCommandBuffer)dispatchHandle, pResolveImageInfo);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdResolveImage2KHR((VkCommandBuffer)dispatchHandle, pResolveImageInfo);
+                }
                 break;
             }
 #endif
@@ -2407,8 +2618,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 *readStreamPtrPtr += sizeof(VkDeviceSize);
                 memcpy((VkIndexType*)&indexType, *readStreamPtrPtr, sizeof(VkIndexType));
                 *readStreamPtrPtr += sizeof(VkIndexType);
-                vk->vkCmdBindIndexBuffer2KHR((VkCommandBuffer)dispatchHandle, buffer, offset, size,
-                                             indexType);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdBindIndexBuffer2KHR((VkCommandBuffer)dispatchHandle, buffer, offset,
+                                                 size, indexType);
+                }
                 break;
             }
 #endif
@@ -2422,8 +2635,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 *readStreamPtrPtr += sizeof(uint32_t);
                 memcpy((uint16_t*)&lineStipplePattern, *readStreamPtrPtr, sizeof(uint16_t));
                 *readStreamPtrPtr += sizeof(uint16_t);
-                vk->vkCmdSetLineStippleKHR((VkCommandBuffer)dispatchHandle, lineStippleFactor,
-                                           lineStipplePattern);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetLineStippleKHR((VkCommandBuffer)dispatchHandle, lineStippleFactor,
+                                               lineStipplePattern);
+                }
                 break;
             }
 #endif
@@ -2482,9 +2697,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                            ((bindingCount)) * sizeof(const VkDeviceSize));
                     *readStreamPtrPtr += ((bindingCount)) * sizeof(const VkDeviceSize);
                 }
-                vk->vkCmdBindTransformFeedbackBuffersEXT((VkCommandBuffer)dispatchHandle,
-                                                         firstBinding, bindingCount, pBuffers,
-                                                         pOffsets, pSizes);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdBindTransformFeedbackBuffersEXT((VkCommandBuffer)dispatchHandle,
+                                                             firstBinding, bindingCount, pBuffers,
+                                                             pOffsets, pSizes);
+                }
                 break;
             }
             case OP_vkCmdBeginTransformFeedbackEXT: {
@@ -2538,9 +2755,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                            ((counterBufferCount)) * sizeof(const VkDeviceSize));
                     *readStreamPtrPtr += ((counterBufferCount)) * sizeof(const VkDeviceSize);
                 }
-                vk->vkCmdBeginTransformFeedbackEXT((VkCommandBuffer)dispatchHandle,
-                                                   firstCounterBuffer, counterBufferCount,
-                                                   pCounterBuffers, pCounterBufferOffsets);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdBeginTransformFeedbackEXT((VkCommandBuffer)dispatchHandle,
+                                                       firstCounterBuffer, counterBufferCount,
+                                                       pCounterBuffers, pCounterBufferOffsets);
+                }
                 break;
             }
             case OP_vkCmdEndTransformFeedbackEXT: {
@@ -2594,9 +2813,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                            ((counterBufferCount)) * sizeof(const VkDeviceSize));
                     *readStreamPtrPtr += ((counterBufferCount)) * sizeof(const VkDeviceSize);
                 }
-                vk->vkCmdEndTransformFeedbackEXT((VkCommandBuffer)dispatchHandle,
-                                                 firstCounterBuffer, counterBufferCount,
-                                                 pCounterBuffers, pCounterBufferOffsets);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdEndTransformFeedbackEXT((VkCommandBuffer)dispatchHandle,
+                                                     firstCounterBuffer, counterBufferCount,
+                                                     pCounterBuffers, pCounterBufferOffsets);
+                }
                 break;
             }
             case OP_vkCmdBeginQueryIndexedEXT: {
@@ -2618,8 +2839,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 *readStreamPtrPtr += sizeof(VkQueryControlFlags);
                 memcpy((uint32_t*)&index, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                vk->vkCmdBeginQueryIndexedEXT((VkCommandBuffer)dispatchHandle, queryPool, query,
-                                              flags, index);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdBeginQueryIndexedEXT((VkCommandBuffer)dispatchHandle, queryPool, query,
+                                                  flags, index);
+                }
                 break;
             }
             case OP_vkCmdEndQueryIndexedEXT: {
@@ -2637,8 +2860,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 *readStreamPtrPtr += sizeof(uint32_t);
                 memcpy((uint32_t*)&index, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                vk->vkCmdEndQueryIndexedEXT((VkCommandBuffer)dispatchHandle, queryPool, query,
-                                            index);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdEndQueryIndexedEXT((VkCommandBuffer)dispatchHandle, queryPool, query,
+                                                index);
+                }
                 break;
             }
             case OP_vkCmdDrawIndirectByteCountEXT: {
@@ -2665,9 +2890,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 *readStreamPtrPtr += sizeof(uint32_t);
                 memcpy((uint32_t*)&vertexStride, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                vk->vkCmdDrawIndirectByteCountEXT((VkCommandBuffer)dispatchHandle, instanceCount,
-                                                  firstInstance, counterBuffer, counterBufferOffset,
-                                                  counterOffset, vertexStride);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdDrawIndirectByteCountEXT(
+                        (VkCommandBuffer)dispatchHandle, instanceCount, firstInstance,
+                        counterBuffer, counterBufferOffset, counterOffset, vertexStride);
+                }
                 break;
             }
 #endif
@@ -2685,13 +2912,17 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     transform_tohost_VkDebugUtilsLabelEXT(globalstate,
                                                           (VkDebugUtilsLabelEXT*)(pLabelInfo));
                 }
-                vk->vkCmdBeginDebugUtilsLabelEXT((VkCommandBuffer)dispatchHandle, pLabelInfo);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdBeginDebugUtilsLabelEXT((VkCommandBuffer)dispatchHandle, pLabelInfo);
+                }
                 break;
             }
             case OP_vkCmdEndDebugUtilsLabelEXT: {
                 GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
                                       "VkSubDecoder vkCmdEndDebugUtilsLabelEXT");
-                vk->vkCmdEndDebugUtilsLabelEXT((VkCommandBuffer)dispatchHandle);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdEndDebugUtilsLabelEXT((VkCommandBuffer)dispatchHandle);
+                }
                 break;
             }
             case OP_vkCmdInsertDebugUtilsLabelEXT: {
@@ -2707,7 +2938,9 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     transform_tohost_VkDebugUtilsLabelEXT(globalstate,
                                                           (VkDebugUtilsLabelEXT*)(pLabelInfo));
                 }
-                vk->vkCmdInsertDebugUtilsLabelEXT((VkCommandBuffer)dispatchHandle, pLabelInfo);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdInsertDebugUtilsLabelEXT((VkCommandBuffer)dispatchHandle, pLabelInfo);
+                }
                 break;
             }
 #endif
@@ -2721,8 +2954,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 *readStreamPtrPtr += sizeof(uint32_t);
                 memcpy((uint16_t*)&lineStipplePattern, *readStreamPtrPtr, sizeof(uint16_t));
                 *readStreamPtrPtr += sizeof(uint16_t);
-                vk->vkCmdSetLineStippleEXT((VkCommandBuffer)dispatchHandle, lineStippleFactor,
-                                           lineStipplePattern);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetLineStippleEXT((VkCommandBuffer)dispatchHandle, lineStippleFactor,
+                                               lineStipplePattern);
+                }
                 break;
             }
 #endif
@@ -2733,7 +2968,9 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 VkCullModeFlags cullMode;
                 memcpy((VkCullModeFlags*)&cullMode, *readStreamPtrPtr, sizeof(VkCullModeFlags));
                 *readStreamPtrPtr += sizeof(VkCullModeFlags);
-                vk->vkCmdSetCullModeEXT((VkCommandBuffer)dispatchHandle, cullMode);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetCullModeEXT((VkCommandBuffer)dispatchHandle, cullMode);
+                }
                 break;
             }
             case OP_vkCmdSetFrontFaceEXT: {
@@ -2742,7 +2979,9 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 VkFrontFace frontFace;
                 memcpy((VkFrontFace*)&frontFace, *readStreamPtrPtr, sizeof(VkFrontFace));
                 *readStreamPtrPtr += sizeof(VkFrontFace);
-                vk->vkCmdSetFrontFaceEXT((VkCommandBuffer)dispatchHandle, frontFace);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetFrontFaceEXT((VkCommandBuffer)dispatchHandle, frontFace);
+                }
                 break;
             }
             case OP_vkCmdSetPrimitiveTopologyEXT: {
@@ -2752,8 +2991,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 memcpy((VkPrimitiveTopology*)&primitiveTopology, *readStreamPtrPtr,
                        sizeof(VkPrimitiveTopology));
                 *readStreamPtrPtr += sizeof(VkPrimitiveTopology);
-                vk->vkCmdSetPrimitiveTopologyEXT((VkCommandBuffer)dispatchHandle,
-                                                 primitiveTopology);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetPrimitiveTopologyEXT((VkCommandBuffer)dispatchHandle,
+                                                     primitiveTopology);
+                }
                 break;
             }
             case OP_vkCmdSetViewportWithCountEXT: {
@@ -2779,8 +3020,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                         transform_tohost_VkViewport(globalstate, (VkViewport*)(pViewports + i));
                     }
                 }
-                vk->vkCmdSetViewportWithCountEXT((VkCommandBuffer)dispatchHandle, viewportCount,
-                                                 pViewports);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetViewportWithCountEXT((VkCommandBuffer)dispatchHandle, viewportCount,
+                                                     pViewports);
+                }
                 break;
             }
             case OP_vkCmdSetScissorWithCountEXT: {
@@ -2806,8 +3049,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                         transform_tohost_VkRect2D(globalstate, (VkRect2D*)(pScissors + i));
                     }
                 }
-                vk->vkCmdSetScissorWithCountEXT((VkCommandBuffer)dispatchHandle, scissorCount,
-                                                pScissors);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetScissorWithCountEXT((VkCommandBuffer)dispatchHandle, scissorCount,
+                                                    pScissors);
+                }
                 break;
             }
             case OP_vkCmdBindVertexBuffers2EXT: {
@@ -2889,8 +3134,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                            ((bindingCount)) * sizeof(const VkDeviceSize));
                     *readStreamPtrPtr += ((bindingCount)) * sizeof(const VkDeviceSize);
                 }
-                vk->vkCmdBindVertexBuffers2EXT((VkCommandBuffer)dispatchHandle, firstBinding,
-                                               bindingCount, pBuffers, pOffsets, pSizes, pStrides);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdBindVertexBuffers2EXT((VkCommandBuffer)dispatchHandle, firstBinding,
+                                                   bindingCount, pBuffers, pOffsets, pSizes,
+                                                   pStrides);
+                }
                 break;
             }
             case OP_vkCmdSetDepthTestEnableEXT: {
@@ -2899,7 +3147,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 VkBool32 depthTestEnable;
                 memcpy((VkBool32*)&depthTestEnable, *readStreamPtrPtr, sizeof(VkBool32));
                 *readStreamPtrPtr += sizeof(VkBool32);
-                vk->vkCmdSetDepthTestEnableEXT((VkCommandBuffer)dispatchHandle, depthTestEnable);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetDepthTestEnableEXT((VkCommandBuffer)dispatchHandle,
+                                                   depthTestEnable);
+                }
                 break;
             }
             case OP_vkCmdSetDepthWriteEnableEXT: {
@@ -2908,7 +3159,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 VkBool32 depthWriteEnable;
                 memcpy((VkBool32*)&depthWriteEnable, *readStreamPtrPtr, sizeof(VkBool32));
                 *readStreamPtrPtr += sizeof(VkBool32);
-                vk->vkCmdSetDepthWriteEnableEXT((VkCommandBuffer)dispatchHandle, depthWriteEnable);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetDepthWriteEnableEXT((VkCommandBuffer)dispatchHandle,
+                                                    depthWriteEnable);
+                }
                 break;
             }
             case OP_vkCmdSetDepthCompareOpEXT: {
@@ -2917,7 +3171,9 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 VkCompareOp depthCompareOp;
                 memcpy((VkCompareOp*)&depthCompareOp, *readStreamPtrPtr, sizeof(VkCompareOp));
                 *readStreamPtrPtr += sizeof(VkCompareOp);
-                vk->vkCmdSetDepthCompareOpEXT((VkCommandBuffer)dispatchHandle, depthCompareOp);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetDepthCompareOpEXT((VkCommandBuffer)dispatchHandle, depthCompareOp);
+                }
                 break;
             }
             case OP_vkCmdSetDepthBoundsTestEnableEXT: {
@@ -2926,8 +3182,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 VkBool32 depthBoundsTestEnable;
                 memcpy((VkBool32*)&depthBoundsTestEnable, *readStreamPtrPtr, sizeof(VkBool32));
                 *readStreamPtrPtr += sizeof(VkBool32);
-                vk->vkCmdSetDepthBoundsTestEnableEXT((VkCommandBuffer)dispatchHandle,
-                                                     depthBoundsTestEnable);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetDepthBoundsTestEnableEXT((VkCommandBuffer)dispatchHandle,
+                                                         depthBoundsTestEnable);
+                }
                 break;
             }
             case OP_vkCmdSetStencilTestEnableEXT: {
@@ -2936,8 +3194,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 VkBool32 stencilTestEnable;
                 memcpy((VkBool32*)&stencilTestEnable, *readStreamPtrPtr, sizeof(VkBool32));
                 *readStreamPtrPtr += sizeof(VkBool32);
-                vk->vkCmdSetStencilTestEnableEXT((VkCommandBuffer)dispatchHandle,
-                                                 stencilTestEnable);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetStencilTestEnableEXT((VkCommandBuffer)dispatchHandle,
+                                                     stencilTestEnable);
+                }
                 break;
             }
             case OP_vkCmdSetStencilOpEXT: {
@@ -2959,8 +3219,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 *readStreamPtrPtr += sizeof(VkStencilOp);
                 memcpy((VkCompareOp*)&compareOp, *readStreamPtrPtr, sizeof(VkCompareOp));
                 *readStreamPtrPtr += sizeof(VkCompareOp);
-                vk->vkCmdSetStencilOpEXT((VkCommandBuffer)dispatchHandle, faceMask, failOp, passOp,
-                                         depthFailOp, compareOp);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetStencilOpEXT((VkCommandBuffer)dispatchHandle, faceMask, failOp,
+                                             passOp, depthFailOp, compareOp);
+                }
                 break;
             }
 #endif
@@ -2971,8 +3233,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 uint32_t patchControlPoints;
                 memcpy((uint32_t*)&patchControlPoints, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                vk->vkCmdSetPatchControlPointsEXT((VkCommandBuffer)dispatchHandle,
-                                                  patchControlPoints);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetPatchControlPointsEXT((VkCommandBuffer)dispatchHandle,
+                                                      patchControlPoints);
+                }
                 break;
             }
             case OP_vkCmdSetRasterizerDiscardEnableEXT: {
@@ -2981,8 +3245,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 VkBool32 rasterizerDiscardEnable;
                 memcpy((VkBool32*)&rasterizerDiscardEnable, *readStreamPtrPtr, sizeof(VkBool32));
                 *readStreamPtrPtr += sizeof(VkBool32);
-                vk->vkCmdSetRasterizerDiscardEnableEXT((VkCommandBuffer)dispatchHandle,
-                                                       rasterizerDiscardEnable);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetRasterizerDiscardEnableEXT((VkCommandBuffer)dispatchHandle,
+                                                           rasterizerDiscardEnable);
+                }
                 break;
             }
             case OP_vkCmdSetDepthBiasEnableEXT: {
@@ -2991,7 +3257,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 VkBool32 depthBiasEnable;
                 memcpy((VkBool32*)&depthBiasEnable, *readStreamPtrPtr, sizeof(VkBool32));
                 *readStreamPtrPtr += sizeof(VkBool32);
-                vk->vkCmdSetDepthBiasEnableEXT((VkCommandBuffer)dispatchHandle, depthBiasEnable);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetDepthBiasEnableEXT((VkCommandBuffer)dispatchHandle,
+                                                   depthBiasEnable);
+                }
                 break;
             }
             case OP_vkCmdSetLogicOpEXT: {
@@ -3000,7 +3269,9 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 VkLogicOp logicOp;
                 memcpy((VkLogicOp*)&logicOp, *readStreamPtrPtr, sizeof(VkLogicOp));
                 *readStreamPtrPtr += sizeof(VkLogicOp);
-                vk->vkCmdSetLogicOpEXT((VkCommandBuffer)dispatchHandle, logicOp);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetLogicOpEXT((VkCommandBuffer)dispatchHandle, logicOp);
+                }
                 break;
             }
             case OP_vkCmdSetPrimitiveRestartEnableEXT: {
@@ -3009,8 +3280,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 VkBool32 primitiveRestartEnable;
                 memcpy((VkBool32*)&primitiveRestartEnable, *readStreamPtrPtr, sizeof(VkBool32));
                 *readStreamPtrPtr += sizeof(VkBool32);
-                vk->vkCmdSetPrimitiveRestartEnableEXT((VkCommandBuffer)dispatchHandle,
-                                                      primitiveRestartEnable);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetPrimitiveRestartEnableEXT((VkCommandBuffer)dispatchHandle,
+                                                          primitiveRestartEnable);
+                }
                 break;
             }
 #endif
@@ -3032,8 +3305,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 memcpy((VkBool32*)pColorWriteEnables, *readStreamPtrPtr,
                        ((attachmentCount)) * sizeof(const VkBool32));
                 *readStreamPtrPtr += ((attachmentCount)) * sizeof(const VkBool32);
-                vk->vkCmdSetColorWriteEnableEXT((VkCommandBuffer)dispatchHandle, attachmentCount,
-                                                pColorWriteEnables);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetColorWriteEnableEXT((VkCommandBuffer)dispatchHandle,
+                                                    attachmentCount, pColorWriteEnables);
+                }
                 break;
             }
 #endif
@@ -3051,15 +3326,20 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                     transform_tohost_VkCommandBufferBeginInfo(
                         globalstate, (VkCommandBufferBeginInfo*)(pBeginInfo));
                 }
-                this->on_vkBeginCommandBufferAsyncGOOGLE(
-                    pool, nullptr, (VkCommandBuffer)(boxed_dispatchHandle), pBeginInfo, context);
+                if (CC_LIKELY(vk)) {
+                    this->on_vkBeginCommandBufferAsyncGOOGLE(
+                        pool, nullptr, (VkCommandBuffer)(boxed_dispatchHandle), pBeginInfo,
+                        context);
+                }
                 break;
             }
             case OP_vkEndCommandBufferAsyncGOOGLE: {
                 GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DECODER_CATEGORY,
                                       "VkSubDecoder vkEndCommandBufferAsyncGOOGLE");
-                this->on_vkEndCommandBufferAsyncGOOGLE(
-                    pool, nullptr, (VkCommandBuffer)(boxed_dispatchHandle), context);
+                if (CC_LIKELY(vk)) {
+                    this->on_vkEndCommandBufferAsyncGOOGLE(
+                        pool, nullptr, (VkCommandBuffer)(boxed_dispatchHandle), context);
+                }
                 break;
             }
             case OP_vkResetCommandBufferAsyncGOOGLE: {
@@ -3069,8 +3349,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 memcpy((VkCommandBufferResetFlags*)&flags, *readStreamPtrPtr,
                        sizeof(VkCommandBufferResetFlags));
                 *readStreamPtrPtr += sizeof(VkCommandBufferResetFlags);
-                this->on_vkResetCommandBufferAsyncGOOGLE(
-                    pool, nullptr, (VkCommandBuffer)(boxed_dispatchHandle), flags);
+                if (CC_LIKELY(vk)) {
+                    this->on_vkResetCommandBufferAsyncGOOGLE(
+                        pool, nullptr, (VkCommandBuffer)(boxed_dispatchHandle), flags);
+                }
                 break;
             }
             case OP_vkCommandBufferHostSyncGOOGLE: {
@@ -3082,9 +3364,11 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 *readStreamPtrPtr += sizeof(uint32_t);
                 memcpy((uint32_t*)&sequenceNumber, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                this->on_vkCommandBufferHostSyncGOOGLE(pool, nullptr,
-                                                       (VkCommandBuffer)(boxed_dispatchHandle),
-                                                       needHostSync, sequenceNumber);
+                if (CC_LIKELY(vk)) {
+                    this->on_vkCommandBufferHostSyncGOOGLE(pool, nullptr,
+                                                           (VkCommandBuffer)(boxed_dispatchHandle),
+                                                           needHostSync, sequenceNumber);
+                }
                 break;
             }
 #endif
@@ -3148,9 +3432,12 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                         globalstate,
                         (VkStridedDeviceAddressRegionKHR*)(pCallableShaderBindingTable));
                 }
-                vk->vkCmdTraceRaysKHR((VkCommandBuffer)dispatchHandle, pRaygenShaderBindingTable,
-                                      pMissShaderBindingTable, pHitShaderBindingTable,
-                                      pCallableShaderBindingTable, width, height, depth);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdTraceRaysKHR((VkCommandBuffer)dispatchHandle,
+                                          pRaygenShaderBindingTable, pMissShaderBindingTable,
+                                          pHitShaderBindingTable, pCallableShaderBindingTable,
+                                          width, height, depth);
+                }
                 break;
             }
             case OP_vkCmdTraceRaysIndirectKHR: {
@@ -3207,10 +3494,12 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                         globalstate,
                         (VkStridedDeviceAddressRegionKHR*)(pCallableShaderBindingTable));
                 }
-                vk->vkCmdTraceRaysIndirectKHR((VkCommandBuffer)dispatchHandle,
-                                              pRaygenShaderBindingTable, pMissShaderBindingTable,
-                                              pHitShaderBindingTable, pCallableShaderBindingTable,
-                                              indirectDeviceAddress);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdTraceRaysIndirectKHR(
+                        (VkCommandBuffer)dispatchHandle, pRaygenShaderBindingTable,
+                        pMissShaderBindingTable, pHitShaderBindingTable,
+                        pCallableShaderBindingTable, indirectDeviceAddress);
+                }
                 break;
             }
             case OP_vkCmdSetRayTracingPipelineStackSizeKHR: {
@@ -3219,8 +3508,10 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
                 uint32_t pipelineStackSize;
                 memcpy((uint32_t*)&pipelineStackSize, *readStreamPtrPtr, sizeof(uint32_t));
                 *readStreamPtrPtr += sizeof(uint32_t);
-                vk->vkCmdSetRayTracingPipelineStackSizeKHR((VkCommandBuffer)dispatchHandle,
-                                                           pipelineStackSize);
+                if (CC_LIKELY(vk)) {
+                    vk->vkCmdSetRayTracingPipelineStackSizeKHR((VkCommandBuffer)dispatchHandle,
+                                                               pipelineStackSize);
+                }
                 break;
             }
 #endif
