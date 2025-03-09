@@ -17,6 +17,7 @@
 #include <memory>
 #include <vector>
 
+#include "BorrowedImage.h"
 #include "ExternalObjectManager.h"
 #include "FrameworkFormats.h"
 #include "aemu/base/files/Stream.h"
@@ -24,11 +25,14 @@
 namespace gfxstream {
 namespace vk {
 
+class VkEmulation;
+
 class ColorBufferVk {
    public:
-    static std::unique_ptr<ColorBufferVk> create(uint32_t handle, uint32_t width, uint32_t height,
-                                                 GLenum format, FrameworkFormat frameworkFormat,
-                                                 bool vulkanOnly, uint32_t memoryProperty,
+    static std::unique_ptr<ColorBufferVk> create(VkEmulation& emulationVk, uint32_t handle,
+                                                 uint32_t width, uint32_t height, GLenum format,
+                                                 FrameworkFormat frameworkFormat, bool vulkanOnly,
+                                                 uint32_t memoryProperty,
                                                  android::base::Stream* stream = nullptr);
 
     ~ColorBufferVk();
@@ -40,13 +44,17 @@ class ColorBufferVk {
     bool updateFromBytes(const std::vector<uint8_t>& bytes);
     bool updateFromBytes(uint32_t x, uint32_t y, uint32_t w, uint32_t h, const void* bytes);
 
+    std::unique_ptr<BorrowedImageInfo> borrowForComposition(bool colorBufferIsTarget);
+    std::unique_ptr<BorrowedImageInfo> borrowForDisplay();
+
     void onSave(android::base::Stream* stream);
 
-    int waitSync();
     std::optional<BlobDescriptorInfo> exportBlob();
 
    private:
-    ColorBufferVk(uint32_t handle);
+    ColorBufferVk(VkEmulation& emulationVk, uint32_t handle);
+
+    VkEmulation& mVkEmulation;
 
     const uint32_t mHandle;
 };

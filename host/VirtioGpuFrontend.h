@@ -104,8 +104,6 @@ class VirtioGpuFrontend {
 
     int platformDestroySharedEglContext(void* context);
 
-    int waitSyncResource(uint32_t res_handle);
-
     int resourceMapInfo(uint32_t resourceId, uint32_t* map_info);
 
     int exportBlob(uint32_t resourceId, struct stream_renderer_handle* handle);

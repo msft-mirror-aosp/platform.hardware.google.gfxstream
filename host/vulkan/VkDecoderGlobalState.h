@@ -53,6 +53,7 @@ namespace gfxstream {
 namespace vk {
 
 class VkDecoderSnapshot;
+class VkEmulation;
 
 // Class for tracking host-side state. Currently we only care about
 // tracking VkDeviceMemory to make it easier to pass the right data
@@ -65,8 +66,10 @@ class VkDecoderSnapshot;
 // functions.
 class VkDecoderGlobalState {
    public:
-    VkDecoderGlobalState();
+    VkDecoderGlobalState(VkEmulation* emulation);
     ~VkDecoderGlobalState();
+
+    static void initialize(VkEmulation* emulation);
 
     // There should only be one instance of VkDecoderGlobalState per process
     // Note: currently not thread-safe
@@ -612,6 +615,10 @@ class VkDecoderGlobalState {
     void on_vkDestroySemaphore(android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo,
                                VkDevice boxed_device, VkSemaphore semaphore,
                                const VkAllocationCallbacks* pAllocator);
+    VkResult on_vkWaitSemaphores(android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo,
+        VkDevice boxed_device, const VkSemaphoreWaitInfo* pWaitInfo, uint64_t timeout);
+    VkResult on_vkSignalSemaphore(android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo,
+        VkDevice boxed_device, const VkSemaphoreSignalInfo* pSignalInfo);
 
     VkResult on_vkCreateFence(android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo,
                               VkDevice device, const VkFenceCreateInfo* pCreateInfo,

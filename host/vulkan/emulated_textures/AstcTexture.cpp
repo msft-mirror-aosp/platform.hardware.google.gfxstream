@@ -223,7 +223,7 @@ void AstcTexture::on_vkCmdCopyBufferToImageImpl(VkCommandBuffer commandBuffer, u
     }
 
     // Decompress each region
-    for (int i = 0; i < regionCount; i++) {
+    for (uint32_t i = 0; i < regionCount; i++) {
         const auto& compRegion = pRegions[i];
         const auto& decompRegion = decompRegions[i];
         const auto& regionInfo = regionInfos[i];

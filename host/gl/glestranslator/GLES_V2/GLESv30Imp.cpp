@@ -485,7 +485,7 @@ static void internal_glDeleteSync(GLsync to_delete) {
 static void internal_glGetSynciv(GLsync sync, GLenum pname, GLsizei bufsize, GLsizei *length, GLint *values) {
     GET_CTX_V2();
     if (!ctx->dispatcher().glGetSynciv) {
-        if (bufsize < sizeof(GLint)) return;
+        if ((long unsigned)bufsize < sizeof(GLint)) return;
         switch (pname) {
             case GL_OBJECT_TYPE:
                 if (length) *length = sizeof(GLint);
