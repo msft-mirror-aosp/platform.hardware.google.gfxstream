@@ -97,6 +97,11 @@ class VkDecoderGlobalState {
     VkResult on_vkEnumerateInstanceVersion(android::base::BumpPool* pool,
                                            VkSnapshotApiCallInfo* snapshotInfo,
                                            uint32_t* pApiVersion);
+    VkResult on_vkEnumerateInstanceExtensionProperties(android::base::BumpPool* pool,
+                                                       VkSnapshotApiCallInfo* snapshotInfo,
+                                                       const char* pLayerName,
+                                                       uint32_t* pPropertyCount,
+                                                       VkExtensionProperties* pProperties);
 
     // Fast way to get dispatch tables associated with a Vulkan object.
     // VkInstance

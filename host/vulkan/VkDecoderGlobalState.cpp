@@ -876,6 +876,17 @@ class VkDecoderGlobalState::Impl {
         return VK_SUCCESS;
     }
 
+    VkResult on_vkEnumerateInstanceExtensionProperties(android::base::BumpPool* pool,
+                                                   VkSnapshotApiCallInfo*, const char* pLayerName,
+                                                   uint32_t* pPropertyCount,
+                                                   VkExtensionProperties* pProperties) {
+#if defined(__linux__)
+        // TODO(b/401005629) always lock before the call on linux
+        std::lock_guard<std::mutex> lock(mMutex);
+#endif
+        return m_vk->vkEnumerateInstanceExtensionProperties(pLayerName, pPropertyCount, pProperties);
+    }
+
     VkResult on_vkCreateInstance(android::base::BumpPool* pool, VkSnapshotApiCallInfo*,
                                  const VkInstanceCreateInfo* pCreateInfo,
                                  const VkAllocationCallbacks* pAllocator, VkInstance* pInstance) {
@@ -1262,6 +1273,11 @@ class VkDecoderGlobalState::Impl {
                 // Protected memory is not supported on emulators. Override feature
                 // information to mark as unsupported (see b/329845987).
                 protectedMemoryFeatures->protectedMemory = VK_FALSE;
+            }
+            VkPhysicalDeviceVulkan11Features* vk11Features =
+                vk_find_struct<VkPhysicalDeviceVulkan11Features>(pFeatures);
+            if (vk11Features != nullptr) {
+                vk11Features->protectedMemory = VK_FALSE;
             }
 
             VkPhysicalDevicePrivateDataFeatures* privateDataFeatures =
@@ -1771,7 +1787,11 @@ class VkDecoderGlobalState::Impl {
         uint32_t supportedFenceHandleTypes = 0;
         uint32_t supportedBinarySemaphoreHandleTypes = 0;
         // Run the underlying API call, filtering extensions.
-        VkDeviceCreateInfo createInfoFiltered = *pCreateInfo;
+
+        VkDeviceCreateInfo createInfoFiltered;
+        deepcopy_VkDeviceCreateInfo(pool, VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO, pCreateInfo,
+                                      &createInfoFiltered);
+
         // According to the spec, it seems that the application can use compressed texture formats
         // without enabling the feature when creating the VkDevice, as long as
         // vkGetPhysicalDeviceFormatProperties and vkGetPhysicalDeviceImageFormatProperties reports
@@ -1813,6 +1833,27 @@ class VkDecoderGlobalState::Impl {
         if (VkPhysicalDeviceFeatures2* features2 =
                 vk_find_struct<VkPhysicalDeviceFeatures2>(&createInfoFiltered)) {
             featuresToFilter.emplace_back(&features2->features);
+        }
+
+        {
+            // Protected memory is not supported on emulators. Override feature
+            // information to mark as unsupported (see b/329845987).
+            VkPhysicalDeviceProtectedMemoryFeatures* protectedMemoryFeatures =
+                vk_find_struct<VkPhysicalDeviceProtectedMemoryFeatures>(&createInfoFiltered);
+            if (protectedMemoryFeatures != nullptr) {
+                protectedMemoryFeatures->protectedMemory = VK_FALSE;
+            }
+
+            VkPhysicalDeviceVulkan11Features* vk11Features =
+                vk_find_struct<VkPhysicalDeviceVulkan11Features>(&createInfoFiltered);
+            if (vk11Features != nullptr) {
+                vk11Features->protectedMemory = VK_FALSE;
+            }
+
+            for (uint32_t i = 0; i < createInfoFiltered.queueCreateInfoCount; i++) {
+                (const_cast<VkDeviceQueueCreateInfo*>(createInfoFiltered.pQueueCreateInfos))[i]
+                    .flags &= ~VK_DEVICE_QUEUE_CREATE_PROTECTED_BIT;
+            }
         }
 
         VkPhysicalDeviceDiagnosticsConfigFeaturesNV deviceDiagnosticsConfigFeatures = {
@@ -2173,7 +2214,7 @@ class VkDecoderGlobalState::Impl {
         // queue. See b/328436383.
         if (pQueueInfo->flags & VK_DEVICE_QUEUE_CREATE_PROTECTED_BIT) {
             *pQueue = VK_NULL_HANDLE;
-            INFO("%s: Cannot get protected Vulkan device queue", __func__);
+            WARN("%s: Cannot get protected Vulkan device queue", __func__);
             return;
         }
         uint32_t queueFamilyIndex = pQueueInfo->queueFamilyIndex;
@@ -6083,8 +6124,20 @@ class VkDecoderGlobalState::Impl {
                                     VkCommandPool* pCommandPool) {
         auto device = unbox_VkDevice(boxed_device);
         auto vk = dispatch_VkDevice(boxed_device);
+        if (!pCreateInfo) {
+            WARN("%s: Invalid parameter.", __func__);
+            return VK_ERROR_OUT_OF_HOST_MEMORY;
+        }
 
-        VkResult result = vk->vkCreateCommandPool(device, pCreateInfo, pAllocator, pCommandPool);
+        VkCommandPoolCreateInfo localCI = *pCreateInfo;
+        if (localCI.flags & VK_COMMAND_POOL_CREATE_PROTECTED_BIT) {
+            // Protected memory is not supported on emulators. Override feature
+            // information to mark as unsupported (see b/329845987).
+            localCI.flags &= ~VK_COMMAND_POOL_CREATE_PROTECTED_BIT;
+            ERR("Changed VK_COMMAND_POOL_CREATE_PROTECTED_BIT, new flags = %d", localCI.flags);
+        }
+
+        VkResult result = vk->vkCreateCommandPool(device, &localCI, pAllocator, pCommandPool);
         if (result != VK_SUCCESS) {
             return result;
         }
@@ -8042,100 +8095,63 @@ class VkDecoderGlobalState::Impl {
             return res;
         }
 
-        if (hasDeviceExtension(properties, VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME)) {
-            res.push_back(VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME);
-        }
-
-        if (hasDeviceExtension(properties, VK_EXT_EXTERNAL_MEMORY_HOST_EXTENSION_NAME)) {
-            res.push_back(VK_EXT_EXTERNAL_MEMORY_HOST_EXTENSION_NAME);
-        }
-
-        if (hasDeviceExtension(properties, VK_KHR_EXTERNAL_SEMAPHORE_EXTENSION_NAME)) {
-            res.push_back(VK_KHR_EXTERNAL_SEMAPHORE_EXTENSION_NAME);
-        }
-
-        if (hasDeviceExtension(properties, VK_KHR_SAMPLER_YCBCR_CONVERSION_EXTENSION_NAME)) {
-            res.push_back(VK_KHR_SAMPLER_YCBCR_CONVERSION_EXTENSION_NAME);
-        }
-
-        if (hasDeviceExtension(properties, VK_KHR_SWAPCHAIN_EXTENSION_NAME)) {
-            res.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
-        }
-
-#ifdef _WIN32
-        if (hasDeviceExtension(properties, VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME)) {
-            res.push_back(VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME);
-        }
-
-        if (hasDeviceExtension(properties, VK_KHR_EXTERNAL_SEMAPHORE_WIN32_EXTENSION_NAME)) {
-            res.push_back(VK_KHR_EXTERNAL_SEMAPHORE_WIN32_EXTENSION_NAME);
-        }
-#elif defined(__QNX__)
-        // Note: VK_QNX_external_memory_screen_buffer is not supported in API translation,
-        // decoding, etc. However, push name to indicate external memory support to guest
-        if (hasDeviceExtension(properties, VK_QNX_EXTERNAL_MEMORY_SCREEN_BUFFER_EXTENSION_NAME)) {
-            res.push_back(VK_QNX_EXTERNAL_MEMORY_SCREEN_BUFFER_EXTENSION_NAME);
-            // EXT_queue_family_foreign is a pre-requisite for QNX_external_memory_screen_buffer
-            if (hasDeviceExtension(properties, VK_EXT_QUEUE_FAMILY_FOREIGN_EXTENSION_NAME)) {
-                res.push_back(VK_EXT_QUEUE_FAMILY_FOREIGN_EXTENSION_NAME);
-            }
-        }
-
-        if (hasDeviceExtension(properties, VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME)) {
-            res.push_back(VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME);
-        }
-#elif __unix__
-        if (hasDeviceExtension(properties, VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME)) {
-            res.push_back(VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME);
-        }
-
-        if (hasDeviceExtension(properties, VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME)) {
-            res.push_back(VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME);
-        }
-#elif defined(__APPLE__)
-        if (m_vkEmulation->supportsMoltenVk()) {
-            if (hasDeviceExtension(properties, VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME)) {
-                res.push_back(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME);
-            }
-            if (hasDeviceExtension(properties, VK_EXT_METAL_OBJECTS_EXTENSION_NAME)) {
-                res.push_back(VK_EXT_METAL_OBJECTS_EXTENSION_NAME);
-            }
-            if (hasDeviceExtension(properties, VK_EXT_EXTERNAL_MEMORY_METAL_EXTENSION_NAME)) {
-                res.push_back(VK_EXT_EXTERNAL_MEMORY_METAL_EXTENSION_NAME);
-            }
-        } else {
-            // Non-MoltenVK path, use memory_fd
-            if (hasDeviceExtension(properties, VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME)) {
-                res.push_back(VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME);
-            }
-        }
-#endif
-
-#ifdef __linux__
-        // A dma-buf is a Linux kernel construct, commonly used with open-source DRM drivers.
-        // See https://docs.kernel.org/driver-api/dma-buf.html for details.
-        if (m_vkEmulation->supportsDmaBuf() &&
-            hasDeviceExtension(properties, VK_EXT_EXTERNAL_MEMORY_DMA_BUF_EXTENSION_NAME)) {
-            res.push_back(VK_EXT_EXTERNAL_MEMORY_DMA_BUF_EXTENSION_NAME);
-        }
-
-        if (hasDeviceExtension(properties, VK_EXT_IMAGE_DRM_FORMAT_MODIFIER_EXTENSION_NAME)) {
-            // Mesa Vulkan Wayland WSI needs vkGetImageDrmFormatModifierPropertiesEXT. On some Intel
-            // GPUs, this extension is exposed by the driver only if
-            // VK_EXT_image_drm_format_modifier extension is requested via
-            // VkDeviceCreateInfo::ppEnabledExtensionNames. vkcube-wayland does not request it,
-            // which makes the host attempt to call a null function pointer unless we force-enable
-            // it regardless of the client's wishes.
-            res.push_back(VK_EXT_IMAGE_DRM_FORMAT_MODIFIER_EXTENSION_NAME);
-        }
-
-#endif
-
-        if (hasDeviceExtension(properties, VK_EXT_PRIVATE_DATA_EXTENSION_NAME)) {
-            //TODO(b/378686769): Enable private data extension where available to
+        std::vector<const char*> hostAlwaysDeviceExtensions = {
+            VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME,
+            VK_EXT_EXTERNAL_MEMORY_HOST_EXTENSION_NAME,
+            VK_KHR_EXTERNAL_SEMAPHORE_EXTENSION_NAME,
+            VK_KHR_SAMPLER_YCBCR_CONVERSION_EXTENSION_NAME,
+            VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+            // TODO(b/378686769): Enable private data extension where available to
             // mitigate the issues with duplicated vulkan handles. This should be
             // removed once the issue is properly resolved.
-            res.push_back(VK_EXT_PRIVATE_DATA_EXTENSION_NAME);
+            VK_EXT_PRIVATE_DATA_EXTENSION_NAME,
+            // It is not uncommon for a guest app flow to expect to use
+            // VK_EXT_IMAGE_DRM_FORMAT_MODIFIER without actually enabling it in the
+            // ppEnabledExtensionNames. Mesa WSI (in Linux) does this, because it has certain
+            // assumptions about the Vulkan loader architecture it is using. However, depending on
+            // the host's Vulkan loader architecture, this could in NULL function pointer access
+            // (i.e. on vkGetImageDrmFormatModifierPropertiesEXT()). So just enable it if it's
+            // available.
+            VK_EXT_IMAGE_DRM_FORMAT_MODIFIER_EXTENSION_NAME,
+#ifdef _WIN32
+            VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME,
+            VK_KHR_EXTERNAL_SEMAPHORE_WIN32_EXTENSION_NAME,
+#elif defined(__QNX__)
+            VK_QNX_EXTERNAL_MEMORY_SCREEN_BUFFER_EXTENSION_NAME,
+            // EXT_queue_family_foreign is an extension dependency of
+            // VK_QNX_external_memory_screen_buffer
+            VK_EXT_QUEUE_FAMILY_FOREIGN_EXTENSION_NAME,
+            VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME,
+#elif __unix__
+            VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME,
+            VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME,
+#endif
+        };
+
+#if defined(__APPLE__)
+        if (m_vkEmulation->supportsMoltenVk()) {
+            hostAlwaysDeviceExtensions.push_back(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME);
+            hostAlwaysDeviceExtensions.push_back(VK_EXT_METAL_OBJECTS_EXTENSION_NAME);
+            hostAlwaysDeviceExtensions.push_back(VK_EXT_EXTERNAL_MEMORY_METAL_EXTENSION_NAME);
+        } else {
+            // Non-MoltenVK path, use memory_fd
+            hostAlwaysDeviceExtensions.push_back(VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME);
+        }
+#endif
+
+#if defined(__linux__)
+        // A dma-buf is a Linux kernel construct, commonly used with open-source DRM drivers.
+        // See https://docs.kernel.org/driver-api/dma-buf.html for details.
+        if (m_vkEmulation->supportsDmaBuf()) {
+            hostAlwaysDeviceExtensions.push_back(VK_EXT_EXTERNAL_MEMORY_DMA_BUF_EXTENSION_NAME);
+        }
+#endif
+
+        // Enable all the device extensions that should always be enabled on the host (if available)
+        for (auto extName : hostAlwaysDeviceExtensions) {
+            if (hasDeviceExtension(properties, extName)) {
+                res.push_back(extName);
+            }
         }
 
         return res;
@@ -9126,6 +9142,13 @@ VkResult VkDecoderGlobalState::on_vkEnumerateInstanceVersion(android::base::Bump
                                                              VkSnapshotApiCallInfo* snapshotInfo,
                                                              uint32_t* pApiVersion) {
     return mImpl->on_vkEnumerateInstanceVersion(pool, snapshotInfo, pApiVersion);
+}
+
+VkResult VkDecoderGlobalState::on_vkEnumerateInstanceExtensionProperties(
+    android::base::BumpPool* pool, VkSnapshotApiCallInfo* snapshotInfo, const char* pLayerName,
+    uint32_t* pPropertyCount, VkExtensionProperties* pProperties) {
+    return mImpl->on_vkEnumerateInstanceExtensionProperties(pool, snapshotInfo, pLayerName,
+                                                            pPropertyCount, pProperties);
 }
 
 VkResult VkDecoderGlobalState::on_vkCreateInstance(android::base::BumpPool* pool,
