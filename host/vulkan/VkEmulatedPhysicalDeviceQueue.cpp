@@ -36,6 +36,9 @@ EmulatedPhysicalDeviceQueueProperties::EmulatedPhysicalDeviceQueueProperties(
             if (qfp.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
                 qfp.queueCount = 2;
             }
+
+            // TODO(b/329845987) Protected memory is not supported yet on emulators.
+            qfp.queueFlags &= ~VK_QUEUE_PROTECTED_BIT;
         }
     }
 }
