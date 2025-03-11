@@ -1274,6 +1274,11 @@ class VkDecoderGlobalState::Impl {
                 // information to mark as unsupported (see b/329845987).
                 protectedMemoryFeatures->protectedMemory = VK_FALSE;
             }
+            VkPhysicalDeviceVulkan11Features* vk11Features =
+                vk_find_struct<VkPhysicalDeviceVulkan11Features>(pFeatures);
+            if (vk11Features != nullptr) {
+                vk11Features->protectedMemory = VK_FALSE;
+            }
 
             VkPhysicalDevicePrivateDataFeatures* privateDataFeatures =
                 vk_find_struct<VkPhysicalDevicePrivateDataFeatures>(pFeatures);
@@ -1782,7 +1787,11 @@ class VkDecoderGlobalState::Impl {
         uint32_t supportedFenceHandleTypes = 0;
         uint32_t supportedBinarySemaphoreHandleTypes = 0;
         // Run the underlying API call, filtering extensions.
-        VkDeviceCreateInfo createInfoFiltered = *pCreateInfo;
+
+        VkDeviceCreateInfo createInfoFiltered;
+        deepcopy_VkDeviceCreateInfo(pool, VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO, pCreateInfo,
+                                      &createInfoFiltered);
+
         // According to the spec, it seems that the application can use compressed texture formats
         // without enabling the feature when creating the VkDevice, as long as
         // vkGetPhysicalDeviceFormatProperties and vkGetPhysicalDeviceImageFormatProperties reports
@@ -1824,6 +1833,27 @@ class VkDecoderGlobalState::Impl {
         if (VkPhysicalDeviceFeatures2* features2 =
                 vk_find_struct<VkPhysicalDeviceFeatures2>(&createInfoFiltered)) {
             featuresToFilter.emplace_back(&features2->features);
+        }
+
+        {
+            // Protected memory is not supported on emulators. Override feature
+            // information to mark as unsupported (see b/329845987).
+            VkPhysicalDeviceProtectedMemoryFeatures* protectedMemoryFeatures =
+                vk_find_struct<VkPhysicalDeviceProtectedMemoryFeatures>(&createInfoFiltered);
+            if (protectedMemoryFeatures != nullptr) {
+                protectedMemoryFeatures->protectedMemory = VK_FALSE;
+            }
+
+            VkPhysicalDeviceVulkan11Features* vk11Features =
+                vk_find_struct<VkPhysicalDeviceVulkan11Features>(&createInfoFiltered);
+            if (vk11Features != nullptr) {
+                vk11Features->protectedMemory = VK_FALSE;
+            }
+
+            for (uint32_t i = 0; i < createInfoFiltered.queueCreateInfoCount; i++) {
+                (const_cast<VkDeviceQueueCreateInfo*>(createInfoFiltered.pQueueCreateInfos))[i]
+                    .flags &= ~VK_DEVICE_QUEUE_CREATE_PROTECTED_BIT;
+            }
         }
 
         VkPhysicalDeviceDiagnosticsConfigFeaturesNV deviceDiagnosticsConfigFeatures = {
@@ -2184,7 +2214,7 @@ class VkDecoderGlobalState::Impl {
         // queue. See b/328436383.
         if (pQueueInfo->flags & VK_DEVICE_QUEUE_CREATE_PROTECTED_BIT) {
             *pQueue = VK_NULL_HANDLE;
-            INFO("%s: Cannot get protected Vulkan device queue", __func__);
+            WARN("%s: Cannot get protected Vulkan device queue", __func__);
             return;
         }
         uint32_t queueFamilyIndex = pQueueInfo->queueFamilyIndex;
@@ -6094,8 +6124,20 @@ class VkDecoderGlobalState::Impl {
                                     VkCommandPool* pCommandPool) {
         auto device = unbox_VkDevice(boxed_device);
         auto vk = dispatch_VkDevice(boxed_device);
+        if (!pCreateInfo) {
+            WARN("%s: Invalid parameter.", __func__);
+            return VK_ERROR_OUT_OF_HOST_MEMORY;
+        }
 
-        VkResult result = vk->vkCreateCommandPool(device, pCreateInfo, pAllocator, pCommandPool);
+        VkCommandPoolCreateInfo localCI = *pCreateInfo;
+        if (localCI.flags & VK_COMMAND_POOL_CREATE_PROTECTED_BIT) {
+            // Protected memory is not supported on emulators. Override feature
+            // information to mark as unsupported (see b/329845987).
+            localCI.flags &= ~VK_COMMAND_POOL_CREATE_PROTECTED_BIT;
+            ERR("Changed VK_COMMAND_POOL_CREATE_PROTECTED_BIT, new flags = %d", localCI.flags);
+        }
+
+        VkResult result = vk->vkCreateCommandPool(device, &localCI, pAllocator, pCommandPool);
         if (result != VK_SUCCESS) {
             return result;
         }
