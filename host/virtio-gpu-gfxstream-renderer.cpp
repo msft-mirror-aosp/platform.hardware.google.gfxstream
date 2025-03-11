@@ -729,7 +729,7 @@ int parseGfxstreamFeatures(const int renderer_flags,
         feature_info->enabled = feature_status == "enabled";
         feature_info->reason = "Overridden via STREAM_RENDERER_PARAM_RENDERER_FEATURES";
 
-        stream_renderer_error("Gfxstream feature %s %s", feature_name.c_str(),
+        stream_renderer_info("Gfxstream feature %s %s", feature_name.c_str(),
                               feature_status.c_str());
     }
 
