@@ -461,6 +461,17 @@ std::unique_ptr<EmulationGl> EmulationGl::create(uint32_t width, uint32_t height
     if (s_egl.eglQueryVulkanInteropSupportANDROID) {
         emulationGl->mGlesVulkanInteropSupported = s_egl.eglQueryVulkanInteropSupportANDROID();
     }
+    if (emulationGl->mGlesVulkanInteropSupported) {
+        // Intel: b/271028352 workaround
+        const std::vector<const char*> disallowList = {"Intel", "AMD Radeon Pro WX 3200"};
+        const std::string& glesRenderer = emulationGl->getGlesRenderer();
+        for (const auto& disallowed : disallowList) {
+            if (strstr(glesRenderer.c_str(), disallowed)) {
+                emulationGl->mGlesVulkanInteropSupported = false;
+                break;
+            }
+        }
+    }
 
     emulationGl->mTextureDraw = std::make_unique<TextureDraw>();
     if (!emulationGl->mTextureDraw) {
