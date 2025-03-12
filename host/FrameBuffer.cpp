@@ -1395,6 +1395,7 @@ bool FrameBuffer::closeColorBufferLocked(HandleType p_colorbuffer, bool forced) 
 }
 
 void FrameBuffer::decColorBufferRefCountNoDestroy(HandleType p_colorbuffer) {
+    AutoLock mutex(m_lock);
     AutoLock colorBufferMapLock(m_colorBufferMapLock);
 
     ColorBufferMap::iterator c(m_colorbuffers.find(p_colorbuffer));
@@ -1701,6 +1702,7 @@ bool FrameBuffer::updateColorBufferFromFrameworkFormat(HandleType p_colorbuffer,
 
     AutoLock mutex(m_lock);
 
+    AutoLock colorBufferMapLock(m_colorBufferMapLock);
     ColorBufferMap::iterator c(m_colorbuffers.find(p_colorbuffer));
     if (c == m_colorbuffers.end()) {
         // bad colorbuffer handle
@@ -2683,7 +2685,7 @@ ColorBufferPtr FrameBuffer::findColorBuffer(HandleType p_colorbuffer) {
 }
 
 BufferPtr FrameBuffer::findBuffer(HandleType p_buffer) {
-    AutoLock colorBufferMapLock(m_colorBufferMapLock);
+    AutoLock mutex(m_lock);
     BufferMap::iterator b(m_buffers.find(p_buffer));
     if (b == m_buffers.end()) {
         return nullptr;
