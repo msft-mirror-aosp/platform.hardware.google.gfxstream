@@ -6134,7 +6134,7 @@ class VkDecoderGlobalState::Impl {
             // Protected memory is not supported on emulators. Override feature
             // information to mark as unsupported (see b/329845987).
             localCI.flags &= ~VK_COMMAND_POOL_CREATE_PROTECTED_BIT;
-            ERR("Changed VK_COMMAND_POOL_CREATE_PROTECTED_BIT, new flags = %d", localCI.flags);
+            VERBOSE("Changed VK_COMMAND_POOL_CREATE_PROTECTED_BIT, new flags = %d", localCI.flags);
         }
 
         VkResult result = vk->vkCreateCommandPool(device, &localCI, pAllocator, pCommandPool);
