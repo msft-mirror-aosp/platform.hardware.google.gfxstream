@@ -14,58 +14,30 @@
 
 #include "host-common/opengles.h"
 
-#include "aemu/base/GLObjectCounter.h"
-#include "aemu/base/files/PathUtils.h"
-#include "aemu/base/files/Stream.h"
-#include "aemu/base/memory/MemoryTracker.h"
-#include "aemu/base/SharedLibrary.h"
-#include "aemu/base/system/System.h"
-#include "host-common/address_space_device.h"
-#include "host-common/address_space_graphics.h"
-#include "host-common/address_space_graphics_types.h"
-#include "host-common/GfxstreamFatalError.h"
-#include "host-common/GoldfishDma.h"
-#include "host-common/logging.h"
-#include "host-common/RefcountPipe.h"
-#include "host-common/FeatureControl.h"
-#include "host-common/globals.h"
-#include "host-common/opengl/emugl_config.h"
-#include "host-common/opengl/GLProcessPipe.h"
-#include "host-common/opengl/logger.h"
-#include "host-common/opengl/gpuinfo.h"
-
-#include "render-utils/render_api_functions.h"
-#include "OpenGLESDispatch/EGLDispatch.h"
-#include "OpenGLESDispatch/GLESv2Dispatch.h"
-
-
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #include <optional>
 
-using android::base::pj;
+#include "aemu/base/GLObjectCounter.h"
+#include "aemu/base/SharedLibrary.h"
+#include "host-common/address_space_device.h"
+#include "host-common/address_space_graphics.h"
+#include "host-common/address_space_graphics_types.h"
+#include "host-common/GfxstreamFatalError.h"
+#include "host-common/logging.h"
+#include "host-common/opengl/GLProcessPipe.h"
+#include "host-common/opengl/emugl_config.h"
+#include "host-common/opengl/logger.h"
+#include "host-common/opengl/gpuinfo.h"
+
 using android::base::SharedLibrary;
 using android::emulation::asg::AddressSpaceGraphicsContext;
 using android::emulation::asg::ConsumerCallbacks;
 using android::emulation::asg::ConsumerInterface;
 using emugl::ABORT_REASON_OTHER;
 using emugl::FatalError;
-using gfxstream::gl::EGLDispatch;
-using gfxstream::gl::GLESv2Dispatch;
-
-/* Name of the GLES rendering library we're going to use */
-#define RENDERER_LIB_NAME "libOpenglRender"
-
-/* Declared in "android/globals.h" */
-int  android_gles_fast_pipes = 1;
-
-// Define the Render API function pointers.
-#define FUNCTION_(ret, name, sig, params) \
-        inline ret (*name) sig = NULL;
-LIST_RENDER_API_FUNCTIONS(FUNCTION_)
-#undef FUNCTION_
 
 static bool sOpenglLoggerInitialized = false;
 static bool sRendererUsesSubWindow = false;
@@ -136,8 +108,6 @@ android_startOpenglesRenderer(int width, int height,
 
     sRenderLib->setRenderer(emuglConfig_get_current_renderer());
     sRenderLib->setAvdInfo(guestPhoneApi, guestApiLevel);
-    // sRenderLib->setCrashReporter(&crashhandler_die_format);
-    // sRenderLib->setFeatureController(&android::featurecontrol::isEnabled);
     sRenderLib->setSyncDevice(goldfish_sync_create_timeline,
             goldfish_sync_create_fence,
             goldfish_sync_timeline_inc,
@@ -154,18 +124,10 @@ android_startOpenglesRenderer(int width, int height,
     sRenderLib->setVmOps(*vm_operations);
     sRenderLib->setAddressSpaceDeviceControlOps(get_address_space_device_control_ops());
     sRenderLib->setWindowOps(*window_agent, *multi_display_agent);
-    // sRenderLib->setUsageTracker(android::base::CpuUsage::get(),
-    //                             android::base::MemoryTracker::get());
 
     const auto* features = reinterpret_cast<const gfxstream::host::FeatureSet*>(gfxstreamFeatures);
     sRenderer = sRenderLib->initRenderer(width, height, *features, sRendererUsesSubWindow, sEgl2egl);
     android_setOpenglesRenderer(&sRenderer);
-
-    // android::snapshot::Snapshotter::get().addOperationCallback(
-    //         [](android::snapshot::Snapshotter::Operation op,
-    //            android::snapshot::Snapshotter::Stage stage) {
-    //             sRenderer->snapshotOperationCallback(op, stage);
-    //         });
 
     android::emulation::registerOnLastRefCallback(
             sRenderLib->getOnLastColorBufferRef());
