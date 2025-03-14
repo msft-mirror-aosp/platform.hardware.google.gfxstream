@@ -5317,7 +5317,7 @@ class VkDecoderGlobalState::Impl {
                     return VK_ERROR_OUT_OF_DEVICE_MEMORY;
                 }
 
-                importInfoMetalHandle.handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_MTLBUFFER_BIT_EXT;
+                importInfoMetalHandle.handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_MTLHEAP_BIT_EXT;
                 importInfoMetalHandle.handle = bufferMetalMemoryHandle;
 
                 vk_append_struct(&structChainIter, &importInfoMetalHandle);
@@ -5497,7 +5497,7 @@ class VkDecoderGlobalState::Impl {
 #if defined(__APPLE__)
                 if (m_vkEmulation->supportsMoltenVk()) {
                     // Using a different handle type when in MoltenVK mode
-                    handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_MTLBUFFER_BIT_EXT|VK_EXTERNAL_MEMORY_HANDLE_TYPE_MTLTEXTURE_BIT_EXT;
+                    handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_MTLHEAP_BIT_EXT;
                 } else {
                     handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT;
                 }
