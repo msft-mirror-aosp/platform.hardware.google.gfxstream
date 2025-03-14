@@ -178,11 +178,6 @@ bool postOnlyOnMainThread() {
 #endif
 }
 
-AstcEmulationMode getAstcEmulationMode() {
-    return AstcEmulationMode::Gpu;
-//    return AstcEmulationMode::Cpu;
-}
-
 }  // namespace
 
 // |sInitialized| caches the initialized framebuffer state - this way
@@ -3279,7 +3274,6 @@ void FrameBuffer::createEmulatedEglFenceSync(EGLenum type, int destroyWhenSignal
         GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "RenderThreadInfoGl not available.";
     }
     if (!info->currContext) {
-        auto fb = FrameBuffer::getFB();
         uint32_t syncContext;
         uint32_t syncSurface;
         createTrivialContext(0,  // There is no context to share.
