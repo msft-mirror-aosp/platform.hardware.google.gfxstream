@@ -43,8 +43,6 @@ if (NOT TARGET gfxstream-gl-host-common)
             opengl/emugl_config.cpp
             # opengl/emugl_config_unittest.cpp
             opengl/GLProcessPipe.cpp
-            opengl/GpuFrameBridge.cpp
-            # opengl/GpuFrameBridge_unittest.cpp
             opengl/gpuinfo.cpp
             # opengl/gpuinfo_unittest.cpp
             opengl/logger.cpp
