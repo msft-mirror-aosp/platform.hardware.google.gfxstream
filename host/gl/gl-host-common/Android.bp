@@ -38,7 +38,6 @@ cc_library_static {
         "opengl/EmuglBackendList.cpp",
         "opengl/emugl_config.cpp",
         "opengl/GLProcessPipe.cpp",
-        "opengl/GpuFrameBridge.cpp",
         "opengl/gpuinfo.cpp",
         "opengl/logger.cpp",
         "opengl/misc.cpp",

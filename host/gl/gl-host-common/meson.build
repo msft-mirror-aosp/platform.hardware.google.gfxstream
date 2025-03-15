@@ -6,7 +6,6 @@ files_lib_gl_host_common = files(
   'opengl/EmuglBackendList.cpp',
   'opengl/emugl_config.cpp',
   'opengl/GLProcessPipe.cpp',
-  'opengl/GpuFrameBridge.cpp',
   'opengl/gpuinfo.cpp',
   'opengl/logger.cpp',
   'opengl/misc.cpp',
