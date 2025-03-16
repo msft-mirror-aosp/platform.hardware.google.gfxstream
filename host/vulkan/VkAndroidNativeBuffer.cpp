@@ -32,7 +32,7 @@
 namespace gfxstream {
 namespace vk {
 
-#define VK_ANB_ERR(fmt, ...) INFO(fmt, ##__VA_ARGS__);
+#define VK_ANB_ERR(fmt, ...) ERR(fmt, ##__VA_ARGS__);
 
 #define ENABLE_VK_ANB_DEBUG 0
 

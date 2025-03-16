@@ -1172,7 +1172,11 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
 
 // TODO(aruby@qnx.com): Remove once dmabuf extension support has been flushed out on QNX
 #if !defined(__QNX__)
-        bool dmaBufBlockList = deviceInfos[i].driverVendor == "NVIDIA (Vendor 0x10de)";
+        bool dmaBufBlockList = (deviceInfos[i].driverVendor == "NVIDIA (Vendor 0x10de)");
+#ifdef CONFIG_AEMU
+        // TODO(b/400999642): dma_buf support should be checked with image format support
+        dmaBufBlockList |= (deviceInfos[i].driverVendor == "radv (Vendor 0x1002)");
+#endif
         deviceInfos[i].supportsDmaBuf =
             extensionsSupported(deviceExts, {VK_EXT_EXTERNAL_MEMORY_DMA_BUF_EXTENSION_NAME}) &&
             !dmaBufBlockList;
@@ -2661,6 +2665,9 @@ bool VkEmulation::createVkColorBufferLocked(uint32_t width, uint32_t height, GLe
         mDeviceInfo.memProps.memoryTypes[infoPtr->memory.typeIndex].propertyFlags,
         infoPtr->memoryProperty);
 
+    const bool isHostVisible = (infoPtr->memoryProperty & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+    Optional<uint64_t> deviceAlignment =
+        (!extMemHandleInfo && isHostVisible) ? Optional<uint64_t>(memReqs.alignment) : kNullopt;
     Optional<VkImage> dedicatedImage = useDedicated ? Optional<VkImage>(infoPtr->image) : kNullopt;
     if (extMemHandleInfo) {
         VkMemoryDedicatedAllocateInfo dedicatedInfo = {
@@ -2683,9 +2690,6 @@ bool VkEmulation::createVkColorBufferLocked(uint32_t width, uint32_t height, GLe
 
         infoPtr->externalMemoryCompatible = true;
     } else {
-        bool isHostVisible = infoPtr->memoryProperty & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
-        Optional<uint64_t> deviceAlignment =
-            isHostVisible ? Optional<uint64_t>(memReqs.alignment) : kNullopt;
         bool allocRes = allocExternalMemory(vk, &infoPtr->memory, true /*actuallyExternal*/,
                                             deviceAlignment, kNullopt, dedicatedImage);
         if (!allocRes) {
@@ -2697,8 +2701,13 @@ bool VkEmulation::createVkColorBufferLocked(uint32_t width, uint32_t height, GLe
     }
 
     infoPtr->memory.pageOffset = reinterpret_cast<uint64_t>(infoPtr->memory.mappedPtr) % kPageSize;
-    infoPtr->memory.bindOffset =
-        infoPtr->memory.pageOffset ? kPageSize - infoPtr->memory.pageOffset : 0u;
+    if (deviceAlignment.hasValue()) {
+        infoPtr->memory.bindOffset =
+            infoPtr->memory.pageOffset ? kPageSize - infoPtr->memory.pageOffset : 0u;
+    } else {
+        // Allocated as aligned..
+        infoPtr->memory.bindOffset = 0;
+    }
 
     VkResult bindImageMemoryRes = vk->vkBindImageMemory(
         mDevice, infoPtr->image, infoPtr->memory.memory, infoPtr->memory.bindOffset);
