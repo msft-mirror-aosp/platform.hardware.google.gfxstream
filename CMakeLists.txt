@@ -44,6 +44,12 @@ add_definitions(-DGFXSTREAM_ENABLE_HOST_GLES=1)
 
 option(ASTC_CPU_DECODING "Enable decoding ASTC textures on the CPU" OFF)
 
+option(GFXSTREAM_ENABLE_HOST_TRACING "Enable Perfetto trace events on the host" OFF)
+if(GFXSTREAM_ENABLE_HOST_TRACING)
+    add_compile_definitions(GFXSTREAM_BUILD_WITH_TRACING)
+    add_compile_definitions(GFXSTREAM_BUILD_WITH_PERFETTO_SDK)
+endif()
+
 # For now the caller of the cmake script is responsible to create the angle_shader_translator
 # target.
 option(USE_ANGLE_SHADER_PARSER "Build with ANGLE shader parser." OFF)
