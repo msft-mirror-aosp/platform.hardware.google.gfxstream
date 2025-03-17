@@ -50,18 +50,6 @@ static void setIcdPaths(const std::string& icdFilename) {
     android::base::setEnvironmentVariable("VK_ICD_FILENAMES", paths);
 }
 
-static const char* getTestIcdFilename() {
-#if defined(__APPLE__)
-    return "libvk_swiftshader.dylib";
-#elif defined(__linux__) || defined(__QNX__)
-    return "libvk_swiftshader.so";
-#elif defined(_WIN32) || defined(_MSC_VER)
-    return "vk_swiftshader.dll";
-#else
-#error Host operating system not supported
-#endif
-}
-
 static void initIcdPaths(bool forTesting) {
     auto androidIcd = android::base::getEnvironmentVariable("ANDROID_EMU_VK_ICD");
     if (androidIcd == "") {

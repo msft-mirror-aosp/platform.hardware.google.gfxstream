@@ -74,8 +74,6 @@ using emugl::FatalError;
 constexpr size_t kPageBits = 12;
 constexpr size_t kPageSize = 1u << kPageBits;
 
-static int kMaxDebugMarkerAnnotations = 10;
-
 static std::optional<std::string> sMemoryLogPath = std::nullopt;
 
 const char* string_AstcEmulationMode(AstcEmulationMode mode) {
@@ -745,7 +743,7 @@ int VkEmulation::getSelectedGpuIndex(
 
         // Prefer discrete GPUs, then integrated and then others..
         const int deviceType = deviceInfo.physdevProps.deviceType;
-        deviceScore += deviceTypeScoreTable[deviceInfo.physdevProps.deviceType];
+        deviceScore += deviceTypeScoreTable[deviceType];
 
         // Prefer higher level of Vulkan API support, restrict version numbers to
         // common limits to ensure an always increasing scoring change
@@ -1650,7 +1648,7 @@ void VkEmulation::initFeatures(Features features) {
     INFO("    useVulkanComposition: %s", features.useVulkanComposition ? "true" : "false");
     INFO("    useVulkanNativeSwapchain: %s", features.useVulkanNativeSwapchain ? "true" : "false");
     INFO("    enable guestRenderDoc: %s", features.guestRenderDoc ? "true" : "false");
-    INFO("    ASTC LDR emulation mode: %d", features.astcLdrEmulationMode);
+    INFO("    ASTC LDR emulation mode: %s", string_AstcEmulationMode(features.astcLdrEmulationMode));
     INFO("    enable ETC2 emulation: %s", features.enableEtc2Emulation ? "true" : "false");
     INFO("    enable Ycbcr emulation: %s", features.enableYcbcrEmulation ? "true" : "false");
     INFO("    guestVulkanOnly: %s", features.guestVulkanOnly ? "true" : "false");
@@ -2537,7 +2535,6 @@ bool VkEmulation::createVkColorBufferLocked(uint32_t width, uint32_t height, GLe
     auto infoPtr = &mColorBuffers[colorBufferHandle];
 
     VkFormat vkFormat;
-    bool glCompatible = (infoPtr->frameworkFormat == FRAMEWORK_FORMAT_GL_COMPATIBLE);
     switch (infoPtr->frameworkFormat) {
         case FrameworkFormat::FRAMEWORK_FORMAT_GL_COMPATIBLE:
             vkFormat = glFormat2VkFormat(infoPtr->internalFormat);
