@@ -45,7 +45,6 @@ cc_library_headers {
         "include",
         "host",
         "host/gl",
-        "host/gl/glestranslator/include",
         "host/vulkan",
         "utils/include",
     ],

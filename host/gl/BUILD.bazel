@@ -30,9 +30,9 @@ objc_library(
 
 cc_library(
     name = "gl-common-headers",
-    hdrs = glob(["glestranslator/include/**/*.h"]),
+    hdrs = glob(["glestranslator/GLcommon/include/**/*.h"]),
     copts = ["-fno-exceptions"],
-    includes = ["glestranslator/include"],
+    includes = ["glestranslator/GLcommon/include"],
     visibility = ["//visibility:public"],
     deps = ["//hardware/google/gfxstream/host/apigen-codec-common"],
 )
