@@ -100,7 +100,7 @@ static std::optional<struct ResourceFormatInfo> VirglFormatInfo(uint32_t virglFo
 }
 
 VirtioGpuResourceType GetResourceType(const struct stream_renderer_resource_create_args& args) {
-    if (args.target == PIPE_BUFFER) {
+    if (args.target == PIPE_BUFFER && args.bind == VIRGL_BIND_CUSTOM) {
         return VirtioGpuResourceType::PIPE;
     }
 
