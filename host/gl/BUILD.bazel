@@ -1,3 +1,5 @@
+load("@rules_cc//cc:defs.bzl", "cc_library", "objc_library")
+
 cc_library(
     name = "gles1_dec",
     srcs = [
@@ -10,8 +12,8 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         ":GLSnapshot",
-        "//hardware/google/gfxstream/common/opengl:gfxstream_opengl_headers",
-        "//hardware/google/gfxstream/host/apigen-codec-common",
+        "//common/opengl:gfxstream_opengl_headers",
+        "//host/apigen-codec-common",
     ],
 )
 
@@ -23,8 +25,11 @@ objc_library(
     hdrs = ["gl-host-common/include/host-common/opengl/macTouchOpenGL.h"],
     defines = ["EMUGL_BUILD"],
     includes = ["gl-host-common/include"],
+    target_compatible_with = [
+        "@platforms//os:macos",
+    ],
     deps = [
-        "//hardware/google/gfxstream:gfxstream-gl-host-common-headers",
+        "//:gfxstream-gl-host-common-headers",
     ],
 )
 
@@ -34,7 +39,7 @@ cc_library(
     copts = ["-fno-exceptions"],
     includes = ["glestranslator/include"],
     visibility = ["//visibility:public"],
-    deps = ["//hardware/google/gfxstream/host/apigen-codec-common"],
+    deps = ["//host/apigen-codec-common"],
 )
 
 objc_library(
@@ -51,9 +56,12 @@ objc_library(
         "CoreGraphics",
         "OpenGL",
     ],
+    target_compatible_with = [
+        "@platforms//os:macos",
+    ],
     visibility = ["//visibility:public"],
     deps = [
-        "//hardware/google/gfxstream:gfxstream-gl-host-common-headers",
+        "//:gfxstream-gl-host-common-headers",
     ],
     alwayslink = True,
 )
@@ -103,16 +111,16 @@ cc_library(
     deps =
         [
             ":gl-common-headers",
-            "//hardware/google/aemu/host-common:aemu-host-common-headers",
-            "//hardware/google/aemu/snapshot:aemu-snapshot",
-            "//hardware/google/gfxstream:gfxstream-gl-host-common-headers",
-            "//hardware/google/gfxstream/common/etc:gfxstream_etc",
-            "//hardware/google/gfxstream/common/opengl:gfxstream_opengl_headers",
-            "//hardware/google/gfxstream/host:gfxstream_host_headers",
-            "//hardware/google/gfxstream/host/apigen-codec-common",
-            "//hardware/google/gfxstream/host/gl:gfxstream-gl-host-common",
-            "//hardware/google/gfxstream/host/gl/glestranslator/GLES_CM:GLES_CM_translator_static",
-            "//hardware/google/gfxstream/host/gl/glestranslator/GLES_V2:GLES_V2_translator_static",
+            "//:gfxstream-gl-host-common-headers",
+            "//common/etc:gfxstream_etc",
+            "//common/opengl:gfxstream_opengl_headers",
+            "//host:gfxstream_host_headers",
+            "//host/apigen-codec-common",
+            "//host/gl:gfxstream-gl-host-common",
+            "//host/gl/glestranslator/GLES_CM:GLES_CM_translator_static",
+            "//host/gl/glestranslator/GLES_V2:GLES_V2_translator_static",
+            "@aemu//host-common:aemu-host-common-headers",
+            "@aemu//snapshot:aemu-snapshot",
         ] + select({
             "@platforms//os:macos": [":egl_translator-darwin"],
             "//conditions:default": [],
@@ -155,10 +163,10 @@ cc_library(
     deps = [
         ":gl-common-headers",
         # "//external/angle:angle-headers",
-        "//hardware/google/gfxstream/common/opengl:gfxstream_opengl_headers",
-        "//hardware/google/aemu/snapshot:aemu-snapshot",
-        "//hardware/google/gfxstream/common/etc:gfxstream_etc",
-        "//hardware/google/gfxstream/host:gfxstream-compressedTextures",
+        "//common/opengl:gfxstream_opengl_headers",
+        "@aemu//snapshot:aemu-snapshot",
+        "//common/etc:gfxstream_etc",
+        "//host:gfxstream-compressedTextures",
     ],
 )
 
@@ -197,10 +205,10 @@ cc_library(
     }),
     visibility = ["//visibility:public"],
     deps = [
-        "//hardware/google/aemu/snapshot:aemu-snapshot",
-        "//hardware/google/gfxstream/common/opengl:gfxstream_opengl_headers",
-        "//hardware/google/gfxstream/host/apigen-codec-common",
-        "//hardware/google/gfxstream/host/features:gfxstream_features",
+        "//common/opengl:gfxstream_opengl_headers",
+        "//host/apigen-codec-common",
+        "//host/features:gfxstream_features",
+        "@aemu//snapshot:aemu-snapshot",
     ] + select({
         "@platforms//os:macos": ["gfxstream-gl-host-common-darwin"],
         "//conditions:default": [],
@@ -219,9 +227,9 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         ":GLSnapshot",
-        "//hardware/google/gfxstream:gfxstream-gl-host-common-headers",
-        "//hardware/google/gfxstream/common/opengl:gfxstream_opengl_headers",
-        "//hardware/google/gfxstream/host/apigen-codec-common",
+        "//:gfxstream-gl-host-common-headers",
+        "//common/opengl:gfxstream_opengl_headers",
+        "//host/apigen-codec-common",
     ],
 )
 
@@ -236,7 +244,7 @@ cc_library(
     defines = ["EMUGL_BUILD"],
     includes = ["glsnapshot"],
     visibility = ["//visibility:public"],
-    deps = ["//hardware/google/gfxstream/host/apigen-codec-common"],
+    deps = ["//host/apigen-codec-common"],
 )
 
 cc_library(
@@ -260,9 +268,9 @@ cc_library(
         ":EGL_translator_static",
         ":gles1_dec",
         ":gles2_dec",
-        "//hardware/google/gfxstream:gfxstream-gl-host-common-headers",
-        "//hardware/google/gfxstream/common/opengl:gfxstream_opengl_headers",
-        "//hardware/google/gfxstream/host/apigen-codec-common",
+        "//:gfxstream-gl-host-common-headers",
+        "//common/opengl:gfxstream_opengl_headers",
+        "//host/apigen-codec-common",
     ],
 )
 
@@ -305,10 +313,10 @@ cc_library(
         ":gfxstream-gl-host-common",
         ":gles1_dec",
         ":gles2_dec",
-        "//hardware/google/gfxstream:gfxstream-gl-host-common-headers",
-        "//hardware/google/gfxstream/host:gfxstream_host_headers",
-        "//hardware/google/gfxstream/host/apigen-codec-common",
-        "//hardware/google/gfxstream/host/gl:GLSnapshot",
+        "//:gfxstream-gl-host-common-headers",
+        "//host:gfxstream_host_headers",
+        "//host/apigen-codec-common",
+        "//host/gl:GLSnapshot",
     ],
 )
 

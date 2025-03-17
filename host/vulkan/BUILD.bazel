@@ -1,3 +1,5 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
 cc_library(
     name = "gfxstream-vulkan-server",
     srcs = [
@@ -62,18 +64,18 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         # "//external/angle:angle-headers",
-        "//hardware/google/aemu/snapshot:aemu-snapshot",
-        "//hardware/google/gfxstream/common/vulkan:gfxstream_vulkan_headers",
-        "//hardware/google/gfxstream/host:gfxstream-compressedTextures",
-        "//hardware/google/gfxstream/host:gfxstream_host_headers",
-        "//hardware/google/gfxstream/host/apigen-codec-common",
-        "//hardware/google/gfxstream/host/gl:gfxstream-gl-host-common",
-        "//hardware/google/gfxstream/host/gl:gl_headers",
-        "//hardware/google/gfxstream/host/vulkan:OpenglRender_vulkan_cereal",
-        "//hardware/google/gfxstream/host/vulkan:emulated_textures",
-        "//hardware/google/gfxstream/third-party/glm",
-        "//hardware/google/gfxstream/third-party/renderdoc",
-        "//hardware/google/gfxstream/utils:gfxstream_utils",
+        "@aemu//snapshot:aemu-snapshot",
+        "//common/vulkan:gfxstream_vulkan_headers",
+        "//host:gfxstream-compressedTextures",
+        "//host:gfxstream_host_headers",
+        "//host/apigen-codec-common",
+        "//host/gl:gfxstream-gl-host-common",
+        "//host/gl:gl_headers",
+        "//host/vulkan:OpenglRender_vulkan_cereal",
+        "//host/vulkan:emulated_textures",
+        "//third-party/glm",
+        "//third-party/renderdoc",
+        "//utils:gfxstream_utils",
     ],
 )
 
@@ -109,15 +111,15 @@ cc_library(
         "cereal/common",
     ],
     deps = [
-        "//hardware/google/aemu/base:aemu-base-headers",
-        "//hardware/google/aemu/host-common:aemu-host-common-headers",
-        "//hardware/google/gfxstream:gfxstream-gl-host-common-headers",
-        "//hardware/google/gfxstream/common/vulkan:gfxstream_vulkan_headers",
-        "//hardware/google/gfxstream/host:gfxstream_host_headers",
-        "//hardware/google/gfxstream/host/backend:gfxstream_backend",
-        "//hardware/google/gfxstream/host/features:gfxstream_features",
-        "//hardware/google/gfxstream/host/tracing:gfxstream_host_tracing",
-        "//hardware/google/gfxstream/utils:gfxstream_utils",
+        "//:gfxstream-gl-host-common-headers",
+        "//common/vulkan:gfxstream_vulkan_headers",
+        "//host:gfxstream_host_headers",
+        "//host/backend:gfxstream_backend",
+        "//host/features:gfxstream_features",
+        "//host/tracing:gfxstream_host_tracing",
+        "//utils:gfxstream_utils",
+        "@aemu//base:aemu-base-headers",
+        "@aemu//host-common:aemu-host-common-headers",
     ],
 )
 
@@ -150,10 +152,10 @@ cc_library(
         "cereal/common",
     ],
     deps = [
-        "//hardware/google/aemu/host-common:aemu-host-common-headers",
-        "//hardware/google/gfxstream:gfxstream-gl-host-common-headers",
-        "//hardware/google/gfxstream/common/vulkan:gfxstream_vulkan_headers",
-        "//hardware/google/gfxstream/host:gfxstream_host_headers",
-        "//hardware/google/gfxstream/utils:gfxstream_utils",
+        "//:gfxstream-gl-host-common-headers",
+        "//common/vulkan:gfxstream_vulkan_headers",
+        "//host:gfxstream_host_headers",
+        "//utils:gfxstream_utils",
+        "@aemu//host-common:aemu-host-common-headers",
     ],
 )

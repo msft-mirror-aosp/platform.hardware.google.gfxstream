@@ -1,3 +1,5 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
 cc_library(
     name = "GLES_CM_translator_static",
     srcs = [
@@ -12,11 +14,10 @@ cc_library(
     ],
     visibility = ["//visibility:public"],
     deps = [
-        "//external/angle:angle-headers",
-        "//hardware/google/aemu/snapshot:aemu-snapshot",
-        "//hardware/google/gfxstream:gfxstream-gl-host-common-headers",
-        "//hardware/google/gfxstream/host/apigen-codec-common",
-        "//hardware/google/gfxstream/host/gl:gl_common",
-        "//hardware/google/gfxstream/third-party/glm",
+        "//:gfxstream-gl-host-common-headers",
+        "//host/apigen-codec-common",
+        "//host/gl:gl_common",
+        "//third-party/glm",
+        "@aemu//snapshot:aemu-snapshot",
     ],
 )
