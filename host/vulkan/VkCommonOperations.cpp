@@ -1991,8 +1991,8 @@ bool VkEmulation::allocExternalMemory(VulkanDispatch* vk, VkEmulation::ExternalM
         VkResult allocRes = vk->vkAllocateMemory(mDevice, &allocInfo, nullptr, &info->memory);
 
         if (allocRes != VK_SUCCESS) {
-            VERBOSE("allocExternalMemory: failed in vkAllocateMemory: %s",
-                    string_VkResult(allocRes));
+            VERBOSE("%s: failed in vkAllocateMemory: %s",
+                    __func__, string_VkResult(allocRes));
             break;
         }
 
@@ -2001,7 +2001,7 @@ bool VkEmulation::allocExternalMemory(VulkanDispatch* vk, VkEmulation::ExternalM
             VkResult mapRes =
                 vk->vkMapMemory(mDevice, info->memory, 0, info->size, 0, &info->mappedPtr);
             if (mapRes != VK_SUCCESS) {
-                VERBOSE("allocExternalMemory: failed in vkMapMemory: %s", string_VkResult(mapRes));
+                VERBOSE("%s: failed in vkMapMemory: %s", __func__, string_VkResult(mapRes));
                 break;
             }
         }
@@ -2026,14 +2026,14 @@ bool VkEmulation::allocExternalMemory(VulkanDispatch* vk, VkEmulation::ExternalM
         } else {
             allocationAttempts.push_back(info->memory);
 
-            VERBOSE("allocExternalMemory: attempt #%zu failed; deviceAlignment: %" PRIu64
+            VERBOSE("%s: attempt #%zu failed; deviceAlignment: %" PRIu64
                     ", mappedPtrPageOffset: %" PRIu64,
-                    allocationAttempts.size(), deviceAlignment.valueOr(0), mappedPtrPageOffset);
+                    __func__, allocationAttempts.size(), deviceAlignment.valueOr(0), mappedPtrPageOffset);
 
             if (allocationAttempts.size() >= kMaxAllocationAttempts) {
                 VERBOSE(
-                    "allocExternalMemory: unable to allocate memory with CPU mapped ptr aligned to "
-                    "page");
+                    "%s: unable to allocate memory with CPU mapped ptr aligned to "
+                    "page", __func__);
                 break;
             }
         }
@@ -2112,8 +2112,8 @@ bool VkEmulation::allocExternalMemory(VulkanDispatch* vk, VkEmulation::ExternalM
 #endif
 
     if (exportRes != VK_SUCCESS || !validHandle) {
-        WARN("allocExternalMemory: Failed to get external memory, result: %s",
-             string_VkResult(exportRes));
+        WARN("%s: Failed to get external memory, result: %s",
+             __func__, string_VkResult(exportRes));
         return false;
     }
 
@@ -2687,10 +2687,8 @@ bool VkEmulation::createVkColorBufferLocked(uint32_t width, uint32_t height, GLe
 
     const VkFormat imageVkFormat = infoPtr->imageCreateInfoShallow.format;
     VERBOSE(
-        "ColorBuffer %d, dimensions: %dx%d, format: %s, "
-        "allocation size and type index: %lu, %d, "
-        "allocated memory property: %d, "
-        "requested memory property: %d",
+        "ColorBuffer %u, %ux%u, %s, "
+        "Memory [size: %llu, type: %d, props: %u / %u]",
         colorBufferHandle, infoPtr->width, infoPtr->height, string_VkFormat(imageVkFormat),
         infoPtr->memory.size, infoPtr->memory.typeIndex,
         mDeviceInfo.memProps.memoryTypes[infoPtr->memory.typeIndex].propertyFlags,
