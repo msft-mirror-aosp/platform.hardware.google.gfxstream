@@ -55,12 +55,12 @@ struct OrderMaintenanceInfo {
     bool decRef() { return 0 == __atomic_sub_fetch(&refcount, 1, __ATOMIC_SEQ_CST); }
 };
 
-static void acquireOrderMaintInfo(OrderMaintenanceInfo* ord) {
+inline void acquireOrderMaintInfo(OrderMaintenanceInfo* ord) {
     if (!ord) return;
     ord->incRef();
 }
 
-static void releaseOrderMaintInfo(OrderMaintenanceInfo* ord) {
+inline void releaseOrderMaintInfo(OrderMaintenanceInfo* ord) {
     if (!ord) return;
     if (ord->decRef()) delete ord;
 }

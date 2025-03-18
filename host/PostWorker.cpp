@@ -23,7 +23,6 @@
 #include "FrameBuffer.h"
 #include "RenderThreadInfo.h"
 #include "aemu/base/Tracing.h"
-#include "host-common/GfxstreamFatalError.h"
 #include "host-common/logging.h"
 #include "host-common/misc.h"
 #include "vulkan/VkCommonOperations.h"
@@ -35,25 +34,6 @@ static void sDefaultRunOnUiThread(UiUpdateFunc f, void* data, bool wait) {
 }
 
 namespace gfxstream {
-namespace {
-
-using emugl::ABORT_REASON_OTHER;
-using emugl::FatalError;
-
-hwc_transform_t getTransformFromRotation(int rotation) {
-    switch (static_cast<int>(rotation / 90)) {
-        case 1:
-            return HWC_TRANSFORM_ROT_270;
-        case 2:
-            return HWC_TRANSFORM_ROT_180;
-        case 3:
-            return HWC_TRANSFORM_ROT_90;
-        default:
-            return HWC_TRANSFORM_NONE;
-    }
-}
-
-}  // namespace
 
 PostWorker::PostWorker(bool mainThreadPostingOnly, FrameBuffer* fb, Compositor* compositor)
     : mFb(fb),
