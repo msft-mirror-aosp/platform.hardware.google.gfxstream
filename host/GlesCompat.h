@@ -19,7 +19,6 @@
 
 typedef unsigned int GLenum;
 typedef int32_t EGLint;
-// typedef void *EGLNativeDisplayType;
 typedef unsigned int EGLNativeWindowType;
 
 namespace gfxstream {

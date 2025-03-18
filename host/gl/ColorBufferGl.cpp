@@ -21,13 +21,13 @@
 
 #include "BorrowedImageGl.h"
 #include "DebugGl.h"
+#include "GLcommon/GLutils.h"
 #include "OpenGLESDispatch/DispatchTables.h"
 #include "OpenGLESDispatch/EGLDispatch.h"
 #include "RenderThreadInfoGl.h"
 #include "TextureDraw.h"
 #include "TextureResize.h"
 #include "gl/YUVConverter.h"
-#include "glestranslator/include/GLcommon/GLutils.h"
 #include "host-common/GfxstreamFatalError.h"
 #include "host-common/opengl/misc.h"
 

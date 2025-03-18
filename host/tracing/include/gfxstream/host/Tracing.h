@@ -26,7 +26,11 @@
 
 #ifdef GFXSTREAM_BUILD_WITH_TRACING
 
+#ifdef GFXSTREAM_BUILD_WITH_PERFETTO_SDK
+#include <perfetto.h>
+#else
 #include <perfetto/tracing.h>
+#endif
 
 PERFETTO_DEFINE_CATEGORIES(perfetto::Category(GFXSTREAM_TRACE_DEFAULT_CATEGORY)
                                .SetDescription("Default events")

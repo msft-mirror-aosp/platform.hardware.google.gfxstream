@@ -217,6 +217,21 @@ if(WITH_BENCHMARK)
     endif()
 endif()
 
+if(GFXSTREAM_ENABLE_HOST_TRACING)
+    if(DEPENDENCY_RESOLUTION STREQUAL "AOSP")
+        set(GFXSTREAM_PERFETTO_PATH ${PROJECT_SOURCE_DIR}/../../../external/perfetto)
+        if(NOT EXISTS ${GFXSTREAM_PERFETTO_PATH})
+            message(FATAL_ERROR "Perfetto is not found.")
+        endif()
+        add_library(perfetto
+                    STATIC
+                    ${GFXSTREAM_PERFETTO_PATH}/sdk/perfetto.cc)
+        target_include_directories(perfetto
+                                   INTERFACE
+                                   ${GFXSTREAM_PERFETTO_PATH}/sdk)
+    endif()
+endif()
+
 if(NOT TARGET libdrm_headers)
     if(DEPENDENCY_RESOLUTION STREQUAL "AOSP")
         set(LIBDRM_PATH ${PROJECT_SOURCE_DIR}/../../../external/libdrm)
