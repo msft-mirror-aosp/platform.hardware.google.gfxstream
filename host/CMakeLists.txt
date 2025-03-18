@@ -126,9 +126,14 @@ endif()
 target_compile_options(
     gfxstream_backend_static
     PRIVATE
-    -Wno-invalid-offsetof
-    -Wno-free-nonheap-object
-    -Wno-attributes
+    -Wall
+    -Wextra
+    -Werror
+    -Wno-missing-field-initializers
+    -Wno-unused-parameter
+    -Wno-unused-private-field
+    -Wno-return-type-c-linkage
+    -Wno-extern-c-compat
     -DGFXSTREAM_ENABLE_HOST_GLES=1
     )
 

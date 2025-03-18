@@ -108,7 +108,8 @@ CompositorVk::RenderTarget::RenderTarget(const VulkanDispatch& vk, VkDevice vkDe
       m_height(height) {
     if (vkImageView == VK_NULL_HANDLE) {
         GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-            << "CompositorVk found empty image view handle when creating RenderTarget.";
+            << "CompositorVk found empty image view handle when creating RenderTarget. Image: "
+            << m_vkImage << " Dimensions: " << m_width << "x" << m_height;
     }
 
     const VkFramebufferCreateInfo framebufferCi = {
@@ -1319,6 +1320,7 @@ CompositorVk::CompositionFinishedWaitable CompositorVk::compose(
     std::shared_future<PerFrameResources*> composeCompleteFutureForResources =
         std::async(std::launch::deferred, [composeCompleteFence, frameResources, traceId,
                                            this]() mutable {
+            (void)traceId;
             GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DEFAULT_CATEGORY, "Wait for compose fence",
                                   GFXSTREAM_TRACE_FLOW(traceId));
 
