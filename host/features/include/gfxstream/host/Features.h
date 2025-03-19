@@ -221,8 +221,10 @@ struct FeatureSet {
     };
     FeatureInfo BypassVulkanDeviceFeatureOverrides = {
         "BypassVulkanDeviceFeatureOverrides",
-        "We are force disabling (overriding) some vulkan features (private data, uniform inline block etc) which the device may naturally support."
-        "If toggled ON, this flag will cause the host side to not force disable anything and let the device fully advertise supported features.",
+        "We are force disabling (overriding) some vulkan features (private data, uniform inline "
+        "block etc) which the device may naturally support."
+        "If toggled ON, this flag will cause the host side to not force disable anything and let "
+        "the device fully advertise supported features.",
         &map,
     };
     FeatureInfo VulkanAllocateDeviceMemoryOnly = {
@@ -321,7 +323,14 @@ struct FeatureSet {
         "device properties for the guest queries.",
         &map,
     };
+    FeatureInfo VulkanRobustness = {
+        "VulkanRobustness",
+        "If enabled, robustness extensions with all supported features will be enabled on "
+        "all created devices. (e.g. VK_EXT_robustness2)",
+        &map,
+    };
 };
+
 struct FeatureDependencyHandler {
     FeatureDependencyHandler(const FeatureSet& set) : featureSetView(set){}
     const FeatureSet& featureSetView;

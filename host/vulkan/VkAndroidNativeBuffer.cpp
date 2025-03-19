@@ -201,6 +201,10 @@ std::unique_ptr<AndroidNativeBufferInfo> AndroidNativeBufferInfo::create(
                 importedColorBufferInfo.height);
             return nullptr;
         }
+
+        // Update create flags to match the color buffer imported
+        createImageCi.flags = importedColorBufferInfo.imageCreateInfoShallow.flags;
+
         const auto& importedColorBufferMemoryInfo = importedColorBufferInfo.memory;
 
         // VkBindImageMemorySwapchainInfoKHR may be included from the guest but
@@ -234,6 +238,18 @@ std::unique_ptr<AndroidNativeBufferInfo> AndroidNativeBufferInfo::create(
         }
 
         vk->vkGetImageMemoryRequirements(out->mDevice, out->mImage, &out->mImageMemoryRequirements);
+
+        if (out->mImageMemoryRequirements.size > importedColorBufferMemoryInfo.size) {
+            VK_ANB_ERR(
+                "Failed to prepare ANB image: attempted to import memory that is not large enough "
+                "for the VkImage: image memory requirements size:%llu vs actual memory size:%llu, "
+                "CB: %u, %s, %ux%u",
+                out->mImageMemoryRequirements.size, importedColorBufferMemoryInfo.size,
+                importedColorBufferHandle, string_VkFormat(createImageCi.format),
+                createImageCi.extent.width, createImageCi.extent.height);
+
+            return nullptr;
+        }
 
         if (out->mImageMemoryRequirements.size < importedColorBufferMemoryInfo.size) {
             out->mImageMemoryRequirements.size = importedColorBufferMemoryInfo.size;
@@ -824,6 +840,7 @@ VkResult AndroidNativeBufferInfo::on_vkQueueSignalReleaseImageANDROID(
     std::lock_guard<std::mutex> qLock(*queueMutex);
     VK_CHECK(vk->vkQueueSubmit(queueState.queue, 1, &submitInfo, qsriFence));
     auto waitForQsriFenceTask = [this, vk, device = mDevice, qsriFence, traceId] {
+        (void)traceId;
         GFXSTREAM_TRACE_EVENT(GFXSTREAM_TRACE_DEFAULT_CATEGORY, "Wait for QSRI fence",
                               GFXSTREAM_TRACE_FLOW(traceId));
 

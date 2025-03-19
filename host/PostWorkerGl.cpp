@@ -221,7 +221,6 @@ DisplayGl::PostLayer PostWorkerGl::postWithOverlay(ColorBuffer* cb) {
     float px = mFb->getPx();
     float py = mFb->getPy();
     int zRot = mFb->getZrot();
-    hwc_transform_t rotation = (hwc_transform_t)0;
 
     // Find the x and y values at the origin when "fully scrolled."
     // Multiply by 2 because the texture goes from -1 to 1, not 0 to 1.

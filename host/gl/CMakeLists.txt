@@ -40,6 +40,7 @@ target_link_libraries(
         gfxstream_egl_headers
         gles1_dec
         gles2_dec
+        GLcommon
         GLSnapshot
         OpenGLESDispatch)
 

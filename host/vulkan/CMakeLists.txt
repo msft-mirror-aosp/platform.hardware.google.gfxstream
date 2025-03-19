@@ -35,6 +35,8 @@ add_library(gfxstream-vulkan-server
             VulkanStream.cpp
             vk_util.cpp)
 set_source_files_properties(VkDecoder.cpp PROPERTIES COMPILE_FLAGS -Wno-unused-variable)
+set_source_files_properties(VkSubDecoder.cpp PROPERTIES COMPILE_FLAGS -Wno-unused-variable)
+set_source_files_properties(VkDecoderSnapshot.cpp PROPERTIES COMPILE_FLAGS -Wno-unused-variable)
 
 target_link_libraries(gfxstream-vulkan-server PUBLIC
         OpenglRender_vulkan_cereal
@@ -62,7 +64,17 @@ endif()
 if (NOT MSVC)
     target_compile_options(gfxstream-vulkan-server PRIVATE -fvisibility=hidden)
 endif()
-target_compile_options(gfxstream-vulkan-server PRIVATE -Wno-unused-value -Wno-return-type -Wno-return-type-c-linkage)
+target_compile_options(gfxstream-vulkan-server
+    PRIVATE
+    -Wall
+    -Wextra
+    -Werror
+    -Wno-missing-field-initializers
+    -Wno-unused-parameter
+    -Wno-unused-private-field
+    -Wno-return-type-c-linkage
+    -Wno-extern-c-compat
+    )
 
 target_include_directories(gfxstream-vulkan-server
                            PUBLIC
@@ -72,6 +84,7 @@ target_include_directories(gfxstream-vulkan-server
                            ${GFXSTREAM_REPO_ROOT}
                            ${GFXSTREAM_REPO_ROOT}/include
                            ${GFXSTREAM_REPO_ROOT}/host
+                           ${GFXSTREAM_REPO_ROOT}/host/tracing
                            ${GFXSTREAM_REPO_ROOT}/host/vulkan
                            ${GFXSTREAM_REPO_ROOT}/host/vulkan/cereal/common
                            ${GFXSTREAM_REPO_ROOT}/host/apigen-codec-common
