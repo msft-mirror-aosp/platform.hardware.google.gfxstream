@@ -571,6 +571,11 @@ static std::string decodeDriverVersion(uint32_t vendorId, uint32_t driverVersion
         {VK_FORMAT_B8G8R8A8_UNORM,
          VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT | VK_IMAGE_CREATE_EXTENDED_USAGE_BIT},
 
+        {VK_FORMAT_B4G4R4A4_UNORM_PACK16,
+         VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT | VK_IMAGE_CREATE_EXTENDED_USAGE_BIT},
+        {VK_FORMAT_R4G4B4A4_UNORM_PACK16,
+         VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT | VK_IMAGE_CREATE_EXTENDED_USAGE_BIT},
+
         {VK_FORMAT_R8_UNORM,
          VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT | VK_IMAGE_CREATE_EXTENDED_USAGE_BIT},
         {VK_FORMAT_R16_UNORM,
@@ -2262,7 +2267,7 @@ static VkFormat glFormat2VkFormat(GLint internalFormat) {
             // b/281550953
             // RGB8 is not supported on many vulkan drivers.
             // Try RGBA8 instead.
-            // Note: copyImageData() performs channel conversion for this case.
+            // Note: updateColorBufferFromBytesLocked() performs channel conversion for this case.
             return VK_FORMAT_R8G8B8A8_UNORM;
         case GL_RGB565:
             return VK_FORMAT_R5G6B5_UNORM_PACK16;
@@ -2273,8 +2278,19 @@ static VkFormat glFormat2VkFormat(GLint internalFormat) {
             return VK_FORMAT_R8G8B8A8_UNORM;
         case GL_RGB5_A1_OES:
             return VK_FORMAT_A1R5G5B5_UNORM_PACK16;
-        case GL_RGBA4_OES:
+        case GL_RGBA4_OES: {
+            // TODO: add R4G4B4A4 support to lavapipe, and check support programmatically
+            const bool lavapipe =
+                (android::base::getEnvironmentVariable("ANDROID_EMU_VK_ICD").compare("lavapipe") ==
+                 0);
+            if (lavapipe) {
+                // RGBA4 is not supported on lavapipe, use more widely available BGRA4 instead.
+                // Note: updateColorBufferFromBytesLocked() performs channel conversion for this
+                // case.
+                return VK_FORMAT_B4G4R4A4_UNORM_PACK16;
+            }
             return VK_FORMAT_R4G4B4A4_UNORM_PACK16;
+        }
         case GL_RGB10_A2:
         case GL_UNSIGNED_INT_10_10_10_2_OES:
             return VK_FORMAT_A2R10G10B10_UNORM_PACK32;
@@ -3219,6 +3235,20 @@ static void convertRgbToRgbaPixels(void* dst, const void* src, uint32_t w, uint3
     }
 }
 
+static void convertRgba4ToBGRA4Pixels(void* dst, const void* src, uint32_t w, uint32_t h) {
+    const size_t pixelCount = w * h;
+    const uint16_t* srcPixels = reinterpret_cast<const uint16_t*>(src);
+    uint16_t* dstPixels = reinterpret_cast<uint16_t*>(dst);
+    for (size_t i = 0; i < pixelCount; ++i) {
+        const uint16_t rgba4_pixel = srcPixels[i];
+        const uint8_t red = (rgba4_pixel >> 12) & 0xF;
+        const uint8_t green = (rgba4_pixel >> 8) & 0xF;
+        const uint8_t blue = (rgba4_pixel >> 4) & 0xF;
+        const uint8_t alpha = rgba4_pixel & 0xF;
+        dstPixels[i] = (blue << 12) | (green << 8) | (red << 4) | alpha;
+    }
+}
+
 bool VkEmulation::updateColorBufferFromBytesLocked(uint32_t colorBufferHandle, uint32_t x,
                                                    uint32_t y, uint32_t w, uint32_t h,
                                                    const void* pixels, size_t inputPixelsSize) {
@@ -3241,9 +3271,10 @@ bool VkEmulation::updateColorBufferFromBytesLocked(uint32_t colorBufferHandle, u
         return false;
     }
 
+    const VkFormat creationFormat = colorBufferInfo->imageCreateInfoShallow.format;
     VkDeviceSize dstBufferSize = 0;
     std::vector<VkBufferImageCopy> bufferImageCopies;
-    if (!getFormatTransferInfo(colorBufferInfo->imageCreateInfoShallow.format,
+    if (!getFormatTransferInfo(creationFormat,
                                colorBufferInfo->imageCreateInfoShallow.extent.width,
                                colorBufferInfo->imageCreateInfoShallow.extent.height,
                                &dstBufferSize, &bufferImageCopies)) {
@@ -3258,10 +3289,11 @@ bool VkEmulation::updateColorBufferFromBytesLocked(uint32_t colorBufferHandle, u
             colorBufferHandle, dstBufferSize, stagingBufferSize);
         return false;
     }
-
-    bool isThreeByteRgb =
+    const bool isRGBA4onBGRA4 = (colorBufferInfo->internalFormat == GL_RGBA4_OES) &&
+                          (creationFormat == VK_FORMAT_B4G4R4A4_UNORM_PACK16);
+    const bool isThreeByteRgb =
         (colorBufferInfo->internalFormat == GL_RGB || colorBufferInfo->internalFormat == GL_RGB8);
-    size_t expectedInputSize = (isThreeByteRgb ? dstBufferSize / 4 * 3 : dstBufferSize);
+    const size_t expectedInputSize = (isThreeByteRgb ? dstBufferSize / 4 * 3 : dstBufferSize);
 
     if (inputPixelsSize != 0 && inputPixelsSize != expectedInputSize) {
         ERR("Unexpected contents size when trying to update ColorBuffer:%d, "
@@ -3277,6 +3309,8 @@ bool VkEmulation::updateColorBufferFromBytesLocked(uint32_t colorBufferHandle, u
         // an incompatible choice of 4-byte backing VK_FORMAT_R8G8B8A8_UNORM.
         // b/281550953
         convertRgbToRgbaPixels(stagingBufferPtr, pixels, w, h);
+    } else if(isRGBA4onBGRA4) {
+        convertRgba4ToBGRA4Pixels(stagingBufferPtr, pixels, w, h);
     } else {
         std::memcpy(stagingBufferPtr, pixels, dstBufferSize);
     }
