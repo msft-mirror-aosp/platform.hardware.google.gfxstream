@@ -655,7 +655,10 @@ void loadBufferContent(android::base::Stream* stream, StateBlock* stateBlock, Vk
     _RUN_AND_CHECK(dispatch->vkMapMemory(stateBlock->device, stagingMemory, 0, VK_WHOLE_SIZE,
                                          VkMemoryMapFlags{}, &mapped));
     size_t bufferSize = stream->getBe64();
-    assert(bufferSize == bufferInfo->size);
+    if (bufferSize != bufferInfo->size) {
+        GFXSTREAM_ABORT(emugl::FatalError(emugl::ABORT_REASON_OTHER))
+            << "Failed to read buffer on snapshot load";
+    }
     stream->read(mapped, bufferInfo->size);
 
     VkBufferCopy bufferCopy = {
@@ -669,7 +672,7 @@ void loadBufferContent(android::base::Stream* stream, StateBlock* stateBlock, Vk
     };
     if (dispatch->vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS) {
         GFXSTREAM_ABORT(emugl::FatalError(emugl::ABORT_REASON_OTHER))
-            << "Failed to start command buffer on snapshot save";
+            << "Failed to start command buffer on snapshot load";
     }
     dispatch->vkCmdCopyBuffer(commandBuffer, stagingBuffer, buffer, 1, &bufferCopy);
     VkBufferMemoryBarrier barrier{.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,

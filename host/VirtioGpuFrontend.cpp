@@ -806,6 +806,9 @@ int VirtioGpuFrontend::createBlob(uint32_t contextId, uint32_t resourceId,
     auto& context = contextIt->second;
 
     auto createArgs = context.TakePendingBlob(createBlobArgs->blob_id);
+    if (createArgs) {
+        createArgs->handle = resourceId;
+    }
 
     auto resourceOpt =
         VirtioGpuResource::Create(mFeatures, mPageSize, contextId, resourceId,

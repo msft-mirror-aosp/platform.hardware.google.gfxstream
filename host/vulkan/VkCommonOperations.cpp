@@ -74,8 +74,6 @@ using emugl::FatalError;
 constexpr size_t kPageBits = 12;
 constexpr size_t kPageSize = 1u << kPageBits;
 
-static int kMaxDebugMarkerAnnotations = 10;
-
 static std::optional<std::string> sMemoryLogPath = std::nullopt;
 
 const char* string_AstcEmulationMode(AstcEmulationMode mode) {
@@ -573,6 +571,11 @@ static std::string decodeDriverVersion(uint32_t vendorId, uint32_t driverVersion
         {VK_FORMAT_B8G8R8A8_UNORM,
          VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT | VK_IMAGE_CREATE_EXTENDED_USAGE_BIT},
 
+        {VK_FORMAT_B4G4R4A4_UNORM_PACK16,
+         VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT | VK_IMAGE_CREATE_EXTENDED_USAGE_BIT},
+        {VK_FORMAT_R4G4B4A4_UNORM_PACK16,
+         VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT | VK_IMAGE_CREATE_EXTENDED_USAGE_BIT},
+
         {VK_FORMAT_R8_UNORM,
          VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT | VK_IMAGE_CREATE_EXTENDED_USAGE_BIT},
         {VK_FORMAT_R16_UNORM,
@@ -745,7 +748,7 @@ int VkEmulation::getSelectedGpuIndex(
 
         // Prefer discrete GPUs, then integrated and then others..
         const int deviceType = deviceInfo.physdevProps.deviceType;
-        deviceScore += deviceTypeScoreTable[deviceInfo.physdevProps.deviceType];
+        deviceScore += deviceTypeScoreTable[deviceType];
 
         // Prefer higher level of Vulkan API support, restrict version numbers to
         // common limits to ensure an always increasing scoring change
@@ -1222,6 +1225,15 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
                 vk_append_struct(&features2Chain, &privateDataFeatures);
             }
 
+            VkPhysicalDeviceRobustness2FeaturesEXT robustness2Features = {
+                .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_FEATURES_EXT};
+            const bool robustnessRequested = emulation->mFeatures.VulkanRobustness.enabled;
+            const bool robustnessSupported =
+                extensionsSupported(deviceExts, {VK_EXT_ROBUSTNESS_2_EXTENSION_NAME});
+            if (robustnessRequested && robustnessSupported) {
+                vk_append_struct(&features2Chain, &robustness2Features);
+            }
+
             emulation->mGetPhysicalDeviceFeatures2Func(physicalDevices[i], &features2);
 
             deviceInfos[i].supportsSamplerYcbcrConversion =
@@ -1231,6 +1243,15 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
                 deviceDiagnosticsConfigFeatures.diagnosticsConfig == VK_TRUE;
 
             deviceInfos[i].supportsPrivateData = (privateDataFeatures.privateData == VK_TRUE);
+
+            // Enable robustness only when requested
+            if (robustnessRequested && robustnessSupported) {
+                deviceInfos[i].robustness2Features = vk_make_orphan_copy(robustness2Features);
+            } else if (robustnessRequested) {
+                WARN(
+                    "VulkanRobustness was requested but the "
+                    "VK_EXT_robustness2 extension is not supported.");
+            }
 
 #if defined(__QNX__)
             deviceInfos[i].supportsExternalMemoryImport =
@@ -1360,6 +1381,10 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
     }
 #endif
 
+    if (emulation->mDeviceInfo.robustness2Features) {
+        selectedDeviceExtensionNames_.emplace(VK_EXT_ROBUSTNESS_2_EXTENSION_NAME);
+    }
+
     std::vector<const char*> selectedDeviceExtensionNames(selectedDeviceExtensionNames_.begin(),
                                                           selectedDeviceExtensionNames_.end());
 
@@ -1422,6 +1447,14 @@ std::unique_ptr<VkEmulation> VkEmulation::create(VulkanDispatch* gvk,
         WARN(
             "VulkanCommandBufferCheckpoints was requested but the "
             "VK_NV_device_diagnostic_checkpoints extension is not supported.");
+    }
+
+    VkPhysicalDeviceRobustness2FeaturesEXT r2features = {};
+    if (emulation->mDeviceInfo.robustness2Features) {
+        r2features = *emulation->mDeviceInfo.robustness2Features;
+        INFO("Enabling VK_EXT_robustness2 (%d %d %d).", r2features.robustBufferAccess2,
+             r2features.robustImageAccess2, r2features.nullDescriptor);
+        vk_append_struct(&deviceCiChain, &r2features);
     }
 
     ivk->vkCreateDevice(emulation->mPhysicalDevice, &dCi, nullptr, &emulation->mDevice);
@@ -1650,7 +1683,7 @@ void VkEmulation::initFeatures(Features features) {
     INFO("    useVulkanComposition: %s", features.useVulkanComposition ? "true" : "false");
     INFO("    useVulkanNativeSwapchain: %s", features.useVulkanNativeSwapchain ? "true" : "false");
     INFO("    enable guestRenderDoc: %s", features.guestRenderDoc ? "true" : "false");
-    INFO("    ASTC LDR emulation mode: %d", features.astcLdrEmulationMode);
+    INFO("    ASTC LDR emulation mode: %s", string_AstcEmulationMode(features.astcLdrEmulationMode));
     INFO("    enable ETC2 emulation: %s", features.enableEtc2Emulation ? "true" : "false");
     INFO("    enable Ycbcr emulation: %s", features.enableYcbcrEmulation ? "true" : "false");
     INFO("    guestVulkanOnly: %s", features.guestVulkanOnly ? "true" : "false");
@@ -1757,6 +1790,10 @@ bool VkEmulation::supportsDmaBuf() const { return mDeviceInfo.supportsDmaBuf; }
 
 bool VkEmulation::supportsExternalMemoryHostProperties() const {
     return mDeviceInfo.supportsExternalMemoryHostProps;
+}
+
+std::optional<VkPhysicalDeviceRobustness2FeaturesEXT> VkEmulation::getRobustness2Features() const {
+    return mDeviceInfo.robustness2Features;
 }
 
 VkPhysicalDeviceExternalMemoryHostPropertiesEXT VkEmulation::externalMemoryHostProperties() const {
@@ -1959,8 +1996,8 @@ bool VkEmulation::allocExternalMemory(VulkanDispatch* vk, VkEmulation::ExternalM
         VkResult allocRes = vk->vkAllocateMemory(mDevice, &allocInfo, nullptr, &info->memory);
 
         if (allocRes != VK_SUCCESS) {
-            VERBOSE("allocExternalMemory: failed in vkAllocateMemory: %s",
-                    string_VkResult(allocRes));
+            VERBOSE("%s: failed in vkAllocateMemory: %s",
+                    __func__, string_VkResult(allocRes));
             break;
         }
 
@@ -1969,7 +2006,7 @@ bool VkEmulation::allocExternalMemory(VulkanDispatch* vk, VkEmulation::ExternalM
             VkResult mapRes =
                 vk->vkMapMemory(mDevice, info->memory, 0, info->size, 0, &info->mappedPtr);
             if (mapRes != VK_SUCCESS) {
-                VERBOSE("allocExternalMemory: failed in vkMapMemory: %s", string_VkResult(mapRes));
+                VERBOSE("%s: failed in vkMapMemory: %s", __func__, string_VkResult(mapRes));
                 break;
             }
         }
@@ -1994,14 +2031,14 @@ bool VkEmulation::allocExternalMemory(VulkanDispatch* vk, VkEmulation::ExternalM
         } else {
             allocationAttempts.push_back(info->memory);
 
-            VERBOSE("allocExternalMemory: attempt #%zu failed; deviceAlignment: %" PRIu64
+            VERBOSE("%s: attempt #%zu failed; deviceAlignment: %" PRIu64
                     ", mappedPtrPageOffset: %" PRIu64,
-                    allocationAttempts.size(), deviceAlignment.valueOr(0), mappedPtrPageOffset);
+                    __func__, allocationAttempts.size(), deviceAlignment.valueOr(0), mappedPtrPageOffset);
 
             if (allocationAttempts.size() >= kMaxAllocationAttempts) {
                 VERBOSE(
-                    "allocExternalMemory: unable to allocate memory with CPU mapped ptr aligned to "
-                    "page");
+                    "%s: unable to allocate memory with CPU mapped ptr aligned to "
+                    "page", __func__);
                 break;
             }
         }
@@ -2080,8 +2117,8 @@ bool VkEmulation::allocExternalMemory(VulkanDispatch* vk, VkEmulation::ExternalM
 #endif
 
     if (exportRes != VK_SUCCESS || !validHandle) {
-        WARN("allocExternalMemory: Failed to get external memory, result: %s",
-             string_VkResult(exportRes));
+        WARN("%s: Failed to get external memory, result: %s",
+             __func__, string_VkResult(exportRes));
         return false;
     }
 
@@ -2230,7 +2267,7 @@ static VkFormat glFormat2VkFormat(GLint internalFormat) {
             // b/281550953
             // RGB8 is not supported on many vulkan drivers.
             // Try RGBA8 instead.
-            // Note: copyImageData() performs channel conversion for this case.
+            // Note: updateColorBufferFromBytesLocked() performs channel conversion for this case.
             return VK_FORMAT_R8G8B8A8_UNORM;
         case GL_RGB565:
             return VK_FORMAT_R5G6B5_UNORM_PACK16;
@@ -2241,8 +2278,19 @@ static VkFormat glFormat2VkFormat(GLint internalFormat) {
             return VK_FORMAT_R8G8B8A8_UNORM;
         case GL_RGB5_A1_OES:
             return VK_FORMAT_A1R5G5B5_UNORM_PACK16;
-        case GL_RGBA4_OES:
+        case GL_RGBA4_OES: {
+            // TODO: add R4G4B4A4 support to lavapipe, and check support programmatically
+            const bool lavapipe =
+                (android::base::getEnvironmentVariable("ANDROID_EMU_VK_ICD").compare("lavapipe") ==
+                 0);
+            if (lavapipe) {
+                // RGBA4 is not supported on lavapipe, use more widely available BGRA4 instead.
+                // Note: updateColorBufferFromBytesLocked() performs channel conversion for this
+                // case.
+                return VK_FORMAT_B4G4R4A4_UNORM_PACK16;
+            }
             return VK_FORMAT_R4G4B4A4_UNORM_PACK16;
+        }
         case GL_RGB10_A2:
         case GL_UNSIGNED_INT_10_10_10_2_OES:
             return VK_FORMAT_A2R10G10B10_UNORM_PACK32;
@@ -2537,7 +2585,6 @@ bool VkEmulation::createVkColorBufferLocked(uint32_t width, uint32_t height, GLe
     auto infoPtr = &mColorBuffers[colorBufferHandle];
 
     VkFormat vkFormat;
-    bool glCompatible = (infoPtr->frameworkFormat == FRAMEWORK_FORMAT_GL_COMPATIBLE);
     switch (infoPtr->frameworkFormat) {
         case FrameworkFormat::FRAMEWORK_FORMAT_GL_COMPATIBLE:
             vkFormat = glFormat2VkFormat(infoPtr->internalFormat);
@@ -2656,10 +2703,8 @@ bool VkEmulation::createVkColorBufferLocked(uint32_t width, uint32_t height, GLe
 
     const VkFormat imageVkFormat = infoPtr->imageCreateInfoShallow.format;
     VERBOSE(
-        "ColorBuffer %d, dimensions: %dx%d, format: %s, "
-        "allocation size and type index: %lu, %d, "
-        "allocated memory property: %d, "
-        "requested memory property: %d",
+        "ColorBuffer %u, %ux%u, %s, "
+        "Memory [size: %llu, type: %d, props: %u / %u]",
         colorBufferHandle, infoPtr->width, infoPtr->height, string_VkFormat(imageVkFormat),
         infoPtr->memory.size, infoPtr->memory.typeIndex,
         mDeviceInfo.memProps.memoryTypes[infoPtr->memory.typeIndex].propertyFlags,
@@ -3190,6 +3235,20 @@ static void convertRgbToRgbaPixels(void* dst, const void* src, uint32_t w, uint3
     }
 }
 
+static void convertRgba4ToBGRA4Pixels(void* dst, const void* src, uint32_t w, uint32_t h) {
+    const size_t pixelCount = w * h;
+    const uint16_t* srcPixels = reinterpret_cast<const uint16_t*>(src);
+    uint16_t* dstPixels = reinterpret_cast<uint16_t*>(dst);
+    for (size_t i = 0; i < pixelCount; ++i) {
+        const uint16_t rgba4_pixel = srcPixels[i];
+        const uint8_t red = (rgba4_pixel >> 12) & 0xF;
+        const uint8_t green = (rgba4_pixel >> 8) & 0xF;
+        const uint8_t blue = (rgba4_pixel >> 4) & 0xF;
+        const uint8_t alpha = rgba4_pixel & 0xF;
+        dstPixels[i] = (blue << 12) | (green << 8) | (red << 4) | alpha;
+    }
+}
+
 bool VkEmulation::updateColorBufferFromBytesLocked(uint32_t colorBufferHandle, uint32_t x,
                                                    uint32_t y, uint32_t w, uint32_t h,
                                                    const void* pixels, size_t inputPixelsSize) {
@@ -3212,9 +3271,10 @@ bool VkEmulation::updateColorBufferFromBytesLocked(uint32_t colorBufferHandle, u
         return false;
     }
 
+    const VkFormat creationFormat = colorBufferInfo->imageCreateInfoShallow.format;
     VkDeviceSize dstBufferSize = 0;
     std::vector<VkBufferImageCopy> bufferImageCopies;
-    if (!getFormatTransferInfo(colorBufferInfo->imageCreateInfoShallow.format,
+    if (!getFormatTransferInfo(creationFormat,
                                colorBufferInfo->imageCreateInfoShallow.extent.width,
                                colorBufferInfo->imageCreateInfoShallow.extent.height,
                                &dstBufferSize, &bufferImageCopies)) {
@@ -3229,10 +3289,11 @@ bool VkEmulation::updateColorBufferFromBytesLocked(uint32_t colorBufferHandle, u
             colorBufferHandle, dstBufferSize, stagingBufferSize);
         return false;
     }
-
-    bool isThreeByteRgb =
+    const bool isRGBA4onBGRA4 = (colorBufferInfo->internalFormat == GL_RGBA4_OES) &&
+                          (creationFormat == VK_FORMAT_B4G4R4A4_UNORM_PACK16);
+    const bool isThreeByteRgb =
         (colorBufferInfo->internalFormat == GL_RGB || colorBufferInfo->internalFormat == GL_RGB8);
-    size_t expectedInputSize = (isThreeByteRgb ? dstBufferSize / 4 * 3 : dstBufferSize);
+    const size_t expectedInputSize = (isThreeByteRgb ? dstBufferSize / 4 * 3 : dstBufferSize);
 
     if (inputPixelsSize != 0 && inputPixelsSize != expectedInputSize) {
         ERR("Unexpected contents size when trying to update ColorBuffer:%d, "
@@ -3248,6 +3309,8 @@ bool VkEmulation::updateColorBufferFromBytesLocked(uint32_t colorBufferHandle, u
         // an incompatible choice of 4-byte backing VK_FORMAT_R8G8B8A8_UNORM.
         // b/281550953
         convertRgbToRgbaPixels(stagingBufferPtr, pixels, w, h);
+    } else if(isRGBA4onBGRA4) {
+        convertRgba4ToBGRA4Pixels(stagingBufferPtr, pixels, w, h);
     } else {
         std::memcpy(stagingBufferPtr, pixels, dstBufferSize);
     }

@@ -1410,8 +1410,6 @@ static int rcSetColorBufferVulkanMode2(uint32_t colorBuffer, uint32_t mode,
                                        uint32_t memoryProperty) {
 #define VULKAN_MODE_VULKAN_ONLY 1
 
-    bool modeIsVulkanOnly = mode == VULKAN_MODE_VULKAN_ONLY;
-
     FrameBuffer* fb = FrameBuffer::getFB();
     if (!fb->hasEmulationVk()) {
         ERR("VkEmulation not enabled.");

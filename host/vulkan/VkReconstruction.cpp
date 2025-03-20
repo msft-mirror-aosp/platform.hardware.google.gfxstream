@@ -125,7 +125,7 @@ void VkReconstruction::saveReplayBuffers(android::base::Stream* stream) {
                 savedApis.insert(apiRef);
 #if DEBUG_RECONSTRUCTION
                 DEBUG_RECON("adding handle 0x%lx API 0x%lx op code %d", handle.first, apiRef,
-                            apiItem->opCode);
+                            GetOpcode(*apiItem));
 #endif
                 nextApis.push_back(apiRef);
             }
@@ -167,7 +167,7 @@ void VkReconstruction::saveReplayBuffers(android::base::Stream* stream) {
         for (auto apiHandle : uniqApiRefsByTopoOrder[i]) {
             auto item = mApiCallManager.get(apiHandle);
             // 4 bytes for opcode, and 4 bytes for saveBufferRaw's size field
-            DEBUG_RECON("saving api handle 0x%lx op code %d", apiHandle, GetOpcode(item));
+            DEBUG_RECON("saving api handle 0x%lx op code %d", apiHandle, GetOpcode(*item));
             memcpy(apiTracePtr, item->packet.data(), item->packet.size());
             apiTracePtr += item->packet.size();
         }
@@ -230,14 +230,17 @@ void VkReconstruction::destroyApiCallInfo(VkSnapshotApiCallHandle h) {
 
 void VkReconstruction::destroyApiCallInfoIfUnused(VkSnapshotApiCallInfo* info) {
     if (!info) return;
+    auto handle = info->handle;
+    auto currentInfo = mApiCallManager.get(handle);
+    if (!currentInfo) return;
 
-    if (info->packet.empty()) {
-        mApiCallManager.remove(info->handle);
+    if (currentInfo->packet.empty()) {
+        mApiCallManager.remove(handle);
         return;
     }
 
     if (!info->extraCreatedHandles.empty()) {
-        info->createdHandles.insert(info->createdHandles.end(), info->extraCreatedHandles.begin(),
+        currentInfo->createdHandles.insert(currentInfo->createdHandles.end(), info->extraCreatedHandles.begin(),
                                     info->extraCreatedHandles.end());
         info->extraCreatedHandles.clear();
     }
@@ -249,7 +252,10 @@ VkSnapshotApiCallInfo* VkReconstruction::getApiInfo(VkSnapshotApiCallHandle h) {
 
 void VkReconstruction::setApiTrace(VkSnapshotApiCallInfo* apiInfo, const uint8_t* packet,
                                    size_t packetLenBytes) {
-    apiInfo->packet.assign(packet, packet + packetLenBytes);
+    auto* info = mApiCallManager.get(apiInfo->handle);
+    if(info) {
+        info->packet.assign(packet, packet + packetLenBytes);
+    }
 }
 
 void VkReconstruction::dump() {

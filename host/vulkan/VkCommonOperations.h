@@ -126,6 +126,8 @@ class VkEmulation {
 
     bool supportsExternalMemoryHostProperties() const;
 
+    std::optional<VkPhysicalDeviceRobustness2FeaturesEXT> getRobustness2Features() const;
+
     VkPhysicalDeviceExternalMemoryHostPropertiesEXT externalMemoryHostProperties() const;
 
     bool isGuestVulkanOnly() const;
@@ -472,6 +474,9 @@ class VkEmulation {
 #else
         PFN_vkGetMemoryFdKHR getMemoryHandleFunc = nullptr;
 #endif
+
+        // Set only if requested and supported
+        std::optional<VkPhysicalDeviceRobustness2FeaturesEXT> robustness2Features;
     };
 
     uint32_t getValidMemoryTypeIndex(uint32_t requiredMemoryTypeBits,

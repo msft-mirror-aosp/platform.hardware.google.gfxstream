@@ -30,9 +30,9 @@ objc_library(
 
 cc_library(
     name = "gl-common-headers",
-    hdrs = glob(["glestranslator/include/**/*.h"]),
+    hdrs = glob(["glestranslator/GLcommon/include/**/*.h"]),
     copts = ["-fno-exceptions"],
-    includes = ["glestranslator/include"],
+    includes = ["glestranslator/GLcommon/include"],
     visibility = ["//visibility:public"],
     deps = ["//hardware/google/gfxstream/host/apigen-codec-common"],
 )
@@ -167,7 +167,6 @@ cc_library(
     srcs = [
         "gl-host-common/opengl/EmuglBackendList.cpp",
         "gl-host-common/opengl/GLProcessPipe.cpp",
-        "gl-host-common/opengl/GpuFrameBridge.cpp",
         "gl-host-common/opengl/OpenglEsPipe.cpp",
         "gl-host-common/opengl/emugl_config.cpp",
         "gl-host-common/opengl/gpuinfo.cpp",

@@ -14,72 +14,30 @@
 
 #include "host-common/opengles.h"
 
-#include "aemu/base/GLObjectCounter.h"
-#include "aemu/base/files/PathUtils.h"
-#include "aemu/base/files/Stream.h"
-#include "aemu/base/memory/MemoryTracker.h"
-#include "aemu/base/SharedLibrary.h"
-#include "aemu/base/system/System.h"
-#include "host-common/address_space_device.h"
-#include "host-common/address_space_graphics.h"
-#include "host-common/address_space_graphics_types.h"
-#include "host-common/GfxstreamFatalError.h"
-#include "host-common/GoldfishDma.h"
-#include "host-common/logging.h"
-#include "host-common/RefcountPipe.h"
-#include "host-common/FeatureControl.h"
-#include "host-common/globals.h"
-#include "host-common/opengl/emugl_config.h"
-#include "host-common/opengl/GLProcessPipe.h"
-#include "host-common/opengl/logger.h"
-#include "host-common/opengl/gpuinfo.h"
-
-#include "render-utils/render_api_functions.h"
-#include "OpenGLESDispatch/EGLDispatch.h"
-#include "OpenGLESDispatch/GLESv2Dispatch.h"
-
-
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #include <optional>
 
-#define D(...)
-#define DD(...)
+#include "aemu/base/GLObjectCounter.h"
+#include "aemu/base/SharedLibrary.h"
+#include "host-common/address_space_device.h"
+#include "host-common/address_space_graphics.h"
+#include "host-common/address_space_graphics_types.h"
+#include "host-common/GfxstreamFatalError.h"
+#include "host-common/logging.h"
+#include "host-common/opengl/GLProcessPipe.h"
+#include "host-common/opengl/emugl_config.h"
+#include "host-common/opengl/logger.h"
+#include "host-common/opengl/gpuinfo.h"
 
-#define I(fmt, ...)                                     \
-    do {                                                \
-        GFXSTREAM_LOG(stderr, 'I', fmt, ##__VA_ARGS__); \
-    } while (0);
-
-#define E(fmt, ...)                                     \
-    do {                                                \
-        GFXSTREAM_LOG(stderr, 'E', fmt, ##__VA_ARGS__); \
-    } while (0);
-
-
-using android::base::pj;
 using android::base::SharedLibrary;
 using android::emulation::asg::AddressSpaceGraphicsContext;
 using android::emulation::asg::ConsumerCallbacks;
 using android::emulation::asg::ConsumerInterface;
 using emugl::ABORT_REASON_OTHER;
 using emugl::FatalError;
-using gfxstream::gl::EGLDispatch;
-using gfxstream::gl::GLESv2Dispatch;
-
-/* Name of the GLES rendering library we're going to use */
-#define RENDERER_LIB_NAME "libOpenglRender"
-
-/* Declared in "android/globals.h" */
-int  android_gles_fast_pipes = 1;
-
-// Define the Render API function pointers.
-#define FUNCTION_(ret, name, sig, params) \
-        inline ret (*name) sig = NULL;
-LIST_RENDER_API_FUNCTIONS(FUNCTION_)
-#undef FUNCTION_
 
 static bool sOpenglLoggerInitialized = false;
 static bool sRendererUsesSubWindow = false;
@@ -136,7 +94,6 @@ android_startOpenglesRenderer(int width, int height,
                               int* glesMinorVersion_out)
 {
     if (!sRenderLib) {
-        D("Can't start OpenGLES renderer without support libraries");
         return -1;
     }
 
@@ -146,13 +103,11 @@ android_startOpenglesRenderer(int width, int height,
 
     const GpuInfoList& gpuList = globalGpuInfoList();
     std::string gpuInfoAsString = gpuList.dump();
-    I("%s: gpu info", __func__);
-    I("%s", gpuInfoAsString.c_str());
+    INFO("%s: gpu info", __func__);
+    INFO("%s", gpuInfoAsString.c_str());
 
     sRenderLib->setRenderer(emuglConfig_get_current_renderer());
     sRenderLib->setAvdInfo(guestPhoneApi, guestApiLevel);
-    // sRenderLib->setCrashReporter(&crashhandler_die_format);
-    // sRenderLib->setFeatureController(&android::featurecontrol::isEnabled);
     sRenderLib->setSyncDevice(goldfish_sync_create_timeline,
             goldfish_sync_create_fence,
             goldfish_sync_timeline_inc,
@@ -169,18 +124,10 @@ android_startOpenglesRenderer(int width, int height,
     sRenderLib->setVmOps(*vm_operations);
     sRenderLib->setAddressSpaceDeviceControlOps(get_address_space_device_control_ops());
     sRenderLib->setWindowOps(*window_agent, *multi_display_agent);
-    // sRenderLib->setUsageTracker(android::base::CpuUsage::get(),
-    //                             android::base::MemoryTracker::get());
 
     const auto* features = reinterpret_cast<const gfxstream::host::FeatureSet*>(gfxstreamFeatures);
     sRenderer = sRenderLib->initRenderer(width, height, *features, sRendererUsesSubWindow, sEgl2egl);
     android_setOpenglesRenderer(&sRenderer);
-
-    // android::snapshot::Snapshotter::get().addOperationCallback(
-    //         [](android::snapshot::Snapshotter::Operation op,
-    //            android::snapshot::Snapshotter::Stage stage) {
-    //             sRenderer->snapshotOperationCallback(op, stage);
-    //         });
 
     android::emulation::registerOnLastRefCallback(
             sRenderLib->getOnLastColorBufferRef());
@@ -237,7 +184,7 @@ android_startOpenglesRenderer(int width, int height,
     AddressSpaceGraphicsContext::setConsumer(iface);
 
     if (!sRenderer) {
-        D("Can't start OpenGLES renderer?");
+        ERR("Can't start OpenGLES renderer?");
         return -1;
     }
 
@@ -253,8 +200,8 @@ android_asyncReadbackSupported() {
     if (sRenderer) {
         return sRenderer->asyncReadbackSupported();
     } else {
-        D("tried to query async readback support "
-          "before renderer initialized. Likely guest rendering");
+        VERBOSE("tried to query async readback support "
+                "before renderer initialized. Likely guest rendering");
         return false;
     }
 }
@@ -317,14 +264,14 @@ void android_getOpenglesHardwareStrings(char** vendor,
     assert(vendor != NULL && renderer != NULL && version != NULL);
     assert(*vendor == NULL && *renderer == NULL && *version == NULL);
     if (!sRenderer) {
-        D("Can't get OpenGL ES hardware strings when renderer not started");
+        ERR("Can't get OpenGL ES hardware strings when renderer not started");
         return;
     }
 
     const gfxstream::Renderer::HardwareStrings strings = sRenderer->getHardwareStrings();
-    D("OpenGL Vendor=[%s]", strings.vendor.c_str());
-    D("OpenGL Renderer=[%s]", strings.renderer.c_str());
-    D("OpenGL Version=[%s]", strings.version.c_str());
+    INFO("OpenGL Vendor=[%s]", strings.vendor.c_str());
+    INFO("OpenGL Renderer=[%s]", strings.renderer.c_str());
+    INFO("OpenGL Version=[%s]", strings.version.c_str());
 
     /* Special case for the default ES to GL translators: extract the strings
      * of the underlying OpenGL implementation. */
@@ -342,7 +289,7 @@ void android_getOpenglesHardwareStrings(char** vendor,
 
 void android_getOpenglesVersion(int* maj, int* min) {
     sRenderLib->getGlesVersion(maj, min);
-    fprintf(stderr, "%s: maj min %d %d\n", __func__, *maj, *min);
+    INFO("OpenGL ES version major:%d minor:%d", *maj, *min);
 }
 
 void
