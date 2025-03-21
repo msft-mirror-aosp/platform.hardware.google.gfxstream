@@ -69,12 +69,11 @@ cc_library(
     name = "gfxstream-gl-host-common-headers",
     hdrs = glob([
         "include/**/*.h",
-        "include/**/*.hpp",
     ]),
     includes = ["include"],
     visibility = ["//visibility:public"],
     deps = [
-        "//hardware/google/aemu/base:aemu-base-headers",
-        "//hardware/google/aemu/host-common:aemu-host-common-headers",
+        "@aemu//base:aemu-base-headers",
+        "@aemu//host-common:aemu-host-common-headers",
     ],
 )
