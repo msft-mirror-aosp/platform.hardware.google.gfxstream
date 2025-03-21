@@ -69,7 +69,6 @@ cc_library(
     name = "gfxstream-gl-host-common-headers",
     hdrs = glob([
         "include/**/*.h",
-        "include/**/*.hpp",
     ]),
     includes = ["include"],
     visibility = ["//visibility:public"],

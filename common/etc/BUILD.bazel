@@ -1,9 +1,10 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
 # Header Library
 cc_library(
     name = "gfxstream_etc_headers",
     hdrs = glob([
         "include/**/*.h",
-        "include/**/*.hpp",
     ]),
     includes = ["include"],
     visibility = ["//visibility:public"],
