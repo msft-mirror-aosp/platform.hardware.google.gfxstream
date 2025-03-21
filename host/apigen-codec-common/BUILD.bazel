@@ -1,5 +1,7 @@
 # File: project_root/src/apigen-codec-common/BUILD
 
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
 cc_library(
     name = "apigen-codec-common",
     srcs = [
@@ -32,8 +34,8 @@ cc_library(
     includes = ["."],
     visibility = ["//visibility:public"],
     deps = [
-        "//hardware/google/aemu/base:aemu-base-headers",
-        "//hardware/google/aemu/host-common:aemu-host-common",
-        "//hardware/google/gfxstream:gfxstream-gl-host-common-headers",
+        "//:gfxstream-gl-host-common-headers",
+        "@aemu//base:aemu-base-headers",
+        "@aemu//host-common:aemu-host-common",
     ],
 )

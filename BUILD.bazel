@@ -74,7 +74,7 @@ cc_library(
     includes = ["include"],
     visibility = ["//visibility:public"],
     deps = [
-        "//hardware/google/aemu/base:aemu-base-headers",
-        "//hardware/google/aemu/host-common:aemu-host-common-headers",
+        "@aemu//base:aemu-base-headers",
+        "@aemu//host-common:aemu-host-common-headers",
     ],
 )
