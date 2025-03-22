@@ -296,7 +296,6 @@ cc_library(
         "YUVConverter.cpp",
     ] + glob([
         "*.h",
-        "glestranslator/include/**/*.h",
     ]),
     hdrs = [],
     copts = [
