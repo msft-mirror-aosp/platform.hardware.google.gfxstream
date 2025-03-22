@@ -1,3 +1,5 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
 cc_library(
     name = "GLES_V2_translator_static",
     srcs = [
@@ -27,9 +29,9 @@ cc_library(
     includes = ["."],
     visibility = ["//visibility:public"],
     deps = [
-        "//hardware/google/gfxstream:gfxstream-gl-host-common-headers",
-        "//hardware/google/gfxstream/host/apigen-codec-common",
-        "//hardware/google/gfxstream/host/gl:gl_common",
+        "//:gfxstream-gl-host-common-headers",
+        "//host/apigen-codec-common",
+        "//host/gl:gl_common",
     ],
     alwayslink = True,
 )
