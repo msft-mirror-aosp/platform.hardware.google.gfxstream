@@ -152,6 +152,8 @@ endif
 inc_stream_servers = include_directories('.')
 inc_host_include = include_directories('include')
 
+inc_gl_common = include_directories('gl/glestranslator/GLcommon/include')
+
 subdir('features')
 subdir('tracing')
 
@@ -208,7 +210,7 @@ if use_gles
   files_lib_gfxstream_backend += files('RenderThreadInfoGl.cpp')
   files_lib_gfxstream_backend += files('RenderControl.cpp')
 
-  inc_gfxstream_backend += [inc_gl_server, inc_gl_snapshot, inc_gles_translator]
+  inc_gfxstream_backend += [inc_gl_server, inc_gl_snapshot, inc_gl_common]
   link_gfxstream_backend += lib_gl_server
 endif
 
