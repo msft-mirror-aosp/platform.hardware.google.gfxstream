@@ -331,18 +331,6 @@ struct FeatureSet {
     };
 };
 
-struct FeatureDependencyHandler {
-    FeatureDependencyHandler(const FeatureSet& set) : featureSetView(set){}
-    const FeatureSet& featureSetView;
-    const std::map<const FeatureInfo*, std::vector<const FeatureInfo*>> VK_FEATURE_DEPENDENCY_MAP= {
-        // List other dependencies here in the shape of:
-        // {FEATURE_X, {DEPENDENT_FEATURE_A, DEPENDENT_FEATURE_B}}
-        {&featureSetView.VulkanSnapshots, {&featureSetView.VulkanBatchedDescriptorSetUpdate, &featureSetView.Vulkan}},
-    };
-
-    FeatureResult checkAllDependentFeaturesAreEnabled();
-};
-
 #define GFXSTREAM_SET_FEATURE_ON_CONDITION(set, feature, condition) \
     do                                                              \
     {                                                               \
