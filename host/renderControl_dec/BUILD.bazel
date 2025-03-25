@@ -1,3 +1,5 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
 cc_library(
     name = "renderControl_dec",
     srcs = [
@@ -7,7 +9,7 @@ cc_library(
     hdrs = [],
     visibility = ["//visibility:public"],
     deps = [
-        "//hardware/google/gfxstream/common/opengl:gfxstream_opengl_headers",
-        "//hardware/google/gfxstream/host/apigen-codec-common",
+        "//common/opengl:gfxstream_opengl_headers",
+        "//host/apigen-codec-common",
     ],
 )

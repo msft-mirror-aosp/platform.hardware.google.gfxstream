@@ -6,7 +6,6 @@
 #===============#
 gfxstream_host_args = [
   '-D_FILE_OFFSET_BITS=64',
-  '-DGFXSTREAM_ENABLE_GUEST_VIRTIO_RESOURCE_TILING_CONTROL=1',
   '-Wno-unused-parameter',
   '-Wno-unused-function',
   '-Wno-unused-variable',
@@ -152,6 +151,8 @@ endif
 inc_stream_servers = include_directories('.')
 inc_host_include = include_directories('include')
 
+inc_gl_common = include_directories('gl/glestranslator/GLcommon/include')
+
 subdir('features')
 subdir('tracing')
 
@@ -208,7 +209,7 @@ if use_gles
   files_lib_gfxstream_backend += files('RenderThreadInfoGl.cpp')
   files_lib_gfxstream_backend += files('RenderControl.cpp')
 
-  inc_gfxstream_backend += [inc_gl_server, inc_gl_snapshot, inc_gles_translator]
+  inc_gfxstream_backend += [inc_gl_server, inc_gl_snapshot, inc_gl_common]
   link_gfxstream_backend += lib_gl_server
 endif
 
@@ -242,7 +243,6 @@ elif host_machine.system() == 'linux' and use_gles
 elif host_machine.system() == 'qnx'
   files_lib_gfxstream_backend += files(
     'NativeSubWindow_qnx.cpp',
-    '../qnx/host/platform_qnx.cpp',
   )
 endif
 
